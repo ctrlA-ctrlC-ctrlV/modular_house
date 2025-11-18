@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+The following MUST be documented (or explicitly marked N/A) before proceeding:
+
+1. Security & Privacy: Threat model outline, data classification, secrets handling approach.
+2. Reliability & Observability: Planned health endpoints, log schema (JSON fields), initial metrics list.
+3. Test Discipline: Test strategy (unit vs integration), coverage targets for critical modules.
+4. Performance & Efficiency: Feature-specific latency/resource budgets; measurement plan.
+5. Accessibility & Inclusive UX: WCAG considerations for new UI elements (focus order, aria needs).
+
+Any missing gate blocks progression until resolved. Exceptions MUST include a remediation task.
 
 ## Project Structure
 

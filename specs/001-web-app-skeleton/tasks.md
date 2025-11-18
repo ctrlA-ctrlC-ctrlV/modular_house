@@ -21,7 +21,7 @@ description: "Implementation tasks for Web App Skeleton (Modular House MVP)"
 Purpose: Project initialization and base structure per plan.
 
 - [X] T001 Create monorepo scaffolding in repository root: `pnpm-workspace.yaml`, `package.json`, `.editorconfig`, `.gitignore`, `.env.example`
-- [ ] T002 [P] Create directory skeleton: `/apps/web`, `/apps/api`, `/packages/ui`, `/packages/config`, `/infra/nginx`, `/infra/scripts`
+- [X] T002 [P] Create directory skeleton: `/apps/web`, `/apps/api`, `/packages/ui`, `/packages/config`, `/infra/nginx`, `/infra/scripts`
 - [ ] T003 Initialize Vite React TS app in `apps/web` with minimal placeholder CSS and pages wiring (`index.html`, `vite.config.ts`, `tsconfig.json`)
 - [ ] T004 [P] Initialize Express TS app in `apps/api` (`tsconfig.json`, `src/server.ts`, `src/app.ts`)
 - [ ] T005 [P] Create shared config package `packages/config` (tsconfig base, eslint, prettier) and reference from apps

@@ -1,0 +1,26 @@
+{
+  "name": "modular-house",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modular House MVP - Web application for custom modular homes and garden rooms",
+  "scripts": {
+    "dev": "pnpm --parallel run dev",
+    "build": "pnpm --parallel run build",
+    "test": "pnpm --parallel run test",
+    "test:coverage": "pnpm --parallel run test:coverage",
+    "lint": "pnpm --parallel run lint",
+    "lint:fix": "pnpm --parallel run lint:fix",
+    "format": "pnpm --parallel run format",
+    "clean": "pnpm --parallel run clean",
+    "typecheck": "pnpm --parallel run typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

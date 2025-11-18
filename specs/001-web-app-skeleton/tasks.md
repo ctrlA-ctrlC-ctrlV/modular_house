@@ -49,6 +49,9 @@ Purpose: Core infrastructure that MUST be complete before any user story.
 - [ ] T020 [P] Add accessible focus styles in `apps/web/src/styles/focus.css` and import in `apps/web/src/main.tsx`
 - [ ] T021 [P] Implement API client wrapper in `apps/web/src/lib/apiClient.ts` using `VITE_API_BASE_URL`
 
+- [ ] T022 [P] Test tooling: setup Vitest in `apps/api` and `apps/web`; Supertest in `apps/api`; enforce coverage thresholds (overall ≥70%, critical modules 100% branch)
+- [ ] T023 [P] CI: add root scripts to run tests and enforce coverage in `package.json` and CI workflow
+
 Checkpoint: Foundation ready—user stories can proceed in parallel.
 
 ---
@@ -61,14 +64,19 @@ Independent Test: Fill form with valid data → see success message; internal em
 
 ### Implementation
 
-- [ ] T022 [P] [US1] Define enquiry Zod schema in `apps/api/src/types/submission.ts` (fields per spec; consent true)
-- [ ] T023 [P] [US1] Implement POST `/submissions/enquiry` in `apps/api/src/routes/submissions.ts` with validate + rate limiter + honeypot check
-- [ ] T024 [US1] Implement `SubmissionsService` in `apps/api/src/services/submissions.ts` (store payload, consent flag/text, ipHash, userAgent, emailLog)
-- [ ] T025 [US1] Integrate internal email send + optional customer confirmation in `apps/api/src/services/submissions.ts` using `mailer.ts`
-- [ ] T026 [P] [US1] Build `EnquiryForm` with `react-hook-form` + `zod` in `apps/web/src/forms/EnquiryForm.tsx` (accessible inline errors; hidden honeypot)
-- [ ] T027 [US1] Render form on Contact page with success/error UI in `apps/web/src/routes/contact.tsx`
-- [ ] T028 [US1] Add CTA links to Contact route from header and key pages in `apps/web/src/components/Header.tsx` and `apps/web/src/routes/landing.tsx`
-- [ ] T029 [US1] Persist email outcomes to `Submission.emailLog` and return `{ ok:true, id }` responses consistently
+- [ ] T024 [P] [US1] Define enquiry Zod schema in `apps/api/src/types/submission.ts` (fields per spec; consent true)
+- [ ] T025 [P] [US1] Implement POST `/submissions/enquiry` in `apps/api/src/routes/submissions.ts` with validate + rate limiter + honeypot check
+- [ ] T026 [US1] Implement `SubmissionsService` in `apps/api/src/services/submissions.ts` (store payload, consent flag/text, ipHash, userAgent, emailLog)
+- [ ] T027 [US1] Integrate internal email send + optional customer confirmation in `apps/api/src/services/submissions.ts` using `mailer.ts`
+- [ ] T028 [P] [US1] Build `EnquiryForm` with `react-hook-form` + `zod` in `apps/web/src/forms/EnquiryForm.tsx` (accessible inline errors; hidden honeypot)
+- [ ] T029 [US1] Render form on Contact page with success/error UI in `apps/web/src/routes/contact.tsx`
+- [ ] T030 [US1] Add CTA links to Contact route from header and key pages in `apps/web/src/components/Header.tsx` and `apps/web/src/routes/landing.tsx`
+- [ ] T031 [US1] Persist email outcomes to `Submission.emailLog` and return `{ ok:true, id }` responses consistently
+
+- [ ] T034 [P] [US1] Contract tests for `POST /submissions/enquiry` (valid, required field errors, honeypot, rate-limit 429) in `apps/api/tests/contract/submissions.enquiry.spec.ts`
+- [ ] T035 [US1] Integration test: submission persists record + internal email send; transient failure logs outcome in `apps/api/tests/integration/submissions.spec.ts`
+- [ ] T036 [P] [US1] Add `CUSTOMER_CONFIRM_ENABLED=true` to `apps/api/.env.example` and read flag in `apps/api/src/config/env.ts`
+- [ ] T037 [US1] Gate customer confirmation email in `SubmissionsService` by config flag; document behavior in quickstart
 
 Checkpoint: US1 independent demo ready (MVP).
 
@@ -82,15 +90,22 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 
 ### Implementation
 
-- [ ] T030 [P] [US2] Implement admin auth in `apps/api/src/routes/admin/auth.ts` and `apps/api/src/services/auth.ts` (email+password, Argon2id, JWT)
-- [ ] T031 [US2] Add JWT auth middleware in `apps/api/src/middleware/auth.ts` and protect `/admin/*` routes
-- [ ] T032 [P] [US2] Implement Pages CRUD in `apps/api/src/routes/admin/pages.ts` and `apps/api/src/services/content/pages.ts` (slug unique, SEO fields, last modified)
-- [ ] T033 [P] [US2] Implement Gallery CRUD in `apps/api/src/routes/admin/gallery.ts` and `apps/api/src/services/content/gallery.ts` (category enum, alt text required for publish)
-- [ ] T034 [P] [US2] Implement FAQ CRUD in `apps/api/src/routes/admin/faqs.ts` and `apps/api/src/services/content/faqs.ts`
-- [ ] T035 [US2] Implement submissions list and CSV export in `apps/api/src/routes/admin/submissions.ts` and `apps/api/src/services/submissionsExport.ts`
-- [ ] T036 [P] [US2] Build minimal admin UI routes in `apps/web/src/routes/admin/login.tsx` and `apps/web/src/routes/admin/index.tsx`
-- [ ] T037 [US2] Wire public pages to content endpoints: `apps/web/src/lib/contentClient.ts` and fetch in routes (hero title/image updates visible)
-- [ ] T038 [US2] Redirect unauthenticated admin routes to login in `apps/web/src/routes/admin/guard.tsx`
+- [ ] T038 [P] [US2] Implement admin auth in `apps/api/src/routes/admin/auth.ts` and `apps/api/src/services/auth.ts` (email+password, Argon2id, JWT)
+- [ ] T039 [US2] Add JWT auth middleware in `apps/api/src/middleware/auth.ts` and protect `/admin/*` routes
+- [ ] T040 [P] [US2] Implement Pages CRUD in `apps/api/src/routes/admin/pages.ts` and `apps/api/src/services/content/pages.ts` (slug unique, SEO fields, last modified)
+- [ ] T041 [P] [US2] Implement Gallery CRUD in `apps/api/src/routes/admin/gallery.ts` and `apps/api/src/services/content/gallery.ts` (category enum, alt text required for publish)
+- [ ] T042 [P] [US2] Implement FAQ CRUD in `apps/api/src/routes/admin/faqs.ts` and `apps/api/src/services/content/faqs.ts`
+- [ ] T043 [US2] Implement submissions list and CSV export in `apps/api/src/routes/admin/submissions.ts` and `apps/api/src/services/submissionsExport.ts`
+- [ ] T044 [P] [US2] Build minimal admin UI routes in `apps/web/src/routes/admin/login.tsx` and `apps/web/src/routes/admin/index.tsx`
+- [ ] T045 [US2] Wire public pages to content endpoints: `apps/web/src/lib/contentClient.ts` and fetch in routes (hero title/image updates visible)
+- [ ] T046 [US2] Redirect unauthenticated admin routes to login in `apps/web/src/routes/admin/guard.tsx`
+
+- [ ] T047 [P] [US2] Security tests: `/admin/*` requires JWT; invalid/expired tokens return 401/403 in `apps/api/tests/integration/admin.auth.spec.ts`
+- [ ] T048 [US2] Integration tests: Pages/Gallery/FAQ CRUD and CSV export shape in `apps/api/tests/integration/admin.content.spec.ts`
+- [ ] T049 [P] [US2] Implement Redirects CRUD in `apps/api/src/routes/admin/redirects.ts` and `apps/api/src/services/content/redirects.ts` (validate URL, prevent loops)
+- [ ] T050 [P] [US2] Admin UI: Redirects management page in `apps/web/src/routes/admin/redirects.tsx` (list/create/edit/toggle active)
+- [ ] T051 [P] [US2] Add `POST /admin/uploads/image` (multipart) in `apps/api/src/routes/admin/uploads.ts` (max 500KB, mime-type check, returns URL)
+- [ ] T052 [US2] Admin UI: image upload component w/ client-side size check; integrate in Gallery create/update with accessible errors
 
 Checkpoint: US2 independent demo ready; content edits reflected on public pages; CSV export verified.
 
@@ -104,12 +119,12 @@ Independent Test: Verify keyboard traversal through header; filter gallery by ca
 
 ### Implementation
 
-- [ ] T039 [P] [US3] Implement gallery filter page in `apps/web/src/routes/gallery.tsx` (category param, loads from `/content/gallery`)
-- [ ] T040 [P] [US3] Implement lightbox with Radix Dialog in `apps/web/src/components/Lightbox.tsx` (prev/next controls, aria labels)
-- [ ] T041 [US3] Ensure focus management returns to thumbnail on close in `apps/web/src/components/Lightbox.tsx`
-- [ ] T042 [US3] Lazy-load gallery images with placeholders in `apps/web/src/components/GalleryGrid.tsx`
-- [ ] T043 [P] [US3] Ensure keyboard focus states + aria-current in `apps/web/src/components/Header.tsx` and CSS
-- [ ] T044 [US3] Implement branded 404 page at `apps/web/src/routes/not-found.tsx` and route fallback
+- [ ] T053 [P] [US3] Implement gallery filter page in `apps/web/src/routes/gallery.tsx` (category param, loads from `/content/gallery`)
+- [ ] T054 [P] [US3] Implement lightbox with Radix Dialog in `apps/web/src/components/Lightbox.tsx` (prev/next controls, aria labels)
+- [ ] T055 [US3] Ensure focus management returns to thumbnail on close in `apps/web/src/components/Lightbox.tsx`
+- [ ] T056 [US3] Lazy-load gallery images with placeholders in `apps/web/src/components/GalleryGrid.tsx`
+- [ ] T057 [P] [US3] Ensure keyboard focus states + aria-current in `apps/web/src/components/Header.tsx` and CSS
+- [ ] T058 [US3] Implement branded 404 page at `apps/web/src/routes/not-found.tsx` and route fallback
 
 Checkpoint: US3 independent demo ready.
 
@@ -119,13 +134,16 @@ Checkpoint: US3 independent demo ready.
 
 Purpose: Repo-wide improvements and non-blocking features.
 
-- [ ] T045 [P] Documentation: write markup guide in `docs/markup-guide.md` (components, class naming) (FR-026)
-- [ ] T046 SEO/robots: add `sitemap.xml` and `robots.txt` endpoints in `apps/api/src/routes/seo.ts` (FR-018)
-- [ ] T047 [P] Redirects: implement 301 redirect lookup + middleware in `apps/api/src/middleware/redirects.ts` and model in Prisma (FR-021, FR-030)
-- [ ] T048 [P] Cookie consent banner in `apps/web/src/components/CookieConsent.tsx` (FR-020)
-- [ ] T049 Performance: confirm budgets (LCP, HTML size, lazy-load) and adjust Vite config `apps/web/vite.config.ts`
-- [ ] T050 [P] Security hardening: disable `x-powered-by`, review CORS, pin dependencies, secrets scanning in CI
-- [ ] T051 Data retention: stub purge job in `apps/api/src/jobs/retention.ts` and document scheduling (FR-023)
+- [ ] T059 [P] Documentation: write markup guide in `docs/markup-guide.md` (components, class naming) (FR-026)
+- [ ] T060 SEO/robots: implement dynamic `GET /sitemap.xml` from Pages & Gallery; implement `GET /robots.txt` with env `ROBOTS_ALLOW` controlling Disallow; set cache headers (FR-018)
+- [ ] T061 [P] Redirects: implement 301 redirect lookup + middleware in `apps/api/src/middleware/redirects.ts` and model in Prisma (FR-021, FR-030)
+- [ ] T062 [P] Cookie consent banner in `apps/web/src/components/CookieConsent.tsx` (FR-020)
+- [ ] T063 Performance: confirm budgets (LCP, HTML size, lazy-load) and adjust Vite config `apps/web/vite.config.ts`
+- [ ] T064 [P] Security hardening: disable `x-powered-by`, review CORS, pin dependencies, secrets scanning in CI
+- [ ] T065 Data retention: stub purge job in `apps/api/src/jobs/retention.ts` and document scheduling (FR-023)
+ - [ ] T066 [P] Redirects validation tests (no loops, valid targets) in `apps/api/tests/unit/redirects.spec.ts`
+ - [ ] T067 [P] Metrics: expose Prometheus metrics at `GET /metrics` using `prom-client` in `apps/api/src/routes/metrics.ts`
+ - [ ] T068 [P] Metrics middleware: add request/response counters and latency histograms in `apps/api/src/middleware/metrics.ts` and wire in `app.ts`
 
 ---
 

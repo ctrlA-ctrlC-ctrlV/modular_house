@@ -43,6 +43,7 @@ MAIL_USER=
 MAIL_PASS=
 MAIL_FROM="Modular House <info@example.com>"
 MAIL_TO_INTERNAL="sales@example.com"
+CUSTOMER_CONFIRM_ENABLED=true
 ```
 
 2) Start infrastructure (Postgres + MailHog)

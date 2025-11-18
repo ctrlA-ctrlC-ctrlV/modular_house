@@ -9,8 +9,8 @@ Deliver a production-ready MVP skeleton for Modular House consisting of a React 
 
 ## Technical Context
 
-**Language/Version**: Node.js 24.11.1 LTS, TypeScript latest stable; React latest stable; Express 5.x stable; PostgreSQL 18.x.  
-**Primary Dependencies**: Vite, React Router, React Hook Form + Zod, Axios, `@radix-ui/react-dialog` (lightbox/dialog), `express`, `cors`, `helmet`, `compression`, `express-rate-limit`, `zod`, `pino` + `pino-http`, `nodemailer`.  
+**Language/Version**: Node.js 24.11.1 LTS, TypeScript latest stable; React latest stable; Express 4.x stable; PostgreSQL 18.x.  
+**Primary Dependencies**: Vite, React Router, React Hook Form + Zod, Axios, `@radix-ui/react-dialog` (lightbox/dialog), `express`, `cors`, `helmet`, `compression`, `express-rate-limit`, `zod`, `pino` + `pino-http`, `nodemailer`, Prisma (with `prisma migrate`).  
 **Storage**: PostgreSQL 18.x (DigitalOcean).
 **Testing**: Vitest across repo; `@testing-library/react` for UI; API tests with Vitest + Supertest; contract checks against OpenAPI; optional Playwright smoke for P1 user flow.  
 **Target Platform**: DO droplets (Ubuntu 24.04 LTS): static frontend + API (Nginx reverse proxy + PM2), dedicated PostgreSQL droplet; Dev on Windows/macOS/Linux with Docker for local DB.  
@@ -22,6 +22,8 @@ Deliver a production-ready MVP skeleton for Modular House consisting of a React 
 - Reliability: Health endpoint, structured JSON logs, baseline metrics; email retries (single retry on 5xx) and outcome logging.
 - Accessibility: WCAG 2.1 AA, keyboard focus management, alt text enforcement.
 - Rate limiting: 10 submissions/ip/hour for `/submissions/*`.
+ - SEO delivery: Dynamic `sitemap.xml` from Pages and Gallery; `robots.txt` via env `ROBOTS_ALLOW=true|false` (staging blocks indexing).
+ - Rate limiting: 10 submissions/ip/hour for `/submissions/*`.
 **Scale/Scope**: MVP traffic (low to moderate). Editor workflows for Pages/Gallery/FAQ; submission volume in hundreds to low-thousands; allows horizontal scale later.
 
 ## Constitution Check
@@ -34,7 +36,7 @@ Deliver a production-ready MVP skeleton for Modular House consisting of a React 
 2. Reliability & Observability
    - Endpoints: `GET /health` (API); Nginx upstream health; DB readiness check on startup.
    - Logs: Pino JSON fields: `time, level, msg, req.id, req.method, req.url, res.statusCode, latency_ms, user.id?` (admin), `corr_id` propagated.
-   - Metrics: request count, error rate, p95 latency (by route group), email send success/failure counts, rate-limit hits. Export via log sampling initially; Prometheus endpoint scheduled as follow-up.
+   - Metrics: request count, error rate, p95 latency (by route group), email send success/failure counts, rate-limit hits; publish Prometheus metrics at `GET /metrics` using `prom-client`.
 
 3. Test Discipline
    - Strategy: Unit tests for services/validators; integration tests for `/submissions/enquiry` and content GETs; contract tests against OpenAPI; admin auth and CSV export integration tests.

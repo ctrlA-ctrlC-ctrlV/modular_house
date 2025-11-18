@@ -7,6 +7,16 @@ servers:
   - url: https://api.staging.modular.house
   - url: http://localhost:8080
 paths:
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
   /health:
     get:
       summary: Health check
@@ -365,6 +375,113 @@ paths:
                 type: string
                 format: binary
 
+  /admin/redirects:
+    get:
+      security:
+        - bearerAuth: []
+      summary: List redirects
+      responses:
+        '200':
+          description: List of redirects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Redirect'
+    post:
+      security:
+        - bearerAuth: []
+      summary: Create redirect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Redirect'
+  /admin/redirects/{id}:
+    put:
+      security:
+        - bearerAuth: []
+      summary: Update redirect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Redirect'
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Delete redirect
+      responses:
+        '204':
+          description: Deleted
+
+  /admin/uploads/image:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Upload gallery image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+        '400':
+          description: Invalid type
+        '413':
+          description: Payload too large
+
+  /sitemap.xml:
+    get:
+      summary: Sitemap
+      responses:
+        '200':
+          description: XML sitemap
+          content:
+            application/xml:
+              schema:
+                type: string
+  /robots.txt:
+    get:
+      summary: Robots policy
+      responses:
+        '200':
+          description: robots.txt
+          content:
+            text/plain:
+              schema:
+                type: string
+
 components:
   securitySchemes:
     bearerAuth:
@@ -372,6 +489,21 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Redirect:
+      type: object
+      properties:
+        id: { type: string }
+        sourceSlug: { type: string }
+        destinationUrl: { type: string, format: uri }
+        active: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    RedirectWrite:
+      type: object
+      required: [sourceSlug, destinationUrl]
+      properties:
+        sourceSlug: { type: string }
+        destinationUrl: { type: string, format: uri }
+        active: { type: boolean }
     Page:
       type: object
       properties:

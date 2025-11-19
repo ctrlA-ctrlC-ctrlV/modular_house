@@ -24,8 +24,8 @@ Purpose: Project initialization and base structure per plan.
 - [X] T002 [P] Create directory skeleton: `/apps/web`, `/apps/api`, `/packages/ui`, `/packages/config`, `/infra/nginx`, `/infra/scripts`
 - [X] T003 Initialize Vite React TS app in `apps/web` with minimal placeholder CSS and pages wiring (`index.html`, `vite.config.ts`, `tsconfig.json`)
 - [X] T004 [P] Initialize Express TS app in `apps/api` (`tsconfig.json`, `src/server.ts`, `src/app.ts`)
-- [ ] T005 [P] Create shared config package `packages/config` (tsconfig base, eslint, prettier) and reference from apps
-- [ ] T006 Add local dev services in `infra/docker-compose.yml` (Postgres 18, MailHog) and `infra/scripts/`
+- [X] T005 [P] Create shared config package `packages/config` (tsconfig base, eslint, prettier) and reference from apps
+- [X] T006 Add local dev services in `infra/docker-compose.yml` (Postgres 18, MailHog) and `infra/scripts/`
 
 ---
 

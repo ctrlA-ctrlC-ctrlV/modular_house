@@ -1,0 +1,617 @@
+openapi: 3.1.0
+info:
+  title: Modular House API (MVP)
+  version: 0.1.0
+  description: REST API for public content, enquiry submissions, and lightweight admin.
+servers:
+  - url: https://api.staging.modular.house
+  - url: http://localhost:8080
+paths:
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  time:
+                    type: string
+                    format: date-time
+  /content/pages/{slug}:
+    get:
+      summary: Get page content by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Page content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '404':
+          description: Not found
+  /content/faqs:
+    get:
+      summary: List FAQs
+      parameters:
+        - name: product
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FAQ'
+  /content/gallery:
+    get:
+      summary: List gallery items
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [garden-room, house-extension]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paged list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GalleryItem'
+                  total:
+                    type: integer
+  /submissions/enquiry:
+    post:
+      summary: Create enquiry submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: string
+        '400':
+          description: Validation error
+        '429':
+          description: Rate limit exceeded
+
+  /admin/auth/login:
+    post:
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+  /admin/auth/logout:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Admin logout
+      responses:
+        '204':
+          description: Logged out
+
+  /admin/pages:
+    get:
+      security:
+        - bearerAuth: []
+      summary: List pages
+      responses:
+        '200':
+          description: List of pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Page'
+    post:
+      security:
+        - bearerAuth: []
+      summary: Create page
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+  /admin/pages/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Get page by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '404':
+          description: Not found
+    put:
+      security:
+        - bearerAuth: []
+      summary: Update page
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Delete page
+      responses:
+        '204':
+          description: Deleted
+
+  /admin/gallery:
+    get:
+      security:
+        - bearerAuth: []
+      summary: List gallery items
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GalleryItem'
+    post:
+      security:
+        - bearerAuth: []
+      summary: Create gallery item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryItemWrite'
+      responses:
+        '201':
+          description: Created
+  /admin/gallery/{id}:
+    put:
+      security:
+        - bearerAuth: []
+      summary: Update gallery item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryItemWrite'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Delete gallery item
+      responses:
+        '204':
+          description: Deleted
+
+  /admin/faqs:
+    get:
+      security:
+        - bearerAuth: []
+      summary: List FAQs
+      responses:
+        '200':
+          description: List of FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FAQ'
+    post:
+      security:
+        - bearerAuth: []
+      summary: Create FAQ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FAQWrite'
+      responses:
+        '201':
+          description: Created
+  /admin/faqs/{id}:
+    put:
+      security:
+        - bearerAuth: []
+      summary: Update FAQ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FAQWrite'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Delete FAQ
+      responses:
+        '204':
+          description: Deleted
+
+  /admin/submissions:
+    get:
+      security:
+        - bearerAuth: []
+      summary: List submissions
+      parameters:
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+  /admin/submissions/export.csv:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Export submissions CSV
+      responses:
+        '200':
+          description: CSV stream
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /admin/redirects:
+    get:
+      security:
+        - bearerAuth: []
+      summary: List redirects
+      responses:
+        '200':
+          description: List of redirects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Redirect'
+    post:
+      security:
+        - bearerAuth: []
+      summary: Create redirect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Redirect'
+  /admin/redirects/{id}:
+    put:
+      security:
+        - bearerAuth: []
+      summary: Update redirect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Redirect'
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Delete redirect
+      responses:
+        '204':
+          description: Deleted
+
+  /admin/uploads/image:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Upload gallery image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+        '400':
+          description: Invalid type
+        '413':
+          description: Payload too large
+
+  /sitemap.xml:
+    get:
+      summary: Sitemap
+      responses:
+        '200':
+          description: XML sitemap
+          content:
+            application/xml:
+              schema:
+                type: string
+  /robots.txt:
+    get:
+      summary: Robots policy
+      responses:
+        '200':
+          description: robots.txt
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Redirect:
+      type: object
+      properties:
+        id: { type: string }
+        sourceSlug: { type: string }
+        destinationUrl: { type: string, format: uri }
+        active: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    RedirectWrite:
+      type: object
+      required: [sourceSlug, destinationUrl]
+      properties:
+        sourceSlug: { type: string }
+        destinationUrl: { type: string, format: uri }
+        active: { type: boolean }
+    Page:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        slug: { type: string }
+        heroHeadline: { type: string }
+        heroSubhead: { type: string }
+        heroImageUrl: { type: string }
+        sections:
+          type: array
+          items: { type: object }
+        seoTitle: { type: string }
+        seoDescription: { type: string }
+        updatedAt: { type: string, format: date-time }
+    PageWrite:
+      type: object
+      required: [title, slug]
+      properties:
+        title: { type: string }
+        slug: { type: string }
+        heroHeadline: { type: string }
+        heroSubhead: { type: string }
+        heroImageUrl: { type: string }
+        sections:
+          type: array
+          items: { type: object }
+        seoTitle: { type: string }
+        seoDescription: { type: string }
+    GalleryItem:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        caption: { type: string }
+        category:
+          type: string
+          enum: [garden-room, house-extension]
+        imageUrl: { type: string }
+        altText: { type: string }
+        projectDate: { type: string, format: date }
+        publishStatus:
+          type: string
+          enum: [draft, published]
+    GalleryItemWrite:
+      type: object
+      required: [title, category, imageUrl, altText]
+      properties:
+        title: { type: string }
+        caption: { type: string }
+        category:
+          type: string
+          enum: [garden-room, house-extension]
+        imageUrl: { type: string }
+        altText: { type: string }
+        projectDate: { type: string, format: date }
+        publishStatus:
+          type: string
+          enum: [draft, published]
+    FAQ:
+      type: object
+      properties:
+        id: { type: string }
+        question: { type: string }
+        answer: { type: string }
+        displayOrder: { type: integer }
+    FAQWrite:
+      type: object
+      required: [question, answer]
+      properties:
+        question: { type: string }
+        answer: { type: string }
+        displayOrder: { type: integer }
+    Submission:
+      type: object
+      properties:
+        id: { type: string }
+        payload:
+          type: object
+          properties:
+            firstName: { type: string }
+            lastName: { type: string }
+            email: { type: string, format: email }
+            phone: { type: string }
+            address: { type: string }
+            eircode: { type: string }
+            preferredProduct: { type: string }
+            message: { type: string }
+            consent: { type: boolean }
+        sourcePageSlug: { type: string }
+        consentFlag: { type: boolean }
+        consentText: { type: string }
+        createdAt: { type: string, format: date-time }
+        emailLog:
+          type: object
+          additionalProperties: true
+    SubmissionCreate:
+      type: object
+      required: [firstName, email, phone, address, eircode, consent]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        address: { type: string }
+        eircode: { type: string }
+        preferredProduct: { type: string }
+        message: { type: string }
+        consent:
+          type: boolean
+          const: true

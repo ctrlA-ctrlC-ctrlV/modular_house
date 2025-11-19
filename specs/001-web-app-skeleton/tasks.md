@@ -33,10 +33,10 @@ Purpose: Project initialization and base structure per plan.
 
 Purpose: Core infrastructure that MUST be complete before any user story.
 
-- [ ] T007 Implement API middleware baseline in `apps/api/src/app.ts` (helmet, cors from env, compression, json body limit)
-- [ ] T008 [P] Add structured logging (`pino`, `pino-http`) and request id in `apps/api/src/middleware/logger.ts` and wire in `app.ts`
-- [ ] T009 [P] Implement centralized error handler in `apps/api/src/middleware/error.ts` returning JSON errors
-- [ ] T010 [P] Add health route `GET /health` in `apps/api/src/routes/health.ts` and register in `app.ts`
+- [X] T007 Implement API middleware baseline in `apps/api/src/app.ts` (helmet, cors from env, compression, json body limit)
+- [X] T008 [P] Add structured logging (`pino`, `pino-http`) and request id in `apps/api/src/middleware/logger.ts` and wire in `app.ts`
+- [X] T009 [P] Implement centralized error handler in `apps/api/src/middleware/error.ts` returning JSON errors
+- [X] T010 [P] Add health route `GET /health` in `apps/api/src/routes/health.ts` and register in `app.ts`
 - [ ] T011 Configure env loader in `apps/api/src/config/env.ts` (PORT, CORS_ORIGIN, DATABASE_URL, MAIL_*)
 - [ ] T012 [P] Set up Prisma in `apps/api/prisma/schema.prisma` reflecting `data-model.md` entities; add `prisma` dev dependencies
 - [ ] T013 Generate initial migration and Prisma client in `apps/api` (scripts in `package.json`)

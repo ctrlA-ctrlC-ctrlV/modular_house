@@ -1,21 +1,55 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import * as dotenv from 'dotenv';
+
+// Import middleware
+import { httpLogger } from './middleware/logger.js';
+import { errorHandler, notFoundHandler } from './middleware/error.js';
+
+// Import routes
+import healthRouter from './routes/health.js';
 
 // Load environment variables
 dotenv.config();
 
 const app: Application = express();
 
-// Basic middleware
+// Security middleware
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
+
+// CORS configuration from environment
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
+
+// Compression middleware
+app.use(compression());
+
+// Body parsing with size limit
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Logging middleware
+app.use(httpLogger);
+
+// Routes
+app.use('/health', healthRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'Modular House API' });
 });
+
+// 404 handler
+app.use(notFoundHandler);
+
+// Error handler (must be last)
+app.use(errorHandler);
 
 export default app;

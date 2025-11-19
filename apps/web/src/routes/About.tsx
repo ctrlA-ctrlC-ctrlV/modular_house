@@ -10,6 +10,27 @@ function About() {
             Learn more about our mission and values.
           </p>
         </div>
+        
+        {/* Placeholder content sections */}
+        <div className="mt-16">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Our Mission</h2>
+              <p className="mt-4 text-base text-gray-600">
+                We believe in creating sustainable, efficient, and beautiful modular homes 
+                that meet the needs of modern living while respecting our environment.
+              </p>
+            </div>
+            
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Our Values</h2>
+              <p className="mt-4 text-base text-gray-600">
+                Quality craftsmanship, innovative design, and customer satisfaction 
+                are at the heart of everything we do.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

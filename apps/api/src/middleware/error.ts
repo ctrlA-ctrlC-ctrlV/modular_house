@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger.js';
+import { config } from '../config/env.js';
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -48,7 +49,7 @@ export const errorHandler = (
   }, `Error occurred: ${message}`);
 
   // Don't expose internal errors in production
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = config.app.nodeEnv === 'development';
   const errorResponse = {
     success: false,
     error: {

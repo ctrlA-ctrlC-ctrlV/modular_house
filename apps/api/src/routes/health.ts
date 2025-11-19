@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error.js';
+import { config } from '../config/env.js';
 
 const router: Router = Router();
 
@@ -9,7 +10,7 @@ router.get('/', asyncHandler(async (_req: Request, res: Response) => {
     status: 'ok',
     time: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: config.app.nodeEnv,
   };
 
   res.status(200).json(healthCheck);

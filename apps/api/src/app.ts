@@ -2,7 +2,9 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import * as dotenv from 'dotenv';
+
+// Import config
+import { config } from './config/env.js';
 
 // Import middleware
 import { httpLogger } from './middleware/logger.js';
@@ -11,9 +13,6 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 // Import routes
 import healthRouter from './routes/health.js';
 
-// Load environment variables
-dotenv.config();
-
 const app: Application = express();
 
 // Security middleware
@@ -21,7 +20,7 @@ app.use(helmet());
 
 // CORS configuration from environment
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: config.app.corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

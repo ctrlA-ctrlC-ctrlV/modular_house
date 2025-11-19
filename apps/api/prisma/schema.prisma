@@ -1,0 +1,122 @@
+// Prisma schema for Modular House MVP
+// Database: PostgreSQL 18.x
+// Generator and datasource configuration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+// User (Admin) entity
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.Text
+  roles         String[]  @default(["admin"]) @db.Text
+  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("users")
+}
+
+// Page entity
+model Page {
+  id              String    @id @default(uuid()) @db.Uuid
+  title           String    @db.Text
+  slug            String    @unique @db.VarChar(255)
+  heroHeadline    String?   @map("hero_headline") @db.Text
+  heroSubhead     String?   @map("hero_subhead") @db.Text
+  heroImageId     String?   @map("hero_image_id") @db.Uuid
+  sections        Json      @default("[]") @db.JsonB
+  seoTitle        String?   @map("seo_title") @db.Text
+  seoDescription  String?   @map("seo_description") @db.Text
+  lastModifiedAt  DateTime  @default(now()) @map("last_modified_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Optional relation to gallery item for hero image
+  heroImage GalleryItem? @relation("PageHeroImage", fields: [heroImageId], references: [id])
+
+  @@map("pages")
+}
+
+// GalleryItem entity
+model GalleryItem {
+  id            String            @id @default(uuid()) @db.Uuid
+  title         String            @db.Text
+  caption       String?           @db.Text
+  category      GalleryCategory
+  imageUrl      String            @map("image_url") @db.Text
+  altText       String            @map("alt_text") @db.Text
+  projectDate   DateTime?         @map("project_date") @db.Date
+  publishStatus PublishStatus     @default(DRAFT) @map("publish_status")
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relation for pages using this as hero image
+  pagesUsingAsHero Page[] @relation("PageHeroImage")
+
+  @@index([category, publishStatus, createdAt(sort: Desc)])
+  @@map("gallery_items")
+}
+
+// FAQ entity
+model FAQ {
+  id           String   @id @default(uuid()) @db.Uuid
+  question     String   @db.Text
+  answer       String   @db.Text
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("faqs")
+}
+
+// Submission entity
+model Submission {
+  id             String   @id @default(uuid()) @db.Uuid
+  payload        Json     @db.JsonB
+  sourcePageSlug String   @map("source_page_slug") @db.VarChar(255)
+  consentFlag    Boolean  @map("consent_flag")
+  consentText    String   @map("consent_text") @db.Text
+  ipHash         String   @map("ip_hash") @db.Text
+  userAgent      String?  @map("user_agent") @db.Text
+  emailLog       Json?    @map("email_log") @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([createdAt(sort: Desc)])
+  @@index([sourcePageSlug])
+  @@index([consentFlag])
+  @@map("submissions")
+}
+
+// Redirect entity
+model Redirect {
+  id             String   @id @default(uuid()) @db.Uuid
+  sourceSlug     String   @unique @map("source_slug") @db.VarChar(255)
+  destinationUrl String   @map("destination_url") @db.Text
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("redirects")
+}
+
+// Enums
+enum GalleryCategory {
+  GARDEN_ROOM       @map("garden-room")
+  HOUSE_EXTENSION   @map("house-extension")
+
+  @@map("gallery_category")
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+
+  @@map("publish_status")
+}

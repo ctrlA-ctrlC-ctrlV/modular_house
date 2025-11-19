@@ -12,9 +12,16 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@prisma/client": "^7.0.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -22,6 +29,7 @@
     "helmet": "^8.0.0",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
+    "prisma": "^7.0.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

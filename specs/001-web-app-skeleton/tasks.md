@@ -42,7 +42,7 @@ Purpose: Core infrastructure that MUST be complete before any user story.
 - [X] T013 Generate initial migration and Prisma client in `apps/api` (scripts in `package.json`)
 - [X] T014 [P] Create mailer service in `apps/api/src/services/mailer.ts` (SMTP config, one retry on 5xx, outcome logging)
 - [X] T015 [P] Add rate limiter for `/submissions/*` in `apps/api/src/middleware/rateLimit.ts` (10 requests/hour/IP)
-- [ ] T016 [P] Add Zod validation wrapper in `apps/api/src/middleware/validate.ts`
+- [X] T016 [P] Add Zod validation wrapper in `apps/api/src/middleware/validate.ts`
 - [ ] T017 Sync OpenAPI contract to repo at `apps/api/openapi.yaml` (copy from `specs/001-web-app-skeleton/contracts/openapi.yaml`) and add `npm` script to serve it
 - [ ] T018 Scaffold frontend routes and layout in `apps/web/src/app.tsx` and `apps/web/src/routes/` (Landing, Products placeholder, Gallery, About, Contact, Privacy, Terms, 404)
 - [ ] T019 [P] Implement Header/Footer with nav highlight and phone CTA in `apps/web/src/components/Header.tsx` and `apps/web/src/components/Footer.tsx`

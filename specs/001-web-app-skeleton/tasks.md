@@ -39,7 +39,7 @@ Purpose: Core infrastructure that MUST be complete before any user story.
 - [X] T010 [P] Add health route `GET /health` in `apps/api/src/routes/health.ts` and register in `app.ts`
 - [X] T011 Configure env loader in `apps/api/src/config/env.ts` (PORT, CORS_ORIGIN, DATABASE_URL, MAIL_*)
 - [X] T012 [P] Set up Prisma in `apps/api/prisma/schema.prisma` reflecting `data-model.md` entities; add `prisma` dev dependencies
-- [ ] T013 Generate initial migration and Prisma client in `apps/api` (scripts in `package.json`)
+- [X] T013 Generate initial migration and Prisma client in `apps/api` (scripts in `package.json`)
 - [ ] T014 [P] Create mailer service in `apps/api/src/services/mailer.ts` (SMTP config, one retry on 5xx, outcome logging)
 - [ ] T015 [P] Add rate limiter for `/submissions/*` in `apps/api/src/middleware/rateLimit.ts` (10 requests/hour/IP)
 - [ ] T016 [P] Add Zod validation wrapper in `apps/api/src/middleware/validate.ts`

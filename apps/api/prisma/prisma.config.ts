@@ -1,8 +1,7 @@
+// Prisma configuration file
+// This file is used to set environment variables before Prisma CLI operations
+
 import { config } from '../src/config/env.js';
 
-// Set the environment variable before importing PrismaClient
+// Set DATABASE_URL for Prisma CLI tools (migrate, generate, etc.)
 process.env.DATABASE_URL = config.database.url;
-
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient;

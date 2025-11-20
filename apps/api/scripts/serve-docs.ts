@@ -38,7 +38,7 @@ async function startDocsServer(): Promise<void> {
     };
 
     // Health check endpoint
-    app.get('/health', (req, res) => {
+    app.get('/health', (_req, res) => {
       res.json({ 
         status: 'ok', 
         service: 'api-docs',
@@ -47,12 +47,12 @@ async function startDocsServer(): Promise<void> {
     });
 
     // Serve raw OpenAPI spec
-    app.get('/openapi.yaml', (req, res) => {
+    app.get('/openapi.yaml', (_req, res) => {
       res.setHeader('Content-Type', 'application/x-yaml');
       res.send(yamlContent);
     });
 
-    app.get('/openapi.json', (req, res) => {
+    app.get('/openapi.json', (_req, res) => {
       res.json(swaggerDocument);
     });
 
@@ -61,7 +61,7 @@ async function startDocsServer(): Promise<void> {
     app.get('/docs', swaggerUi.setup(swaggerDocument, swaggerOptions));
 
     // Redirect root to docs
-    app.get('/', (req, res) => {
+    app.get('/', (_req, res) => {
       res.redirect('/docs');
     });
 

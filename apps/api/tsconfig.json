@@ -6,10 +6,15 @@
     "allowImportingTsExtensions": false,
     "noEmit": false,
     "outDir": "./dist",
-    "rootDir": "./src",
     "jsx": "preserve",
     "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+  "include": [
+    "src/**/*", "scripts/**/*", "prisma/**/*"],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "**/*.test.ts", 
+    "**/*.spec.ts"
+  ]
 }

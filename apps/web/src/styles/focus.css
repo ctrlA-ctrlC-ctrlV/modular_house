@@ -1,0 +1,109 @@
+/**
+ * Accessible Focus Styles
+ * 
+ * Provides consistent, accessible focus indicators across the application.
+ * Following WCAG 2.1 AA guidelines for keyboard navigation.
+ */
+
+/* Remove default outline to replace with custom styles */
+*:focus {
+  outline: none;
+}
+
+/* Visible focus indicator for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #4f46e5; /* indigo-600 */
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Focus styles for links */
+a:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Focus styles for buttons */
+button:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Focus styles for input elements */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 0;
+  border-color: #4f46e5;
+}
+
+/* Focus styles for form controls with custom appearance */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Ensure focus is visible within interactive containers */
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Enhanced focus for navigation items */
+nav a:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Focus within for composite widgets */
+.focus-within:focus-within {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+}
+
+/* Reduced motion support - instant focus transitions */
+@media (prefers-reduced-motion: reduce) {
+  *:focus-visible {
+    transition: none;
+  }
+}
+
+/* Skip to main content link */
+.skip-to-main:focus-visible {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  background-color: #4f46e5;
+  color: white;
+  text-decoration: none;
+  outline: 2px solid white;
+  outline-offset: -4px;
+}
+
+/* Focus trap for modals and dialogs */
+[role="dialog"] *:focus-visible,
+[role="alertdialog"] *:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Ensure SVG interactive elements have visible focus */
+svg:focus-visible,
+svg *:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}

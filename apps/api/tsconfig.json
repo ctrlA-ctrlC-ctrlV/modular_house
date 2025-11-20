@@ -10,7 +10,10 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*", "scripts/**/*", "prisma/**/*"],
+    "src/**/*", 
+    "scripts/**/*", 
+    "prisma/**/*"
+  ],
   "exclude": [
     "node_modules", 
     "dist", 

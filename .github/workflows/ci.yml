@@ -1,0 +1,270 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - '**-web-app-skeleton'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      pnpm-version: ${{ steps.pnpm.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        id: pnpm
+        run: |
+          npm install -g pnpm@10.22.0
+          echo "version=10.22.0" >> $GITHUB_OUTPUT
+
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ needs.setup.outputs.pnpm-version }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run TypeScript type checking
+        run: pnpm typecheck
+
+  test-api:
+    name: Test API
+    runs-on: ubuntu-latest
+    needs: setup
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ needs.setup.outputs.pnpm-version }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup test environment
+        working-directory: apps/api
+        run: |
+          cp .env.test.example .env.test
+          echo "DATABASE_URL=postgresql://test:test@localhost:5433/test_db" >> .env.test
+
+      - name: Run Prisma migrations
+        working-directory: apps/api
+        run: pnpm db:migrate:deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+
+      - name: Run API tests with coverage
+        working-directory: apps/api
+        run: pnpm test:coverage
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          NODE_ENV: test
+
+      - name: Upload API coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/api/coverage/coverage-final.json
+          flags: api
+          name: api-coverage
+          fail_ci_if_error: false
+
+  test-web:
+    name: Test Web
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ needs.setup.outputs.pnpm-version }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Web tests with coverage
+        working-directory: apps/web
+        run: pnpm test:coverage
+
+      - name: Upload Web coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/web/coverage/coverage-final.json
+          flags: web
+          name: web-coverage
+          fail_ci_if_error: false
+
+  coverage-check:
+    name: Enforce Coverage Thresholds
+    runs-on: ubuntu-latest
+    needs: [setup, test-api, test-web]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ needs.setup.outputs.pnpm-version }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Enforce coverage thresholds
+        run: pnpm test:coverage:enforce
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          NODE_ENV: test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [setup, lint, test-api, test-web]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ needs.setup.outputs.pnpm-version }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: apps/api
+        run: pnpm db:generate
+
+      - name: Build all packages
+        run: pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            apps/api/dist
+            apps/web/dist
+          retention-days: 7

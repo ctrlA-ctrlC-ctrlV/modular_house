@@ -50,7 +50,7 @@ Purpose: Core infrastructure that MUST be complete before any user story.
 - [X] T021 [P] Implement API client wrapper in `apps/web/src/lib/apiClient.ts` using `VITE_API_BASE_URL`
 
 - [X] T022 [P] Test tooling: setup Vitest in `apps/api` and `apps/web`; Supertest in `apps/api`; enforce coverage thresholds (overall ≥70%, critical modules 100% branch)
-- [ ] T023 [P] CI: add root scripts to run tests and enforce coverage in `package.json` and CI workflow
+- [X] T023 [P] CI: add root scripts to run tests and enforce coverage in `package.json` and CI workflow
 
 Checkpoint: Foundation ready—user stories can proceed in parallel.
 

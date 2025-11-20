@@ -47,7 +47,7 @@ Purpose: Core infrastructure that MUST be complete before any user story.
 - [X] T018 Scaffold frontend routes and layout in `apps/web/src/app.tsx` and `apps/web/src/routes/` (Landing, Products placeholder, Gallery, About, Contact, Privacy, Terms, 404)
 - [X] T019 [P] Implement Header/Footer with nav highlight and phone CTA in `apps/web/src/components/Header.tsx` and `apps/web/src/components/Footer.tsx`
 - [X] T020 [P] Add accessible focus styles in `apps/web/src/styles/focus.css` and import in `apps/web/src/main.tsx`
-- [ ] T021 [P] Implement API client wrapper in `apps/web/src/lib/apiClient.ts` using `VITE_API_BASE_URL`
+- [X] T021 [P] Implement API client wrapper in `apps/web/src/lib/apiClient.ts` using `VITE_API_BASE_URL`
 
 - [ ] T022 [P] Test tooling: setup Vitest in `apps/api` and `apps/web`; Supertest in `apps/api`; enforce coverage thresholds (overall ≥70%, critical modules 100% branch)
 - [ ] T023 [P] CI: add root scripts to run tests and enforce coverage in `package.json` and CI workflow

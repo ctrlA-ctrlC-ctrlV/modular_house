@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function Products() {
   return (
     <div className="bg-white">
@@ -31,6 +33,22 @@ function Products() {
             <p className="mt-2 text-base text-gray-500">
               Expand your living space with modular additions.
             </p>
+          </div>
+        </div>
+        
+        {/* CTA Section */}
+        <div className="mt-16 bg-indigo-50 rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Ready to Get Started?</h2>
+          <p className="mt-4 text-lg text-gray-600">
+            Contact us today for a personalized quote on your modular home project.
+          </p>
+          <div className="mt-6">
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Get Your Quote
+            </Link>
           </div>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function About() {
   return (
     <div className="bg-white">
@@ -29,6 +31,22 @@ function About() {
                 are at the heart of everything we do.
               </p>
             </div>
+          </div>
+        </div>
+        
+        {/* CTA Section */}
+        <div className="mt-16 bg-gray-50 rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Work With Us</h2>
+          <p className="mt-4 text-lg text-gray-600">
+            Experience the difference of working with Ireland's leading modular home specialists.
+          </p>
+          <div className="mt-6">
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Get a Quote Today
+            </Link>
           </div>
         </div>
       </div>

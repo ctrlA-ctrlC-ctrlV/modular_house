@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function Gallery() {
   return (
     <div className="bg-white">
@@ -41,6 +43,22 @@ function Gallery() {
               </p>
             </div>
           ))}
+        </div>
+        
+        {/* CTA Section */}
+        <div className="mt-16 bg-indigo-600 rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-white">Inspired by What You See?</h2>
+          <p className="mt-4 text-lg text-indigo-100">
+            Let's discuss how we can create your dream modular home.
+          </p>
+          <div className="mt-6">
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Get In Touch
+            </Link>
+          </div>
         </div>
       </div>
     </div>

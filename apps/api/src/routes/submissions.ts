@@ -4,6 +4,7 @@ import { validateBody } from '../middleware/validate.js';
 import { submissionRateLimit } from '../middleware/rateLimit.js';
 import { enquirySubmissionSchema } from '../types/submission.js';
 import { logger } from '../middleware/logger.js';
+import { SubmissionsService } from '../services/submissions.js';
 
 const router: Router = Router();
 
@@ -74,29 +75,25 @@ router.post('/enquiry',
         consent
       };
 
-      // TODO: In T026, replace mock with: 
-      // const result = await SubmissionsService.create({ submissionData, sourcePageSlug, ipHash, userAgent });
-      // const submissionId = result.id;
+      // Create submission record using SubmissionsService
+      const result = await SubmissionsService.create({
+        submissionData,
+        sourcePageSlug,
+        ipHash,
+        userAgent
+      });
+      
+      const submissionId = result.id;
 
       logger.info({
+        submissionId,
         email,
         sourcePageSlug,
         preferredProduct,
         hasMessage: !!message,
         ipHash: ipHash.substring(0, 8) + '...', // Log partial hash for debugging
         userAgent: userAgent.substring(0, 100), // Truncate user agent
-        submissionData: submissionData, // Include data for verification
-      }, 'Valid enquiry submission received');
-
-      // Generate mock response for now (will be replaced in T026)
-      const submissionId = crypto.randomUUID();
-      
-      // Log successful submission for now
-      logger.info({
-        submissionId,
-        email,
-        sourcePageSlug,
-      }, 'Enquiry submission processed successfully');
+      }, 'Submission created and stored successfully');
 
       res.status(200).json({
         ok: true,

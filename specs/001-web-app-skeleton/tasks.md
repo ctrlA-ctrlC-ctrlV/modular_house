@@ -68,7 +68,7 @@ Independent Test: Fill form with valid data → see success message; internal em
 - [X] T025 [P] [US1] Implement POST `/submissions/enquiry` in `apps/api/src/routes/submissions.ts` with validate + rate limiter + honeypot check
 - [X] T026 [US1] Implement `SubmissionsService` in `apps/api/src/services/submissions.ts` (store payload, consent flag/text, ipHash, userAgent, emailLog)
 - [X] T027 [US1] Integrate internal email send + optional customer confirmation in `apps/api/src/services/submissions.ts` using `mailer.ts`
-- [ ] T028 [P] [US1] Build `EnquiryForm` with `react-hook-form` + `zod` in `apps/web/src/forms/EnquiryForm.tsx` (accessible inline errors; hidden honeypot)
+- [X] T028 [P] [US1] Build `EnquiryForm` with `react-hook-form` + `zod` in `apps/web/src/forms/EnquiryForm.tsx` (accessible inline errors; hidden honeypot)
 - [ ] T029 [US1] Render form on Contact page with success/error UI in `apps/web/src/routes/contact.tsx`
 - [ ] T030 [US1] Add CTA links to Contact route from header and key pages in `apps/web/src/components/Header.tsx` and `apps/web/src/routes/landing.tsx`
 - [ ] T031 [US1] Persist email outcomes to `Submission.emailLog` and return `{ ok:true, id }` responses consistently

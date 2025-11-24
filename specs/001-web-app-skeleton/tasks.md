@@ -65,7 +65,7 @@ Independent Test: Fill form with valid data → see success message; internal em
 ### Implementation
 
 - [X] T024 [P] [US1] Define enquiry Zod schema in `apps/api/src/types/submission.ts` (fields per spec; consent true)
-- [ ] T025 [P] [US1] Implement POST `/submissions/enquiry` in `apps/api/src/routes/submissions.ts` with validate + rate limiter + honeypot check
+- [X] T025 [P] [US1] Implement POST `/submissions/enquiry` in `apps/api/src/routes/submissions.ts` with validate + rate limiter + honeypot check
 - [ ] T026 [US1] Implement `SubmissionsService` in `apps/api/src/services/submissions.ts` (store payload, consent flag/text, ipHash, userAgent, emailLog)
 - [ ] T027 [US1] Integrate internal email send + optional customer confirmation in `apps/api/src/services/submissions.ts` using `mailer.ts`
 - [ ] T028 [P] [US1] Build `EnquiryForm` with `react-hook-form` + `zod` in `apps/web/src/forms/EnquiryForm.tsx` (accessible inline errors; hidden honeypot)

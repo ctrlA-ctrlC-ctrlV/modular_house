@@ -31,8 +31,8 @@ router.post('/enquiry',
         website // honeypot field
       } = req.body;
 
-      // Honeypot check - reject if website field is filled
-      if (website && website.trim() !== '') {
+      // Honeypot check - reject if website field is filled (including whitespace-only)
+      if (website && website.length > 0) {
         logger.warn({
           ip: req.socket?.remoteAddress,
           userAgent: req.headers['user-agent'],

@@ -44,8 +44,8 @@ export const enquirySubmissionSchema = z.object({
     errorMap: () => ({ message: 'You must consent to data processing to submit this form' })
   }),
   
-  // Honeypot field - should be empty
-  website: z.string().max(0, 'Invalid submission').optional()
+  // Honeypot field - should be empty (validation happens in route handler)
+  website: z.string().optional()
 });
 
 export type EnquirySubmission = z.infer<typeof enquirySubmissionSchema>;

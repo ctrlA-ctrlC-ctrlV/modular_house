@@ -95,6 +95,16 @@ router.post('/enquiry',
         userAgent: userAgent.substring(0, 100), // Truncate user agent
       }, 'Submission created and stored successfully');
 
+      // Process submission emails (internal notification + optional customer confirmation)
+      // This runs asynchronously - we don't wait for it to complete
+      SubmissionsService.processSubmission(result.submission).catch((emailError) => {
+        logger.error({
+          error: emailError instanceof Error ? emailError.message : 'Unknown error',
+          stack: emailError instanceof Error ? emailError.stack : undefined,
+          submissionId,
+        }, 'Error processing submission emails - submission was stored but emails may have failed');
+      });
+
       res.status(200).json({
         ok: true,
         id: submissionId

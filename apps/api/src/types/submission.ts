@@ -21,7 +21,7 @@ export const enquirySubmissionSchema = z.object({
   phone: z.string()
     .min(1, 'Phone number is required')
     .max(20, 'Phone number must be less than 20 characters')
-    .regex(/^[\d\s\-\+\(\)]+$/, 'Please enter a valid phone number'),
+    .regex(/^[\d\s\-+()]+$/, 'Please enter a valid phone number'),
     
   address: z.string()
     .min(1, 'Address is required')

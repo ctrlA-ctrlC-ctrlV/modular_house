@@ -493,10 +493,20 @@ export class SubmissionsService {
     }
 
     // Update submission with email log
-    await this.updateEmailLog({
-      submissionId: submission.id,
-      emailLog,
-    });
+    try {
+      await this.updateEmailLog({
+        submissionId: submission.id,
+        emailLog,
+      });
+    } catch (updateError) {
+      // Log the error but don't throw - we want to ensure email outcomes are recorded even if DB update fails
+      logger.error({
+        error: updateError instanceof Error ? updateError.message : 'Unknown error',
+        stack: updateError instanceof Error ? updateError.stack : undefined,
+        submissionId: submission.id,
+        emailLog,
+      }, 'Failed to persist email log to database, but email processing completed');
+    }
 
     const duration = Date.now() - startTime;
 

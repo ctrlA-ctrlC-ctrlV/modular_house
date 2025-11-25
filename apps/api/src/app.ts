@@ -13,6 +13,7 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 // Import routes
 import healthRouter from './routes/health.js';
 import submissionsRouter from './routes/submissions.js';
+import { authRouter } from './routes/admin/auth.js';
 
 const app: Application = express();
 
@@ -41,6 +42,7 @@ app.use(httpLogger);
 // Routes
 app.use('/health', healthRouter);
 app.use('/submissions', submissionsRouter);
+app.use('/admin/auth', authRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

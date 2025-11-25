@@ -20,6 +20,7 @@ interface MailConfig {
 
 interface SecurityConfig {
   jwtSecret: string;
+  jwtExpiresIn: string;
   passwordSaltRounds: number;
 }
 
@@ -92,6 +93,7 @@ export const config: EnvConfig = {
   },
   security: {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
+    jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '24h'),
     passwordSaltRounds: getNumericEnvVar('PASSWORD_SALT_ROUNDS', 12),
   },
 };

@@ -74,9 +74,9 @@ Independent Test: Fill form with valid data → see success message; internal em
 - [X] T031 [US1] Persist email outcomes to `Submission.emailLog` and return `{ ok:true, id }` responses consistently
 
 - [X] T032 [P] [US1] Contract tests for `POST /submissions/enquiry` (valid, required field errors, honeypot, rate-limit 429) in `apps/api/tests/contract/submissions.enquiry.spec.ts`
-- [ ] T033 [US1] Integration test: submission persists record + internal email send; transient failure logs outcome in `apps/api/tests/integration/submissions.spec.ts`
-- [ ] T034 [P] [US1] Add `CUSTOMER_CONFIRM_ENABLED=true` to `apps/api/.env.example` and read flag in `apps/api/src/config/env.ts`
-- [ ] T035 [US1] Gate customer confirmation email in `SubmissionsService` by config flag; document behavior in quickstart
+- [X] T033 [US1] Integration test: submission persists record + internal email send; transient failure logs outcome in `apps/api/tests/integration/submissions.spec.ts`
+- [X] T034 [P] [US1] Add `CUSTOMER_CONFIRM_ENABLED=true` to `apps/api/.env.example` and read flag in `apps/api/src/config/env.ts`
+- [X] T035 [US1] Gate customer confirmation email in `SubmissionsService` by config flag; document behavior in quickstart
 
 Checkpoint: US1 independent demo ready (MVP).
 
@@ -90,7 +90,7 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 
 ### Implementation
 
-- [ ] T036 [P] [US2] Implement admin auth in `apps/api/src/routes/admin/auth.ts` and `apps/api/src/services/auth.ts` (email+password, Argon2id, JWT)
+- [X] T036 [P] [US2] Implement admin auth in `apps/api/src/routes/admin/auth.ts` and `apps/api/src/services/auth.ts` (email+password, Argon2id, JWT)
 - [ ] T037 [US2] Add JWT auth middleware in `apps/api/src/middleware/auth.ts` and protect `/admin/*` routes
 - [ ] T038 [P] [US2] Implement Pages CRUD in `apps/api/src/routes/admin/pages.ts` and `apps/api/src/services/content/pages.ts` (slug unique, SEO fields, last modified)
 - [ ] T039 [P] [US2] Implement Gallery CRUD in `apps/api/src/routes/admin/gallery.ts` and `apps/api/src/services/content/gallery.ts` (category enum, alt text required for publish)

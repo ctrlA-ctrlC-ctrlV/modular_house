@@ -26,40 +26,81 @@ modular-house/
 
 ## Environment Setup
 
-1) Copy envs
-```powershell
-Copy-Item .env.example .env -ErrorAction SilentlyContinue
-Copy-Item apps\api\.env.example apps\api\.env -ErrorAction SilentlyContinue
+1) Verify File Structure
+Check if these critical files exist:
+```shell
+ls apps/api/package.json
+ls apps/api/.env.example  
+ls apps/api/prisma/schema.prisma
+ls apps/web/package.json
+ls infra/docker-compose.yml
+ls pnpm-workspace.yaml
 ```
-Edit `apps/api/.env` with your local creds:
+
+2) Set up environmnet variables
+Edit `apps/api/.env.example` with your local creds:
 ```
 NODE_ENV=development
 PORT=8080
 CORS_ORIGIN=http://localhost:5173
+
+# Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/modular_house
+
+# Email Configuration
 MAIL_HOST=localhost
 MAIL_PORT=1025
+MAIL_SECURE=false
 MAIL_USER=
 MAIL_PASS=
-MAIL_FROM="Modular House <info@example.com>"
-MAIL_TO_INTERNAL="sales@example.com"
+MAIL_FROM_NAME=Modular House
+MAIL_FROM_EMAIL=info@modular.house
+MAIL_INTERNAL_TO=sales@modular.house
+
+# Security
+JWT_SECRET=your-jwt-secret-key-change-in-production
+JWT_EXPIRES_IN=24h
+PASSWORD_SALT_ROUNDS=12
+
+# Features
 CUSTOMER_CONFIRM_ENABLED=true
 ```
 
-2) Start infrastructure (Postgres + MailHog)
-```powershell
+3) Test dependencies
+```shell
+# Install all dependencies
 pnpm -w i
-docker compose -f infra\docker-compose.yml up -d
+
+# Check if builds work
+pnpm -C apps/api build
+pnpm -C apps/web build
 ```
 
-3) Prepare database (Prisma)
-```powershell
-pnpm -C apps\api prisma migrate dev --name init
+4) Start infrastructure (Postgres + MailHog)
+```shell
+# Start Docker services
+docker compose -f infra/docker-compose.yml up -d
+
+# Verify services are running
+docker compose -f infra/docker-compose.yml ps
+```
+
+5) Prepare database (Prisma)
+```shell
+# Check if Prisma is configured and run migrations
+pnpm -C apps/api prisma generate
+pnpm -C apps/api prisma migrate dev --name init
 ```
 
 4) Run API and Web (two terminals)
-```powershell
+```shell
+# 1. Try to install dependencies
+pnpm -w i
+
+# 2. Check if API can start (will fail if missing config/deps)
 pnpm -C apps\api dev
+
+# 3. Check if web can start
 pnpm -C apps\web dev
 ```
 
@@ -80,4 +121,5 @@ OpenAPI spec: `specs/001-web-app-skeleton/contracts/openapi.yaml`
 ## Notes
 - Rate limit: 10 submissions/hour/IP on `/submissions/*`.
 - Email: one retry on transient SMTP; outcomes logged.
+- Customer confirmation: Set `CUSTOMER_CONFIRM_ENABLED=true` to send automated confirmation emails to customers after enquiry submission. When disabled (`false`), only internal notification emails are sent to staff. Customer emails are sent to the email address provided in the enquiry form.
 - Accessibility: verify keyboard traversal, focus states, and lightbox close via Escape & X button.

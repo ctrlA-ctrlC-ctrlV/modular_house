@@ -175,6 +175,103 @@ describe('ApiClient', () => {
     });
   });
 
+  describe('Error Handling', () => {
+    it('should handle rate limit error', async () => {
+      await import('./apiClient');
+      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const error = {
+        response: {
+          status: 429,
+          headers: { 'retry-after': '60' },
+          data: {}
+        }
+      };
+      
+      await expect(errorCallback(error)).rejects.toThrow('Rate limit exceeded');
+      await expect(errorCallback(error)).rejects.toHaveProperty('status', 429);
+    });
+
+    it('should handle API error with message', async () => {
+      await import('./apiClient');
+      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const error = {
+        response: {
+          status: 400,
+          data: { error: 'Bad Request' }
+        }
+      };
+      
+      await expect(errorCallback(error)).rejects.toThrow('Bad Request');
+      await expect(errorCallback(error)).rejects.toHaveProperty('status', 400);
+    });
+
+    it('should handle API error without message', async () => {
+      await import('./apiClient');
+      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const error = {
+        message: 'Some error',
+        response: {
+          status: 500,
+          data: {}
+        }
+      };
+      
+      await expect(errorCallback(error)).rejects.toThrow('HTTP 500: Some error');
+    });
+
+    it('should handle network timeout', async () => {
+      await import('./apiClient');
+      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const error = {
+        code: 'ECONNABORTED',
+        message: 'Timeout'
+      };
+      
+      await expect(errorCallback(error)).rejects.toThrow('Request timeout');
+    });
+
+    it('should handle generic network error', async () => {
+      await import('./apiClient');
+      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const error = {
+        message: 'Network Error'
+      };
+      
+      await expect(errorCallback(error)).rejects.toThrow('Network Error');
+    });
+
+    it('should pass through successful response', async () => {
+      await import('./apiClient');
+      const [successCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const response = { data: 'success' };
+      expect(successCallback(response)).toBe(response);
+    });
+
+    it('should pass through request config', async () => {
+      await import('./apiClient');
+      const [successCallback] = mockInterceptors.request.use.mock.calls[0];
+      
+      const config = { method: 'get', url: '/test' };
+      const result = successCallback(config);
+      
+      expect(result).toBe(config);
+    });
+
+    it('should handle request error', async () => {
+      await import('./apiClient');
+      const [_, errorCallback] = mockInterceptors.request.use.mock.calls[0];
+      
+      const error = new Error('Request error');
+      await expect(errorCallback(error)).rejects.toThrow('Request error');
+    });
+  });
+
   describe('Utility Methods', () => {
     it('should return base URL', async () => {
       const { apiClient } = await import('./apiClient');

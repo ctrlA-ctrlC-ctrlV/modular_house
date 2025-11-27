@@ -20,6 +20,7 @@ out/
 .env.local
 .env.development.local
 .env.test
+.env.test.example
 .env.production.local
 .env.*.local
 

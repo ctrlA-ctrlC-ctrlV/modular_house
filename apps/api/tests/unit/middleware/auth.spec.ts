@@ -48,7 +48,7 @@ describe('Auth Middleware', () => {
       authenticateJWT(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(verifyTokenMock).toHaveBeenCalledWith(token);
-      expect((mockRequest as any).user).toEqual(decoded);
+      expect((mockRequest as Request).user).toEqual(decoded);
       expect(nextFunction).toHaveBeenCalled();
     });
 
@@ -91,7 +91,11 @@ describe('Auth Middleware', () => {
 
   describe('requireRole', () => {
     it('should call next() if user has required role', () => {
-      (mockRequest as any).user = { roles: ['admin', 'editor'] };
+      (mockRequest as Request).user = { 
+        roles: ['admin', 'editor'],
+        userId: 'test-user',
+        email: 'test@example.com'
+      };
       
       const middleware = requireRole('admin');
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
@@ -100,7 +104,11 @@ describe('Auth Middleware', () => {
     });
 
     it('should return 403 if user does not have required role', () => {
-      (mockRequest as any).user = { roles: ['editor'] };
+      (mockRequest as Request).user = { 
+        roles: ['editor'],
+        userId: 'test-user',
+        email: 'test@example.com'
+      };
       
       const middleware = requireRole('admin');
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);

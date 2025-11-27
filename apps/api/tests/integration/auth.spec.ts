@@ -238,7 +238,10 @@ describe('AuthService', () => {
       const authResult = await authService.authenticateUser(testEmail + '4', testPassword);
       
       expect(authResult.success).toBe(true);
-      const token = authResult.token!;
+      if (!authResult.token) {
+        throw new Error('Token expected');
+      }
+      const token = authResult.token;
 
       // Then verify the token
       const decoded = authService.verifyToken(token);

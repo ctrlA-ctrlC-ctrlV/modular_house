@@ -91,7 +91,7 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 ### Implementation
 
 - [X] T036 [P] [US2] Implement admin auth in `apps/api/src/routes/admin/auth.ts` and `apps/api/src/services/auth.ts` (email+password, Argon2id, JWT)
-- [ ] T037 [US2] Add JWT auth middleware in `apps/api/src/middleware/auth.ts` and protect `/admin/*` routes
+- [X] T037 [US2] Add JWT auth middleware in `apps/api/src/middleware/auth.ts` and protect `/admin/*` routes
 - [ ] T038 [P] [US2] Implement Pages CRUD in `apps/api/src/routes/admin/pages.ts` and `apps/api/src/services/content/pages.ts` (slug unique, SEO fields, last modified)
 - [ ] T039 [P] [US2] Implement Gallery CRUD in `apps/api/src/routes/admin/gallery.ts` and `apps/api/src/services/content/gallery.ts` (category enum, alt text required for publish)
 - [ ] T040 [P] [US2] Implement FAQ CRUD in `apps/api/src/routes/admin/faqs.ts` and `apps/api/src/services/content/faqs.ts`

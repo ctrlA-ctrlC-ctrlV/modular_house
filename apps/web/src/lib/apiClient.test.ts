@@ -178,7 +178,7 @@ describe('ApiClient', () => {
   describe('Error Handling', () => {
     it('should handle rate limit error', async () => {
       await import('./apiClient');
-      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      const [, errorCallback] = mockInterceptors.response.use.mock.calls[0];
       
       const error = {
         response: {
@@ -188,13 +188,17 @@ describe('ApiClient', () => {
         }
       };
       
-      await expect(errorCallback(error)).rejects.toThrow('Rate limit exceeded');
-      await expect(errorCallback(error)).rejects.toHaveProperty('status', 429);
+      expect(() => errorCallback(error)).toThrow('Rate limit exceeded');
+      try {
+        errorCallback(error);
+      } catch (e) {
+        expect(e).toHaveProperty('status', 429);
+      }
     });
 
     it('should handle API error with message', async () => {
       await import('./apiClient');
-      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      const [, errorCallback] = mockInterceptors.response.use.mock.calls[0];
       
       const error = {
         response: {
@@ -203,13 +207,17 @@ describe('ApiClient', () => {
         }
       };
       
-      await expect(errorCallback(error)).rejects.toThrow('Bad Request');
-      await expect(errorCallback(error)).rejects.toHaveProperty('status', 400);
+      expect(() => errorCallback(error)).toThrow('Bad Request');
+      try {
+        errorCallback(error);
+      } catch (e) {
+        expect(e).toHaveProperty('status', 400);
+      }
     });
 
     it('should handle API error without message', async () => {
       await import('./apiClient');
-      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      const [, errorCallback] = mockInterceptors.response.use.mock.calls[0];
       
       const error = {
         message: 'Some error',
@@ -219,30 +227,30 @@ describe('ApiClient', () => {
         }
       };
       
-      await expect(errorCallback(error)).rejects.toThrow('HTTP 500: Some error');
+      expect(() => errorCallback(error)).toThrow('HTTP 500: Some error');
     });
 
     it('should handle network timeout', async () => {
       await import('./apiClient');
-      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      const [, errorCallback] = mockInterceptors.response.use.mock.calls[0];
       
       const error = {
         code: 'ECONNABORTED',
         message: 'Timeout'
       };
       
-      await expect(errorCallback(error)).rejects.toThrow('Request timeout');
+      expect(() => errorCallback(error)).toThrow('Request timeout');
     });
 
     it('should handle generic network error', async () => {
       await import('./apiClient');
-      const [_, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      const [, errorCallback] = mockInterceptors.response.use.mock.calls[0];
       
       const error = {
         message: 'Network Error'
       };
       
-      await expect(errorCallback(error)).rejects.toThrow('Network Error');
+      expect(() => errorCallback(error)).toThrow('Network Error');
     });
 
     it('should pass through successful response', async () => {
@@ -265,7 +273,7 @@ describe('ApiClient', () => {
 
     it('should handle request error', async () => {
       await import('./apiClient');
-      const [_, errorCallback] = mockInterceptors.request.use.mock.calls[0];
+      const [, errorCallback] = mockInterceptors.request.use.mock.calls[0];
       
       const error = new Error('Request error');
       await expect(errorCallback(error)).rejects.toThrow('Request error');

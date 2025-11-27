@@ -6,7 +6,7 @@ config({ path: '.env.test' });
 
 // Default test environment variables if not set
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5433/test_db';
+  process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/modular_house_dev?schema=public';
 }
 
 if (!process.env.NODE_ENV) {

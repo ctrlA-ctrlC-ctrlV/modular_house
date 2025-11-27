@@ -145,11 +145,28 @@ describe('AuthService', () => {
   const testEmail = 'service-test@test.com';
   const testPassword = 'testPassword123!';
 
-  afterAll(async () => {
-    // Clean up test users
+  // Clean up all potential test users before and after tests
+  const cleanUpUsers = async () => {
     await prisma.user.deleteMany({
-      where: { email: testEmail },
+      where: { 
+        email: {
+          in: [
+            testEmail, 
+            testEmail + '2', 
+            testEmail + '3', 
+            testEmail + '4'
+          ]
+        }
+      },
     });
+  };
+
+  beforeAll(async () => {
+    await cleanUpUsers();
+  });
+
+  afterAll(async () => {
+    await cleanUpUsers();
     await prisma.$disconnect();
   });
 

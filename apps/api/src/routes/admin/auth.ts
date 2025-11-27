@@ -9,8 +9,8 @@ const authService = new AuthService();
 
 // Login request schema
 const loginSchema = z.object({
-  email: z.string().email('Invalid email format').min(1, 'Email is required'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string({ required_error: 'Email is required' }).email('Invalid email format').min(1, 'Email is required'),
+  password: z.string({ required_error: 'Password is required' }).min(1, 'Password is required'),
 });
 
 // Login endpoint

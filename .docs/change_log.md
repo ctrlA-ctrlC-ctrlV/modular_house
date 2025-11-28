@@ -21,6 +21,16 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.3.23 - a4348a9 - 28/11/2025
+
+### Changed
+- Updated quickstart.md to use ``db:generate`` and ``db:migrate`` scripts instead of direct ``prisma`` commands, fixing the "Command not found" error.
+
+### Fixed
+- Resolved `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL` when running Prisma commands via `pnpm -C`.
+
+---
+
 ## 0.3.22 - 15c10ac - 28/11/2025
 
 ### Fixed

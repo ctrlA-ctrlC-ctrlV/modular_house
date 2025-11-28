@@ -88,8 +88,8 @@ docker compose -f infra/docker-compose.yml ps
 5) Prepare database (Prisma)
 ```shell
 # Check if Prisma is configured and run migrations
-pnpm -C apps/api prisma generate
-pnpm -C apps/api prisma migrate dev --name init
+pnpm -C apps/api db:generate
+pnpm -C apps/api db:migrate --name init
 ```
 
 4) Run API and Web (two terminals)

@@ -53,6 +53,14 @@ interface GalleryItem {
   isPublished: boolean;
 }
 
+interface Redirect {
+  id: string;
+  sourceSlug: string;
+  destinationUrl: string;
+  active: boolean;
+  createdAt: string;
+}
+
 interface GalleryResponse {
   items: GalleryItem[];
   pagination: {
@@ -227,6 +235,48 @@ class ApiClient {
   }
 
   /**
+   * Get all redirects
+   */
+  async getRedirects(): Promise<Redirect[]> {
+    return this.request<Redirect[]>({
+      method: 'GET',
+      url: '/admin/redirects',
+    });
+  }
+
+  /**
+   * Create a new redirect
+   */
+  async createRedirect(data: { sourceSlug: string; destinationUrl: string; active: boolean }): Promise<Redirect> {
+    return this.request<Redirect>({
+      method: 'POST',
+      url: '/admin/redirects',
+      data,
+    });
+  }
+
+  /**
+   * Update a redirect
+   */
+  async updateRedirect(id: string, data: Partial<{ sourceSlug: string; destinationUrl: string; active: boolean }>): Promise<Redirect> {
+    return this.request<Redirect>({
+      method: 'PATCH',
+      url: `/admin/redirects/${id}`,
+      data,
+    });
+  }
+
+  /**
+   * Delete a redirect
+   */
+  async deleteRedirect(id: string): Promise<void> {
+    return this.request<void>({
+      method: 'DELETE',
+      url: `/admin/redirects/${id}`,
+    });
+  }
+
+  /**
    * Admin authentication (for future use)
    */
   async adminLogin(email: string, password: string): Promise<{ token: string }> {
@@ -287,6 +337,7 @@ export type {
   FAQ,
   GalleryItem,
   GalleryResponse,
+  Redirect,
 };
 
 export { ApiError, RateLimitError };

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { apiClient } from '../../lib/apiClient';
 
 export default function AdminDashboard() {
@@ -43,8 +43,11 @@ export default function AdminDashboard() {
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
-              <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
-                <p className="text-gray-500">Admin content management features coming soon.</p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <Link to="/admin/redirects" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="text-lg font-medium text-gray-900">Redirects</div>
+                  <p className="mt-1 text-sm text-gray-500">Manage URL redirects</p>
+                </Link>
               </div>
             </div>
           </div>

@@ -103,7 +103,7 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 - [X] T045 [P] [US2] Security tests: `/admin/*` requires JWT; invalid/expired tokens return 401/403 in `apps/api/tests/integration/admin.auth.spec.ts`
 - [X] T046 [US2] Integration tests: Pages/Gallery/FAQ CRUD and CSV export shape in `apps/api/tests/integration/admin.content.spec.ts`
 - [X] T047 [P] [US2] Implement Redirects CRUD in `apps/api/src/routes/admin/redirects.ts` and `apps/api/src/services/content/redirects.ts` (validate URL, prevnt loops)
-- [ ] T048 [P] [US2] Admin UI: Redirects management page in `apps/web/src/routes/admin/redirects.tsx` (list/create/edit/toggle active)
+- [X] T048 [P] [US2] Admin UI: Redirects management page in `apps/web/src/routes/admin/redirects.tsx` (list/create/edit/toggle active)
 - [ ] T049 [P] [US2] Add `POST /admin/uploads/image` (multipart) in `apps/api/src/routes/admin/uploads.ts` (max 500KB, mime-type check, returns URL)
 - [ ] T050 [US2] Admin UI: image upload component w/ client-side size check; integrate in Gallery create/update with accessible errors
 

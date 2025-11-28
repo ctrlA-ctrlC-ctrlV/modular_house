@@ -18,6 +18,30 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ### Security
 - 
+---
+
+## 0.3.16 - 88e0ebc - 28/11/2025
+### Added
+- admin.auth.spec.ts: Added integration tests for admin authentication security.
+
+### Security
+- Verified that /admin/* routes are correctly protected by JWT authentication and role-based access control (RBAC).
+- Confirmed that invalid, expired, or missing tokens result in 401 Unauthorized.
+- Confirmed that users without the 'admin' role receive 403 Forbidden.
+
+---
+
+## 0.3.16 - 88e0ebc - 28/11/2025
+### Added
+- guard.tsx: Created AdminGuard component to protect admin routes. It checks for a token in localStorage, sets it in apiClient, and redirects to ``/admin/login`` if missing.
+
+### Changed
+- App.tsx: Updated routing to wrap ``/admin`` (dashboard) with AdminGuard.
+- index.tsx: Removed manual token check useEffect as it is now handled by the guard.
+- tasks.md: Marked T044 as complete.
+
+### Security
+- Enforced client-side route protection for admin dashboard using a dedicated guard component.
 
 ---
 

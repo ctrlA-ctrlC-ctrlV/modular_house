@@ -21,6 +21,36 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.3.21 -  - 28/11/2025
+### Added
+- Unit tests for ``Admin API`` methods in apiClient.test.ts covering Gallery CRUD, Redirects CRUD, and Image Upload.
+- Unit test for network error without message in apiClient.test.ts.
+
+### Changed
+- Updated apiClient.test.ts to mock axios.post for image upload test.
+
+### Fixed
+- CI pipeline failure by increasing function coverage of apiClient.ts to 100%.
+
+---
+
+## 0.3.20 - 370e033 - 28/11/2025
+### Added
+- ImageUpload.tsx: New component for image uploads with client-side validation (max 500KB, allowed types) and accessible error handling.
+- gallery.tsx: New admin page for managing gallery items (CRUD), integrating the `ImageUpload` component.
+- apiClient.ts: Added uploadImage method and Gallery CRUD methods (createGalleryItem, updateGalleryItem, deleteGalleryItem).
+
+### Changed
+- app.tsx: Added route for ``/admin/gallery``.
+- index.tsx: Added link to the Gallery management page on the admin dashboard.
+- tasks.md: Marked T050 as completed.
+
+### Security
+- Client-side validation in ``ImageUpload`` complements server-side checks for file size and type.
+- Admin routes are protected by AdminGuard.
+
+---
+
 ## 0.3.20 - 45a38ed - 28/11/2025
 ### Changed
 - uploads.ts: Replaced ``any`` type for next parameter with NextFunction to improve type safety.

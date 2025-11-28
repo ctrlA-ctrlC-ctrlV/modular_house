@@ -3,6 +3,7 @@ import axios from 'axios';
 
 describe('ApiClient', () => {
   const mockRequest = vi.fn();
+  const mockPost = vi.fn();
   const mockInterceptors = {
     request: { use: vi.fn() },
     response: { use: vi.fn() },
@@ -19,6 +20,7 @@ describe('ApiClient', () => {
     
     // Reset mock state
     mockRequest.mockReset();
+    mockPost.mockReset();
     mockInterceptors.request.use.mockReset();
     mockInterceptors.response.use.mockReset();
     mockDefaults.headers.common = {};
@@ -26,6 +28,7 @@ describe('ApiClient', () => {
     // Mock axios.create
     vi.mocked(axios.create).mockReturnValue({
       request: mockRequest,
+      post: mockPost,
       interceptors: mockInterceptors,
       defaults: mockDefaults,
     } as never);
@@ -253,6 +256,15 @@ describe('ApiClient', () => {
       expect(() => errorCallback(error)).toThrow('Network Error');
     });
 
+    it('should handle network error without message', async () => {
+      await import('./apiClient');
+      const [, errorCallback] = mockInterceptors.response.use.mock.calls[0];
+      
+      const error = {};
+      
+      expect(() => errorCallback(error)).toThrow('Network error');
+    });
+
     it('should pass through successful response', async () => {
       await import('./apiClient');
       const [successCallback] = mockInterceptors.response.use.mock.calls[0];
@@ -277,6 +289,128 @@ describe('ApiClient', () => {
       
       const error = new Error('Request error');
       await expect(errorCallback(error)).rejects.toThrow('Request error');
+    });
+  });
+
+  describe('Admin API', () => {
+    it('should create gallery item', async () => {
+      const mockItem = { id: '1', title: 'Test' };
+      const inputData = { title: 'Test', category: 'garden-room' };
+      mockRequest.mockResolvedValueOnce({ data: mockItem });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.createGalleryItem(inputData as any);
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/admin/gallery',
+        data: inputData,
+      });
+      expect(result).toEqual(mockItem);
+    });
+
+    it('should update gallery item', async () => {
+      const mockItem = { id: '1', title: 'Updated' };
+      const updateData = { title: 'Updated' };
+      mockRequest.mockResolvedValueOnce({ data: mockItem });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.updateGalleryItem('1', updateData);
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'PATCH',
+        url: '/admin/gallery/1',
+        data: updateData,
+      });
+      expect(result).toEqual(mockItem);
+    });
+
+    it('should delete gallery item', async () => {
+      mockRequest.mockResolvedValueOnce({ data: {} });
+      
+      const { apiClient } = await import('./apiClient');
+      await apiClient.deleteGalleryItem('1');
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'DELETE',
+        url: '/admin/gallery/1',
+      });
+    });
+
+    it('should get redirects', async () => {
+      const mockRedirects = [{ id: '1', sourceSlug: 'old', destinationUrl: 'new' }];
+      mockRequest.mockResolvedValueOnce({ data: mockRedirects });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.getRedirects();
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'GET',
+        url: '/admin/redirects',
+      });
+      expect(result).toEqual(mockRedirects);
+    });
+
+    it('should create redirect', async () => {
+      const mockRedirect = { id: '1', sourceSlug: 'old', destinationUrl: 'new' };
+      const inputData = { sourceSlug: 'old', destinationUrl: 'new', active: true };
+      mockRequest.mockResolvedValueOnce({ data: mockRedirect });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.createRedirect(inputData);
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/admin/redirects',
+        data: inputData,
+      });
+      expect(result).toEqual(mockRedirect);
+    });
+
+    it('should update redirect', async () => {
+      const mockRedirect = { id: '1', sourceSlug: 'updated' };
+      const updateData = { sourceSlug: 'updated' };
+      mockRequest.mockResolvedValueOnce({ data: mockRedirect });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.updateRedirect('1', updateData);
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'PATCH',
+        url: '/admin/redirects/1',
+        data: updateData,
+      });
+      expect(result).toEqual(mockRedirect);
+    });
+
+    it('should delete redirect', async () => {
+      mockRequest.mockResolvedValueOnce({ data: {} });
+      
+      const { apiClient } = await import('./apiClient');
+      await apiClient.deleteRedirect('1');
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'DELETE',
+        url: '/admin/redirects/1',
+      });
+    });
+
+    it('should upload image', async () => {
+      const mockResponse = { url: '/uploads/test.jpg' };
+      mockPost.mockResolvedValueOnce({ data: mockResponse });
+      
+      const { apiClient } = await import('./apiClient');
+      const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+      const result = await apiClient.uploadImage(file);
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/admin/uploads/image',
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      );
+      expect(result).toBe(mockResponse.url);
     });
   });
 

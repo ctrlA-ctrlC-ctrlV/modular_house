@@ -21,7 +21,17 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.9 -  - 27/11/2025
+## 0.3.10 -  - 28/11/2025
+### Added
+- Added ``postgres`` service to the coverage-check job in ci.yml to ensure the database is available for integration tests during coverage enforcement.
+- Added ``Run Prisma migrations`` step to the coverage-check job in ci.yml to initialize the database schema before running tests.
+
+### Fixed
+- Resolved ``PrismaClientInitializationError: Can't reach database server at localhost:5433`` in the CI pipeline by providing the required database service and schema for the coverage-check job.
+
+---
+
+## 0.3.9 - 62af8ec - 28/11/2025
 ### Added
 - Added ``"postinstall": "prisma generate"`` to package.json to ensure Prisma Client is generated after dependency installation. This fixes the ``Module '"@prisma/client"' has no exported member 'PrismaClient'`` errors in CI during type checking and testing.
 
@@ -30,7 +40,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.9 - 5b608ee - 27/11/2025
+## 0.3.9 - 5b608ee - 28/11/2025
 ### Changed
 - Updated pnpm-lock.yaml to match dependencies in package.json and other workspace packages. This resolves the ERR_PNPM_OUTDATED_LOCKFILE error in the CI pipeline.
 

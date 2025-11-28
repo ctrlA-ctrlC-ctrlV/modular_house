@@ -20,6 +20,15 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 - 
 
 ---
+## 0.3.12 - 6ab1f9e - 28/11/2025
+### Changed
+- gallery.ts: Fixed TypeScript lint errors (``no-explicit-any``) by using safer type casting (``as unknown as EnumType``) for query parameter validation.
+Fixed
+
+### Fixed
+- Resolved ``Unexpected any`` linting errors in gallery.ts that were blocking the CI/CD pipeline checks.
+
+---
 
 ## 0.3.11 - 4e6f253 - 28/11/2025
 ### Added

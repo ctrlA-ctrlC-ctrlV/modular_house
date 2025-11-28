@@ -94,7 +94,7 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 - [X] T037 [US2] Add JWT auth middleware in `apps/api/src/middleware/auth.ts` and protect `/admin/*` routes
 - [X] T038 [P] [US2] Implement Pages CRUD in `apps/api/src/routes/admin/pages.ts` and `apps/api/src/services/content/pages.ts` (slug unique, SEO fields, last modified)
 - [X] T039 [P] [US2] Implement Gallery CRUD in `apps/api/src/routes/admin/gallery.ts` and `apps/api/src/services/content/gallery.ts` (category enum, alt text required for publish)
-- [ ] T040 [P] [US2] Implement FAQ CRUD in `apps/api/src/routes/admin/faqs.ts` and `apps/api/src/services/content/faqs.ts`
+- [X] T040 [P] [US2] Implement FAQ CRUD in `apps/api/src/routes/admin/faqs.ts` and `apps/api/src/services/content/faqs.ts`
 - [ ] T041 [US2] Implement submissions list and CSV export in `apps/api/src/routes/admin/submissions.ts` and `apps/api/src/services/submissionsExport.ts`
 - [ ] T042 [P] [US2] Build minimal admin UI routes in `apps/web/src/routes/admin/login.tsx` and `apps/web/src/routes/admin/index.tsx`
 - [ ] T043 [US2] Wire public pages to content endpoints: `apps/web/src/lib/contentClient.ts` and fetch in routes (hero title/image updates visible)

@@ -1,4 +1,4 @@
-import { PrismaClient, Redirect } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { logger } from '../../middleware/logger.js';
 
 const prisma = new PrismaClient();

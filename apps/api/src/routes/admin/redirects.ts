@@ -56,13 +56,13 @@ router.post('/', validate({ body: createRedirectBody }), async (req: Request, re
   try {
     const item = await RedirectsService.create(req.body);
     res.status(201).json(item);
-  } catch (error: any) {
-    if (error.message && error.message.includes('Redirect loop detected')) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('Redirect loop detected')) {
       res.status(400).json({ error: 'Validation Error', message: error.message });
       return;
     }
     // Handle unique constraint violation for sourceSlug
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === 'P2002') {
       res.status(409).json({ error: 'Conflict', message: 'Redirect with this source slug already exists' });
       return;
     }
@@ -76,16 +76,16 @@ router.put('/:id', validate({ params: updateRedirectParams, body: updateRedirect
     const { id } = req.params;
     const item = await RedirectsService.update(id, req.body);
     res.json(item);
-  } catch (error: any) {
-    if (error.message && error.message.includes('Redirect loop detected')) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('Redirect loop detected')) {
       res.status(400).json({ error: 'Validation Error', message: error.message });
       return;
     }
-    if (error.message === 'Redirect not found') {
+    if (error instanceof Error && error.message === 'Redirect not found') {
       res.status(404).json({ error: 'Redirect not found' });
       return;
     }
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === 'P2002') {
       res.status(409).json({ error: 'Conflict', message: 'Redirect with this source slug already exists' });
       return;
     }

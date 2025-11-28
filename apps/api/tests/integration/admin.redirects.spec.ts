@@ -54,7 +54,7 @@ describe('Admin Redirects Integration', () => {
         .set('Authorization', `Bearer ${adminToken}`);
       
       expect(listRes.status).toBe(200);
-      expect(listRes.body.some((i: any) => i.id === redirectId)).toBe(true);
+      expect(listRes.body.some((i: { id: string }) => i.id === redirectId)).toBe(true);
 
       // Update
       const updateRes = await request(app)

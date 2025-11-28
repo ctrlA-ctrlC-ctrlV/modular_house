@@ -123,7 +123,7 @@ describe('Admin Content Integration', () => {
         .set('Authorization', `Bearer ${adminToken}`);
       
       expect(listRes.status).toBe(200);
-      expect(listRes.body.some((i: any) => i.id === itemId)).toBe(true);
+      expect(listRes.body.some((i: { id: string }) => i.id === itemId)).toBe(true);
 
       // Update
       const updateRes = await request(app)
@@ -167,7 +167,7 @@ describe('Admin Content Integration', () => {
         .set('Authorization', `Bearer ${adminToken}`);
       
       expect(listRes.status).toBe(200);
-      expect(listRes.body.some((i: any) => i.id === faqId)).toBe(true);
+      expect(listRes.body.some((i: { id: string }) => i.id === faqId)).toBe(true);
 
       // Update
       const updateRes = await request(app)

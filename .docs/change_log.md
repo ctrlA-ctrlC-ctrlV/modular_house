@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.16 - 65caf38 - 28/11/2025
+## 0.3.16 - 8973e36 - 28/11/2025
 ### Added
 - Implemented ``RedirectsService`` in redirects.ts with CRUD operations and loop validation.
 - Implemented redirectsRouter in redirects.ts with Zod validation and JWT authentication.

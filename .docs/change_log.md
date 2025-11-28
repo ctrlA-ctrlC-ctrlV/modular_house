@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.20 -  - 28/11/2025
+## 0.3.20 - 45a38ed - 28/11/2025
 ### Changed
 - uploads.ts: Replaced ``any`` type for next parameter with NextFunction to improve type safety.
 - uploads.ts: Explicitly typed uploadsRouter export to resolve TS2742 inference error.

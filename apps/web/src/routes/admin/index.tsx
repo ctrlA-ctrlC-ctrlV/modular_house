@@ -48,6 +48,11 @@ export default function AdminDashboard() {
                   <div className="text-lg font-medium text-gray-900">Redirects</div>
                   <p className="mt-1 text-sm text-gray-500">Manage URL redirects</p>
                 </Link>
+
+                <Link to="/admin/gallery" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="text-lg font-medium text-gray-900">Gallery</div>
+                  <p className="mt-1 text-sm text-gray-500">Manage gallery items</p>
+                </Link>
               </div>
             </div>
           </div>

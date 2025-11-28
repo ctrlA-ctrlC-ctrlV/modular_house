@@ -235,6 +235,38 @@ class ApiClient {
   }
 
   /**
+   * Create a gallery item
+   */
+  async createGalleryItem(data: Omit<GalleryItem, 'id'>): Promise<GalleryItem> {
+    return this.request<GalleryItem>({
+      method: 'POST',
+      url: '/admin/gallery',
+      data,
+    });
+  }
+
+  /**
+   * Update a gallery item
+   */
+  async updateGalleryItem(id: string, data: Partial<Omit<GalleryItem, 'id'>>): Promise<GalleryItem> {
+    return this.request<GalleryItem>({
+      method: 'PATCH',
+      url: `/admin/gallery/${id}`,
+      data,
+    });
+  }
+
+  /**
+   * Delete a gallery item
+   */
+  async deleteGalleryItem(id: string): Promise<void> {
+    return this.request<void>({
+      method: 'DELETE',
+      url: `/admin/gallery/${id}`,
+    });
+  }
+
+  /**
    * Get all redirects
    */
   async getRedirects(): Promise<Redirect[]> {
@@ -297,6 +329,22 @@ class ApiClient {
   /**
    * Clear authorization header
    */
+  /**
+   * Upload an image
+   */
+  async uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await this.client.post<{ url: string }>('/admin/uploads/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data.url;
+  }
+
   clearAuthToken(): void {
     delete this.client.defaults.headers.common['Authorization'];
   }

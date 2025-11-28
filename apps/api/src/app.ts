@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -19,6 +20,7 @@ import { galleryRouter } from './routes/admin/gallery.js';
 import { faqsRouter } from './routes/admin/faqs.js';
 import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/submissions.js';
 import { redirectsRouter } from './routes/admin/redirects.js';
+import { uploadsRouter } from './routes/admin/uploads.js';
 
 const app: Application = express();
 
@@ -44,6 +46,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Logging middleware
 app.use(httpLogger);
 
+// Static files
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+
 // Routes
 app.use('/health', healthRouter);
 app.use('/submissions', submissionsRouter);
@@ -53,6 +58,7 @@ app.use('/admin/gallery', galleryRouter);
 app.use('/admin/faqs', faqsRouter);
 app.use('/admin/submissions', adminSubmissionsRouter);
 app.use('/admin/redirects', redirectsRouter);
+app.use('/admin/uploads', uploadsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

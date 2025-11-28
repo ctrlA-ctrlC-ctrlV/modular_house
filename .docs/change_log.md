@@ -21,7 +21,68 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.16 - 8973e36 - 28/11/2025
+## 0.3.20 -  - 28/11/2025
+### Changed
+- uploads.ts: Replaced ``any`` type for next parameter with NextFunction to improve type safety.
+- uploads.ts: Explicitly typed uploadsRouter export to resolve TS2742 inference error.
+
+### Fixed
+- uploads.ts: Removed unused config import.
+
+---
+
+## 0.3.20 - f09ac03 - 28/11/2025
+### Added
+- ``multer`` and ``@types/multer`` dependencies to api.
+- uploads.ts implementing ``POST /admin/uploads/image`` with:
+    - JWT authentication.
+    - File size limit (500KB).
+    - Mime type validation (JPEG, PNG, WebP).
+    - Unique filename generation.
+    - Returns the URL of the uploaded image.
+- uploads directory for storing uploaded files.
+
+### Changed
+- app.ts:
+    - Registered uploadsRouter at ``/admin/uploads``.
+    - Added static file serving for ``/uploads`` pointing to ``public/uploads``.
+
+### Security
+- Upload endpoint is protected by authenticateJWT.
+- File uploads are restricted by size (500KB) and type (images only) to prevent abuse and malicious file execution.
+- Files are stored with generated unique names to prevent overwriting or directory traversal attacks via filenames.
+
+---
+
+## 0.3.19 - f09ac03 - 28/11/2025
+### Added
+- Redirect.ts interface and CRUD methods (getRedirects.ts, createRedirect.ts, updateRedirect.ts, deleteRedirect.ts) to apiClient.ts.
+- redirects.tsx implementing the Redirects Management UI (list, create, edit, toggle active).
+- Route ``/admin/redirects`` in app.tsx.
+- Link to Redirects management in index.tsx.
+
+### Changed
+- Updated app.tsx to include the new admin route.
+- Updated index.tsx to display a grid of admin tools instead of a placeholder.
+
+---
+
+## 0.3.18 - 2eb818c - 28/11/2025
+
+### Changed
+- Refactored redirects.ts to replace any with unknown and proper type narrowing for error handling.
+- Updated redirects.ts to remove unused Redirect import.
+- Updated admin.content.spec.ts and admin.redirects.spec.ts to replace any with { id: string } in array assertions.
+
+### Fixed
+- Fixed linting errors in api related to ``no-explicit-any`` and ``no-unused-vars``.
+
+### Security
+- No specific security changes, but improved type safety reduces potential for runtime errors.
+
+---
+
+## 0.3.17 - 8973e36 - 28/11/2025
 ### Added
 - Implemented ``RedirectsService`` in redirects.ts with CRUD operations and loop validation.
 - Implemented redirectsRouter in redirects.ts with Zod validation and JWT authentication.

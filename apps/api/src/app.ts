@@ -15,6 +15,7 @@ import healthRouter from './routes/health.js';
 import submissionsRouter from './routes/submissions.js';
 import { authRouter } from './routes/admin/auth.js';
 import { pagesRouter } from './routes/admin/pages.js';
+import { galleryRouter } from './routes/admin/gallery.js';
 
 const app: Application = express();
 
@@ -45,6 +46,7 @@ app.use('/health', healthRouter);
 app.use('/submissions', submissionsRouter);
 app.use('/admin/auth', authRouter);
 app.use('/admin/pages', pagesRouter);
+app.use('/admin/gallery', galleryRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

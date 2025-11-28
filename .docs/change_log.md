@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.10 -  - 28/11/2025
+## 0.3.10 - a68665e - 28/11/2025
 ### Added
 - Added ``postgres`` service to the coverage-check job in ci.yml to ensure the database is available for integration tests during coverage enforcement.
 - Added ``Run Prisma migrations`` step to the coverage-check job in ci.yml to initialize the database schema before running tests.

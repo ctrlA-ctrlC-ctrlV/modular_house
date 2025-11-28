@@ -18,6 +18,7 @@ import { pagesRouter } from './routes/admin/pages.js';
 import { galleryRouter } from './routes/admin/gallery.js';
 import { faqsRouter } from './routes/admin/faqs.js';
 import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/submissions.js';
+import { redirectsRouter } from './routes/admin/redirects.js';
 
 const app: Application = express();
 
@@ -51,6 +52,7 @@ app.use('/admin/pages', pagesRouter);
 app.use('/admin/gallery', galleryRouter);
 app.use('/admin/faqs', faqsRouter);
 app.use('/admin/submissions', adminSubmissionsRouter);
+app.use('/admin/redirects', redirectsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

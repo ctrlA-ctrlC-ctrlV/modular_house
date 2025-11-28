@@ -18,6 +18,41 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ### Security
 - 
+
+---
+
+## 0.3.16 - 65caf38 - 28/11/2025
+### Added
+- Implemented ``RedirectsService`` in redirects.ts with CRUD operations and loop validation.
+- Implemented redirectsRouter in redirects.ts with Zod validation and JWT authentication.
+- Added integration tests for Redirects CRUD and validation in admin.redirects.spec.ts.
+
+### Changed
+- Registered redirectsRouter in app.ts under ``/admin/redirects``.
+- Updated tasks.md to mark T047 as complete.
+
+### Security
+- Protected all redirect routes with authenticateJWT.
+- Implemented validation to prevent redirect loops (source slug cannot match destination URL).
+- Implemented validation to prevent duplicate source slugs.
+
+---
+
+## 0.3.16 - 65caf38 - 28/11/2025
+### Added
+- Integration tests for Admin Content (Pages, Gallery, FAQs, CSV Export) in admin.content.spec.ts.
+
+### Changed
+- Updated gallery.ts to use PUT instead of PATCH for updates, aligning with OpenAPI spec.
+- Updated faqs.ts to use PUT instead of PATCH for updates, aligning with OpenAPI spec.
+- Updated submissions.ts to serve CSV export at /export.csv instead of /export, aligning with OpenAPI spec.
+
+### Fixed
+- Fixed API implementation deviations from OpenAPI spec regarding HTTP methods and route paths.
+
+### Security
+- Verified admin authentication is required for all content routes via integration tests.
+
 ---
 
 ## 0.3.16 - ca73e91 - 28/11/2025

@@ -20,6 +20,39 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 - 
 
 ---
+
+## 0.3.14 -  - 28/11/2025
+### Added
+- submissionsExport.ts: Implemented ``SubmissionsExportService`` with findAll (paginated) and ``exportToCsv`` methods.
+- submissions.ts: Implemented admin routes for listing submissions (``GET /``) and exporting to CSV (``GET /export``).
+
+### Changed
+- app.ts: Registered /admin/submissions routes.
+- tasks.md: Marked T041 as completed.
+
+### Security
+- Protected /admin/submissions routes with authenticateJWT middleware.
+- Validated query parameters for pagination using Zod.
+- Escaped CSV fields to prevent CSV injection/formatting issues
+
+
+---
+
+## 0.3.13 - 5a7b096 - 28/11/2025
+### Added
+- faqs.ts: Implemented ``FaqsService`` with CRUD operations for FAQs.
+- faqs.ts: Implemented admin routes for FAQ CRUD with Zod validation and JWT authentication.
+
+### Changed
+- app.ts: Registered ``/admin/faqs`` routes.
+- tasks.md: Marked T040 as completed.
+
+### Security
+- Protected ``/admin/faqs`` routes with authenticateJWT middleware.
+- Validated input using Zod schemas.
+
+---
+
 ## 0.3.12 - 6ab1f9e - 28/11/2025
 ### Changed
 - gallery.ts: Fixed TypeScript lint errors (``no-explicit-any``) by using safer type casting (``as unknown as EnumType``) for query parameter validation.

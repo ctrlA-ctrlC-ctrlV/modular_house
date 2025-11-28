@@ -17,6 +17,7 @@ import { authRouter } from './routes/admin/auth.js';
 import { pagesRouter } from './routes/admin/pages.js';
 import { galleryRouter } from './routes/admin/gallery.js';
 import { faqsRouter } from './routes/admin/faqs.js';
+import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/submissions.js';
 
 const app: Application = express();
 
@@ -49,6 +50,7 @@ app.use('/admin/auth', authRouter);
 app.use('/admin/pages', pagesRouter);
 app.use('/admin/gallery', galleryRouter);
 app.use('/admin/faqs', faqsRouter);
+app.use('/admin/submissions', adminSubmissionsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

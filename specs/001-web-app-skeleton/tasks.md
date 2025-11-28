@@ -95,9 +95,9 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 - [X] T038 [P] [US2] Implement Pages CRUD in `apps/api/src/routes/admin/pages.ts` and `apps/api/src/services/content/pages.ts` (slug unique, SEO fields, last modified)
 - [X] T039 [P] [US2] Implement Gallery CRUD in `apps/api/src/routes/admin/gallery.ts` and `apps/api/src/services/content/gallery.ts` (category enum, alt text required for publish)
 - [X] T040 [P] [US2] Implement FAQ CRUD in `apps/api/src/routes/admin/faqs.ts` and `apps/api/src/services/content/faqs.ts`
-- [ ] T041 [US2] Implement submissions list and CSV export in `apps/api/src/routes/admin/submissions.ts` and `apps/api/src/services/submissionsExport.ts`
-- [ ] T042 [P] [US2] Build minimal admin UI routes in `apps/web/src/routes/admin/login.tsx` and `apps/web/src/routes/admin/index.tsx`
-- [ ] T043 [US2] Wire public pages to content endpoints: `apps/web/src/lib/contentClient.ts` and fetch in routes (hero title/image updates visible)
+- [X] T041 [US2] Implement submissions list and CSV export in `apps/api/src/routes/admin/submissions.ts` and `apps/api/src/services/submissionsExport.ts`
+- [X] T042 [P] [US2] Build minimal admin UI routes in `apps/web/src/routes/admin/login.tsx` and `apps/web/src/routes/admin/index.tsx`
+- [X] T043 [US2] Wire public pages to content endpoints: `apps/web/src/lib/contentClient.ts` and fetch in routes (hero title/image updates visible)
 - [ ] T044 [US2] Redirect unauthenticated admin routes to login in `apps/web/src/routes/admin/guard.tsx`
 
 - [ ] T045 [P] [US2] Security tests: `/admin/*` requires JWT; invalid/expired tokens return 401/403 in `apps/api/tests/integration/admin.auth.spec.ts`

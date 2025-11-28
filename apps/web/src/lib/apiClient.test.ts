@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
+import type { GalleryItem } from './apiClient';
 
 describe('ApiClient', () => {
   const mockRequest = vi.fn();
@@ -295,11 +296,18 @@ describe('ApiClient', () => {
   describe('Admin API', () => {
     it('should create gallery item', async () => {
       const mockItem = { id: '1', title: 'Test' };
-      const inputData = { title: 'Test', category: 'garden-room' };
+      const inputData: Omit<GalleryItem, 'id'> = { 
+        title: 'Test', 
+        category: 'garden-room',
+        imageUrl: 'test.jpg',
+        altText: 'Test',
+        sortOrder: 0,
+        isPublished: true
+      };
       mockRequest.mockResolvedValueOnce({ data: mockItem });
       
       const { apiClient } = await import('./apiClient');
-      const result = await apiClient.createGalleryItem(inputData as any);
+      const result = await apiClient.createGalleryItem(inputData);
 
       expect(mockRequest).toHaveBeenCalledWith({
         method: 'POST',

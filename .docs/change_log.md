@@ -21,7 +21,14 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.21 -  - 28/11/2025
+## 0.3.22 -  - 28/11/2025
+
+### Fixed
+- Linting error in apiClient.test.ts by replacing any type with GalleryItem type.
+
+---
+
+## 0.3.21 - 3ae4ddc - 28/11/2025
 ### Added
 - Unit tests for ``Admin API`` methods in apiClient.test.ts covering Gallery CRUD, Redirects CRUD, and Image Upload.
 - Unit test for network error without message in apiClient.test.ts.

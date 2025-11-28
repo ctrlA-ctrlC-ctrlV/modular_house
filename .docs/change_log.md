@@ -17,11 +17,30 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 - 
 
 ### Security
-- 
+-
 
 ---
 
-## 0.3.8 -  - 28/11/2025
+## 0.3.9 -  - 27/11/2025
+### Added
+- Added ``"postinstall": "prisma generate"`` to package.json to ensure Prisma Client is generated after dependency installation. This fixes the ``Module '"@prisma/client"' has no exported member 'PrismaClient'`` errors in CI during type checking and testing.
+
+### Fixed
+- Resolved CI pipeline failures for ``pnpm typecheck`` and ``pnpm test:coverage`` by ensuring the Prisma client is available in the environment.
+
+---
+
+## 0.3.9 - 5b608ee - 27/11/2025
+### Changed
+- Updated pnpm-lock.yaml to match dependencies in package.json and other workspace packages. This resolves the ERR_PNPM_OUTDATED_LOCKFILE error in the CI pipeline.
+
+### Fixed
+- Fixed CI pipeline failure by ensuring pnpm install --frozen-lockfile passes.
+- Verified linting, type checking, and tests pass locally.
+
+---
+
+## 0.3.8 - 8d6aed8 - 28/11/2025
 ### Added
 - pages.ts: Implemented PagesService for CRUD operations on Page entities, including slug uniqueness checks and lastModifiedAt updates.
 - pages.ts: Added Express router for /admin/pages with endpoints for listing, retrieving, creating, updating, and deleting pages.

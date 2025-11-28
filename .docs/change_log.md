@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.22 -  - 28/11/2025
+## 0.3.22 - 15c10ac - 28/11/2025
 
 ### Fixed
 - Linting error in apiClient.test.ts by replacing any type with GalleryItem type.

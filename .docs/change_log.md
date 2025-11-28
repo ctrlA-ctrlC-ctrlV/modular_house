@@ -17,7 +17,23 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 - 
 
 ### Security
--
+- 
+
+---
+
+## 0.3.11 - 4e6f253 - 28/11/2025
+### Added
+- gallery.ts: Implemented ``GalleryService`` with CRUD operations and validation logic (alt text required for published items).
+- gallery.ts: Implemented admin routes for Gallery CRUD with Zod validation and JWT authentication.
+
+### Changed
+- app.ts: Registered ``/admin/gallery`` routes.
+- tasks.md: Marked T039 as completed.
+
+### Security
+- Protected ``/admin/gallery`` routes with ``authenticateJWT`` middleware.
+- Validated input using Zod schemas.
+- Enforced ``altText`` requirement for published gallery items to ensure accessibility compliance.
 
 ---
 

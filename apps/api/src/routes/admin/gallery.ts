@@ -39,11 +39,11 @@ router.use(authenticateJWT); // Protect all routes
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Cast query params to enum types if they match, otherwise undefined
-    const category = Object.values(GalleryCategory).includes(req.query.category as any) 
+    const category = Object.values(GalleryCategory).includes(req.query.category as unknown as GalleryCategory) 
       ? (req.query.category as GalleryCategory) 
       : undefined;
       
-    const publishStatus = Object.values(PublishStatus).includes(req.query.publishStatus as any)
+    const publishStatus = Object.values(PublishStatus).includes(req.query.publishStatus as unknown as PublishStatus)
       ? (req.query.publishStatus as PublishStatus)
       : undefined;
     

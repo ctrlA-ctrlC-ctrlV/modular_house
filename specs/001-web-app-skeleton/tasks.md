@@ -98,7 +98,7 @@ Independent Test: Perform content changes via admin → refresh public pages to 
 - [X] T041 [US2] Implement submissions list and CSV export in `apps/api/src/routes/admin/submissions.ts` and `apps/api/src/services/submissionsExport.ts`
 - [X] T042 [P] [US2] Build minimal admin UI routes in `apps/web/src/routes/admin/login.tsx` and `apps/web/src/routes/admin/index.tsx`
 - [X] T043 [US2] Wire public pages to content endpoints: `apps/web/src/lib/contentClient.ts` and fetch in routes (hero title/image updates visible)
-- [ ] T044 [US2] Redirect unauthenticated admin routes to login in `apps/web/src/routes/admin/guard.tsx`
+- [X] T044 [US2] Redirect unauthenticated admin routes to login in `apps/web/src/routes/admin/guard.tsx`
 
 - [ ] T045 [P] [US2] Security tests: `/admin/*` requires JWT; invalid/expired tokens return 401/403 in `apps/api/tests/integration/admin.auth.spec.ts`
 - [ ] T046 [US2] Integration tests: Pages/Gallery/FAQ CRUD and CSV export shape in `apps/api/tests/integration/admin.content.spec.ts`

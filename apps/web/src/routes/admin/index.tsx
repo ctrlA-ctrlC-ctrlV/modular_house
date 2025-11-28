@@ -1,18 +1,8 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/apiClient';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
-      return;
-    }
-    apiClient.setAuthToken(token);
-  }, [navigate]);
 
   const handleLogout = () => {
     apiClient.clearAuthToken();

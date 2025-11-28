@@ -21,7 +21,30 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.14 -  - 28/11/2025
+## 0.3.15 - 67de69c - 28/11/2025
+### Added
+- login.tsx: Implemented admin login page with authentication logic.
+- index.tsx: Implemented admin dashboard with token verification and logout.
+- contentClient.ts: Created content client wrapper for fetching pages, FAQs, and gallery items.
+- .dockerignore, .eslintignore, .prettierignore: Created missing ignore files for project setup verification.
+
+### Changed
+- App.tsx: Refactored to support layouts and added admin routes (``/admin/login``, ``/admin``).
+- Landing.tsx: Integrated contentClient to fetch and display dynamic hero content.
+- Gallery.tsx: Integrated contentClient to fetch and filter gallery items.
+- About.tsx: Integrated contentClient to fetch and display page content.
+- tasks.md: Marked tasks T042 and T043 as completed.
+
+### Fixed
+- Resolved TypeScript error in Gallery.tsx by exporting GalleryItem from contentClient.ts.
+- Removed unused ``React`` import in index.tsx to satisfy linter.
+
+### Security
+- Implemented client-side route protection for ``/admin`` dashboard using token verification.
+
+---
+
+## 0.3.14 - 67de69c - 28/11/2025
 ### Added
 - submissionsExport.ts: Implemented ``SubmissionsExportService`` with findAll (paginated) and ``exportToCsv`` methods.
 - submissions.ts: Implemented admin routes for listing submissions (``GET /``) and exporting to CSV (``GET /export``).

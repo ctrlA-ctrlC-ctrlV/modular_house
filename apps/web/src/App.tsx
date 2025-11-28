@@ -11,6 +11,7 @@ import Terms from './routes/Terms'
 import NotFound from './routes/NotFound'
 import AdminLogin from './routes/admin/login'
 import AdminDashboard from './routes/admin/index'
+import AdminGuard from './routes/admin/guard'
 
 function PublicLayout() {
   return (
@@ -42,7 +43,10 @@ function App() {
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        
+        <Route element={<AdminGuard />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
       </Routes>
     </Router>
   )

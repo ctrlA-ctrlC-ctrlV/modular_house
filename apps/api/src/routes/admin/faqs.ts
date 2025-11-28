@@ -62,7 +62,7 @@ router.post('/', validate({ body: createFAQBody }), async (req: Request, res: Re
 });
 
 // Update
-router.patch('/:id', validate({ params: updateFAQParams, body: updateFAQBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', validate({ params: updateFAQParams, body: updateFAQBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await FaqsService.update(id, req.body);

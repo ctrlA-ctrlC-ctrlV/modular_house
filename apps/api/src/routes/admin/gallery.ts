@@ -80,7 +80,7 @@ router.post('/', validate({ body: createGalleryItemBody }), async (req: Request,
 });
 
 // Update
-router.patch('/:id', validate({ params: updateGalleryItemParams, body: updateGalleryItemBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', validate({ params: updateGalleryItemParams, body: updateGalleryItemBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await GalleryService.update(id, req.body);

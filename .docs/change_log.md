@@ -20,7 +20,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 - 
 ---
 
-## 0.3.16 - 88e0ebc - 28/11/2025
+## 0.3.16 - ca73e91 - 28/11/2025
 ### Added
 - admin.auth.spec.ts: Added integration tests for admin authentication security.
 

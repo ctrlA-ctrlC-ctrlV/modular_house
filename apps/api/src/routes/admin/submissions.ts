@@ -27,7 +27,7 @@ router.get('/', validate({ query: listSubmissionsQuery }), async (req: Request, 
 });
 
 // Export CSV
-router.get('/export', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/export.csv', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const csv = await SubmissionsExportService.exportToCsv();
     

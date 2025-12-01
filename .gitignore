@@ -94,3 +94,4 @@ media/
 *.css.map
 *.js.map
 misc_scripts/
+.template/

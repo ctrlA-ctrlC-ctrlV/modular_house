@@ -1,0 +1,12 @@
+openapi: 3.1.0
+info:
+  title: Modular House – Template Integration (No API changes)
+  version: 0.0.1
+  description: >-
+    This phase introduces front-end styling integration only. No new API endpoints
+    are added; existing API contracts remain unchanged.
+servers:
+  - url: http://localhost:5173
+    description: Web app dev server (frontend only)
+paths: {}
+components: {}

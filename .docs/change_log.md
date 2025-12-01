@@ -21,6 +21,43 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.4.7 -  - 01/12/2025
+### Added
+- Added production check to enforce changing `ADMIN_LOGIN_EMAIL` from default value ("testadmin@modular.house") in secure environments.
+- Added production check to enforce changing `ADMIN_LOGIN_PASSWORD` from default value ("admin123!") in secure environments.
+
+### Changed
+- Updated ignore files (`.gitignore`, `.dockerignore`, `.eslintignore`, `.prettierignore`) to ensure appropriate patterns for Node.js and Docker stack.
+- Verified `tsconfig.base.json` strict mode is enabled (`strict: true`).
+
+### Fixed
+- Fixed missing production check for `ADMIN_LOGIN_PASSWORD` default value.
+
+### Security
+- Verified `JWT_SECRET` is checked for default value in production.
+- Confirmed `error.ts` middleware hides stack traces in production.
+- Confirmed `submissions.ts` includes rate limiting and honeypot protection.
+
+### Verified
+- All items in `requirements.md` are completed.
+- Phase 1 and 2 tasks in `tasks.md` are marked as completed.
+- Git repository and configuration verified.
+- Codebase sanity check completed:
+    - No usage of `any` type in `api` or `web`.
+    - `console.log` limited to server startup/shutdown.
+    - `package.json` scripts and dependencies validated.
+
+---
+
+## 0.4.6 - cd7775b - 01/12/2025
+### Added
+- not-found.tsx: Renamed from NotFound.tsx and updated with branded content ("Lost in the blueprint?").
+
+### Changed
+- App.tsx: Updated import to point to the new not-found.tsx file.
+
+---
+
 ## 0.4.5 - f04fc59 - 01/12/2025
 ### Added
 - Header.tsx: Added "Skip to main content" link for keyboard accessibility.

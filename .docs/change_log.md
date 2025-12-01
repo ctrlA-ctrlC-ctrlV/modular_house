@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.4.5 -  - 01/12/2025
+## 0.4.5 - f04fc59 - 01/12/2025
 ### Added
 - Header.tsx: Added "Skip to main content" link for keyboard accessibility.
 - App.tsx: Added id="main-content" and tabIndex={-1} to the main content area to support the skip link.

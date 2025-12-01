@@ -33,12 +33,20 @@ interface AppConfig {
   robotsAllow: boolean;
 }
 
+interface AdminConfig{
+  adminEmail: string;
+  adminPassword: string;
+}
+
 interface EnvConfig {
   app: AppConfig;
   database: DatabaseConfig;
   mail: MailConfig;
   security: SecurityConfig;
+  admin: AdminConfig;
 }
+
+
 
 function getRequiredEnvVar(name: string): string {
   const value = process.env[name];
@@ -95,7 +103,11 @@ export const config: EnvConfig = {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
     jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '24h'),
     passwordSaltRounds: getNumericEnvVar('PASSWORD_SALT_ROUNDS', 12),
-  },
+  },  
+  admin: {
+    adminEmail: getEnvVar("ADMIN_LOGIN_EMAIL", "testadmin@modular.house"),
+    adminPassword: getEnvVar("ADMIN_LOGIN_PASSWORD", "admin123!"),
+  }
 };
 
 // Validate configuration on load

@@ -77,6 +77,7 @@ pnpm -C apps/web build
 ```
 
 4) Start infrastructure (Postgres + MailHog)
+Ensure Docker Desktop is running first
 ```shell
 # Start Docker services
 docker compose -f infra/docker-compose.yml up -d
@@ -99,6 +100,8 @@ pnpm -w i
 
 # 2. Check if API can start (will fail if missing config/deps)
 pnpm -C apps\api dev
+
+# pnpm --filter @modular-house/api dev
 
 # 3. Check if web can start
 pnpm -C apps\web dev

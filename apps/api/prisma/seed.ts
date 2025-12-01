@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '../src/services/auth.js';
+import { config } from '../src/config/env.js';
 import { logger } from '../src/middleware/logger.js';
 
 const prisma = new PrismaClient();
@@ -7,8 +8,8 @@ const authService = new AuthService();
 
 async function createAdminUser() {
   try {
-    const email = 'admin@modular.house';
-    const password = 'admin123!';
+    const email = config.admin.adminEmail;
+    const password = config.admin.adminPassword;
     
     // Check if admin user already exists
     const existingUser = await prisma.user.findUnique({

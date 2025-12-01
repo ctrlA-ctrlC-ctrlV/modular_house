@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.23 - a4348a9 - 28/11/2025
+## 0.3.23 - 3441a8a - 28/11/2025
 
 ### Changed
 - Updated quickstart.md to use ``db:generate`` and ``db:migrate`` scripts instead of direct ``prisma`` commands, fixing the "Command not found" error.

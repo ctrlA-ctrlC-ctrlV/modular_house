@@ -120,7 +120,7 @@ Independent Test: Verify keyboard traversal through header; filter gallery by ca
 ### Implementation
 
 - [X] T051 [P] [US3] Implement gallery filter page in `apps/web/src/routes/gallery.tsx` (category param, loads from `/content/gallery`)
-- [ ] T052 [P] [US3] Implement lightbox with Radix Dialog in `apps/web/src/components/Lightbox.tsx` (prev/next controls, aria labels)
+- [X] T052 [P] [US3] Implement lightbox with Radix Dialog in `apps/web/src/components/Lightbox.tsx` (prev/next controls, aria labels)
 - [ ] T053 [US3] Ensure focus management returns to thumbnail on close in `apps/web/src/components/Lightbox.tsx`
 - [ ] T054 [US3] Lazy-load gallery images with placeholders in `apps/web/src/components/GalleryGrid.tsx`
 - [ ] T055 [P] [US3] Ensure keyboard focus states + aria-current in `apps/web/src/components/Header.tsx` and CSS
@@ -141,9 +141,9 @@ Purpose: Repo-wide improvements and non-blocking features.
 - [ ] T061 Performance: confirm budgets (LCP, HTML size, lazy-load) and adjust Vite config `apps/web/vite.config.ts`
 - [ ] T062 [P] Security hardening: disable `x-powered-by`, review CORS, pin dependencies, secrets scanning in CI
 - [ ] T063 Data retention: stub purge job in `apps/api/src/jobs/retention.ts` and document scheduling (FR-023)
- - [ ] T064 [P] Redirects validation tests (no loops, valid targets) in `apps/api/tests/unit/redirects.spec.ts`
- - [ ] T065 [P] Metrics: expose Prometheus metrics at `GET /metrics` using `prom-client` in `apps/api/src/routes/metrics.ts`
- - [ ] T066 [P] Metrics middleware: add request/response counters and latency histograms in `apps/api/src/middleware/metrics.ts` and wire in `app.ts`
+- [ ] T064 [P] Redirects validation tests (no loops, valid targets) in `apps/api/tests/unit/redirects.spec.ts`
+- [ ] T065 [P] Metrics: expose Prometheus metrics at `GET /metrics` using `prom-client` in `apps/api/src/routes/metrics.ts`
+- [ ] T066 [P] Metrics middleware: add request/response counters and latency histograms in `apps/api/src/middleware/metrics.ts` and wire in `app.ts`
 
 ---
 

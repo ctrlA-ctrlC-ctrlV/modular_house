@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { contentClient, GalleryItem } from '../lib/contentClient'
+import { Lightbox } from '../components/Lightbox'
 
 function Gallery() {
   const [items, setItems] = useState<GalleryItem[]>([])
@@ -11,6 +12,7 @@ function Gallery() {
     : undefined
 
   const [loading, setLoading] = useState(true)
+  const [lightboxIndex, setLightboxIndex] = useState<number>(-1)
 
   useEffect(() => {
     setLoading(true)
@@ -27,6 +29,11 @@ function Gallery() {
       setSearchParams({})
     }
   }
+
+  const openLightbox = (index: number) => setLightboxIndex(index)
+  const closeLightbox = () => setLightboxIndex(-1)
+  const nextImage = () => setLightboxIndex((prev) => (prev + 1) % items.length)
+  const prevImage = () => setLightboxIndex((prev) => (prev - 1 + items.length) % items.length)
 
   return (
     <div className="bg-white">
@@ -69,11 +76,24 @@ function Gallery() {
           ) : items.length === 0 ? (
              <div className="col-span-full text-center py-12 text-gray-500">No items found.</div>
           ) : (
-            items.map((item) => (
-              <div key={item.id} className="group relative">
+            items.map((item, index) => (
+              <div 
+                key={item.id} 
+                className="group relative cursor-pointer"
+                onClick={() => openLightbox(index)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openLightbox(index);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${item.title}`}
+              >
                 <div className="aspect-w-4 aspect-h-3 bg-gray-200 rounded-lg overflow-hidden">
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.altText} className="w-full h-full object-cover" />
+                    <img src={item.imageUrl} alt={item.altText} className="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
                   ) : (
                     <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
                       <span className="text-gray-400">No Image</span>
@@ -90,6 +110,16 @@ function Gallery() {
             ))
           )}
         </div>
+
+        <Lightbox
+          isOpen={lightboxIndex >= 0}
+          onClose={closeLightbox}
+          item={lightboxIndex >= 0 ? items[lightboxIndex] : null}
+          onNext={nextImage}
+          onPrev={prevImage}
+          hasNext={items.length > 1}
+          hasPrev={items.length > 1}
+        />
         
         {/* CTA Section */}
         <div className="mt-16 bg-indigo-600 rounded-lg p-8 text-center">

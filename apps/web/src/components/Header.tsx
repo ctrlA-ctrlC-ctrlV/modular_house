@@ -5,10 +5,10 @@ function Header() {
 
   const navigation = [
     { name: 'Home', href: '/', current: location.pathname === '/' },
-    { name: 'Products', href: '/products', current: location.pathname === '/products' },
-    { name: 'Gallery', href: '/gallery', current: location.pathname === '/gallery' },
-    { name: 'About', href: '/about', current: location.pathname === '/about' },
-    { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
+    { name: 'Products', href: '/products', current: location.pathname.startsWith('/products') },
+    { name: 'Gallery', href: '/gallery', current: location.pathname.startsWith('/gallery') },
+    { name: 'About', href: '/about', current: location.pathname.startsWith('/about') },
+    { name: 'Contact', href: '/contact', current: location.pathname.startsWith('/contact') },
   ]
 
   // Phone number - can be configured via environment variable in the future
@@ -16,7 +16,13 @@ function Header() {
   const phoneDisplay = '01 234 5678'
 
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white shadow relative">
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-indigo-600 focus:shadow-md focus:rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        Skip to main content
+      </a>
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex h-16 justify-between">
           <div className="flex">

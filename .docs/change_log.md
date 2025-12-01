@@ -21,7 +21,18 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.4.4 -  - 01/12/2025
+## 0.4.5 -  - 01/12/2025
+### Added
+- Header.tsx: Added "Skip to main content" link for keyboard accessibility.
+- App.tsx: Added id="main-content" and tabIndex={-1} to the main content area to support the skip link.
+
+### Changed
+- Header.tsx: Updated navigation active state logic to support sub-routes (e.g., /products/1 highlights "Products").
+- Header.tsx: Added relative class to header to position the skip link correctly.
+
+---
+
+## 0.4.4 - db9d256 - 01/12/2025
 ### Added
 - GalleryGrid.tsx: New component to render gallery grid with lazy-loading images and placeholders.
 

@@ -21,6 +21,12 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.5.1 - 8758bca - 01/12/2025
+### Added
+- markup-guide.md: Project-wide HTML/CSS conventions, BEM-style naming, accessibility and layout patterns with examples.
+
+---
+
 ## 0.4.7 - 572fd2c - 01/12/2025
 ### Added
 - Added production check to enforce changing `ADMIN_LOGIN_EMAIL` from default value ("testadmin@modular.house") in secure environments.

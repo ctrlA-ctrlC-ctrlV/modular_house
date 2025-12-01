@@ -23,7 +23,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ## 0.3.27 -  - 01/12/2025
 ### Fixed
-- Resolved build failure in web by updating apiClient.test.ts to match the new GalleryItem interface (replaced isPublished/sortOrder with publishStatus).
+- Resolved build failure in web by updating apiClient.test.ts to match the new GalleryItem interface (replaced ``isPublished``/``sortOrder`` with ``publishStatus``).
 - Corrected createGalleryItem and updateGalleryItem signatures in `apps/web/src/lib/apiClient.ts` to exclude server-generated fields (`createdAt`, `updatedAt`) from the input types.
 
 ---

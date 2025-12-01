@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.28 -  - 01/12/2025
+## 0.3.28 - 656525a - 01/12/2025
 ### Fixed
 - Fixed React import error in pages.tsx by changing React.FormEvent to use FormEvent imported from React
 - Fixed coverage threshold failure for apiClient.ts by adding missing test cases for:

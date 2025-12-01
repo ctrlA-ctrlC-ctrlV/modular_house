@@ -53,6 +53,11 @@ export default function AdminDashboard() {
                   <div className="text-lg font-medium text-gray-900">Gallery</div>
                   <p className="mt-1 text-sm text-gray-500">Manage gallery items</p>
                 </Link>
+
+                <Link to="/admin/submissions" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="text-lg font-medium text-gray-900">Submissions</div>
+                  <p className="mt-1 text-sm text-gray-500">View and export submissions</p>
+                </Link>
               </div>
             </div>
           </div>

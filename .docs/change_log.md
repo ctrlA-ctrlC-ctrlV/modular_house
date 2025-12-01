@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-0.3.24 - - 01/12/2025
+0.3.24 - 8c1eee3 - 01/12/2025
 ### Change
 - Require seed.ts to request login details from .env for security concern.
 

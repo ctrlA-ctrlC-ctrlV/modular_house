@@ -12,10 +12,11 @@ export default function AdminGallery() {
   // Form state
   const [formData, setFormData] = useState<Partial<GalleryItem>>({
     title: '',
-    description: '',
+    caption: '',
     imageUrl: '',
     altText: '',
     category: 'garden-room',
+    publishStatus: 'DRAFT',
   });
 
   useEffect(() => {
@@ -39,10 +40,11 @@ export default function AdminGallery() {
     setEditingItem(null);
     setFormData({
       title: '',
-      description: '',
+      caption: '',
       imageUrl: '',
       altText: '',
       category: 'garden-room',
+      publishStatus: 'DRAFT',
     });
     setIsCreating(true);
   };
@@ -51,10 +53,11 @@ export default function AdminGallery() {
     setEditingItem(item);
     setFormData({
       title: item.title,
-      description: item.description,
+      caption: item.caption || '',
       imageUrl: item.imageUrl,
       altText: item.altText,
       category: item.category,
+      publishStatus: item.publishStatus,
     });
     setIsCreating(true);
   };
@@ -173,13 +176,26 @@ export default function AdminGallery() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <label className="block text-sm font-medium text-gray-700">Caption</label>
               <textarea
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                value={formData.caption}
+                onChange={e => setFormData({ ...formData, caption: e.target.value })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 rows={3}
               />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="publishStatus"
+                type="checkbox"
+                checked={formData.publishStatus === 'PUBLISHED'}
+                onChange={e => setFormData({ ...formData, publishStatus: e.target.checked ? 'PUBLISHED' : 'DRAFT' })}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="publishStatus" className="ml-2 block text-sm text-gray-900">
+                Published
+              </label>
             </div>
 
             <div className="flex justify-end space-x-3">
@@ -214,6 +230,11 @@ export default function AdminGallery() {
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
                   <p className="text-sm text-gray-500">{item.category}</p>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    item.publishStatus === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {item.publishStatus}
+                  </span>
                 </div>
               </div>
               <div className="flex space-x-3">

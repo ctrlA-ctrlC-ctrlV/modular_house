@@ -6,7 +6,7 @@ import { apiClient, Redirect, ApiError } from '../../lib/apiClient';
 
 const redirectSchema = z.object({
   sourceSlug: z.string().min(1, 'Source slug is required').regex(/^\/[a-z0-9-/]+$/, 'Must start with / and contain only lowercase letters, numbers, and hyphens'),
-  destinationUrl: z.string().url('Must be a valid URL'),
+  destinationUrl: z.string().min(1, 'Destination URL is required'),
   active: z.boolean(),
 });
 

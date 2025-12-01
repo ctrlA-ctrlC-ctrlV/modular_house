@@ -13,6 +13,7 @@ import AdminLogin from './routes/admin/login'
 import AdminDashboard from './routes/admin/index'
 import AdminRedirects from './routes/admin/redirects'
 import AdminGallery from './routes/admin/gallery'
+import AdminSubmissions from './routes/admin/submissions'
 import AdminGuard from './routes/admin/guard'
 
 function PublicLayout() {
@@ -50,6 +51,7 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/redirects" element={<AdminRedirects />} />
           <Route path="/admin/gallery" element={<AdminGallery />} />
+          <Route path="/admin/submissions" element={<AdminSubmissions />} />
         </Route>
       </Routes>
     </Router>

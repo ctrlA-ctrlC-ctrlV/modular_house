@@ -45,12 +45,14 @@ interface FAQ {
 interface GalleryItem {
   id: string;
   title: string;
-  description?: string;
+  caption?: string;
   imageUrl: string;
   altText: string;
   category: 'garden-room' | 'house-extension';
-  sortOrder: number;
-  isPublished: boolean;
+  projectDate?: string;
+  publishStatus: 'DRAFT' | 'PUBLISHED';
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Redirect {
@@ -59,6 +61,24 @@ interface Redirect {
   destinationUrl: string;
   active: boolean;
   createdAt: string;
+}
+
+interface Submission {
+  id: string;
+  payload: any;
+  sourcePageSlug: string;
+  consentFlag: boolean;
+  createdAt: string;
+}
+
+interface SubmissionsResponse {
+  data: Submission[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 interface GalleryResponse {
@@ -309,6 +329,27 @@ class ApiClient {
   }
 
   /**
+   * Get submissions
+   */
+  async getSubmissions(page = 1, limit = 50): Promise<SubmissionsResponse> {
+    return this.request<SubmissionsResponse>({
+      method: 'GET',
+      url: '/admin/submissions',
+      params: { page, limit },
+    });
+  }
+
+  /**
+   * Export submissions to CSV
+   */
+  async exportSubmissionsCsv(): Promise<string> {
+    const response = await this.client.get('/admin/submissions/export', {
+      responseType: 'text',
+    });
+    return response.data;
+  }
+
+  /**
    * Admin authentication (for future use)
    */
   async adminLogin(email: string, password: string): Promise<{ token: string }> {
@@ -386,6 +427,8 @@ export type {
   GalleryItem,
   GalleryResponse,
   Redirect,
+  Submission,
+  SubmissionsResponse,
 };
 
 export { ApiError, RateLimitError };

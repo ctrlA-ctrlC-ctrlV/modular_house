@@ -21,6 +21,27 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.3.27 -  - 01/12/2025
+### Fixed
+- Resolved build failure in web by updating apiClient.test.ts to match the new GalleryItem interface (replaced isPublished/sortOrder with publishStatus).
+- Corrected createGalleryItem and updateGalleryItem signatures in `apps/web/src/lib/apiClient.ts` to exclude server-generated fields (`createdAt`, `updatedAt`) from the input types.
+
+---
+
+## 0.3.26 - 7f53ea3 - 01/12/2025
+### Added
+- Implemented missing Admin UI for Pages management (`pages.tsx`) to satisfy US2 requirement "Editor updates page content".
+- Added `getPages` and `updatePage` methods to `apiClient.ts` to support the Pages UI.
+- Registered `/admin/pages` route in `app.tsx` and added navigation link in the Admin Dashboard.
+
+### Changed
+- Corrected `Page` interface in `apiClient.ts` to match the API response schema (`heroTitle`/`heroSubtitle`/`content` → `heroHeadline`/`heroSubhead`/`sections`).
+
+### Fixed
+- Updated `Landing.tsx` and `About.tsx` to use the correct Page fields to prevent runtime errors and ensure proper content display.
+
+---
+
 ## 0.3.25 - a7ba82b - 01/12/2025
 ### Added
 - "Published" status toggle and "Caption" field to Admin Gallery UI (gallery.tsx) to enable content publishing.

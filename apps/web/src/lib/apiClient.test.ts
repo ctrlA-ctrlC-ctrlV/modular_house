@@ -296,13 +296,12 @@ describe('ApiClient', () => {
   describe('Admin API', () => {
     it('should create gallery item', async () => {
       const mockItem = { id: '1', title: 'Test' };
-      const inputData: Omit<GalleryItem, 'id'> = { 
+      const inputData: Omit<GalleryItem, 'id' | 'createdAt' | 'updatedAt'> = { 
         title: 'Test', 
         category: 'garden-room',
         imageUrl: 'test.jpg',
         altText: 'Test',
-        sortOrder: 0,
-        isPublished: true
+        publishStatus: 'DRAFT'
       };
       mockRequest.mockResolvedValueOnce({ data: mockItem });
       

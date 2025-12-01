@@ -280,7 +280,7 @@ class ApiClient {
   /**
    * Create a gallery item
    */
-  async createGalleryItem(data: Omit<GalleryItem, 'id'>): Promise<GalleryItem> {
+  async createGalleryItem(data: Omit<GalleryItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<GalleryItem> {
     return this.request<GalleryItem>({
       method: 'POST',
       url: '/admin/gallery',
@@ -291,7 +291,7 @@ class ApiClient {
   /**
    * Update a gallery item
    */
-  async updateGalleryItem(id: string, data: Partial<Omit<GalleryItem, 'id'>>): Promise<GalleryItem> {
+  async updateGalleryItem(id: string, data: Partial<Omit<GalleryItem, 'id' | 'createdAt' | 'updatedAt'>>): Promise<GalleryItem> {
     return this.request<GalleryItem>({
       method: 'PATCH',
       url: `/admin/gallery/${id}`,

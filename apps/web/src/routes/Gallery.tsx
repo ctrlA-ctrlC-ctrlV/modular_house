@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { contentClient, GalleryItem } from '../lib/contentClient'
 
 function Gallery() {
   const [items, setItems] = useState<GalleryItem[]>([])
-  const [category, setCategory] = useState<'garden-room' | 'house-extension' | undefined>(undefined)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const categoryParam = searchParams.get('category')
+  const category = (categoryParam === 'garden-room' || categoryParam === 'house-extension') 
+    ? categoryParam 
+    : undefined
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -14,6 +19,14 @@ function Gallery() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [category])
+
+  const handleCategoryChange = (newCategory: 'garden-room' | 'house-extension' | undefined) => {
+    if (newCategory) {
+      setSearchParams({ category: newCategory })
+    } else {
+      setSearchParams({})
+    }
+  }
 
   return (
     <div className="bg-white">
@@ -30,19 +43,19 @@ function Gallery() {
         {/* Filter buttons */}
         <div className="mt-8 flex justify-center space-x-4">
           <button 
-            onClick={() => setCategory(undefined)}
+            onClick={() => handleCategoryChange(undefined)}
             className={`px-4 py-2 text-sm font-medium rounded-md ${!category ? 'text-white bg-indigo-600 hover:bg-indigo-700' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}
           >
             All
           </button>
           <button 
-            onClick={() => setCategory('garden-room')}
+            onClick={() => handleCategoryChange('garden-room')}
             className={`px-4 py-2 text-sm font-medium rounded-md ${category === 'garden-room' ? 'text-white bg-indigo-600 hover:bg-indigo-700' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}
           >
             Garden Rooms
           </button>
           <button 
-            onClick={() => setCategory('house-extension')}
+            onClick={() => handleCategoryChange('house-extension')}
             className={`px-4 py-2 text-sm font-medium rounded-md ${category === 'house-extension' ? 'text-white bg-indigo-600 hover:bg-indigo-700' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}
           >
             House Extensions

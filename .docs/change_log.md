@@ -21,6 +21,19 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.4.1 -  - 01/12/2025
+### Added
+- Implemented gallery filtering by category using URL search params in gallery.tsx.
+
+### Changed
+- Updated Gallery component to sync category state with URL query parameters (?category=...).
+- Refactored filter buttons to update URL search params instead of local state.
+
+### Removed
+- Removed local state management for gallery category.
+
+---
+
 ## 0.3.28 - 656525a - 01/12/2025
 ### Fixed
 - Fixed React import error in pages.tsx by changing React.FormEvent to use FormEvent imported from React

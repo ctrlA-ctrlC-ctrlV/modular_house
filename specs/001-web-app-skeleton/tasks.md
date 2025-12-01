@@ -119,7 +119,7 @@ Independent Test: Verify keyboard traversal through header; filter gallery by ca
 
 ### Implementation
 
-- [ ] T051 [P] [US3] Implement gallery filter page in `apps/web/src/routes/gallery.tsx` (category param, loads from `/content/gallery`)
+- [X] T051 [P] [US3] Implement gallery filter page in `apps/web/src/routes/gallery.tsx` (category param, loads from `/content/gallery`)
 - [ ] T052 [P] [US3] Implement lightbox with Radix Dialog in `apps/web/src/components/Lightbox.tsx` (prev/next controls, aria labels)
 - [ ] T053 [US3] Ensure focus management returns to thumbnail on close in `apps/web/src/components/Lightbox.tsx`
 - [ ] T054 [US3] Lazy-load gallery images with placeholders in `apps/web/src/components/GalleryGrid.tsx`

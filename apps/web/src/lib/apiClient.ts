@@ -23,14 +23,16 @@ interface Page {
   id: string;
   slug: string;
   title: string;
-  heroTitle?: string;
-  heroSubtitle?: string;
-  heroImage?: string;
-  content: string;
+  heroHeadline?: string;
+  heroSubhead?: string;
+  heroImageId?: string;
+  heroImage?: GalleryItem;
+  sections: any;
   seoTitle?: string;
   seoDescription?: string;
-  isPublished: boolean;
-  lastModified: string;
+  lastModifiedAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface FAQ {
@@ -225,6 +227,27 @@ class ApiClient {
     return this.request<Page>({
       method: 'GET',
       url: `/content/pages/${encodeURIComponent(slug)}`,
+    });
+  }
+
+  /**
+   * Get all pages (Admin)
+   */
+  async getPages(): Promise<Page[]> {
+    return this.request<Page[]>({
+      method: 'GET',
+      url: '/admin/pages',
+    });
+  }
+
+  /**
+   * Update a page (Admin)
+   */
+  async updatePage(id: string, data: Partial<Page>): Promise<Page> {
+    return this.request<Page>({
+      method: 'PUT',
+      url: `/admin/pages/${id}`,
+      data,
     });
   }
 

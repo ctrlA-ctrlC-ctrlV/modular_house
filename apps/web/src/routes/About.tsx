@@ -17,15 +17,20 @@ function About() {
             {page?.title || 'About Us'}
           </h1>
           <p className="mt-4 text-lg text-gray-500">
-            {page?.heroSubtitle || 'Learn more about our mission and values.'}
+            {page?.heroSubhead || 'Learn more about our mission and values.'}
           </p>
         </div>
         
         {/* Content section */}
         <div className="mt-16">
           <div className="prose prose-indigo mx-auto text-gray-500">
-             {page?.content ? (
-               <div dangerouslySetInnerHTML={{ __html: page.content }} />
+             {page?.sections && Array.isArray(page.sections) && page.sections.length > 0 ? (
+               <div>
+                 {/* Simple rendering of sections if they exist, assuming text for now */}
+                 {page.sections.map((section: any, idx: number) => (
+                   <div key={idx} dangerouslySetInnerHTML={{ __html: section.content || '' }} />
+                 ))}
+               </div>
              ) : (
                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                 <div>

@@ -21,7 +21,23 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-0.3.24 - 8c1eee3 - 01/12/2025
+## 0.3.25 - a7ba82b - 01/12/2025
+### Added
+- "Published" status toggle and "Caption" field to Admin Gallery UI (gallery.tsx) to enable content publishing.
+- Missing Admin Submissions UI (submissions.tsx) with list view and CSV export functionality, fulfilling User Story 2 requirements.
+- getSubmissions and exportSubmissionsCsv methods to `apiClient.ts` to support the submissions UI.
+- Registered /admin/submissions route in app.tsx and added navigation link in Admin Dashboard.
+
+### Changed
+- Updated GalleryItem interface in apiClient.ts to match API response (publishStatus enum instead of isPublished boolean, caption instead of `description`).
+
+### Fixed
+- Relaxed URL validation in Admin Redirects UI (redirects.tsx) to allow internal relative paths (e.g. /new-page) which were previously blocked by strict URL validation.
+
+
+---
+
+## 0.3.24 - 8c1eee3 - 01/12/2025
 ### Change
 - Require seed.ts to request login details from .env for security concern.
 

@@ -21,7 +21,23 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.27 -  - 01/12/2025
+## 0.3.28 -  - 01/12/2025
+### Fixed
+- Fixed React import error in pages.tsx by changing React.FormEvent to use FormEvent imported from React
+- Fixed coverage threshold failure for apiClient.ts by adding missing test cases for:
+    - `getPages()` - Get all pages admin endpoint
+    - `updatePage()` - Update page admin endpoint
+    - `getSubmissions()` - Get submissions with pagination
+    - `exportSubmissionsCsv()` - Export submissions to CSV
+- Updated test mock setup to include get method for axios client
+
+### Changed
+- Modified apiClient.test.ts to include comprehensive test coverage for all API client methods
+- Coverage for apiClient.ts functions increased from 86.66% to 100%, meeting the required threshold
+
+---
+
+## 0.3.27 - b9f99f3 - 01/12/2025
 ### Fixed
 - Resolved build failure in web by updating apiClient.test.ts to match the new GalleryItem interface (replaced ``isPublished``/``sortOrder`` with ``publishStatus``).
 - Corrected createGalleryItem and updateGalleryItem signatures in `apps/web/src/lib/apiClient.ts` to exclude server-generated fields (`createdAt`, `updatedAt`) from the input types.

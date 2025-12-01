@@ -27,7 +27,7 @@ interface Page {
   heroSubhead?: string;
   heroImageId?: string;
   heroImage?: GalleryItem;
-  sections: any;
+  sections: Record<string, unknown>[];
   seoTitle?: string;
   seoDescription?: string;
   lastModifiedAt: string;
@@ -67,7 +67,7 @@ interface Redirect {
 
 interface Submission {
   id: string;
-  payload: any;
+  payload: Record<string, unknown>;
   sourcePageSlug: string;
   consentFlag: boolean;
   createdAt: string;

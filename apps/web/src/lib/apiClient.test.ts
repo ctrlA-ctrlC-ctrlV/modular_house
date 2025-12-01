@@ -5,6 +5,7 @@ import type { GalleryItem } from './apiClient';
 describe('ApiClient', () => {
   const mockRequest = vi.fn();
   const mockPost = vi.fn();
+  const mockGet = vi.fn();
   const mockInterceptors = {
     request: { use: vi.fn() },
     response: { use: vi.fn() },
@@ -22,6 +23,7 @@ describe('ApiClient', () => {
     // Reset mock state
     mockRequest.mockReset();
     mockPost.mockReset();
+    mockGet.mockReset();
     mockInterceptors.request.use.mockReset();
     mockInterceptors.response.use.mockReset();
     mockDefaults.headers.common = {};
@@ -30,6 +32,7 @@ describe('ApiClient', () => {
     vi.mocked(axios.create).mockReturnValue({
       request: mockRequest,
       post: mockPost,
+      get: mockGet,
       interceptors: mockInterceptors,
       defaults: mockDefaults,
     } as never);
@@ -141,6 +144,90 @@ describe('ApiClient', () => {
         params: { category: 'garden-room', page: 1 },
       });
       expect(result).toEqual(mockGallery);
+    });
+  });
+
+  describe('Admin Pages API', () => {
+    it('should get all pages', async () => {
+      const mockPages = [
+        { id: '1', slug: 'home', title: 'Home Page' },
+        { id: '2', slug: 'about', title: 'About Page' }
+      ];
+      mockRequest.mockResolvedValueOnce({ data: mockPages });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.getPages();
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'GET',
+        url: '/admin/pages',
+      });
+      expect(result).toEqual(mockPages);
+    });
+
+    it('should update a page', async () => {
+      const mockUpdatedPage = { 
+        id: '1', 
+        slug: 'home', 
+        title: 'Updated Home Page',
+        heroHeadline: 'New Headline'
+      };
+      const updateData = { 
+        title: 'Updated Home Page',
+        heroHeadline: 'New Headline'
+      };
+      mockRequest.mockResolvedValueOnce({ data: mockUpdatedPage });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.updatePage('1', updateData);
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'PUT',
+        url: '/admin/pages/1',
+        data: updateData,
+      });
+      expect(result).toEqual(mockUpdatedPage);
+    });
+  });
+
+  describe('Admin Submissions API', () => {
+    it('should get submissions with pagination', async () => {
+      const mockResponse = {
+        data: [
+          { id: '1', payload: { name: 'Test' }, sourcePageSlug: 'contact', consentFlag: true, createdAt: '2023-01-01' }
+        ],
+        meta: {
+          total: 1,
+          page: 1,
+          limit: 50,
+          totalPages: 1
+        }
+      };
+      mockRequest.mockResolvedValueOnce({ data: mockResponse });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.getSubmissions(1, 50);
+
+      expect(mockRequest).toHaveBeenCalledWith({
+        method: 'GET',
+        url: '/admin/submissions',
+        params: { page: 1, limit: 50 },
+      });
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should export submissions to CSV', async () => {
+      const mockCsv = 'id,name,email\n1,Test,test@example.com';
+      mockGet.mockResolvedValueOnce({ data: mockCsv });
+      
+      const { apiClient } = await import('./apiClient');
+      const result = await apiClient.exportSubmissionsCsv();
+
+      expect(mockGet).toHaveBeenCalledWith(
+        '/admin/submissions/export',
+        { responseType: 'text' }
+      );
+      expect(result).toBe(mockCsv);
     });
   });
 

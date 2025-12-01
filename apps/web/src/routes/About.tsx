@@ -27,8 +27,8 @@ function About() {
              {page?.sections && Array.isArray(page.sections) && page.sections.length > 0 ? (
                <div>
                  {/* Simple rendering of sections if they exist, assuming text for now */}
-                 {page.sections.map((section: any, idx: number) => (
-                   <div key={idx} dangerouslySetInnerHTML={{ __html: section.content || '' }} />
+                 {page.sections.map((section: Record<string, unknown>, idx: number) => (
+                   <div key={idx} dangerouslySetInnerHTML={{ __html: (section.content as string) || '' }} />
                  ))}
                </div>
              ) : (

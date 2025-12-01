@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { apiClient, Page } from '../../lib/apiClient';
 
 export default function AdminPages() {
@@ -28,7 +28,7 @@ export default function AdminPages() {
     setEditingPage(page);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingPage) return;
 

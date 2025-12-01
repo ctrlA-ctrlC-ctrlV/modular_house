@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { contentClient, GalleryItem } from '../lib/contentClient'
 import { Lightbox } from '../components/Lightbox'
+import { GalleryGrid } from '../components/GalleryGrid'
 
 function Gallery() {
   const [items, setItems] = useState<GalleryItem[]>([])
@@ -83,47 +84,15 @@ function Gallery() {
         </div>
         
         {/* Gallery grid */}
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
-             <div className="col-span-full text-center py-12 text-gray-500">Loading...</div>
-          ) : items.length === 0 ? (
-             <div className="col-span-full text-center py-12 text-gray-500">No items found.</div>
-          ) : (
-            items.map((item, index) => (
-              <div 
-                key={item.id} 
-                ref={(el) => (itemRefs.current[index] = el)}
-                className="group relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg"
-                onClick={() => openLightbox(index)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    openLightbox(index);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={`View ${item.title}`}
-              >
-                <div className="aspect-w-4 aspect-h-3 bg-gray-200 rounded-lg overflow-hidden">
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.altText} className="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400">No Image</span>
-                    </div>
-                  )}
-                </div>
-                <h3 className="mt-4 text-sm text-gray-700">
-                  {item.title}
-                </h3>
-                <p className="text-sm font-medium text-gray-900">
-                  {item.category === 'garden-room' ? 'Garden Room' : 'House Extension'}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
+        {loading ? (
+           <div className="mt-12 text-center py-12 text-gray-500">Loading...</div>
+        ) : (
+          <GalleryGrid 
+            items={items} 
+            onOpenLightbox={openLightbox} 
+            registerRef={(index, el) => { itemRefs.current[index] = el }} 
+          />
+        )}
 
         <Lightbox
           isOpen={lightboxIndex >= 0}

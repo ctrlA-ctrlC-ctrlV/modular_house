@@ -21,7 +21,16 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.4.3 -  - 01/12/2025
+## 0.4.4 -  - 01/12/2025
+### Added
+- GalleryGrid.tsx: New component to render gallery grid with lazy-loading images and placeholders.
+
+### Changed
+- gallery.tsx: Refactored to use GalleryGrid component instead of inline rendering.
+
+---
+
+## 0.4.3 - dabc2d5 - 01/12/2025
 ### Added
 - Added useRef to track gallery item elements in gallery.tsx.
 - Implemented focus management logic in closeLightbox to return focus to the currently viewed item's thumbnail when the lightbox closes.

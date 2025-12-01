@@ -134,7 +134,7 @@ Checkpoint: US3 independent demo ready.
 
 Purpose: Repo-wide improvements and non-blocking features.
 
-- [ ] T057 [P] Documentation: write markup guide in `docs/markup-guide.md` (components, class naming) (FR-026)
+- [X] T057 [P] Documentation: write markup guide in `.docs/markup-guide.md` (components, class naming) (FR-026)
 - [ ] T058 SEO/robots: implement dynamic `GET /sitemap.xml` from Pages & Gallery; implement `GET /robots.txt` with env `ROBOTS_ALLOW` controlling Disallow; set cache headers (FR-018)
 - [ ] T059 [P] Redirects: implement 301 redirect lookup + middleware in `apps/api/src/middleware/redirects.ts` and model in Prisma (FR-021, FR-030)
 - [ ] T060 [P] Cookie consent banner in `apps/web/src/components/CookieConsent.tsx` (FR-020)

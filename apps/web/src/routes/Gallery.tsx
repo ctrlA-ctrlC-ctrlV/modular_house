@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { contentClient, GalleryItem } from '../lib/contentClient'
 import { Lightbox } from '../components/Lightbox'
@@ -13,11 +13,16 @@ function Gallery() {
 
   const [loading, setLoading] = useState(true)
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
     setLoading(true)
     contentClient.getGallery({ category })
-      .then((res) => setItems(res.items))
+      .then((res) => {
+        setItems(res.items)
+        // Reset refs array when items change
+        itemRefs.current = itemRefs.current.slice(0, res.items.length)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [category])
@@ -31,7 +36,15 @@ function Gallery() {
   }
 
   const openLightbox = (index: number) => setLightboxIndex(index)
-  const closeLightbox = () => setLightboxIndex(-1)
+  
+  const closeLightbox = () => {
+    // Focus the thumbnail of the currently viewed item when closing
+    if (lightboxIndex >= 0 && itemRefs.current[lightboxIndex]) {
+      itemRefs.current[lightboxIndex]?.focus()
+    }
+    setLightboxIndex(-1)
+  }
+  
   const nextImage = () => setLightboxIndex((prev) => (prev + 1) % items.length)
   const prevImage = () => setLightboxIndex((prev) => (prev - 1 + items.length) % items.length)
 
@@ -79,7 +92,8 @@ function Gallery() {
             items.map((item, index) => (
               <div 
                 key={item.id} 
-                className="group relative cursor-pointer"
+                ref={(el) => (itemRefs.current[index] = el)}
+                className="group relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg"
                 onClick={() => openLightbox(index)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {

@@ -121,7 +121,7 @@ Independent Test: Verify keyboard traversal through header; filter gallery by ca
 
 - [X] T051 [P] [US3] Implement gallery filter page in `apps/web/src/routes/gallery.tsx` (category param, loads from `/content/gallery`)
 - [X] T052 [P] [US3] Implement lightbox with Radix Dialog in `apps/web/src/components/Lightbox.tsx` (prev/next controls, aria labels)
-- [ ] T053 [US3] Ensure focus management returns to thumbnail on close in `apps/web/src/components/Lightbox.tsx`
+- [X] T053 [US3] Ensure focus management returns to thumbnail on close in `apps/web/src/components/Lightbox.tsx`
 - [ ] T054 [US3] Lazy-load gallery images with placeholders in `apps/web/src/components/GalleryGrid.tsx`
 - [ ] T055 [P] [US3] Ensure keyboard focus states + aria-current in `apps/web/src/components/Header.tsx` and CSS
 - [ ] T056 [US3] Implement branded 404 page at `apps/web/src/routes/not-found.tsx` and route fallback

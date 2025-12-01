@@ -21,7 +21,31 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.4.1 -  - 01/12/2025
+## 0.4.3 -  - 01/12/2025
+### Added
+- Added useRef to track gallery item elements in gallery.tsx.
+- Implemented focus management logic in closeLightbox to return focus to the currently viewed item's thumbnail when the lightbox closes.
+- Added focus styles (focus:ring) to gallery items for better accessibility.
+
+### Changed
+- Updated Gallery component to attach refs to each gallery item div.
+- Modified closeLightbox to programmatically focus the correct element based on lightboxIndex.
+
+---
+
+## 0.4.2 - c948688 - 01/12/2025
+### Added
+- Created Lightbox component in Lightbox.tsx using @radix-ui/react-dialog.
+- Implemented previous/next navigation controls and keyboard support (Arrow keys) within the Lightbox.
+- Added accessibility features including ARIA labels and focus management.
+
+### Changed
+- Updated gallery.tsx to integrate the Lightbox component.
+- Made gallery items clickable and accessible via keyboard (Enter/Space) to open the lightbox.
+
+---
+
+## 0.4.1 - 85f6779 - 01/12/2025
 ### Added
 - Implemented gallery filtering by category using URL search params in gallery.tsx.
 

@@ -21,8 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.3.23 - 3441a8a - 28/11/2025
+0.3.24 - - 01/12/2025
+### Change
+- Require seed.ts to request login details from .env for security concern.
 
+---
+
+## 0.3.23 - 3441a8a - 28/11/2025
 ### Changed
 - Updated quickstart.md to use ``db:generate`` and ``db:migrate`` scripts instead of direct ``prisma`` commands, fixing the "Command not found" error.
 

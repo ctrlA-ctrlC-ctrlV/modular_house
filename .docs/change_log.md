@@ -21,7 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.4 -  - 02/12/2025
+## 0.6.5 -  - 02/12/2025
+### Changed
+- Modify the task list to include lightbox integration tasks.
+
+---
+
+## 0.6.4 - de17ceb - 02/12/2025
 ### Added
 - research.md: Portability Constraints & Exclusions section with categories, constraint table, exclusions list, hotspots, quick wins, risk register, and ranked next steps.
 

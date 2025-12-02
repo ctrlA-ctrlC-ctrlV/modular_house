@@ -245,6 +245,9 @@ Recommended Table Columns:
 - [ ] T039 [P] [US3] Update contact form error rendering with `aria-describedby` in `apps/web/src/routes/Contact.tsx`
 - [ ] T040 [P] [US3] Ensure all images in gallery have `alt` text in `apps/web/src/components/GalleryGrid.tsx`
 - [ ] T041 [US3] Add/verify focus trap and restore in `apps/web/src/components/Lightbox.tsx`
+- [ ] T042 [US3] Implement Lightbox open/close + keyboard in Lightbox.tsx
+- [ ] T043 [P] [US3] Wire GalleryGrid to Lightbox with accessible triggers in GalleryGrid.tsx
+- [ ] T044 [P] Audit CSS bundle and prune legacy selectors in apps/web/src/styles/template.css
 
 **Checkpoint**: US3 independently testable — accessibility behaviors validated
 
@@ -254,12 +257,12 @@ Recommended Table Columns:
 
 **Purpose**: Documentation, performance, and reversibility hardening
 
-- [ ] T042 [P] Update tokens mapping and usage examples in `specs/002-template-skeleton-integration/quickstart.md`
-- [ ] T043 [P] Verify CSS load order and remove unused globals from `apps/web/src/index.css`
-- [ ] T044 [P] Defer non-critical assets (fonts/images) in `apps/web/src/styles/template.css` (e.g., `font-display: swap`)
-- [ ] T045 Validate rollback path by toggling `TemplateLayout` back to `PublicLayout` in `apps/web/src/App.tsx`
-- [ ] T046 Execute actual rollback and verify app functions (swap `TemplateLayout` → `PublicLayout` and run tests) in `apps/web/src/App.tsx`
-- [ ] T047 Run local verification per quickstart (dev + tests) and record results in `specs/002-template-skeleton-integration/research.md`
+- [ ] T045 [P] Update tokens mapping and usage examples in `specs/002-template-skeleton-integration/quickstart.md`
+- [ ] T046 [P] Verify CSS load order and remove unused globals from `apps/web/src/index.css`
+- [ ] T047 [P] Defer non-critical assets (fonts/images) in `apps/web/src/styles/template.css` (e.g., `font-display: swap`)
+- [ ] T048 Validate rollback path by toggling `TemplateLayout` back to `PublicLayout` in `apps/web/src/App.tsx`
+- [ ] T049 Execute actual rollback and verify app functions (swap `TemplateLayout` → `PublicLayout` and run tests) in `apps/web/src/App.tsx`
+- [ ] T050 Run local verification per quickstart (dev + tests) and record results in `specs/002-template-skeleton-integration/research.md`
 
 ---
 

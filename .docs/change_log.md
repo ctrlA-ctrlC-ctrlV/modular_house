@@ -21,7 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.13 -  - 02/12/2025
+## 0.6.14 -  - 02/12/2025
+### Fixed
+- `App.tsx`: Removed unused imports `Outlet`, `Header`, and `Footer` to resolve linting errors.
+
+---
+
+## 0.6.13 - 3a51601 - 02/12/2025
 ### Added
 - `GardenRoom.tsx`: Created placeholder component for Garden Room page.
 - `HouseExtension.tsx`: Created placeholder component for House Extension page.

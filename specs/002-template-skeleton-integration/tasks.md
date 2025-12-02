@@ -190,7 +190,7 @@ Recommended Table Columns:
 ### Implementation for User Story 1
 
 - [X] T018 [US1] Wire `TemplateLayout` into public routes in `apps/web/src/App.tsx` (header/footer placeholders acceptable)
-- [ ] T019 [P] [US1] Apply template container utility (e.g., `l-container`) to top-level wrappers in `apps/web/src/routes/Landing.tsx`
+- [X] T019 [P] [US1] Apply template container utility (e.g., l-container) to top-level wrappers in `apps/web/src/routes/Landing.tsx`
 - [ ] T020 [P] [US1] Apply template container utility to `apps/web/src/routes/About.tsx`
 - [ ] T021 [P] [US1] Apply template container utility to `apps/web/src/routes/Gallery.tsx`
 - [ ] T022 [P] [US1] Apply template container utility to `apps/web/src/routes/Contact.tsx`

@@ -21,7 +21,16 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.14 -  - 02/12/2025
+## 0.6.15 -  - 02/12/2025
+### Changed
+- Updated `Landing.tsx` to use the template utility class `l-container` for top-level layout wrappers, replacing ad-hoc Tailwind container classes (`max-w-7xl`, `mx-auto`, `px-4`, etc.) to align with the design system.
+
+### Removed
+- Removed redundant padding and width constraints from the Hero and Features sections in `Landing.tsx` that are now handled by `l-container`.
+
+---
+
+## 0.6.14 - 6ed0930 - 02/12/2025
 ### Fixed
 - `App.tsx`: Removed unused imports `Outlet`, `Header`, and `Footer` to resolve linting errors.
 

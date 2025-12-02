@@ -8,6 +8,8 @@ import About from './routes/About'
 import Contact from './routes/Contact'
 import Privacy from './routes/Privacy'
 import Terms from './routes/Terms'
+import GardenRoom from './routes/GardenRoom'
+import HouseExtension from './routes/HouseExtension'
 import NotFound from './routes/not-found'
 import AdminLogin from './routes/admin/login'
 import AdminDashboard from './routes/admin/index'
@@ -42,6 +44,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/garden-room" element={<GardenRoom />} />
+          <Route path="/house-extension" element={<HouseExtension />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 

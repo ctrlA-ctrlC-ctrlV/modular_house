@@ -21,7 +21,18 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.12 -  - 02/12/2025
+## 0.6.13 -  - 02/12/2025
+### Added
+- `GardenRoom.tsx`: Created placeholder component for Garden Room page.
+- `HouseExtension.tsx`: Created placeholder component for House Extension page.
+
+### Changed
+- `App.tsx`: Wired `TemplateLayout` to all public routes, including the newly added `GardenRoom` and `HouseExtension` routes.
+- `template-layout.test.tsx`: Updated integration tests to include `GardenRoom` and `HouseExtension` routes.
+
+---
+
+## 0.6.12 - e2c69e9 - 02/12/2025
 ### Added
 - `template-layout.test.tsx`: Added integration tests to verify `TemplateLayout` rendering across public routes.
 - `focus-indicators.test.tsx`: Added accessibility tests for skip link presence and main content focusability.

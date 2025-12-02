@@ -18,6 +18,8 @@ vi.mock('../../routes/Gallery', () => ({ default: () => <div data-testid="page-g
 vi.mock('../../routes/Contact', () => ({ default: () => <div data-testid="page-contact">Contact Page</div> }));
 vi.mock('../../routes/Privacy', () => ({ default: () => <div data-testid="page-privacy">Privacy Page</div> }));
 vi.mock('../../routes/Terms', () => ({ default: () => <div data-testid="page-terms">Terms Page</div> }));
+vi.mock('../../routes/GardenRoom', () => ({ default: () => <div data-testid="page-garden-room">Garden Room Page</div> }));
+vi.mock('../../routes/HouseExtension', () => ({ default: () => <div data-testid="page-house-extension">House Extension Page</div> }));
 vi.mock('../../routes/not-found', () => ({ default: () => <div data-testid="page-404">404 Page</div> }));
 
 describe('TemplateLayout Integration', () => {
@@ -38,6 +40,8 @@ describe('TemplateLayout Integration', () => {
     ['/contact', 'page-contact'],
     ['/privacy', 'page-privacy'],
     ['/terms', 'page-terms'],
+    ['/garden-room', 'page-garden-room'],
+    ['/house-extension', 'page-house-extension'],
     ['/unknown-route', 'page-404'],
   ])('renders TemplateLayout for route %s', async (route, testId) => {
     renderRoute(route);

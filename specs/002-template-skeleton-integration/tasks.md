@@ -157,7 +157,7 @@ Recommended Table Columns:
 - [X] T006 [P] Create styles file `apps/web/src/styles/template.css`
 - [X] T007 Update global imports in `apps/web/src/main.tsx` to import `./styles/template.css` before `./index.css`
 - [X] T008 [P] Copy required images/fonts from `.template/rebar/` to `apps/web/public/template/`
- - [X] T009 Document token sources and usage in `specs/002-template-skeleton-integration/quickstart.md`
+- [X] T009 Document token sources and usage in `specs/002-template-skeleton-integration/quickstart.md`
 
 ---
 
@@ -165,8 +165,8 @@ Recommended Table Columns:
 
 **Purpose**: Introduce a reversible, scoped layout wrapper and resolve base CSS precedence
 
-- [ ] T010 [P] Create `apps/web/src/components/TemplateLayout.tsx` with `.theme-rebar` wrapper and regions (header/main/footer)
-- [ ] T011 [P] Ensure main region has `id="main-content"` and `tabIndex={-1}` in `TemplateLayout.tsx`
+- [X] T010 [P] Create `apps/web/src/components/TemplateLayout.tsx` with `.theme-rebar` wrapper and regions (header/main/footer)
+- [X] T011 [P] Ensure main region has `id="main-content"` and `tabIndex={-1}` in `TemplateLayout.tsx`
 - [ ] T012 Replace `PublicLayout` usage with `TemplateLayout` in `apps/web/src/App.tsx` (keep old layout for rollback)
 - [ ] T013 Verify CSS import order: `template.css` before `index.css` in `apps/web/src/main.tsx`
 - [ ] T014 [P] Add minimal template utility class mappings to `apps/web/src/styles/template.css` (container, typography, focus)

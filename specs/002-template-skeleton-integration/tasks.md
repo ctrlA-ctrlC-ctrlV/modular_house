@@ -167,7 +167,7 @@ Recommended Table Columns:
 
 - [X] T010 [P] Create `apps/web/src/components/TemplateLayout.tsx` with `.theme-rebar` wrapper and regions (header/main/footer)
 - [X] T011 [P] Ensure main region has `id="main-content"` and `tabIndex={-1}` in `TemplateLayout.tsx`
-- [ ] T012 Replace `PublicLayout` usage with `TemplateLayout` in `apps/web/src/App.tsx` (keep old layout for rollback)
+- [X] T012 Replace `PublicLayout` usage with `TemplateLayout` in `apps/web/src/App.tsx` (keep old layout for rollback)
 - [ ] T013 Verify CSS import order: `template.css` before `index.css` in `apps/web/src/main.tsx`
 - [ ] T014 [P] Add minimal template utility class mappings to `apps/web/src/styles/template.css` (container, typography, focus)
 - [ ] T015 Create/confirm `apps/web/src/styles/README.md` describing import order and rollback steps

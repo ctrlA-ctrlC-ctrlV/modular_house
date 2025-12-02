@@ -21,7 +21,24 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.7 -  - 02/12/2025
+## 0.6.9 -  - 02/12/2025
+### Added
+- Imported `TemplateLayout` in `App.tsx`.
+
+### Changed
+- Replaced `PublicLayout` with `TemplateLayout` for public routes in `App.tsx`.
+
+---
+
+## 0.6.8 - 418a770 - 02/12/2025
+### Added
+- Created TemplateLayout.tsx to serve as the new layout wrapper for public pages.
+- Implemented `.theme-rebar` class wrapper for CSS scoping.
+- Added `main` region with `id="main-content"` and `tabIndex={-1}` for accessibility and skip-link support.
+
+---
+
+## 0.6.7 - ec34870 - 02/12/2025
 ### Changed
 - `quickstart.md` detailing token sources (`theme.json`, `style.scss`), current variables in `tokens.css`, usage examples, import order, scoped wrapper, asset paths, and PowerShell asset refresh command.
 

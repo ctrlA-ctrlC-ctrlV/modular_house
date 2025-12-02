@@ -21,6 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.6.12 -  - 02/12/2025
+### Added
+- `template-layout.test.tsx`: Added integration tests to verify `TemplateLayout` rendering across public routes.
+- `focus-indicators.test.tsx`: Added accessibility tests for skip link presence and main content focusability.
+
+---
+
 ## 0.6.11 - 42eb171 - 02/12/2025
 ### Added
 - `README.md` documenting:

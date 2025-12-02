@@ -184,8 +184,8 @@ Recommended Table Columns:
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Add render tests for template layout across routes in `apps/web/src/test/routes/template-layout.test.tsx`
-- [ ] T017 [P] [US1] Add focus-indicator test for nav/links in `apps/web/src/test/routes/focus-indicators.test.tsx`
+- [X] T016 [P] [US1] Add render tests for template layout across routes in `apps/web/src/test/routes/template-layout.test.tsx`
+- [X] T017 [P] [US1] Add focus-indicator test for nav/links in `apps/web/src/test/routes/focus-indicators.test.tsx`
 
 ### Implementation for User Story 1
 

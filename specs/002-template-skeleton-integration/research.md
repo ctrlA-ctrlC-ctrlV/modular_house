@@ -155,3 +155,173 @@ Risk Profile Summary:
 
 - Highest risk in interactive utilities due to DOM coupling; mitigate by wrapping in React components and isolating effects.
 - Tokens and typography are low risk; ensure import order to avoid override conflicts.
+
+## Per-Page Mapping (Phase 0 – T002)
+
+### Page: Home / Route "/"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/Landing.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, Hero, Sections, Footer` |
+| Data Sources | None (static content) |
+| State Providers | `QueryClientProvider` (global, if present) |
+| Critical Styles | `template.css`, `index.css`, `tokens.css` |
+| Scripts / Effects | Minimal mount effects (none critical) |
+| Performance Notes | Lazy load heavy media; memoize hero where needed |
+| Accessibility | Landmarks via header/footer; focus indicators on links |
+| Portability Constraints | Requires React Router; client-side render |
+| Cross-cutting | Analytics wrapper if present; public auth guard none |
+| Error / Empty States | N/A |
+| Tests | `apps/web/src/test/routes/template-layout.test.tsx` |
+| Refactor Targets | Consolidate duplicate section styles to template classes |
+
+### Page: About / Route "/about"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/About.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, ContentSections, Footer` |
+| Data Sources | None |
+| State Providers | None beyond global |
+| Critical Styles | `template.css`, `index.css` |
+| Scripts / Effects | None |
+| Performance Notes | Static; ensure minimal re-render |
+| Accessibility | Semantic headings; link focus |
+| Portability Constraints | None beyond layout coupling |
+| Cross-cutting | Analytics |
+| Error / Empty States | N/A |
+| Tests | `apps/web/src/test/routes/template-layout.test.tsx` |
+| Refactor Targets | Apply `l-container` utility consistently |
+
+### Page: Gallery / Route "/gallery"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/Gallery.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, GalleryGrid, Lightbox, Footer` |
+| Data Sources | Local image assets under `/public/template/` |
+| State Providers | Local component state; optional context for lightbox |
+| Critical Styles | `template.css` gallery classes; `a11y.css` focus trap |
+| Scripts / Effects | Lightbox open/close; focus management |
+| Performance Notes | Defer non-critical images; use `loading="lazy"` |
+| Accessibility | Alt text on images; focus trap in modal |
+| Portability Constraints | Browser-only DOM for lightbox |
+| Cross-cutting | Analytics events on image open |
+| Error / Empty States | Empty gallery state message |
+| Tests | `apps/web/src/test/accessibility/lightbox-focus.test.tsx` |
+| Refactor Targets | Unify event handlers in reusable utility |
+
+### Page: Contact / Route "/contact"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/Contact.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, ContactForm, Footer` |
+| Data Sources | None (client-side validation) |
+| State Providers | Form state local |
+| Critical Styles | Form controls via template classes |
+| Scripts / Effects | Validation, error rendering |
+| Performance Notes | Minimal; avoid heavy libs |
+| Accessibility | `aria-describedby` on errors; labeled inputs |
+| Portability Constraints | None beyond layout |
+| Cross-cutting | Analytics form submission events |
+| Error / Empty States | Error messages on invalid input |
+| Tests | `apps/web/src/test/accessibility/form-errors.test.tsx` |
+| Refactor Targets | Centralize form error component |
+
+### Page: Privacy / Route "/privacy"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/Privacy.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, PolicyContent, Footer` |
+| Data Sources | Static text |
+| State Providers | None |
+| Critical Styles | Typography classes |
+| Scripts / Effects | None |
+| Performance Notes | Static |
+| Accessibility | Semantic lists/headings |
+| Portability Constraints | None |
+| Cross-cutting | Analytics |
+| Error / Empty States | N/A |
+| Tests | Route render part of layout tests |
+| Refactor Targets | Normalize heading styles via tokens |
+
+### Page: Terms / Route "/terms"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/Terms.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, TermsContent, Footer` |
+| Data Sources | Static text |
+| State Providers | None |
+| Critical Styles | Typography classes |
+| Scripts / Effects | None |
+| Performance Notes | Static |
+| Accessibility | Semantic content sections |
+| Portability Constraints | None |
+| Cross-cutting | Analytics |
+| Error / Empty States | N/A |
+| Tests | Route render tests |
+| Refactor Targets | Shared content section component |
+
+### Page: Not Found / Route "*"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/not-found.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, NotFoundMessage, Footer` |
+| Data Sources | None |
+| State Providers | None |
+| Critical Styles | Utility classes for spacing/typography |
+| Scripts / Effects | None |
+| Performance Notes | Minimal |
+| Accessibility | Clear focus target on main content |
+| Portability Constraints | None |
+| Cross-cutting | Analytics page event |
+| Error / Empty States | N/A |
+| Tests | Route render tests |
+| Refactor Targets | Shared message component |
+
+### Page: Garden Room / Route "/garden-room"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/GardenRoom.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, ContentSections, Footer` |
+| Data Sources | Static + images |
+| State Providers | None |
+| Critical Styles | Container utility, typography |
+| Scripts / Effects | None |
+| Performance Notes | Lazy images |
+| Accessibility | Alt text |
+| Portability Constraints | None |
+| Cross-cutting | Analytics |
+| Error / Empty States | N/A |
+| Tests | Route render tests |
+| Refactor Targets | Reuse sections from Landing |
+
+### Page: House Extension / Route "/house-extension"
+| Aspect | Detail |
+| --- | --- |
+| Entry File | `apps/web/src/routes/HouseExtension.tsx` |
+| Layout Chain | `TemplateLayout > AppShell > Page` |
+| Core Components | `Header, ContentSections, Footer` |
+| Data Sources | Static + images |
+| State Providers | None |
+| Critical Styles | Container utility, typography |
+| Scripts / Effects | None |
+| Performance Notes | Lazy images |
+| Accessibility | Alt text |
+| Portability Constraints | None |
+| Cross-cutting | Analytics |
+| Error / Empty States | N/A |
+| Tests | Route render tests |
+| Refactor Targets | Shared reusable sections |
+
+At end:
+
+- Aggregate matrix: shared layout components across all pages (Header, Footer, TemplateLayout)
+- Shared layout components identified: `TemplateLayout`, `Header`, `Footer`
+- Highest portability friction: Gallery (interactive DOM/lightbox)

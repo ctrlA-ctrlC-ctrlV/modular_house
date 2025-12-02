@@ -72,7 +72,7 @@ Recommended Table Columns:
 Recommended Table Columns:
 | Name | Type | Path | Purpose | Signature / IO | Dependencies | Side Effects | Tree-shakable | Env Constraints | Portability Risk |
 
-- [ ] T002 Map important files per page (9 key pages): `specs/002-template-skeleton-integration/research.md`
+ - [X] T002 Map important files per page (9 key pages): `specs/002-template-skeleton-integration/research.md`
     - Output Structure: Per-Page Mapping Template
     - Checklist (repeat for each page):
         - [ ] Page Identifier (Route, Slug, or Name)

@@ -21,7 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.2 -  - 02/12/2025
+## 0.6.3 -  - 02/12/2025
+### Added
+- research.md: Per-Page Mapping section for nine routes with details and aggregate summary.
+
+---
+
+## 0.6.2 - 20e0c38 - 02/12/2025
 ### Added
 - research.md: Utility Catalog section with taxonomy, summaries, and detailed table entries.
 

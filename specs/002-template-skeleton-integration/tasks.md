@@ -157,7 +157,7 @@ Recommended Table Columns:
 - [X] T006 [P] Create styles file `apps/web/src/styles/template.css`
 - [X] T007 Update global imports in `apps/web/src/main.tsx` to import `./styles/template.css` before `./index.css`
 - [X] T008 [P] Copy required images/fonts from `.template/rebar/` to `apps/web/public/template/`
-- [ ] T009 Document token sources and usage in `specs/002-template-skeleton-integration/quickstart.md`
+ - [X] T009 Document token sources and usage in `specs/002-template-skeleton-integration/quickstart.md`
 
 ---
 

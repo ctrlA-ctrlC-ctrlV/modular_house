@@ -21,7 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.6 -  - 02/12/2025
+## 0.6.7 -  - 02/12/2025
+### Changed
+- `quickstart.md` detailing token sources (`theme.json`, `style.scss`), current variables in `tokens.css`, usage examples, import order, scoped wrapper, asset paths, and PowerShell asset refresh command.
+
+---
+
+## 0.6.6 - 9b9710f - 02/12/2025
 ### Added
 - template directory for template assets.
 - `tokens.css` with CSS variables extracted from `theme.json`.

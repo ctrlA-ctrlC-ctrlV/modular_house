@@ -4,6 +4,7 @@
 **Input**: Feature specification from `/specs/002-template-skeleton-integration/spec.md`
 
 **Note**: Generated and maintained via `/speckit.plan` workflow.
+**Note**: No critical security or data-integrity modules are in scope; 100% branch coverage requirement does not apply to this phase.
 
 ## Summary
 
@@ -31,7 +32,7 @@ Must pass before Phase 0 research; re-check after Phase 1 design.
 
 1. Security & Privacy: No new data flows. No secrets added. Frontend-only styling; API untouched. Threat model unchanged; ensure no PII is introduced in logs or client bundles. Status: PASS (N/A for new data).
 2. Reliability & Observability: API health/log schema unchanged. Frontend: no runtime logging added. Status: PASS (N/A for new endpoints).
-3. Test Discipline: Add component/page rendering tests validating template class application and no route regressions; maintain coverage ≥70% for changed modules. Status: PASS (plan defined).
+3. Test Discipline: Add component/page rendering tests validating template class application and no route regressions; maintain coverage ≥70% for changed modules. 
 4. Performance & Efficiency: Ensure CSS loading is non-blocking where feasible; bundle budgets checked in build output; LCP target <2.5s. Status: PASS (plan defined).
 5. Accessibility & Inclusive UX: Preserve keyboard navigation, focus indicators, aria-labels; verify color contrast. Status: PASS (plan defined).
 

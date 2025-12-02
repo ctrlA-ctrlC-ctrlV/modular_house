@@ -118,6 +118,9 @@ if (config.app.nodeEnv === 'production') {
   if (config.security.passwordSaltRounds < 10) {
     throw new Error('PASSWORD_SALT_ROUNDS must be at least 10 in production');
   }
+  if (config.admin.adminEmail === 'testadmin@modular.house') {
+    throw new Error('ADMIN_LOGIN_EMAIL must be changed from default value in production');
+  }
   if (config.admin.adminPassword === 'admin123!') {
     throw new Error('ADMIN_LOGIN_PASSWORD must be changed from default value in production');
   }

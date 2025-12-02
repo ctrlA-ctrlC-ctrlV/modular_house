@@ -21,7 +21,16 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.10 -  - 02/12/2025
+## 0.6.11 -  - 02/12/2025
+### Added
+- `README.md` documenting:
+    - Import order: `tokens.css`, `template.css`, `index.css`, then `focus.css`.
+    - `.theme-rebar` scoping via `TemplateLayou`t.
+    - Reversible rollback steps to switch back to `PublicLayout` and disable `template.css`.
+
+---
+
+## 0.6.10 - e4024c3 - 02/12/2025
 ### Added
 - Added minimal template utility class mappings to `template.css`, including:
     - Layout utilities: `.l-container`

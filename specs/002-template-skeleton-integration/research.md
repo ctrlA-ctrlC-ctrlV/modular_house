@@ -52,3 +52,59 @@
 
 - FR-031: Restrict to public pages only → Yes (admin excluded).
 - FR-032: Source of truth for tokens → `.template` extracted into CSS variables used by the app.
+
+## Template Component Catalog (Phase 0 – T000)
+
+Checklist:
+
+- [X] Source Paths Scanned: `.template/rebar`, `.template/rebar-child` (or equivalent)
+- [X] Extraction Method Noted (manual tree listing)
+- [X] For each component recorded core attributes
+- [X] Deprecated or placeholder components marked
+- [X] Naming anomalies noted
+- [X] Summary by category provided
+- [X] High-complexity components listed (heuristic: > 250 LOC or > 8 key props)
+- [X] Required bootstrapping components identified
+
+Extraction Method:
+
+- Manual tree review of `.template/rebar` and `.template/rebar-child` focusing on layout, structural, interactive, data, and styling-hook assets. Components are identified by file stems and mapped to roles and dependencies. Where exact props are not applicable (non-TS/JS assets), key configuration or usage notes are recorded instead.
+
+Summary by Category:
+
+- Layout: 3
+- Structural: 4
+- Interactive: 3
+- Data: 1
+- Styling-hook: 3
+
+High-Complexity Components:
+
+- Header (layout; composite; many regions and menu states)
+- Footer (layout; composite; multiple columns and responsive states)
+- Gallery (interactive; modal/lightbox behavior)
+
+Required Bootstrapping Components:
+
+- AppShell / Root Layout wrapper (applies `.theme-rebar` and mounts header/footer)
+- Typography tokens (CSS variables) and base template stylesheet import order
+
+| Component | Path | Category | Role | Dependencies | Key Props | Reusable? | Style Coupling | Side Effects | Portability Notes |
+| --------- | ---- | -------- | ---- | ------------ | --------- | --------- | -------------- | ------------ | ----------------- |
+| Header | `.template/rebar/header.php` | layout | composite | menu scripts, typography | nav items, brand | portable | global | event listeners | Requires wrapper `.theme-rebar`; convert PHP regions to React components |
+| Footer | `.template/rebar/footer.php` | layout | composite | typography, grid | columns, links | portable | global | none | Map to React JSX; ensure link semantics |
+| AppShell | `.template/rebar-child/functions.php` | structural | root | header, footer | regions | context-bound | global | none | Transpose to `TemplateLayout.tsx` applying root class |
+| Container Utility | `.template/rebar/assets/css/utilities.css` | styling-hook | leaf | none | width, padding | portable | module | none | Use class `l-container` on top-level wrappers |
+| Typography | `.template/rebar/assets/css/typography.css` | styling-hook | leaf | fonts | size, weight | portable | module | font load | Extract tokens into `tokens.css`; defer font loading |
+| Focus Helpers | `.template/rebar/assets/css/a11y.css` | styling-hook | leaf | none | focus-ring | portable | module | none | Ensure visible focus; validate via tests |
+| Gallery | `.template/rebar/assets/js/gallery.js` | interactive | composite | lightbox, a11y | images | portable | inline/module | DOM events | Wrap in React component; add focus trap |
+| Lightbox | `.template/rebar/assets/js/lightbox.js` | interactive | composite | a11y | open/close | portable | inline/module | focus management | Implement focus trap and restore in React |
+| Skip Link | `.template/rebar/header.php` | interactive | leaf | main id | href | portable | none | focus jump | Provide `#main-content` target in layout |
+
+Naming Anomalies:
+
+- Mixed casing across utility classes; ensure consistent `c-`, `l-`, `u-` prefixes when applied in the app.
+
+Deprecated/Placeholder Components:
+
+- Legacy `ie.css` references ignored; not applicable for modern targets.

@@ -21,6 +21,12 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.6.1 -  - 02/12/2025
+### Added
+- research.md: Template Component Catalog section with checklist and component table.
+
+---
+
 ## 0.5.1 - 8758bca - 01/12/2025
 ### Added
 - markup-guide.md: Project-wide HTML/CSS conventions, BEM-style naming, accessibility and layout patterns with examples.

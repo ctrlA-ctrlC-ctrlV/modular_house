@@ -19,7 +19,7 @@
 
 **Purpose**: Create documentation by reviewing `.template/rebar` and `.template/rebar-child` to inform integration without code changes
 
-- [ ] T000 Document template components used: `specs/002-template-skeleton-integration/research.md` (list components from `.template/rebar` and `rebar-child`)
+ - [X] T000 Document template components used: `specs/002-template-skeleton-integration/research.md` (list components from `.template/rebar` and `rebar-child`)
     - Output Structure: Component List Format
     - Checklist:
         - [ ] Source Paths Scanned: `.template/rebar`, `.template/rebar-child` (or equivalent)

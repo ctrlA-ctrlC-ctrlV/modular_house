@@ -21,7 +21,7 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.11 -  - 02/12/2025
+## 0.6.11 - 42eb171 - 02/12/2025
 ### Added
 - `README.md` documenting:
     - Import order: `tokens.css`, `template.css`, `index.css`, then `focus.css`.

@@ -16,20 +16,20 @@ function Header() {
   const phoneDisplay = '01 234 5678'
 
   return (
-    <header className="bg-white shadow relative">
+    <header className="c-header bg-white shadow relative">
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-indigo-600 focus:shadow-md focus:rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
         Skip to main content
       </a>
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+      <nav className="c-nav mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex h-16 justify-between">
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
               <Link 
                 to="/" 
-                className="text-xl font-bold text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 rounded"
+                className="c-brand text-xl font-bold text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 rounded"
               >
                 Modular House
               </Link>
@@ -43,7 +43,7 @@ function Header() {
                     item.current
                       ? 'border-indigo-500 text-gray-900'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 rounded`}
+                  } c-nav__item inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 rounded`}
                   aria-current={item.current ? 'page' : undefined}
                 >
                   {item.name}

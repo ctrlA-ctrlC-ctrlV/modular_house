@@ -199,7 +199,7 @@ Recommended Table Columns:
 - [X] T025 [P] [US1] Apply template container utility to `apps/web/src/routes/not-found.tsx`
 - [X] T026 [P] [US1] Apply template container utility to `apps/web/src/routes/GardenRoom.tsx` (new page)
 - [X] T027 [P] [US1] Apply template container utility to `apps/web/src/routes/HouseExtension.tsx` (new page)
-- [ ] T028 [US1] Confirm dev run and test pass criteria for 6+ routes documented in `specs/002-template-skeleton-integration/quickstart.md`
+- [X] T028 [US1] Confirm dev run and test pass criteria for 6+ routes documented in `specs/002-template-skeleton-integration/quickstart.md`
 
 **Checkpoint**: US1 independently testable — routes render with template base layout and focus styles
 
@@ -213,14 +213,14 @@ Recommended Table Columns:
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Component class application tests in `apps/web/src/test/components/template-classes.test.tsx` (Header, GalleryGrid)
+- [X] T029 [P] [US2] Component class application tests in `apps/web/src/test/components/template-classes.test.tsx` (Header, GalleryGrid)
 
 ### Implementation for User Story 2
 
-- [ ] T030 [P] [US2] Update header to template classes in `apps/web/src/components/Header.tsx` (nav, brand, menu)
-- [ ] T031 [P] [US2] Update gallery grid to template classes in `apps/web/src/components/GalleryGrid.tsx`
-- [ ] T032 [P] [US2] Apply `c-` and `u-` classes to hero/sections in `apps/web/src/routes/Landing.tsx`
-- [ ] T033 [P] [US2] Apply `c-` and `u-` classes to `apps/web/src/routes/About.tsx`
+- [X] T030 [P] [US2] Update header to template classes in `apps/web/src/components/Header.tsx` (nav, brand, menu)
+- [X] T031 [P] [US2] Update gallery grid to template classes in `apps/web/src/components/GalleryGrid.tsx`
+- [X] T032 [P] [US2] Apply `c-` and `u-` classes to hero/sections in `apps/web/src/routes/Landing.tsx`
+- [X] T033 [P] [US2] Apply `c-` and `u-` classes to `apps/web/src/routes/About.tsx`
 - [ ] T034 [US2] Document adopted class naming and narrative examples in `specs/002-template-skeleton-integration/quickstart.md`
 - [ ] T035 [P] [US2] Create comprehensive class reference guide in `specs/002-template-skeleton-integration/quickstart.md` (list `c-`, `l-`, `u-` utilities with usage examples)
 

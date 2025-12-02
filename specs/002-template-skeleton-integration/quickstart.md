@@ -99,6 +99,25 @@ Copy-Item -Path ".template/rebar/images" -Destination "apps/web/public/template/
 - PNPM installed
 - Workspace bootstrapped (`pnpm install` at repo root)
 
+## Verification Criteria (User Story 1)
+
+To confirm that the template integration is working correctly for the initial 6+ routes, verify the following:
+
+1.  **Dev Run**: The application builds and starts without errors.
+    ```powershell
+    pnpm -C apps/web build
+    pnpm -C apps/web dev
+    ```
+    -   Navigate to `/`, `/about`, `/gallery`, `/contact`, `/privacy`, `/terms`, `/garden-room`, `/house-extension`.
+    -   Ensure each page renders with the template header, footer, and uses the `l-container` class for the main content area.
+
+2.  **Test Pass**: All tests, including new route rendering and accessibility tests, pass.
+    ```powershell
+    pnpm -C apps/web run test:run
+    ```
+    -   Expected output: `Test Files 3 passed (3)`, `Tests 43 passed (43)` (or more).
+    -   Key tests: `src/test/routes/template-layout.test.tsx` and `src/test/routes/focus-indicators.test.tsx`.
+
 ## Steps
 
 1. Copy template assets

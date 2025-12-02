@@ -21,8 +21,20 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.6.17 -  - 02/12/2025
+### Added
+- Added "Verification Criteria (User Story 1)" section to `quickstart.md` documenting how to verify the implementation.
+- Created `template-classes.test.tsx` with tests for `Header` and `GalleryGrid` component classes.
 
-## 0.6.16 -  - 02/12/2025
+### Changed
+- Updated `Header.tsx` to use template classes `c-header`, `c-nav`, `c-brand`, and `c-nav__item`.
+- Updated `GalleryGrid.tsx` to use template classes `c-gallery` and `c-gallery__item`.
+- Updated `Landing.tsx` to use template classes `u-text-h1`, `c-button`, `c-button--primary`, and `c-button--secondary`.
+- Updated `About.tsx` to use template classes `u-text-h1`, `u-text-h2`, `c-button`, and `c-button--primary`.
+
+---
+
+## 0.6.16 - 835cb20 - 02/12/2025
 ### Changed
 - Updated `About.tsx` to use the `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
 - Updated `Gallery.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.

@@ -13,7 +13,7 @@ export function GalleryGrid({ items, onOpenLightbox, registerRef }: GalleryGridP
   }
 
   return (
-    <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="c-gallery mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item, index) => (
         <GalleryCard 
           key={item.id} 
@@ -38,7 +38,7 @@ function GalleryCard({ item, index, onClick, registerRef }: {
   return (
     <div 
       ref={(el) => registerRef(index, el)}
-      className="group relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg"
+      className="c-gallery__item group relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg"
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

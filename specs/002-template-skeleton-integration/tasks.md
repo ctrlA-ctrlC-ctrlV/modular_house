@@ -191,14 +191,14 @@ Recommended Table Columns:
 
 - [X] T018 [US1] Wire `TemplateLayout` into public routes in `apps/web/src/App.tsx` (header/footer placeholders acceptable)
 - [X] T019 [P] [US1] Apply template container utility (e.g., l-container) to top-level wrappers in `apps/web/src/routes/Landing.tsx`
-- [ ] T020 [P] [US1] Apply template container utility to `apps/web/src/routes/About.tsx`
-- [ ] T021 [P] [US1] Apply template container utility to `apps/web/src/routes/Gallery.tsx`
-- [ ] T022 [P] [US1] Apply template container utility to `apps/web/src/routes/Contact.tsx`
-- [ ] T023 [P] [US1] Apply template container utility to `apps/web/src/routes/Privacy.tsx`
-- [ ] T024 [P] [US1] Apply template container utility to `apps/web/src/routes/Terms.tsx`
-- [ ] T025 [P] [US1] Apply template container utility to `apps/web/src/routes/not-found.tsx`
-- [ ] T026 [P] [US1] Apply template container utility to `apps/web/src/routes/GardenRoom.tsx` (new page)
-- [ ] T027 [P] [US1] Apply template container utility to `apps/web/src/routes/HouseExtension.tsx` (new page)
+- [X] T020 [P] [US1] Apply template container utility to `apps/web/src/routes/About.tsx`
+- [X] T021 [P] [US1] Apply template container utility to `apps/web/src/routes/Gallery.tsx`
+- [X] T022 [P] [US1] Apply template container utility to `apps/web/src/routes/Contact.tsx`
+- [X] T023 [P] [US1] Apply template container utility to `apps/web/src/routes/Privacy.tsx`
+- [X] T024 [P] [US1] Apply template container utility to `apps/web/src/routes/Terms.tsx`
+- [X] T025 [P] [US1] Apply template container utility to `apps/web/src/routes/not-found.tsx`
+- [X] T026 [P] [US1] Apply template container utility to `apps/web/src/routes/GardenRoom.tsx` (new page)
+- [X] T027 [P] [US1] Apply template container utility to `apps/web/src/routes/HouseExtension.tsx` (new page)
 - [ ] T028 [US1] Confirm dev run and test pass criteria for 6+ routes documented in `specs/002-template-skeleton-integration/quickstart.md`
 
 **Checkpoint**: US1 independently testable — routes render with template base layout and focus styles

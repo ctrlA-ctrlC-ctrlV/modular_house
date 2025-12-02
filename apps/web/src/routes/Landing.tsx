@@ -89,6 +89,38 @@ function Landing() {
           </div>
         </div>
       </div>
+
+      {/* garden room Section */}
+      <div className="l-container">
+
+      </div>
+
+      {/* house extension Section */}
+      <div className="l-container">
+
+      </div>
+
+      {/* Social proof Section */}
+      <div className="l-container">
+
+      </div>
+
+      {/*   Mini FAQ Section    */}      
+      <div className="l-container">
+        {/* Accordion 
+          * 3 items 
+        */}
+      </div>
+
+      {/* CTA Section */}
+      <div className="l-container">
+
+      </div>
+
+      {/* Newsletter signup Section */}
+      <div className="l-container">
+
+      </div>
     </div>
   )
 }

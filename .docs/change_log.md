@@ -21,7 +21,24 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.15 -  - 02/12/2025
+
+## 0.6.16 -  - 02/12/2025
+### Changed
+- Updated `About.tsx` to use the `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Gallery.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Contact.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Privacy.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Terms.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `not-found.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `GardenRoom.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `HouseExtension.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+
+### Removed
+- Removed Tailwind's `max-w-7xl` padding calles from updated routes in favor of template's `l-container`.
+
+---
+
+## 0.6.15 - 8c36f04 - 02/12/2025
 ### Changed
 - Updated `Landing.tsx` to use the template utility class `l-container` for top-level layout wrappers, replacing ad-hoc Tailwind container classes (`max-w-7xl`, `mx-auto`, `px-4`, etc.) to align with the design system.
 

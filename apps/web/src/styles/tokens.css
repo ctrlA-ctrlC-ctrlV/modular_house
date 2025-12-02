@@ -1,0 +1,16 @@
+:root {
+  /* Colors from theme.json */
+  --theme-color-bg-color: #FFFFFF;
+  --theme-color-bg-color-2: #F6F5F0;
+  --theme-color-bd-color: #E5E7DE;
+  --theme-color-title: #121414;
+  --theme-color-meta: #ACAFB2;
+  --theme-color-link: #B55329;
+  --theme-color-hover: #9F4017;
+
+  /* Typography from theme.json */
+  --theme-font-family-base: "Inter", sans-serif;
+  
+  /* Spacing (Placeholder - derived from common WP theme patterns) */
+  --theme-spacing-unit: 8px;
+}

@@ -21,7 +21,19 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.5 -  - 02/12/2025
+## 0.6.6 -  - 02/12/2025
+### Added
+- template directory for template assets.
+- `tokens.css` with CSS variables extracted from `theme.json`.
+- `template.css` with `.theme-rebar scope` and placeholder for utilities.
+- Copied images from images to images.
+
+### Changed
+- Updated main.tsx to import `tokens.css` and `template.css` before `intex.css`
+
+---
+
+## 0.6.5 - 26471e3 - 02/12/2025
 ### Changed
 - Modify the task list to include lightbox integration tasks.
 

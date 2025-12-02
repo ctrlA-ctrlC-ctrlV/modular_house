@@ -152,11 +152,11 @@ Recommended Table Columns:
 
 **Purpose**: Prepare folders, base styles, and asset locations without changing behavior
 
-- [ ] T004 [P] Create assets folder `apps/web/public/template/`
-- [ ] T005 [P] Create styles file `apps/web/src/styles/tokens.css`
-- [ ] T006 [P] Create styles file `apps/web/src/styles/template.css`
-- [ ] T007 Update global imports in `apps/web/src/main.tsx` to import `./styles/template.css` before `./index.css`
-- [ ] T008 [P] Copy required images/fonts from `.template/rebar/` to `apps/web/public/template/`
+- [X] T004 [P] Create assets folder `apps/web/public/template/`
+- [X] T005 [P] Create styles file `apps/web/src/styles/tokens.css`
+- [X] T006 [P] Create styles file `apps/web/src/styles/template.css`
+- [X] T007 Update global imports in `apps/web/src/main.tsx` to import `./styles/template.css` before `./index.css`
+- [X] T008 [P] Copy required images/fonts from `.template/rebar/` to `apps/web/public/template/`
 - [ ] T009 Document token sources and usage in `specs/002-template-skeleton-integration/quickstart.md`
 
 ---

@@ -115,7 +115,7 @@ At end:
 - [ ] Highlight pages with highest portability friction
 
 
-- [ ] T003 [P] Summarize portability constraints and exclusions: `specs/002-template-skeleton-integration/research.md`
+ - [X] T003 [P] Summarize portability constraints and exclusions: `specs/002-template-skeleton-integration/research.md`
     - Output Structure: Constraint Summary Format
     - Checklist:
         - [ ] Enumerate Categories:

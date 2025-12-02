@@ -21,7 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.3 -  - 02/12/2025
+## 0.6.4 -  - 02/12/2025
+### Added
+- research.md: Portability Constraints & Exclusions section with categories, constraint table, exclusions list, hotspots, quick wins, risk register, and ranked next steps.
+
+---
+
+## 0.6.3 - ca6e852 - 02/12/2025
 ### Added
 - research.md: Per-Page Mapping section for nine routes with details and aggregate summary.
 

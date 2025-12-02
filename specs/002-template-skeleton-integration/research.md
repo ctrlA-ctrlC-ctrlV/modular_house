@@ -325,3 +325,66 @@ At end:
 - Aggregate matrix: shared layout components across all pages (Header, Footer, TemplateLayout)
 - Shared layout components identified: `TemplateLayout`, `Header`, `Footer`
 - Highest portability friction: Gallery (interactive DOM/lightbox)
+
+## Portability Constraints & Exclusions (Phase 0 – T003)
+
+Enumerated Categories:
+
+1. Build / Tooling
+2. Framework Version Locks
+3. Environment
+4. Styling System Dependencies
+5. State Management Ties
+6. Routing Assumptions
+7. File/Directory Conventions
+8. Naming / Path Coupling
+9. External Service Dependencies
+10. Performance Features
+11. Security / Access
+
+| Constraint | Description | Severity | Mitigation | Exclude? |
+| ---------- | ----------- | -------- | ---------- | -------- |
+| Build Tooling (Vite 6) | Template assets expect WP/PHP build; need selective CSS extraction | partial | Manual curation into `template.css`; retain Vite config | no |
+| TypeScript Config Paths | Existing tsconfig may lack aliases used by template scripts | negligible | Add explicit relative imports; avoid new alias dependencies | no |
+| React 18 Lock | Template JS assumes vanilla DOM scripting | partial | Wrap legacy DOM logic in React components/hooks | no |
+| Browser-only APIs | Lightbox/gallery rely on `document`, `focus` management | partial | Guard with `typeof window !== 'undefined'`; isolate in effect hooks | no |
+| Styling System (Global CSS) | Template uses global selectors conflicting with app styles | partial | Scope under `.theme-rebar`; order imports to control precedence | no |
+| State Management (Contexts) | Template has no context; app uses existing providers | negligible | Keep providers outside wrapper; no changes needed | no |
+| Routing (React Router) | Dynamic route assumptions (404, param pages) | negligible | Confirm route definitions unchanged; integrate layout only | no |
+| Directory Conventions | `.template` outside `apps/web`; not part of bundle | blocker | Copy required assets to `public/template/` for bundling | no |
+| Naming / Path Coupling | Potential absolute paths in legacy scripts | partial | Replace with relative module imports during port | no |
+| External Services | Analytics/auth expected globally | negligible | Ensure no hard-coded external service calls in template code | no |
+| Performance Features | No built-in suspense; risk of large CSS payload | partial | Trim CSS to used utilities; defer fonts via `font-display: swap` | no |
+| Security / Access | No new token handling; risk from copying PHP forms | negligible | Exclude server-side PHP logic entirely | yes |
+| Legacy IE Styles | Deprecated CSS leftover for old browsers | negligible | Omit from imported stylesheet set | yes |
+
+Explicit Exclusions List:
+
+- Server-side PHP form handlers
+- Legacy IE-specific CSS blocks
+
+Dependency Graph Hotspots:
+
+- `gallery.js` and `lightbox.js` (shared DOM/event utilities)
+- Global typography and a11y CSS (affects all pages if mis-ordered)
+
+Quick Wins:
+
+- Early extraction of CSS variables (tokens) to reduce future churn
+- Centralizing lightbox focus management in a single hook
+- Scoping styles under `.theme-rebar` to avoid regressions
+
+Risk Register (Top 3):
+
+1. Global CSS conflicts cause layout regressions (Severity: partial; Owner: Frontend) – Mitigation: Scoped root class & import order.
+2. Lightbox focus trap incomplete → accessibility regression (Severity: partial; Owner: Accessibility) – Mitigation: Implement robust focus management + tests.
+3. Over-imported CSS increases bundle size (Severity: partial; Owner: Performance) – Mitigation: Manual pruning of unused selectors pre-integration.
+
+Actionable Next Steps (Ranked):
+
+1. Extract and import minimal template CSS (layout + utilities + a11y + typography).
+2. Implement `TemplateLayout` wrapper with `.theme-rebar` scoping.
+3. Port lightbox/gallery into React with controlled side effects.
+4. Add route render & focus indicator tests (US1).
+5. Audit CSS bundle size; remove unused legacy selectors.
+

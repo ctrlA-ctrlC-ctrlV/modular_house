@@ -44,7 +44,7 @@
 Recommended Table Columns:
 | Component | Path | Category | Role | Dependencies | Key Props | Reusable? | Style Coupling | Side Effects | Portability Notes |
 
-- [ ] T001 Document source list of utilities/containers/typography/focus: `specs/002-template-skeleton-integration/research.md`
+ - [X] T001 Document source list of utilities/containers/typography/focus: `specs/002-template-skeleton-integration/research.md`
     - Output Structure: Utility Catalog Schema
     - Checklist:
         - [ ] Define taxonomy upfront:

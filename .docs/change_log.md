@@ -21,7 +21,13 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.1 -  - 02/12/2025
+## 0.6.2 -  - 02/12/2025
+### Added
+- research.md: Utility Catalog section with taxonomy, summaries, and detailed table entries.
+
+---
+
+## 0.6.1 - 81d5129 - 02/12/2025
 ### Added
 - research.md: Template Component Catalog section with checklist and component table.
 

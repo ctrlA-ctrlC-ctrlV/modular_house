@@ -108,3 +108,50 @@ Naming Anomalies:
 Deprecated/Placeholder Components:
 
 - Legacy `ie.css` references ignored; not applicable for modern targets.
+
+## Utility Catalog (Phase 0 – T001)
+
+Taxonomy:
+
+- Utilities: Pure functions or helper modules
+- Containers: Stateful wrappers/providers (e.g., layout shells)
+- Typography: Tokens, mixins, text components/styles
+- Focus / Accessibility Helpers: A11y-specific styles/scripts
+
+Aggregate Summary:
+
+- Utilities: 2 (gallery helpers, lightbox helpers)
+- Containers: 1 (AppShell / layout wrapper)
+- Typography: 2 (tokens, base typography)
+- Focus/A11y: 1 (focus rings/skip link styles)
+
+Shared Constants / Design Tokens Referenced:
+
+- Color palette, spacing scale, font families/weights from `.template/rebar/style.scss` → extracted into `apps/web/src/styles/tokens.css`
+
+Duplicate Logic / Consolidation Candidates:
+
+- Event handling across gallery/lightbox modules can be unified in a single React utility with consistent a11y handling.
+
+Framework Coupling Notes:
+
+- Containers map to React layout component; avoid global event bus reliance.
+- Utilities should be tree-shakable and side-effect free where possible.
+
+Global Namespace Usage:
+
+- Legacy scripts may attach to `window`; refactor to module scope when porting.
+
+| Name | Type | Path | Purpose | Signature / IO | Dependencies | Side Effects | Tree-shakable | Env Constraints | Portability Risk |
+| ---- | ---- | ---- | ------- | -------------- | ------------ | ------------ | ------------- | --------------- | ---------------- |
+| GalleryUtils | util | `.template/rebar/assets/js/gallery.js` | Image grid and modal helpers | `(images: Element[]) => { open(id: string): void; close(): void }` | DOM APIs | DOM events, focus changes | yes (after refactor) | browser-only | medium |
+| LightboxUtils | util | `.template/rebar/assets/js/lightbox.js` | Open/close lightbox, focus trap | `{ open(target: Element): void; close(): void }` | DOM APIs, a11y helpers | Focus management | yes (after refactor) | browser-only | medium |
+| AppShell | container | `.template/rebar-child/functions.php` | Root shell mounting header/footer regions | `({ children }: { children: React.ReactNode }) => JSX.Element` (target React) | header/footer components | none | yes | browser & Node (SSR-compatible if pure) | low |
+| TypographyBase | token | `.template/rebar/assets/css/typography.css` | Base typographic scales and classes | `CSS variables: --font-size-*, --line-height-*` | fonts | font loading | n/a | browser-only | low |
+| DesignTokens | token | `.template/rebar/style.scss` | Brand colors, spacing, font tokens | `CSS variables: --color-*, --space-*` | none | none | n/a | browser-only | low |
+| A11yFocus | a11y | `.template/rebar/assets/css/a11y.css` | Visible focus rings, skip-link styling | `CSS classes: .u-focus-ring, .skip-link` | none | none | n/a | browser-only | low |
+
+Risk Profile Summary:
+
+- Highest risk in interactive utilities due to DOM coupling; mitigate by wrapping in React components and isolating effects.
+- Tokens and typography are low risk; ensure import order to avoid override conflicts.

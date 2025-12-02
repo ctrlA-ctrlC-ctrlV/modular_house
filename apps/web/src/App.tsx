@@ -3,7 +3,6 @@ import { TemplateLayout } from './components/TemplateLayout'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import Landing from './routes/Landing'
-import Products from './routes/Products'
 import Gallery from './routes/Gallery'
 import About from './routes/About'
 import Contact from './routes/Contact'
@@ -18,7 +17,8 @@ import AdminSubmissions from './routes/admin/submissions'
 import AdminPages from './routes/admin/pages'
 import AdminGuard from './routes/admin/guard'
 
-function PublicLayout() {
+/*  Replace by TemplateLayout */
+/*function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -28,7 +28,7 @@ function PublicLayout() {
       <Footer />
     </div>
   )
-}
+}*/
 
 function App() {
   return (
@@ -37,7 +37,6 @@ function App() {
         {/* Public Routes */}
         <Route element={<TemplateLayout />}>
           <Route path="/" element={<Landing />} />
-          <Route path="/products" element={<Products />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

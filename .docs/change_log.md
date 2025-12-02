@@ -21,7 +21,17 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
-## 0.6.9 -  - 02/12/2025
+## 0.6.10 -  - 02/12/2025
+### Added
+- Added minimal template utility class mappings to `template.css`, including:
+    - Layout utilities: `.l-container`
+    - Typography utilities: `h1`, `h2`, `h3`, `p`, `a` (scoped to `.theme-rebar`)
+    - Focus utilities: `.u-focus-ring`
+    - Skip link styles: `.skip-link`
+
+---
+
+## 0.6.9 - 361e7ec - 02/12/2025
 ### Added
 - Imported `TemplateLayout` in `App.tsx`.
 

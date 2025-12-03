@@ -221,8 +221,8 @@ Recommended Table Columns:
 - [X] T031 [P] [US2] Update gallery grid to template classes in `apps/web/src/components/GalleryGrid.tsx`
 - [X] T032 [P] [US2] Apply `c-` and `u-` classes to hero/sections in `apps/web/src/routes/Landing.tsx`
 - [X] T033 [P] [US2] Apply `c-` and `u-` classes to `apps/web/src/routes/About.tsx`
-- [ ] T034 [US2] Document adopted class naming and narrative examples in `specs/002-template-skeleton-integration/quickstart.md`
-- [ ] T035 [P] [US2] Create comprehensive class reference guide in `specs/002-template-skeleton-integration/quickstart.md` (list `c-`, `l-`, `u-` utilities with usage examples)
+ - [X] T034 [US2] Document adopted class naming and narrative examples in `specs/002-template-skeleton-integration/quickstart.md`
+ - [X] T035 [P] [US2] Create comprehensive class reference guide in `specs/002-template-skeleton-integration/quickstart.md` (list `c-`, `l-`, `u-` utilities with usage examples)
 
 **Checkpoint**: US2 independently testable — at least two components consistently styled via template classes
 

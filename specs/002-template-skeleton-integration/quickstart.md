@@ -146,3 +146,124 @@ To confirm that the template integration is working correctly for the initial 6+
 
 ## Accessibility Checks
 - Verify focus indicators, ARIA labels, and color contrast on all updated pages.
+
+## Template Class Naming (Adopted) [US2]
+
+This project adopts the template naming conventions for clarity and portability. Classes are scoped under `.theme-rebar` and use prefixes to indicate purpose:
+
+- `c-` Component classes: semantic wrappers and UI parts
+- `l-` Layout classes: containers, grids, spacing structure
+- `u-` Utility classes: single-purpose helpers (color, spacing, visibility, focus)
+
+### Narrative Examples
+
+- Header: The site header uses `c-header` with a nested navigation `c-nav`. Within `TemplateLayout`, the header region renders the brand and menu items using these classes to ensure consistent spacing and focus styles under `.theme-rebar`.
+- Gallery: The grid container uses `c-gallery`, and each interactive card uses `c-gallery__item`. Cards are keyboard-accessible (`role="button"`, `tabIndex={0}`) and preserve focus indicators.
+- Pages: Public pages wrap main content in `l-container` to align text widths and spacing with template defaults while allowing app-specific typography overrides.
+
+### Current Adoption
+
+- `apps/web/src/components/Header.tsx`: `c-header`, `c-nav`
+- `apps/web/src/components/GalleryGrid.tsx`: `c-gallery`, `c-gallery__item`
+- Public routes (`Landing`, `About`, `Gallery`, `Contact`, `Privacy`, `Terms`, `GardenRoom`, `HouseExtension`): `l-container` on top-level wrappers
+
+## Class Reference Guide [US2]
+
+Comprehensive reference of adopted classes and typical usage. All examples assume the `.theme-rebar` scope is applied at the root via `TemplateLayout`.
+
+### Component (`c-`) classes
+
+- `c-header`: Site header wrapper
+  - Purpose: Top banner region containing brand and primary navigation
+  - Usage:
+    ```tsx
+    <header className="c-header" role="banner">
+      <nav className="c-nav" role="navigation" aria-label="Primary">
+        {/* links */}
+      </nav>
+    </header>
+    ```
+
+- `c-nav`: Primary navigation container
+  - Purpose: Horizontal nav with visible focus styles and accessible labels
+  - Usage: Inside `c-header` as shown above
+
+- `c-gallery`: Gallery grid container
+  - Purpose: Defines spacing and responsive grid behavior for gallery items
+  - Usage:
+    ```tsx
+    <div className="c-gallery">
+      {/* c-gallery__item children */}
+    </div>
+    ```
+
+- `c-gallery__item`: Interactive gallery card
+  - Purpose: Focusable, keyboard-activated card to open lightbox or details
+  - Usage:
+    ```tsx
+    <div
+      className="c-gallery__item"
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${item.title}`}
+    >
+      {/* image + caption */}
+    </div>
+    ```
+
+### Layout (`l-`) classes
+
+- `l-container`: Page content container with max-width and horizontal padding
+  - Purpose: Constrain content for readability and consistent margins
+  - Usage:
+    ```tsx
+    <main id="main-content" tabIndex={-1} className="l-container">
+      {/* route content */}
+    </main>
+    ```
+
+### Utility (`u-`) classes
+
+- `u-sr-only`: Screen-reader-only text (visually hidden, accessible)
+  - Purpose: Provide accessible labels or descriptions without visual noise
+  - Usage:
+    ```tsx
+    <span className="u-sr-only">Skip to main content</span>
+    ```
+
+- `u-focus` (example focus helper applied via stylesheet):
+  - Purpose: Ensure visible focus ring consistent with template tokens
+  - Usage: Applied via selectors to interactive components within `.theme-rebar`
+
+- `u-link`: Standard link color and hover behavior driven by tokens
+  - Usage:
+    ```html
+    <a class="u-link" href="/privacy">Privacy Policy</a>
+    ```
+
+### Token-driven styling
+
+- Colors and typography derive from `apps/web/src/styles/tokens.css`.
+- Example mapping:
+  ```css
+  .u-link { color: var(--theme-color-link); }
+  .u-link:hover { color: var(--theme-color-hover); }
+  ```
+
+### Scope and Order
+
+- Scope: `.theme-rebar` wrapper prevents bleed into unrelated views.
+- Import order: `tokens.css`, `template.css`, `index.css`, `focus.css` (already configured).
+
+### PowerShell Tips (CLI)
+
+- Validate web build and run tests:
+  ```powershell
+  pnpm -C apps/web build
+  pnpm -C apps/web run test:run
+  ```
+
+- Copy refreshed template assets:
+  ```powershell
+  Copy-Item -Path ".template/rebar/images" -Destination "apps/web/public/template/images" -Recurse
+  ```

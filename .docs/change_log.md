@@ -21,6 +21,17 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.6.18 - ffc48cb - 03/12/2025
+### Added
+- Class naming conventions and narrative examples in quickstart.md (Header, Gallery, Pages).
+- Comprehensive class reference guide for `c-`, `l-`, `u-` with usage examples and token mappings.
+- PowerShell tips for builds/tests and asset refresh.
+
+### Changed
+- `quickstart.md` expanded to cover US2 documentation requirements and reinforce scope/order.
+
+---
+
 ## 0.6.17 -  - 02/12/2025
 ### Added
 - Added "Verification Criteria (User Story 1)" section to `quickstart.md` documenting how to verify the implementation.

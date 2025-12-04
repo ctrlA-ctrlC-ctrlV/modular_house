@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
+import { HeroWithSideText } from '@modular-house/ui'
+import '@modular-house/ui/style.css'
 
 function Landing() {
   const [page, setPage] = useState<Page | null>(null)
@@ -14,6 +16,14 @@ function Landing() {
   return (
     <div className="relative">
       {/* Hero Section */}
+      <div>
+        <HeroWithSideText 
+          title="My Custom Title AAAAAAAAAAAAAAA"
+          subtitle="Welcome"
+          buttonText="Contact Us"
+        />
+      </div>
+
       <div className="relative bg-white overflow-hidden">
         <div className="l-container">
           <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">

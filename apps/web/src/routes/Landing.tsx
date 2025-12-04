@@ -14,7 +14,7 @@ function Landing() {
   }, [])
 
   return (
-    <div className="relative">
+    <div>
       {/* Hero Section */}
       <div>
         <HeroWithSideText 

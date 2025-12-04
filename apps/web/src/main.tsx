@@ -5,6 +5,7 @@ import './styles/tokens.css'
 import './styles/template.css'
 import './index.css'
 import './styles/focus.css'
+import '@modular-house/ui/style.css'
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

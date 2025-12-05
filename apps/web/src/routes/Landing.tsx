@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
-import { HeroWithSideText } from '@modular-house/ui'
+import { FeatureSection, HeroWithSideText } from '@modular-house/ui'
 import '@modular-house/ui/style.css'
 
 function Landing() {
@@ -22,6 +22,11 @@ function Landing() {
           title="My Custom Title AAAAAAAAAAAAAAA"
           subtitle="Welcome"
           buttonText="Contact Us"
+        />
+      </div>
+
+      <div>
+        <FeatureSection
         />
       </div>
 

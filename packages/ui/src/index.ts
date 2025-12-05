@@ -4,5 +4,6 @@ export { Header, type MenuItem, type SocialLink, type HeaderProps } from './comp
 export * from './components/HeroWithSideText/HeroWithSideText';
 export * from './components/Footer/Footer';
 export * from './components/TrueFooter/TrueFooter';
+export * from './components/FeatureSection/FeatureSection';
 
 // Add your shared UI components here

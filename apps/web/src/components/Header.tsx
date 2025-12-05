@@ -9,17 +9,18 @@ function Header() {
   // Menu items configuration
   const menuItems: MenuItem[] = [
     { label: 'Home', href: '/' },
-    { label: 'Products', href: '/products' },
+    { label: 'Garden Room', href: '/garden-room' },
+    { label: 'House Extension', href: '/house-extension' },
     { label: 'Gallery', href: '/gallery' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
   ]
 
   // Social links configuration
-  const socialLinks = [
+  /*const socialLinks = [
     { platform: 'twitter' as const, url: 'https://twitter.com/modularhouse' },
     { platform: 'instagram' as const, url: 'https://instagram.com/modularhouse' },
-  ]
+  ]*/
 
   // Logo configuration - using SVG data URL for a simple text-based logo
   // Replace with actual logo paths when available
@@ -70,7 +71,6 @@ function Header() {
         logoAlt="Modular House"
         logoHref="/"
         menuItems={menuItems}
-        socialLinks={socialLinks}
         positionOver={true}
       />
     </div>

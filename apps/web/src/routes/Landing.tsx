@@ -44,7 +44,40 @@ function Landing() {
               icon: <CustomIcons 
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 65 65"
-                      name="measureTape" 
+                      name="spacer"
+                      size={32} 
+                      className="text-blue-500"
+                    />,
+              title: "Rapid Construction22222222222",
+              description: "Get your project done in half the time of traditional builds."
+            },
+            {
+              icon: <CustomIcons 
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 65 65"
+                      name="measureTape"
+                      size={32} 
+                      className="text-blue-500"
+                    />,
+              title: "Rapid Construction22222222222",
+              description: "Get your project done in half the time of traditional builds."
+            },
+            {
+              icon: <CustomIcons 
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 65 65"
+                      name="tiles"
+                      size={32} 
+                      className="text-blue-500"
+                    />,
+              title: "Rapid Construction22222222222",
+              description: "Get your project done in half the time of traditional builds."
+            },
+            {
+              icon: <CustomIcons 
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 65 65"
+                      name="sinkTrap"
                       size={32} 
                       className="text-blue-500"
                     />,
@@ -64,6 +97,7 @@ function Landing() {
             className="text-blue-500"
           />
           <p>
+            
             //xmlns, viewBox, name, size = 24, className, style
           </p>
       </div>

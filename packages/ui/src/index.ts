@@ -5,5 +5,6 @@ export * from './components/HeroWithSideText/HeroWithSideText';
 export * from './components/Footer/Footer';
 export * from './components/TrueFooter/TrueFooter';
 export * from './components/FeatureSection/FeatureSection';
+export * from './components/CustomIcons/CustomIcons';
 
 // Add your shared UI components here

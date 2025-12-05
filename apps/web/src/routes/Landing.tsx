@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
-import { FeatureSection, HeroWithSideText } from '@modular-house/ui'
+import { FeatureSection, HeroWithSideText, CustomIcons} from '@modular-house/ui'
 import '@modular-house/ui/style.css'
 
 function Landing() {
@@ -18,7 +18,7 @@ function Landing() {
       {/* Hero Section */}
       <div>
         <HeroWithSideText 
-          backgroundImage='.\.template\rebar\front-page\images\bg-team.jpg'
+          backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
           title="My Custom Title AAAAAAAAAAAAAAA"
           subtitle="Welcome"
           buttonText="Contact Us"
@@ -27,7 +27,45 @@ function Landing() {
 
       <div>
         <FeatureSection
+          topHeading='Why Choose Us'
+          mainHeading='Excellence in Every Detail'
+          introText={
+            <>
+              <p>
+                We specialize in creating sustainable, modern living spaces that adapt to your needs.
+              </p>
+              <p>
+                Our modular approach ensures speed without compromising on quality or design.
+              </p>
+            </>
+          }
+          features={[
+            {
+              icon: <CustomIcons 
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 65 65"
+                      name="measureTape" 
+                      size={32} 
+                      className="text-blue-500"
+                    />,
+              title: "Rapid Construction22222222222",
+              description: "Get your project done in half the time of traditional builds."
+            },
+          ]}
         />
+      </div>
+
+      <div>
+          <CustomIcons 
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 65 65"
+            name="spacer" 
+            size={32} 
+            className="text-blue-500"
+          />
+          <p>
+            //xmlns, viewBox, name, size = 24, className, style
+          </p>
       </div>
 
       <div className="relative bg-white overflow-hidden">

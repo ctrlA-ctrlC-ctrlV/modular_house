@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className={`header ${positionOver ? 'header--position-over' : ''}`}>
+    <header className={`header c-header ${positionOver ? 'header--position-over' : ''}`}>
       <div className="header__container">
         {/* Desktop Header */}
         <div className="header__desktop">
@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           </div>
 
-          <nav className="header__nav">
+          <nav className="header__nav c-nav">
             <button
               className="header__mobile-toggle"
               onClick={toggleMobileMenu}

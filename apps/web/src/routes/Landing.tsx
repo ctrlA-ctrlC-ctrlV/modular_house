@@ -18,7 +18,7 @@ function Landing() {
       {/* Hero Section */}
       <div>
         <HeroWithSideText 
-          backgroundImage='E:\Zhaoxiang_Qiu\work\SDeal\modular_house\.template\rebar\front-page\images\bg-team.jpg'
+          backgroundImage='.\.template\rebar\front-page\images\bg-team.jpg'
           title="My Custom Title AAAAAAAAAAAAAAA"
           subtitle="Welcome"
           buttonText="Contact Us"

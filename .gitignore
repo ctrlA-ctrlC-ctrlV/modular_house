@@ -95,3 +95,7 @@ media/
 *.js.map
 misc_scripts/
 .template/
+*storybook.log
+storybook-static
+
+storybook-static/

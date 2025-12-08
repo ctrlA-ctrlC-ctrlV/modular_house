@@ -48,8 +48,8 @@ function Footer() {
       <UITrueFooter 
         copyrightText="© 2025 SDeal Construction Ltd. All Rights Reserved."
         siteByText="Built by"
-        siteByLinkText="Zhaoxiang Qiu"
-        siteByLinkUrl="https://www.linkedin.com/in/zhaoxiang-qiu/"
+        siteByLinkText="Z"
+        siteByLinkUrl="/"
       />
     </div>
   )

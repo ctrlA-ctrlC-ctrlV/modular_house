@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
-import { FeatureSection, HeroWithSideText, CustomIcons} from '@modular-house/ui'
+import { FeatureSection, HeroWithSideText, CustomIcons, TwoColumnSplitLayout } from '@modular-house/ui'
 import '@modular-house/ui/style.css'
 
 function Landing() {
@@ -89,17 +89,16 @@ function Landing() {
       </div>
 
       <div>
-          <CustomIcons 
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 65 65"
-            name="spacer" 
-            size={32} 
-            className="text-blue-500"
-          />
-          <p>
-            
-            //xmlns, viewBox, name, size = 24, className, style
-          </p>
+        <TwoColumnSplitLayout 
+          subtitle="Garden Room"
+          title={"Expand your space,\n    elevate your lifestyle"}
+          description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
+          button1Text = "Get a free quote today"
+          bottomText="We blend sleek architectural aesthetics with cutting-edge steel frame engineering to deliver garden rooms that are built to impress, and built to last. Every project is tailored to your needs, with minimal disruption and maximum impact.
+
+Our team handles everything from design to installation, ensuring a smooth, stress-free process. Whether you're after extra space for work, wellness, or weekend lounging, we’re here to make it happen, beautifully and efficiently."
+          button2Text = "Need more info?"
+        />
       </div>
 
       <div className="relative bg-white overflow-hidden">

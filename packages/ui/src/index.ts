@@ -9,4 +9,5 @@ export * from './components/CustomIcons/CustomIcons';
 export * from './components/TwoColumnSplitLayout/TwoColumnSplitLayout';
 export * from './components/TwoMirroSplitColumnLayout/TwoMirrorSplitColumnLayout';
 export * from './components/TestimonialGrid/TestimonialGrid'
+export * from './components/MiniFAQs/MiniFAQs'
 // Add your shared UI components here

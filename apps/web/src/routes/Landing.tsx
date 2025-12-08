@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
-import { FeatureSection, HeroWithSideText, CustomIcons, TwoColumnSplitLayout, TwoMirrorSplitColumnLayout } from '@modular-house/ui'
+import { FeatureSection, HeroWithSideText, CustomIcons, TwoColumnSplitLayout, TestimonialGrid } from '@modular-house/ui'
 import '@modular-house/ui/style.css'
 
 function Landing() {
@@ -19,8 +19,8 @@ function Landing() {
       <div>
         <HeroWithSideText 
           backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-          title="My Custom Title AAAAAAAAAAAAAAA"
-          subtitle="Welcome"
+          title="Beautifully built for life."
+          subtitle="Discover high performance garden rooms and house extensions designed for modern living."
           buttonText="Contact Us"
         />
       </div>
@@ -48,7 +48,7 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction22222222222",
+              title: "Rapid Construction",
               description: "Get your project done in half the time of traditional builds."
             },
             {
@@ -59,7 +59,7 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction22222222222",
+              title: "Rapid Construction",
               description: "Get your project done in half the time of traditional builds."
             },
             {
@@ -70,7 +70,7 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction22222222222",
+              title: "Rapid Construction",
               description: "Get your project done in half the time of traditional builds."
             },
             {
@@ -81,7 +81,7 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction22222222222",
+              title: "Rapid Construction",
               description: "Get your project done in half the time of traditional builds."
             },
           ]}
@@ -104,16 +104,39 @@ function Landing() {
 
       {/* house extension Section */}
       <div>
-        <TwoColumnSplitLayout 
-          subtitle="House Extension"
-          title={"Inspired by vision,\nbuild for you"}
-          description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
-          button1Text = "Get a free quote today"
-          bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
-          
-          From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."
-          button2Text = "Need more info?"
+          <TwoColumnSplitLayout 
+            subtitle="House Extension"
+            title={"Inspired by vision,\nbuild for you"}
+            description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
+            button1Text = "Get a free quote today"
+            bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
+            
+            From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."
+            button2Text = "Need more info?"
+          />   
+      </div>
+
+      {/* Social proof Section */}
+      <div>
+        <TestimonialGrid
         />
+      </div>
+
+      {/*   Mini FAQ Section    */}      
+      <div className="l-container">
+        {/* Accordion 
+          * 3 items 
+        */}
+      </div>
+
+      {/* CTA Section */}
+      <div className="l-container">
+
+      </div>
+
+      {/* Newsletter signup Section */}
+      <div className="l-container">
+
       </div>
 
       <div className="relative bg-white overflow-hidden">
@@ -152,27 +175,7 @@ function Landing() {
         </div>
       </div>
 
-      {/* Social proof Section */}
-      <div className="l-container">
-
-      </div>
-
-      {/*   Mini FAQ Section    */}      
-      <div className="l-container">
-        {/* Accordion 
-          * 3 items 
-        */}
-      </div>
-
-      {/* CTA Section */}
-      <div className="l-container">
-
-      </div>
-
-      {/* Newsletter signup Section */}
-      <div className="l-container">
-
-      </div>
+      
     </div>
   )
 }

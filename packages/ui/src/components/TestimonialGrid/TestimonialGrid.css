@@ -1,0 +1,222 @@
+/* --- Global Container --- */
+.testimonial-grid {
+  width: 100%;
+  padding: 5rem 1rem;
+  background-color: #F8F7F4; /* Light beige background */
+  box-sizing: border-box;
+}
+
+.testimonial-grid * {
+  box-sizing: border-box;
+}
+
+.testimonial-grid__container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* --- Header Section --- */
+.testimonial-grid__header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.testimonial-grid__subtitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.testimonial-grid__title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* --- Slider Track --- */
+.testimonial-grid__slider {
+  display: flex;
+  overflow-x: auto;
+  gap: 2rem; /* 32px gap */
+  padding-bottom: 2rem; /* Space for shadow */
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  /* Hide Scrollbar */
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
+}
+
+.testimonial-grid__slider::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Slider Item (Wrapper) --- */
+.testimonial-grid__item {
+  /* Logic: (100% width - (2 gaps * 2rem size)) / 3 items */
+  min-width: calc((100% - 6rem) / 4);
+  scroll-snap-align: start;
+  display: flex; /* Makes inner wrapper stretch to full height */
+}
+
+@media (max-width: 1200px) {
+  .testimonial-grid__item {
+    /* Optional: Drop back to 3 items on standard laptops if 4 is too crowded */
+    min-width: calc((100% - 4rem) / 3);
+  }
+}
+
+@media (max-width: 1024px) {
+  .testimonial-grid__item {
+    /* 2 items on tablets */
+    min-width: calc((100% - 2rem) / 2);
+  }
+}
+
+@media (max-width: 768px) {
+  .testimonial-grid__item {
+    /* 1 item on mobile */
+    min-width: 100%;
+  }
+}
+
+/* --- Card Content --- */
+.trx-addons-testimonials-content-wrapper {
+  background: #ffffff;
+  padding: 2.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* Visuals */
+  border-radius: 0px; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.trx-addons-testimonials-content-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* --- Ratings --- */
+.trx-addons-testimonials__rating-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.trx-addons-fb-rev-stars {
+  display: flex;
+  gap: 4px;
+  color: #E88F2A;
+}
+
+.trx-addons-fb-rev-stars svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* --- Main Text --- */
+.trx-addons-testimonials-text-wrapper {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #374151;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  flex-grow: 1; /* Pushes footer down */
+}
+
+/* --- Author Footer --- */
+.trx-addons-testimonials__img-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.trx-addons-testimonials-img-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.trx-addons-testimonials-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trx-addons-testimonials-author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.trx-addons-testimonials-person-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.trx-addons-testimonials-company {
+  font-size: 0.875rem;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+/* --- Dots Navigation --- */
+.testimonial-grid__dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.testimonial-grid__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.testimonial-grid__dot--active {
+  background-color: #E88F2A; /* Orange match */
+  transform: scale(1.2);
+}
+
+.testimonial-grid__dot--inactive {
+  background-color: #d1d5db;
+}
+
+.testimonial-grid__dot--inactive:hover {
+  background-color: #9ca3af;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 1024px) {
+  .testimonial-grid__item {
+    /* Show 2 items on tablet */
+    min-width: calc((100% - 2rem) / 2);
+  }
+}
+
+@media (max-width: 768px) {
+  .testimonial-grid__title {
+    font-size: 2rem;
+  }
+  
+  .testimonial-grid__item {
+    /* Show 1 item on mobile */
+    min-width: 100%;
+  }
+}

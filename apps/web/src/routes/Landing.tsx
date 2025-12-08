@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
-import { FeatureSection, HeroWithSideText, CustomIcons, TwoColumnSplitLayout, TestimonialGrid } from '@modular-house/ui'
 import '@modular-house/ui/style.css'
+import { 
+  FeatureSection, 
+  HeroWithSideText, 
+  CustomIcons, 
+  TwoColumnSplitLayout, 
+  TestimonialGrid, 
+  MiniFAQs 
+} from '@modular-house/ui'
+
 
 function Landing() {
   const [page, setPage] = useState<Page | null>(null)
@@ -119,14 +127,69 @@ function Landing() {
       {/* Social proof Section */}
       <div>
         <TestimonialGrid
+          subTitle = "Building trust through our work"
+          title = "We deliver quality construction"
+          testimonials = {[
+            {
+              text: "Rebar made our dream home a reality. Their team was skilled, reliable, and always kept us informed. We felt supported from start to finish.",
+              authorName: "Emily Chen",
+              authorLocation: "San Francisco, CA",
+              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-25.jpg",
+              rating: 5
+            },
+            {
+              text: "Our office renovation was seamless. Rebar worked around our schedule and delivered a modern, functional space that exceeded our hopes.",
+              authorName: "Carlos Rivera",
+              authorLocation: "Los Angeles, CA",
+              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-24.jpg",
+              rating: 5
+            },
+            {
+              text: "We needed structural upgrades and Rebar handled every detail. Their expertise and clear updates made the process stress-free for us.",
+              authorName: "Sarah Miller",
+              authorLocation: "Austin, TX",
+              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-23.jpg",
+              rating: 5
+            },
+            {
+              text: "Rebar transformed our store with minimal downtime. The results were truly stunning, and our customers absolutely love the new look and feel.",
+              authorName: "David Singh",
+              authorLocation: "Laketown, CA",
+              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-22.jpg",
+              rating: 5
+            }
+          ]}
+            
         />
       </div>
 
       {/*   Mini FAQ Section    */}      
-      <div className="l-container">
-        {/* Accordion 
-          * 3 items 
-        */}
+      <div>
+        <MiniFAQs
+          title='Modular..'
+          faqs={[
+            {
+              number: '01',
+              title: 'It starts with floors',
+              description: 'At Rebar, we install and upgrade floor coverings that blend style, function, and durability. Our team delivers tailored solutions for homes and businesses, using top materials and expert care.'
+            },
+            {
+              number: '02',
+              title: 'Covering all flooring needs',
+              description: 'Rebar’s floor covering services include hardwood, tile, carpet, and more. We guide you from selection to finish, ensuring your new floors are safe, stylish, and built to last.'
+            },
+            {
+              number: '03',
+              title: 'Handling all flooring needs',
+              description: 'We offer expert advice on floor coverings, from moisture control to heavy use areas. Our team ensures your floors meet every need, blending design, safety, and long-term value.'
+            }
+          ]}
+        />
+      </div>
+
+      {/*   Mini Gallary Section */}
+      <div>
+        
       </div>
 
       {/* CTA Section */}

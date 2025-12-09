@@ -602,7 +602,7 @@ components:
           additionalProperties: true
     SubmissionCreate:
       type: object
-      required: [firstName, email, phone, address, eircode, consent]
+      required: [firstName, email, phone, consent]
       properties:
         firstName: { type: string }
         lastName: { type: string }

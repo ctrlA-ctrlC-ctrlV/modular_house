@@ -24,13 +24,13 @@ export const enquirySubmissionSchema = z.object({
     .regex(/^[\d\s\-+()]+$/, 'Please enter a valid phone number'),
     
   address: z.string()
-    .min(1, 'Address is required')
-    .max(500, 'Address must be less than 500 characters'),
+    .max(500, 'Address must be less than 500 characters')
+    .optional(),
     
   eircode: z.string()
-    .min(1, 'Eircode is required')
     .max(10, 'Eircode must be less than 10 characters')
-    .regex(/^[A-Z0-9\s]+$/i, 'Please enter a valid Eircode'),
+    .regex(/^[A-Z0-9\s]+$/i, 'Please enter a valid Eircode')
+    .optional(),
     
   preferredProduct: z.enum(PRODUCT_OPTIONS, {
     errorMap: () => ({ message: 'Please select a valid product option' })

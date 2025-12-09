@@ -200,6 +200,28 @@ class ApiClient {
   }
 
   /**
+   * Submit a new enquiry
+   */
+  async submitEnquiry(data: {
+    firstName: string;
+    lastName?: string;
+    email: string;
+    phone: string;
+    address?: string;
+    eircode?: string;
+    preferredProduct?: string;
+    message?: string;
+    consent: boolean;
+    website?: string; // Honeypot
+  }): Promise<SubmissionResponse> {
+    return this.request<SubmissionResponse>({
+      method: 'POST',
+      url: '/submissions/enquiry',
+      data,
+    });
+  }
+
+  /**
    * Health check endpoint
    */
   async getHealth(): Promise<HealthResponse> {
@@ -209,16 +231,7 @@ class ApiClient {
     });
   }
 
-  /**
-   * Submit enquiry/quote form
-   */
-  async submitEnquiry(data: Record<string, unknown>): Promise<SubmissionResponse> {
-    return this.request<SubmissionResponse>({
-      method: 'POST',
-      url: '/submissions/enquiry',
-      data,
-    });
-  }
+
 
   /**
    * Get page content by slug

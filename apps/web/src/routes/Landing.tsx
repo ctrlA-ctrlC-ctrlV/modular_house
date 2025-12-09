@@ -12,7 +12,8 @@ import {
   MiniFAQs,
   ContactFormWithImageBg,
   type ContactFormData,
-  MasonryGallery
+  MasonryGallery,
+  NewsletterSection
 } from '@modular-house/ui'
 
 
@@ -227,8 +228,10 @@ function Landing() {
       </div>
 
       {/* Newsletter signup Section */}
-      <div className="l-container">
-
+      <div>
+        <NewsletterSection 
+          title="Get the lattest offer" 
+        />
       </div>
 
       <div className="relative bg-white overflow-hidden">

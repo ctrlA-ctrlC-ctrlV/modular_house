@@ -120,3 +120,28 @@ enum PublishStatus {
 
   @@map("publish_status")
 }
+
+// Customer entity
+model Customer {
+  id               String   @id @default(uuid()) @db.Uuid
+  customerNumber   String   @unique @map("customer_number") @db.VarChar(20)
+  firstContactDate DateTime @default(now()) @map("first_contact_date") @db.Timestamptz
+  
+  // Storing customer details as JSON to match the nested structure requirement
+  customer         Json     @db.JsonB
+  
+  product          String   @db.VarChar(50) // "garden-room" | "house-extension"
+  
+  // Storing notes as JSON
+  notes            Json?    @db.JsonB
+  
+  status           String   @default("active") @db.VarChar(20)
+  
+  // Audit fields
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  createdBy        String   @map("created_by") @db.VarChar(255)
+  updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz
+  updatedBy        String?   @map("updated_by") @db.VarChar(255)
+
+  @@map("customers")
+}

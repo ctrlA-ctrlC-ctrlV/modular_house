@@ -86,7 +86,13 @@ describe('ApiClient', () => {
   describe('Submission', () => {
     it('should submit enquiry with correct data', async () => {
       const mockResponse = { ok: true, id: 'test-id' };
-      const enquiryData = { name: 'Test User', email: 'test@example.com' };
+      const enquiryData = { 
+        firstName: 'Test', 
+        lastName: 'User', 
+        email: 'test@example.com',
+        phone: '1234567890',
+        consent: true
+      };
       mockRequest.mockResolvedValueOnce({ data: mockResponse });
       
       const { apiClient } = await import('./apiClient');

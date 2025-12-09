@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contentClient, Page } from '../lib/contentClient'
+import { apiClient } from '../lib/apiClient'
 import '@modular-house/ui/style.css'
 import { 
   FeatureSection, 
@@ -8,7 +9,9 @@ import {
   CustomIcons, 
   TwoColumnSplitLayout, 
   TestimonialGrid, 
-  MiniFAQs 
+  MiniFAQs,
+  ContactFormWithImageBg,
+  type ContactFormData
 } from '@modular-house/ui'
 
 
@@ -20,6 +23,19 @@ function Landing() {
       // Fallback or error handling if needed, for now silent as we have defaults
     })
   }, [])
+
+  const handleContactSubmit = async (data: ContactFormData) => {
+    await apiClient.submitEnquiry({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      preferredProduct: data.productType,
+      message: data.message,
+      consent: data.consent,
+      website: data.address
+    });
+  };
 
   return (
     <div>
@@ -193,8 +209,8 @@ function Landing() {
       </div>
 
       {/* CTA Section */}
-      <div className="l-container">
-
+      <div>
+        <ContactFormWithImageBg onSubmit={handleContactSubmit} />
       </div>
 
       {/* Newsletter signup Section */}

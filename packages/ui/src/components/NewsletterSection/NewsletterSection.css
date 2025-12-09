@@ -1,0 +1,195 @@
+/* Main container - Updated background color to match screenshot */
+.newsletter-section {
+  width: 100%;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  background-color: #fcfbf9; /* Beige/Off-white background */
+}
+
+.newsletter-container {
+  width: 100%;
+  max-width: 1200px; /* Limit width for large screens */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* WRAPPER UPDATE: 
+   Default is column (mobile). 
+   On desktop, this becomes a row to separate Title (Left) and Form (Right).
+*/
+.newsletter-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center on mobile */
+  justify-content: center;
+  text-align: center; /* Center text on mobile */
+  gap: 2rem;
+}
+
+/* Desktop View Layout Change */
+@media (min-width: 992px) {
+  .newsletter-content-wrapper {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center; /* Vertically center the title with the form */
+    text-align: left;
+    gap: 4rem;
+  }
+}
+
+/* Title Styling */
+.newsletter-title {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #111827;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  margin: 0;
+  flex: 1; /* Allows title to take up available space on left */
+}
+
+@media (min-width: 992px) {
+  .newsletter-title {
+    font-size: 2.5rem; /* Larger font on desktop */
+    max-width: 50%; /* restrict width so it doesn't crowd the form */
+  }
+}
+
+/* Form Container */
+.newsletter-form {
+  width: 100%;
+  max-width: 32rem;
+  flex: 1; /* Allows form to take up space on right */
+}
+
+.newsletter-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .newsletter-input-group {
+    flex-direction: row;
+    gap: 0; /* Remove gap if you want them attached, or keep small gap */
+  }
+}
+
+.newsletter-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+}
+
+.newsletter-icon-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.newsletter-icon {
+  color: #9ca3af;
+  fill: currentColor;
+}
+
+/* Input Field - Updated Border Radius */
+.newsletter-input {
+  width: 100%;
+  padding-left: 3rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  background-color: #ffffff; /* White input background */
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* Soft rounded corners */
+  font-size: 1rem;
+  color: #374151;
+  box-sizing: border-box; /* Ensure padding doesn't break width */
+}
+
+/* Fix for side-by-side layout on desktop: flatten touching corners */
+@media (min-width: 640px) {
+    .newsletter-input {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+}
+
+.newsletter-input:focus {
+  outline: none;
+  border-color: #bc5b24; /* Focus color match */
+  box-shadow: 0 0 0 1px #bc5b24;
+}
+
+/* Button - Updated Color and Radius */
+.newsletter-button {
+  padding: 1rem 2rem;
+  background-color: #bc5b24; /* Rust/Brownish-Orange */
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px; /* Soft rounded corners */
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+/* Fix for side-by-side layout on desktop: flatten touching corners */
+@media (min-width: 640px) {
+    .newsletter-button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+}
+
+.newsletter-button:hover {
+  background-color: #9a491b; /* Darker rust on hover */
+}
+
+/* Consent Section */
+.newsletter-consent-wrapper {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center on mobile */
+}
+
+@media (min-width: 992px) {
+  .newsletter-consent-wrapper {
+    justify-content: flex-start; /* Left align on desktop */
+  }
+}
+
+.newsletter-consent-label {
+  display: flex;
+  align-items: center;
+  column-gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  text-align: left;
+}
+
+.newsletter-checkbox {
+  height: 1rem;
+  width: 1rem;
+  accent-color: #bc5b24; /* Browser native checkbox color */
+  cursor: pointer;
+}
+
+.newsletter-consent-link {
+  text-decoration: none;
+  color: #bc5b24;
+}
+
+.newsletter-consent-link:hover {
+  text-decoration: underline;
+}

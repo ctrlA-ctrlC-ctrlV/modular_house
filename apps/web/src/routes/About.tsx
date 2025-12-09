@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import DOMPurify from 'dompurify'
 import { contentClient, Page } from '../lib/contentClient'
 
 function About() {
@@ -28,7 +29,7 @@ function About() {
                <div>
                  {/* Simple rendering of sections if they exist, assuming text for now */}
                  {page.sections.map((section: Record<string, unknown>, idx: number) => (
-                   <div key={idx} dangerouslySetInnerHTML={{ __html: (section.content as string) || '' }} />
+                   <div key={idx} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((section.content as string) || '') }} />
                  ))}
                </div>
              ) : (

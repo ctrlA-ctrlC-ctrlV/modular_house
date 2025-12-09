@@ -20,37 +20,36 @@ Although this phase focuses on styling integration (no backend schema changes), 
   - Fields: `path` (string), `usesLayout` (boolean), `components` (Component[])
   - Rules: All public routes use `RebarLayout`.
 
-- customer
+- Customers
   - id: UUID (pk)
-  - customerNumber: string (unique, human-friendly, e.g., C250212345 where first 2 digit is the year, second 2 is the quater, and the last five is the number of quote of the year)
-  - firstContactDate: date (defaults to now)
-  - customer: { 
-    first_name: string, 
-    surname?: string, 
-    email: string, 
-    phone?: string, 
-    address?: string, 
-    eircode?: string 
-    }
+  - quoteNumber: string (unique, human-friendly, e.g., Q25-001234)
+  - quoteDate: date (defaults to now)
+  - firstName: string
+  - surname: string?
+  - email: string
+  - phone: string?
+  - address: string?
+  - eircode: string?
   - product: "garden-room"|"house-extension"
-  - notes: { 
-    createdBy: string (page or admin name), 
-    createdAt: timestamp, 
-    message: string
-    }
   - status: "active"|"deleted"
-  - audit: { 
-    createdAt: timestamp,
-    createdBy: string (page or admin name), 
-    updatedAt?: timestamp,
-    updatedBy?: string, 	
-    }
+  - createdAt: timestamp
+  - createdBy: string (page or admin name)
+  - updatedAt: timestamp?
+  - updatedBy: string?
+
+- Note
+  - id: UUID (pk)
+  - customerId: UUID (fk -> Customer)
+  - message: string
+  - createdAt: timestamp
+  - createdBy: string (page or admin name)
 
 ## Relationships
 
 - Layout 1..* → Component (composition)
 - RouteView 1 → Layout (public routes)
 - Component * → TemplateToken * (implicit via CSS variables)
+- Customer 1..* → Note
 
 ## Validation Rules
 

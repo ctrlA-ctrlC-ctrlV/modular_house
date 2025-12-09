@@ -22,6 +22,7 @@ interface SecurityConfig {
   jwtSecret: string;
   jwtExpiresIn: string;
   passwordSaltRounds: number;
+  ipSalt: string;
 }
 
 interface AppConfig {
@@ -103,6 +104,7 @@ export const config: EnvConfig = {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
     jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '24h'),
     passwordSaltRounds: getNumericEnvVar('PASSWORD_SALT_ROUNDS', 12),
+    ipSalt: getRequiredEnvVar('IP_SALT'),
   },  
   admin: {
     adminEmail: getEnvVar("ADMIN_LOGIN_EMAIL", "testadmin@modular.house"),

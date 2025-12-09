@@ -11,4 +11,5 @@ export * from './components/TwoMirroSplitColumnLayout/TwoMirrorSplitColumnLayout
 export * from './components/TestimonialGrid/TestimonialGrid'
 export * from './components/MiniFAQs/MiniFAQs'
 export * from './components/ContactFormWithImageBg/ContactFormWithImageBg'
+export * from './components/MasonryGallery/MasonryGallery'
 // Add your shared UI components here

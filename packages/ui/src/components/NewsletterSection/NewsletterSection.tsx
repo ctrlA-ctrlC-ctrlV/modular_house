@@ -21,7 +21,12 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
           </h2>
           
           {/* Right Side: Form */}
-          <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="newsletter-form" onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const email = formData.get('email') as string;
+            onSubscribe?.(email);
+          }}>
             <div className="newsletter-input-group">
                 {/* Icon and Input Wrapper */}
                 <div className="newsletter-input-wrapper">
@@ -36,6 +41,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
                     </div>
                     <input 
                         type="email" 
+                        name="email"
                         className="newsletter-input" 
                         placeholder="Your Email Address" 
                     />

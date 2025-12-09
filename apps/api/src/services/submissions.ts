@@ -10,6 +10,43 @@ const prisma = new PrismaClient();
 // Default consent text - will be configurable later
 const DEFAULT_CONSENT_TEXT = 'I consent to the processing of my personal data for the purpose of handling my enquiry and providing information about your products and services.';
 
+// Helper to generate quote number
+async function generateQuoteNumber(tx: Prisma.TransactionClient): Promise<string> {
+  const now = new Date();
+  const currentYear = now.getFullYear() % 100; // 2 digits
+  const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
+
+  // Find latest quote
+  const latestCustomer = await tx.customer.findFirst({
+    orderBy: { quoteNumber: 'desc' },
+    select: { quoteNumber: true }
+  });
+
+  let newSequence = 1;
+
+  if (latestCustomer && latestCustomer.quoteNumber) {
+    // Expected format: QYYQSSSS (e.g. Q2540001)
+    const raw = latestCustomer.quoteNumber.substring(1); // Remove 'Q'
+    if (raw.length === 7) {
+        const storedYear = parseInt(raw.substring(0, 2));
+        const storedQuarter = parseInt(raw.substring(2, 3));
+        const storedSequence = parseInt(raw.substring(3, 7));
+        
+        // Case A: New Time Period
+        if (currentYear > storedYear || (currentYear === storedYear && currentQuarter > storedQuarter)) {
+            newSequence = 1;
+        } 
+        // Case B: Same Time Period
+        else if (currentYear === storedYear && currentQuarter === storedQuarter) {
+            newSequence = storedSequence + 1;
+        }
+    }
+  }
+
+  const sequenceStr = newSequence.toString().padStart(4, '0');
+  return `Q${currentYear}${currentQuarter}${sequenceStr}`;
+}
+
 export interface CreateSubmissionInput {
   submissionData: SubmissionPayload;
   sourcePageSlug: string;
@@ -46,29 +83,61 @@ export class SubmissionsService {
         hasMessage: !!submissionData.message,
       }, 'Creating new submission record');
 
-      const submission = await prisma.submission.create({
-        data: {
-          payload: submissionData as Prisma.JsonObject,
-          sourcePageSlug,
-          consentFlag: submissionData.consent,
-          consentText: consentText || DEFAULT_CONSENT_TEXT,
-          ipHash,
-          userAgent,
-          emailLog: Prisma.JsonNull, // Will be updated when emails are sent
-        },
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Generate Quote Number
+        const quoteNumber = await generateQuoteNumber(tx);
+
+        // 2. Create Customer
+        const customer = await tx.customer.create({
+            data: {
+                quoteNumber,
+                firstName: submissionData.firstName,
+                surname: submissionData.lastName,
+                email: submissionData.email,
+                phone: submissionData.phone,
+                address: submissionData.address,
+                eircode: submissionData.eircode,
+                product: submissionData.preferredProduct || 'Unspecified',
+                status: 'active',
+                createdBy: 'system',
+            }
+        });
+
+        // 3. Create Note if message exists
+        if (submissionData.message) {
+            await tx.note.create({
+                data: {
+                    customerId: customer.id,
+                    message: submissionData.message,
+                    createdBy: 'customer',
+                }
+            });
+        }
+
+        // 4. Create Submission (Legacy/Audit)
+        const submission = await tx.submission.create({
+          data: {
+            payload: submissionData as Prisma.JsonObject,
+            sourcePageSlug,
+            consentFlag: submissionData.consent,
+            consentText: consentText || DEFAULT_CONSENT_TEXT,
+            ipHash,
+            userAgent,
+            emailLog: Prisma.JsonNull, // Will be updated when emails are sent
+          },
+        });
+
+        return { id: submission.id, submission };
       });
 
       logger.info({
-        submissionId: submission.id,
+        submissionId: result.id,
         email: submissionData.email,
         sourcePageSlug,
-        createdAt: submission.createdAt,
+        createdAt: result.submission.createdAt,
       }, 'Submission record created successfully');
 
-      return {
-        id: submission.id,
-        submission,
-      };
+      return result;
 
     } catch (error) {
       logger.error({

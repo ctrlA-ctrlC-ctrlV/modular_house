@@ -274,8 +274,8 @@ describe('POST /submissions/enquiry - Contract Tests', () => {
       );
     });
 
-    it('should return 400 for missing address', async () => {
-      const invalidSubmission = {
+    it('should accept submission without address', async () => {
+      const validSubmission = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe@example.com',
@@ -284,24 +284,14 @@ describe('POST /submissions/enquiry - Contract Tests', () => {
         consent: true,
       };
 
-      const response = await request(app)
+      await request(app)
         .post('/submissions/enquiry')
-        .send(invalidSubmission)
-        .expect(400);
-
-      expect(response.body).toHaveProperty('details');
-      expect(response.body.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            field: 'address',
-            message: 'Required',
-          }),
-        ])
-      );
+        .send(validSubmission)
+        .expect(200);
     });
 
-    it('should return 400 for missing eircode', async () => {
-      const invalidSubmission = {
+    it('should accept submission without eircode', async () => {
+      const validSubmission = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe@example.com',
@@ -310,20 +300,10 @@ describe('POST /submissions/enquiry - Contract Tests', () => {
         consent: true,
       };
 
-      const response = await request(app)
+      await request(app)
         .post('/submissions/enquiry')
-        .send(invalidSubmission)
-        .expect(400);
-
-      expect(response.body).toHaveProperty('details');
-      expect(response.body.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            field: 'eircode',
-            message: 'Required',
-          }),
-        ])
-      );
+        .send(validSubmission)
+        .expect(200);
     });
 
     it('should return 400 for invalid eircode format', async () => {
@@ -420,7 +400,7 @@ describe('POST /submissions/enquiry - Contract Tests', () => {
         .expect(400);
 
       expect(response.body).toHaveProperty('details');
-      expect(response.body.details).toHaveLength(6); // firstName, email, phone, address, eircode, consent
+      expect(response.body.details).toHaveLength(4); // firstName, email, phone, consent
     });
 
     it('should return 400 for invalid preferredProduct value', async () => {

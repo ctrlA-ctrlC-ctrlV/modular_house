@@ -12,4 +12,5 @@ export * from './components/TestimonialGrid/TestimonialGrid'
 export * from './components/MiniFAQs/MiniFAQs'
 export * from './components/ContactFormWithImageBg/ContactFormWithImageBg'
 export * from './components/MasonryGallery/MasonryGallery'
+export { NewsletterSection, type NewsletterSectionProps } from './components/NewsletterSection/NewsletterSection'
 // Add your shared UI components here

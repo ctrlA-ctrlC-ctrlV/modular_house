@@ -20,6 +20,32 @@ Although this phase focuses on styling integration (no backend schema changes), 
   - Fields: `path` (string), `usesLayout` (boolean), `components` (Component[])
   - Rules: All public routes use `RebarLayout`.
 
+- customer
+  - id: UUID (pk)
+  - customerNumber: string (unique, human-friendly, e.g., C250212345 where first 2 digit is the year, second 2 is the quater, and the last five is the number of quote of the year)
+  - firstContactDate: date (defaults to now)
+  - customer: { 
+    first_name: string, 
+    surname?: string, 
+    email: string, 
+    phone?: string, 
+    address?: string, 
+    eircode?: string 
+    }
+  - product: "garden-room"|"house-extension"
+  - notes: { 
+    createdBy: string (page or admin name), 
+    createdAt: timestamp, 
+    message: string
+    }
+  - status: "active"|"deleted"
+  - audit: { 
+    createdAt: timestamp,
+    createdBy: string (page or admin name), 
+    updatedAt?: timestamp,
+    updatedBy?: string, 	
+    }
+
 ## Relationships
 
 - Layout 1..* → Component (composition)

@@ -1,6 +1,3 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { contentClient, Page } from '../lib/contentClient'
 import { apiClient } from '../lib/apiClient'
 import '@modular-house/ui/style.css'
 import { 
@@ -17,14 +14,6 @@ import {
 
 
 function Landing() {
-  const [page, setPage] = useState<Page | null>(null)
-
-  useEffect(() => {
-    contentClient.getPage('home').then(setPage).catch(() => {
-      // Fallback or error handling if needed, for now silent as we have defaults
-    })
-  }, [])
-
   const handleContactSubmit = async (data: ContactFormData) => {
     await apiClient.submitEnquiry({
       firstName: data.firstName,

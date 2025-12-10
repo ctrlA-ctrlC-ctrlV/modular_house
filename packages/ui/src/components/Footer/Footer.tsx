@@ -17,7 +17,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
         <div className="sc_layouts_item elementor-element elementor-element-30d7f4e elementor-widget__width-initial sc_fly_static elementor-widget elementor-widget-text-editor" data-id="30d7f4e" data-element_type="widget" data-widget_type="text-editor.default">
           <div className="elementor-widget-container">
             <p>
-              Germany —<br />785 15h Street, Office 47 Berlin, De 81566
+              Unit 8,<br />Finches Business Park,<br />Long Mile road Dublin 12,<br />D12 N9YV
             </p>
           </div>
         </div>
@@ -26,7 +26,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
             <ul className="elementor-icon-list-items">
               <li className="elementor-icon-list-item">
                 <a href="mailto:info@email.com">
-                  <span className="elementor-icon-list-text">info@email.com</span>
+                  <span className="elementor-icon-list-text">info@sdeal.ie</span>
                 </a>
               </li>
             </ul>
@@ -38,7 +38,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
               <ul className="trx-addons-list-items">
                 <li className="trx-addons-icon-list-item elementor-repeater-item-f6247b6">
                   <a href="tel:+18408412569">
-                    <h6 className="trx-addons-icon-list-text">+1 840 841 25 69							</h6>
+                    <h6 className="trx-addons-icon-list-text">0830280000</h6>
                   </a>
                 </li>
               </ul>

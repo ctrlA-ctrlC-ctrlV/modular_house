@@ -2,12 +2,12 @@
 /* Variables & Theming                                                        */
 /* -------------------------------------------------------------------------- */
 :root {
-  --hero-color-white: #ffffff;
+  --hero-color-white: #fefefe;
   --hero-color-accent: #eebb54; /* Yellow for "secure and durable" */
   --hero-color-button: #c06c36; /* Rust/Orange for button */
   --hero-color-button-hover: #a55a2b;
   --hero-overlay-opacity: 0.4;
-  --hero-font-family: 'Nunito Sans', sans-serif;
+  --hero-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;/*'Nunito Sans', sans-serif;*/
   --hero-padding: 60px;
 }
 
@@ -54,28 +54,29 @@
   flex: 1; /* Takes up available middle space */
   display: flex;
   align-items: center; /* Vertically center */
-  justify-content: flex-end; /* Horizontally align right */
+  justify-content: right; /* Horizontally align right */
   width: 100%;
 }
 
 .hero-text-block {
-  max-width: 550px; /* Limits width to match screenshot */
+  max-width: 750px; /* Limits width to match screenshot */
   text-align: left;
+  margin: 0 12rem 0 0;
 }
 
 .hero-subtitle {
   font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 400;  
-  margin-bottom: 1.25rem;
+  letter-spacing: 0px;
+  font-weight: 500;  
+  margin: 0 0 0.9rem 0.5rem;
   opacity: 0.9;
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 5vw, 5.5rem); /* Responsive typography */
+  font-size: clamp(2.5rem, 5vw, 6rem); /* Responsive typography */
   line-height: 1.1;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0 0 2rem 0;
 }
 
@@ -96,9 +97,9 @@
   background-color: var(--hero-color-button);
   color: #fff;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.9rem;
-  border-radius: 4px; /* Slight rounded corners per design */
+  border-radius: 9px; /* Slight rounded corners per design */
   transition: background-color 0.3s ease, transform 0.2s ease;
   border: none;
 }
@@ -121,11 +122,11 @@
 
 .hero-footer-left {
   flex: 1;
-  max-width: 400px;
+  max-width: 500px;
 }
 
 .hero-description {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   line-height: 1.5;
   font-weight: 500;
   margin: 0;

@@ -9,7 +9,7 @@
   --theme-color-hover: #ccc;
 
   /* Typography from theme.json */
-  --theme-font-family-base: "Inter", sans-serif;
+  --theme-font-family-base:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   
   /* Spacing (Placeholder - derived from common WP theme patterns) */
   --theme-spacing-unit: 8px;

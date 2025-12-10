@@ -4,6 +4,7 @@
     /* Adjust this percentage or pixel value to slide the whole list left/right */
     padding-left: 20%; 
     padding-right: 20%; /* Keep some breathing room on the right edge */
+    background-color: #fefefe;
 }
 
 .mini-faqs-main-title-wrapper {

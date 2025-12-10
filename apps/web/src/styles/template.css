@@ -1,6 +1,6 @@
 /* Template styles derived from Rebar theme */
 
-/* Scoped wrapper for template styles */
+/* Scoped wrapper for template styles 
 .theme-rebar {
   font-family: var(--theme-font-family-base);
   color: var(--theme-color-title);
@@ -9,7 +9,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Layout Utilities */
+/* Layout Utilities 
 .theme-rebar .l-container {
   width: 100%;
   max-width: 1200px;
@@ -19,7 +19,7 @@
   padding-right: 20px;
 }
 
-/* Typography Utilities */
+/* Typography Utilities 
 .theme-rebar h1, .theme-rebar .u-text-h1 {
   font-size: 2.5rem;
   font-weight: 700;
@@ -58,13 +58,13 @@
   color: var(--theme-color-hover);
 }
 
-/* Focus Utilities */
+/* Focus Utilities 
 .theme-rebar .u-focus-ring:focus-visible {
   outline: 2px solid var(--theme-color-link);
   outline-offset: 2px;
 }
 
-/* Skip Link */
+/* Skip Link 
 .theme-rebar .skip-link {
   position: absolute;
   top: -9999px;
@@ -82,4 +82,4 @@
   top: 0;
   outline: 2px solid white;
   outline-offset: -2px;
-}
+}*/

@@ -5,8 +5,8 @@
   --theme-color-bd-color: #E5E7DE;
   --theme-color-title: #121414;
   --theme-color-meta: #ACAFB2;
-  --theme-color-link: #B55329;
-  --theme-color-hover: #9F4017;
+  --theme-color-link: #fefefe;
+  --theme-color-hover: #ccc;
 
   /* Typography from theme.json */
   --theme-font-family-base: "Inter", sans-serif;

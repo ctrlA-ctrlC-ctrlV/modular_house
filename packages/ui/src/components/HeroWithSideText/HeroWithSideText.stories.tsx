@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react'; // Necessary for JSX in args
 import { HeroWithSideText } from './HeroWithSideText';
 
 const meta = {
@@ -11,13 +12,10 @@ const meta = {
   argTypes: {
     backgroundImage: { control: 'text' },
     subtitle: { control: 'text' },
-    title: { control: 'text' },
+    // Title is disabled in controls because complex JSX is hard to edit in Storybook UI
+    title: { control: false }, 
     description: { control: 'text' },
     buttonText: { control: 'text' },
-    buttonLink: { control: 'text' },
-    exploreText: { control: 'text' },
-    exploreLink: { control: 'text' },
-    className: { control: 'text' },
   },
 } satisfies Meta<typeof HeroWithSideText>;
 
@@ -28,12 +26,14 @@ export const Default: Story = {
   args: {
     backgroundImage: 'https://rebar.themerex.net/wp-content/uploads/2024/05/image-copyright-66.jpg',
     subtitle: 'The creative edge',
-    title: 'Enhanced comfort made stylish, secure and durable',
+    title: (
+      <>
+        Enhanced comfort made <br />
+        stylish, <span className="text-highlight">secure and durable</span>
+      </>
+    ),
     description: 'Upgrade your home with stylish, secure doors and energy-efficient windows',
     buttonText: 'Get Started',
-    buttonLink: '#',
-    exploreText: 'Explore',
-    exploreLink: '#section-anchor-02',
   },
 };
 
@@ -41,9 +41,13 @@ export const CustomContent: Story = {
   args: {
     backgroundImage: 'https://placehold.co/1920x1080',
     subtitle: 'Modern Living',
-    title: 'Build Your Dream Home',
+    title: (
+      <>
+        Build your <span className="text-highlight">Dream Home</span><br />
+        Today
+      </>
+    ),
     description: 'Experience the future of modular housing with our innovative designs.',
     buttonText: 'View Models',
-    exploreText: 'Learn More',
   },
 };

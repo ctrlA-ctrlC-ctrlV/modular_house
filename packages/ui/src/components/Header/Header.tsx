@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* ==========================================
             Section 2: Desktop Navigation (Centered)
             ========================================== */}
-        <nav className="header__nav-desktop">
+        <nav className="header__nav-desktop c-nav">
           <ul className="header__menu">
             {menuItems.map((item, index) => (
               <li

@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react'; // Necessary for JSX in args
 import { HeroWithSideText } from './HeroWithSideText';
 
 const meta = {

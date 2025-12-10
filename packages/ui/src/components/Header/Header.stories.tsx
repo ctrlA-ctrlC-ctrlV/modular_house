@@ -20,11 +20,6 @@ const defaultMenuItems: HeaderProps['menuItems'] = [
     submenu: [
       { label: 'Home Builders', href: '#home-builders' },
       { label: 'Remodeling', href: '#remodeling' },
-      { label: 'Handyman', href: '#handyman' },
-      { label: 'Kitchens', href: '#kitchens' },
-      { label: 'Doors & Windows', href: '#doors-windows' },
-      { label: 'Roofing', href: '#roofing' },
-      { label: 'Flooring', href: '#flooring' },
     ],
   },
   {
@@ -32,55 +27,54 @@ const defaultMenuItems: HeaderProps['menuItems'] = [
     href: '#',
     submenu: [
       { label: 'About Us', href: '#about' },
-      { label: 'Services — 1', href: '#services-1' },
-      { label: 'Services — 2', href: '#services-2' },
-      { label: 'Testimonials — 1', href: '#testimonials-1' },
-      { label: 'Testimonials — 2', href: '#testimonials-2' },
+      { label: 'Services', href: '#services' },
       { label: 'Our Team', href: '#team' },
       { label: 'Pricing', href: '#pricing' },
-      { label: 'FAQs', href: '#faqs' },
     ],
   },
   {
     label: 'Portfolio',
     href: '#',
     submenu: [
-      { label: 'Our Work — 1', href: '#work-1' },
-      { label: 'Our Work — 2', href: '#work-2' },
-      { label: 'Our Work — 3', href: '#work-3' },
-      { label: 'Project Details', href: '#project-details' },
+      { label: 'Our Work', href: '#work' },
+      { label: 'Project Details', href: '#details' },
     ],
   },
   {
     label: 'Blog',
     href: '#',
     submenu: [
-      { label: 'Blog — Standard', href: '#blog-standard' },
-      { label: 'Blog — Grid', href: '#blog-grid' },
-      { label: 'Post — With Sidebar', href: '#post-sidebar' },
-      { label: 'Post — Without Sidebar', href: '#post-no-sidebar' },
+      { label: 'Latest News', href: '#news' },
     ],
   },
   {
     label: 'Contact Us',
-    href: '#contact',
+    href: '#contact-link', // This is the nav link version
   },
 ];
 
-const defaultSocialLinks: HeaderProps['socialLinks'] = [
-  { platform: 'twitter', url: 'https://twitter.com' },
-  { platform: 'instagram', url: 'https://instagram.com' },
-];
+// Replicated the screenshot logo approximately using a placeholder
+// In production, use your actual "rebar." image file
+const logoUrl = 'https://via.placeholder.com/120x40/000000/FFFFFF?text=rebar.';
 
 export const Default: Story = {
   args: {
-    logoSrc: 'https://via.placeholder.com/90x28/B55329/FFFFFF?text=Logo',
-    logoSrcRetina: 'https://via.placeholder.com/180x56/B55329/FFFFFF?text=Logo@2x',
-    logoAlt: 'Company Logo',
-    logoHref: '/',
+    logoSrc: logoUrl,
+    logoAlt: 'rebar.',
     menuItems: defaultMenuItems,
-    socialLinks: defaultSocialLinks,
-    positionOver: false,
+    ctaLabel: 'Contact Us', // The button on the right
+    ctaHref: '#contact-button',
+  },
+};
+
+export const MobileView: Story = {
+  args: {
+    ...Default.args,
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
   },
 };
 
@@ -91,35 +85,19 @@ export const PositionOver: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={{ position: 'relative', minHeight: '400px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div style={{ position: 'relative', minHeight: '500px' }}>
+        {/* Background image to test transparency */}
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, left: 0, right: 0, bottom: 0, 
+          background: 'url(https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80) center/cover no-repeat'
+        }}></div>
         <Story />
-        <div style={{ padding: '100px 20px', color: 'white', textAlign: 'center' }}>
-          <h1>Header positioned over content</h1>
-          <p>This demonstrates the header with transparent background over page content</p>
+        <div style={{ position: 'relative', zIndex: 1, padding: '150px 20px', color: 'white', textAlign: 'center' }}>
+          <h1>Hero Content</h1>
+          <p>Header should be transparent over this image.</p>
         </div>
       </div>
     ),
   ],
-};
-
-export const NoSocial: Story = {
-  args: {
-    ...Default.args,
-    socialLinks: [],
-  },
-};
-
-export const SimpleMenu: Story = {
-  args: {
-    logoSrc: 'https://via.placeholder.com/90x28/B55329/FFFFFF?text=Logo',
-    logoAlt: 'Company Logo',
-    logoHref: '/',
-    menuItems: [
-      { label: 'Home', href: '#home' },
-      { label: 'About', href: '#about' },
-      { label: 'Services', href: '#services' },
-      { label: 'Contact', href: '#contact' },
-    ],
-    socialLinks: defaultSocialLinks,
-  },
 };

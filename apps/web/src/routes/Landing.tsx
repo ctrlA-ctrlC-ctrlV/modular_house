@@ -41,12 +41,32 @@ function Landing() {
   return (
     <div>
       {/* Hero Section */}
+      {/*Discover high performance garden rooms and house extensions designed for modern living.
+
+
+        backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+          title="Beautifully built for life."
+          subtitle="DISCOVER MODULAR LIVING"
+          buttonText="Contact Us"
+          
+
+          Enhanced comfort made <br />
+          stylish, <span className="text-highlight">secure and durable</span>
+      */}
       <div>
         <HeroWithSideText 
           backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-          title="Beautifully built for life."
-          subtitle="Discover high performance garden rooms and house extensions designed for modern living."
-          buttonText="Contact Us"
+          subtitle="DISCOVER MODULAR LIVING"
+          title={
+            <>
+              Discover high performance garden rooms and house extensions designed for modern living           
+            </>
+          }
+          description="Upgrade your home with stylish, secure doors and energy-efficient windows."
+          buttonText="Get Started"
+          buttonLink="/get-started"
+          exploreText="Explore"
+          exploreLink="#features"
         />
       </div>
 

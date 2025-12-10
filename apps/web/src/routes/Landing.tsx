@@ -48,10 +48,11 @@ function Landing() {
           subtitle="DISCOVER MODULAR LIVING"
           title={
             <>
-              Discover high performance garden rooms and house extensions designed for modern living           
+              Premium extensions built <br />
+              rapid, <span className="text-highlight">robust and refined</span>          
             </>
           }
-          description="Upgrade your home with stylish, secure doors and energy-efficient windows."
+          description="Expand your lifestyle with bespoke steel frame garden rooms and extensions."
           buttonText="Get Started"
           buttonLink="/get-started"
           exploreText="Explore"

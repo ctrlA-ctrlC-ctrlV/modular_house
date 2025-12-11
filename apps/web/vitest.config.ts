@@ -4,6 +4,13 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@modular-house/ui/style.css': path.resolve(__dirname, './src/test/empty.css'),
+      '@modular-house/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
+      '@': path.resolve(__dirname, './src'),
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -41,10 +48,5 @@ export default defineConfig({
     testTimeout: 10000,
     // Hook timeout
     hookTimeout: 10000,
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
   },
 });

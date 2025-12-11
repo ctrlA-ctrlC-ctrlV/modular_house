@@ -1,0 +1,43 @@
+/* TrueFooter Component Styles */
+
+.elementor-element-4e9d1fc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #fff;
+  border-top: 1px solid #eee;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.elementor-element-4e9d1fc p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.trx-addons-advanced-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.trx-addons-advanced-title a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.trx-addons-advanced-title a:hover {
+  color: #000;
+}
+
+@media (max-width: 768px) {
+  .elementor-element-4e9d1fc {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+}

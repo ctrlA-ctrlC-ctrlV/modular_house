@@ -1,13 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'
-import Header from './components/Header'
-import Footer from './components/Footer'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { TemplateLayout } from './components/TemplateLayout'
 import Landing from './routes/Landing'
-import Products from './routes/Products'
 import Gallery from './routes/Gallery'
 import About from './routes/About'
 import Contact from './routes/Contact'
 import Privacy from './routes/Privacy'
 import Terms from './routes/Terms'
+import GardenRoom from './routes/GardenRoom'
+import HouseExtension from './routes/HouseExtension'
 import NotFound from './routes/not-found'
 import AdminLogin from './routes/admin/login'
 import AdminDashboard from './routes/admin/index'
@@ -17,7 +17,8 @@ import AdminSubmissions from './routes/admin/submissions'
 import AdminPages from './routes/admin/pages'
 import AdminGuard from './routes/admin/guard'
 
-function PublicLayout() {
+/*  Replace by TemplateLayout */
+/*function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -27,21 +28,22 @@ function PublicLayout() {
       <Footer />
     </div>
   )
-}
+}*/
 
 function App() {
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route element={<PublicLayout />}>
+        <Route element={<TemplateLayout />}>
           <Route path="/" element={<Landing />} />
-          <Route path="/products" element={<Products />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/garden-room" element={<GardenRoom />} />
+          <Route path="/house-extension" element={<HouseExtension />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 

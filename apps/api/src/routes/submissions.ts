@@ -5,6 +5,7 @@ import { submissionRateLimit } from '../middleware/rateLimit.js';
 import { enquirySubmissionSchema } from '../types/submission.js';
 import { logger } from '../middleware/logger.js';
 import { SubmissionsService } from '../services/submissions.js';
+import { config } from '../config/env.js';
 
 const router: Router = Router();
 
@@ -54,7 +55,7 @@ router.post('/enquiry',
       
       // Create salted hash of IP address (never store raw IP)
       const ipHash = crypto
-        .createHmac('sha256', process.env.IP_SALT || 'default-salt-change-in-production')
+        .createHmac('sha256', config.security.ipSalt)
         .update(clientIP)
         .digest('hex');
 

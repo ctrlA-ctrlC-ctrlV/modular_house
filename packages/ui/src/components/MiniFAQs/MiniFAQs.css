@@ -1,0 +1,118 @@
+.mini-faqs-container {
+    padding: 80px 0;
+    /* 1. CONTROL THE MARGIN TO THE LEFT OF THE NUMBER */
+    /* Adjust this percentage or pixel value to slide the whole list left/right */
+    padding-left: 20%; 
+    padding-right: 20%; /* Keep some breathing room on the right edge */
+    background-color: #fefefe;
+}
+
+.mini-faqs-main-title-wrapper {
+    margin-bottom: 60px;
+    /* Align title with the content if desired, or keep centered */
+    text-align: center; 
+}
+
+.mini-faqs-main-title {
+    font-family: sans-serif;
+    font-size: 20rem;/*clamp(3rem, 10vw, 8rem);*/
+    font-weight: bold;
+    color: #8B4513;
+    margin: 0;
+    line-height: 1;
+}
+
+.mini-faqs-inner {
+    display: flex;
+    flex-direction: column;
+    /* REMOVED max-width and margin: 0 auto */
+    /* This allows the container to stretch and obey the padding of the parent */
+    max-width: 1600px;
+    width: 100%;
+}
+
+.mini-faq-item {
+    display: grid;
+    /* 2. CONTROL THE GAP BETWEEN NUMBER AND LINE */
+    /* 200px is the fixed width for the number column. 
+       Reduce this (e.g. 150px) to bring the line closer to the number.
+       Increase it to push the line further away. */
+    grid-template-columns: 220px 1px 1fr;
+    
+    gap: 60px; /* Space between the Vertical Line and the Text */
+    padding: 60px 0;
+    border-bottom: 1px solid #eee;
+    background: #fefefe;
+    border-radius: 0;
+    position: sticky;
+    top: 0;
+}
+
+.mini-faq-item:last-child {
+    border-bottom: none;
+}
+
+.mini-faq-number-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.mini-faq-number {
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 1.6rem;
+    color: #000;
+    font-weight: 500;
+}
+
+.mini-faq-divider {
+    width: 1px;
+    height: 100%;
+    background-color: #eee;
+}
+
+.mini-faq-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.mini-faq-title {
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #000;
+    line-height: 1.1;
+}
+
+.mini-faq-description {
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+    font-family: sans-serif;
+    font-size: 1rem;
+    
+    /* 3. FIX THE "GAP ON THE RIGHT" */
+    /* Increased from 650px to 100% so it uses all available space. 
+       If lines get too long, try setting this to 800px or 900px. */
+    max-width: 100%; 
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .mini-faqs-container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .mini-faq-item {
+        grid-template-columns: 50px 1px 1fr;
+        gap: 20px;
+    }
+    
+    .mini-faq-title {
+        font-size: 2rem;
+    }
+}

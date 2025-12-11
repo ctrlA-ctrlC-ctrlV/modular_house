@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 function NotFound() {
   return (
     <div className="min-h-full pt-16 pb-12 flex flex-col bg-white">
-      <main className="flex-grow flex flex-col justify-center max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow flex flex-col justify-center l-container w-full">
         <div className="flex-shrink-0 flex justify-center">
           <Link to="/" className="inline-flex">
             <span className="sr-only">Modular House</span>

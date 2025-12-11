@@ -1,0 +1,165 @@
+.contact-form-split-section {
+  position: relative;
+  min-height: 800px;
+  display: flex;
+  /* Changed from center to flex-end to push form to right */
+  justify-content: flex-end; 
+  align-items: center; /* Vertically center the form */
+  padding: 30px 10%; /* Add % padding to keep it off the extreme edge */
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.contact-form-card {
+  background-color: #ffffff;
+  padding: 50px 40px;
+  width: 100%;
+  max-width: 480px; /* Slightly narrower to match screenshot */
+  box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+  border-radius: 4px; /* Slight rounding on the card itself */
+}
+
+.contact-form-heading {
+  margin-bottom: 25px;
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1a1a1a;
+  /* Screenshot uses a serif font for the heading */
+  font-family: 'Georgia', 'Times New Roman', serif; 
+}
+
+.mf-input-wrapper {
+  margin-bottom: 15px;
+}
+
+/* New class for the split row */
+.form-row-split {
+  display: flex;
+  gap: 15px;
+}
+
+.mf-input-half {
+  flex: 1;
+}
+
+.mf-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e5e5e5;
+  background-color: #fff; /* Screenshot looks pure white input */
+  font-size: 0.95rem;
+  color: #333;
+  outline: none;
+  border-radius: 4px; /* Rounded corners for inputs */
+  transition: all 0.3s ease;
+}
+
+.mf-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px top 50%;
+  background-size: 10px auto;
+  cursor: pointer;
+}
+
+.mf-input:focus {
+  border-color: #bf5e2e; /* Highlight color matches button */
+  background-color: #fff;
+}
+
+.mf-textarea {
+  min-height: 100px; /* Slightly shorter to fit everything */
+  resize: vertical;
+}
+
+.mf-checkbox-option label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.mf-checkbox-input {
+  width: auto;
+  margin-top: 2px;
+}
+
+.consent-link {
+  color: #bf5e2e; /* Match screenshot link color */
+  text-decoration: none;
+}
+.consent-link:hover {
+  text-decoration: underline;
+}
+
+.mf-btn-wraper {
+  margin-top: 20px;
+}
+
+.metform-submit-btn {
+  /* Updated to Burnt Orange from screenshot */
+  background-color: #bf5e2e; 
+  color: #ffffff;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize; /* Screenshot is not uppercase */
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.metform-submit-btn:hover {
+  background-color: #a64d24;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .contact-form-split-section {
+    min-height: auto;
+    padding: 60px 20px;
+    justify-content: center; /* Center on mobile */
+    align-items: center;
+  }
+
+  .mf-input {
+    width: 93%;
+  }
+  
+  .contact-form-card {
+    padding: 30px 20px;
+    max-width: 100%;
+  }
+  
+  .form-row-split {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .mf-input-wrapper.form-row-split .mf-input-half {
+    margin-bottom: 15px;
+  }
+
+  .mf-checkbox-option label {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #888;
+  }
+
+  .mf-checkbox-input {
+    width: auto;
+    margin-top: 2px;
+  }
+}

@@ -22,6 +22,7 @@ interface SecurityConfig {
   jwtSecret: string;
   jwtExpiresIn: string;
   passwordSaltRounds: number;
+  ipSalt: string;
 }
 
 interface AppConfig {
@@ -103,6 +104,7 @@ export const config: EnvConfig = {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
     jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '24h'),
     passwordSaltRounds: getNumericEnvVar('PASSWORD_SALT_ROUNDS', 12),
+    ipSalt: getRequiredEnvVar('IP_SALT'),
   },  
   admin: {
     adminEmail: getEnvVar("ADMIN_LOGIN_EMAIL", "testadmin@modular.house"),
@@ -117,6 +119,9 @@ if (config.app.nodeEnv === 'production') {
   }
   if (config.security.passwordSaltRounds < 10) {
     throw new Error('PASSWORD_SALT_ROUNDS must be at least 10 in production');
+  }
+  if (config.admin.adminEmail === 'testadmin@modular.house') {
+    throw new Error('ADMIN_LOGIN_EMAIL must be changed from default value in production');
   }
   if (config.admin.adminPassword === 'admin123!') {
     throw new Error('ADMIN_LOGIN_PASSWORD must be changed from default value in production');

@@ -21,6 +21,163 @@ Format: *Added, Changed, Fixed, Removed, Security*.
 
 ---
 
+## 0.6.18 - ffc48cb - 03/12/2025
+### Added
+- Class naming conventions and narrative examples in quickstart.md (Header, Gallery, Pages).
+- Comprehensive class reference guide for `c-`, `l-`, `u-` with usage examples and token mappings.
+- PowerShell tips for builds/tests and asset refresh.
+
+### Changed
+- `quickstart.md` expanded to cover US2 documentation requirements and reinforce scope/order.
+
+---
+
+## 0.6.17 -  - 02/12/2025
+### Added
+- Added "Verification Criteria (User Story 1)" section to `quickstart.md` documenting how to verify the implementation.
+- Created `template-classes.test.tsx` with tests for `Header` and `GalleryGrid` component classes.
+
+### Changed
+- Updated `Header.tsx` to use template classes `c-header`, `c-nav`, `c-brand`, and `c-nav__item`.
+- Updated `GalleryGrid.tsx` to use template classes `c-gallery` and `c-gallery__item`.
+- Updated `Landing.tsx` to use template classes `u-text-h1`, `c-button`, `c-button--primary`, and `c-button--secondary`.
+- Updated `About.tsx` to use template classes `u-text-h1`, `u-text-h2`, `c-button`, and `c-button--primary`.
+
+---
+
+## 0.6.16 - 835cb20 - 02/12/2025
+### Changed
+- Updated `About.tsx` to use the `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Gallery.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Contact.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Privacy.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `Terms.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `not-found.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `GardenRoom.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+- Updated `HouseExtension.tsx` to use `l-container` utility class from the template instead of Tailwind's `max-w-7xl` and padding classes.
+
+### Removed
+- Removed Tailwind's `max-w-7xl` padding calles from updated routes in favor of template's `l-container`.
+
+---
+
+## 0.6.15 - 8c36f04 - 02/12/2025
+### Changed
+- Updated `Landing.tsx` to use the template utility class `l-container` for top-level layout wrappers, replacing ad-hoc Tailwind container classes (`max-w-7xl`, `mx-auto`, `px-4`, etc.) to align with the design system.
+
+### Removed
+- Removed redundant padding and width constraints from the Hero and Features sections in `Landing.tsx` that are now handled by `l-container`.
+
+---
+
+## 0.6.14 - 6ed0930 - 02/12/2025
+### Fixed
+- `App.tsx`: Removed unused imports `Outlet`, `Header`, and `Footer` to resolve linting errors.
+
+---
+
+## 0.6.13 - 3a51601 - 02/12/2025
+### Added
+- `GardenRoom.tsx`: Created placeholder component for Garden Room page.
+- `HouseExtension.tsx`: Created placeholder component for House Extension page.
+
+### Changed
+- `App.tsx`: Wired `TemplateLayout` to all public routes, including the newly added `GardenRoom` and `HouseExtension` routes.
+- `template-layout.test.tsx`: Updated integration tests to include `GardenRoom` and `HouseExtension` routes.
+
+---
+
+## 0.6.12 - e2c69e9 - 02/12/2025
+### Added
+- `template-layout.test.tsx`: Added integration tests to verify `TemplateLayout` rendering across public routes.
+- `focus-indicators.test.tsx`: Added accessibility tests for skip link presence and main content focusability.
+
+---
+
+## 0.6.11 - 42eb171 - 02/12/2025
+### Added
+- `README.md` documenting:
+    - Import order: `tokens.css`, `template.css`, `index.css`, then `focus.css`.
+    - `.theme-rebar` scoping via `TemplateLayou`t.
+    - Reversible rollback steps to switch back to `PublicLayout` and disable `template.css`.
+
+---
+
+## 0.6.10 - e4024c3 - 02/12/2025
+### Added
+- Added minimal template utility class mappings to `template.css`, including:
+    - Layout utilities: `.l-container`
+    - Typography utilities: `h1`, `h2`, `h3`, `p`, `a` (scoped to `.theme-rebar`)
+    - Focus utilities: `.u-focus-ring`
+    - Skip link styles: `.skip-link`
+
+---
+
+## 0.6.9 - 361e7ec - 02/12/2025
+### Added
+- Imported `TemplateLayout` in `App.tsx`.
+
+### Changed
+- Replaced `PublicLayout` with `TemplateLayout` for public routes in `App.tsx`.
+
+---
+
+## 0.6.8 - 418a770 - 02/12/2025
+### Added
+- Created TemplateLayout.tsx to serve as the new layout wrapper for public pages.
+- Implemented `.theme-rebar` class wrapper for CSS scoping.
+- Added `main` region with `id="main-content"` and `tabIndex={-1}` for accessibility and skip-link support.
+
+---
+
+## 0.6.7 - ec34870 - 02/12/2025
+### Changed
+- `quickstart.md` detailing token sources (`theme.json`, `style.scss`), current variables in `tokens.css`, usage examples, import order, scoped wrapper, asset paths, and PowerShell asset refresh command.
+
+---
+
+## 0.6.6 - 9b9710f - 02/12/2025
+### Added
+- template directory for template assets.
+- `tokens.css` with CSS variables extracted from `theme.json`.
+- `template.css` with `.theme-rebar scope` and placeholder for utilities.
+- Copied images from images to images.
+
+### Changed
+- Updated main.tsx to import `tokens.css` and `template.css` before `intex.css`
+
+---
+
+## 0.6.5 - 26471e3 - 02/12/2025
+### Changed
+- Modify the task list to include lightbox integration tasks.
+
+---
+
+## 0.6.4 - de17ceb - 02/12/2025
+### Added
+- research.md: Portability Constraints & Exclusions section with categories, constraint table, exclusions list, hotspots, quick wins, risk register, and ranked next steps.
+
+---
+
+## 0.6.3 - ca6e852 - 02/12/2025
+### Added
+- research.md: Per-Page Mapping section for nine routes with details and aggregate summary.
+
+---
+
+## 0.6.2 - 20e0c38 - 02/12/2025
+### Added
+- research.md: Utility Catalog section with taxonomy, summaries, and detailed table entries.
+
+---
+
+## 0.6.1 - 81d5129 - 02/12/2025
+### Added
+- research.md: Template Component Catalog section with checklist and component table.
+
+---
+
 ## 0.5.1 - 8758bca - 01/12/2025
 ### Added
 - markup-guide.md: Project-wide HTML/CSS conventions, BEM-style naming, accessibility and layout patterns with examples.

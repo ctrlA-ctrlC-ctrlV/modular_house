@@ -1,0 +1,327 @@
+/* ==========================================
+   Variables & Theme
+   ========================================== */
+:root {
+  --header-bg: #000;
+  --header-text: #fefefe;
+  --header-text-hover: #cccccc;
+  --header-accent: #B55329; /* Burnt Orange from screenshot/stories */
+  --header-accent-hover: #d66433;
+  --header-height: 90px;
+}
+
+/* ==========================================
+   Main Layout
+   ========================================== */
+
+.header {
+  position: relative;
+  z-index: 1000;
+  background-color: var(--header-bg);
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.header--position-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: transparent; /* Assuming content behind is dark, or use a semi-transparent black */
+}
+
+.header__container {
+  max-width: 1650px; /* Header width */
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+}
+
+/* ==========================================
+   Logo Section
+   ========================================== */
+.header__logo-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.header__logo-link {
+  display: block;
+  text-decoration: none;
+}
+
+.header__logo-image {
+  height: 24px; /* Adjusted to match text-logo scaling */
+  width: auto;
+  display: block;
+  /* If the logo is black text on transp background, this filter flips it to white. 
+     Remove if you upload a proper white logo. */
+  filter: brightness(0) invert(1); 
+}
+
+/* ==========================================
+   Desktop Navigation
+   ========================================== */
+.header__nav-desktop {
+  display: none; /* Hidden on mobile */
+  flex: 1;
+  justify-content: right; /* Centers the menu items */
+  padding: 0 2rem;
+}
+
+@media (min-width: 1024px) {
+  .header__nav-desktop {
+    display: flex;
+  }
+}
+
+.header__menu {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2.5rem; /* Spacious spacing per screenshot */
+  align-items: center;
+}
+
+.header__menu-item {
+  position: relative;
+}
+
+.header__menu-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--header-text);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.header__menu-link:hover {
+  color: var(--header-accent);
+}
+
+.header__dropdown-icon {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  opacity: 0.7;
+  transition: transform 0.3s ease;
+}
+
+.header__menu-item:hover .header__dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Desktop Submenu (Dropdown) */
+.header__submenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: -20px;
+  min-width: 220px;
+  background-color: #1a1a1a; /* Dark gray dropdown */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0;
+  border-radius: 4px;
+  z-index: 1001;
+  padding-top: 10px; /* Spacing from link */
+}
+
+.header__menu-item:hover .header__submenu {
+  display: block;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.header__submenu-link {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: #ccc;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.header__submenu-link:hover {
+  background-color: #333;
+  color: var(--header-accent);
+  padding-left: 1.75rem; /* Slight slide effect */
+}
+
+/* ==========================================
+   Actions Section (CTA & Toggle)
+   ========================================== */
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* CTA Button Styling */
+.header__cta-btn {
+  display: none; /* Hidden on small mobile */
+  background-color: var(--header-accent);
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 1.0rem;
+  border-radius: 4px; /* Slightly rounded corners */
+  font-weight: 600;
+  font-size: 18px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  white-space: nowrap;
+}
+
+.header__cta-btn:hover {
+  background-color: var(--header-accent-hover);
+  transform: translateY(-1px);
+}
+
+@media (min-width: 768px) {
+  .header__cta-btn {
+    display: inline-block;
+  }
+}
+
+/* Mobile Toggle */
+.header__mobile-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--header-text);
+  transition: background 0.3s ease;
+}
+
+.header__mobile-toggle:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+@media (min-width: 1024px) {
+  .header__mobile-toggle {
+    display: none;
+  }
+}
+
+.header__toggle-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==========================================
+   Mobile Menu Drawer
+   ========================================== */
+.header__mobile-menu {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  width: 100%;
+  background-color: #111; /* Slightly lighter than pure black */
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 0 0 2rem 0;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.header__mobile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.header__mobile-item {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.header__mobile-link-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 1rem;
+}
+
+.header__mobile-link {
+  display: block;
+  padding: 1rem 2rem;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 500;
+  flex: 1;
+}
+
+/* Mobile Submenu Toggle Arrow */
+.header__submenu-toggle {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.header__submenu-toggle svg {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.3s ease;
+}
+
+.header__submenu-toggle.is-active svg {
+  transform: rotate(180deg);
+  color: var(--header-accent);
+}
+
+/* Mobile Submenu List */
+.header__mobile-submenu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+}
+
+.header__mobile-submenu-link {
+  display: block;
+  padding: 0.75rem 0.75rem 0.75rem 3rem; /* Indented */
+  text-decoration: none;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.header__mobile-submenu-link:hover {
+  color: #fff;
+}
+
+/* Mobile CTA placement */
+.header__mobile-item--cta {
+  border-bottom: none;
+  padding: 1.5rem 2rem;
+}
+
+.header__mobile-cta-btn {
+  display: block;
+  text-align: center;
+  background-color: var(--header-accent);
+  color: #fff;
+  text-decoration: none;
+  padding: 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* ==========================================
+   Animations
+   ========================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

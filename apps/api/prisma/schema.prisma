@@ -1,7 +1,3 @@
-// Prisma schema for Modular House MVP
-// Database: PostgreSQL 18.x
-// Generator and datasource configuration
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,83 +7,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User (Admin) entity
 model User {
-  id            String    @id @default(uuid()) @db.Uuid
-  email         String    @unique @db.VarChar(255)
-  passwordHash  String    @map("password_hash") @db.Text
-  roles         String[]  @default(["admin"]) @db.Text
-  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash")
+  roles        String[]  @default(["admin"])
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("users")
 }
 
-// Page entity
 model Page {
-  id              String    @id @default(uuid()) @db.Uuid
-  title           String    @db.Text
-  slug            String    @unique @db.VarChar(255)
-  heroHeadline    String?   @map("hero_headline") @db.Text
-  heroSubhead     String?   @map("hero_subhead") @db.Text
-  heroImageId     String?   @map("hero_image_id") @db.Uuid
-  sections        Json      @default("[]") @db.JsonB
-  seoTitle        String?   @map("seo_title") @db.Text
-  seoDescription  String?   @map("seo_description") @db.Text
-  lastModifiedAt  DateTime  @default(now()) @map("last_modified_at") @db.Timestamptz
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-
-  // Optional relation to gallery item for hero image
-  heroImage GalleryItem? @relation("PageHeroImage", fields: [heroImageId], references: [id])
+  id             String       @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String       @unique @db.VarChar(255)
+  heroHeadline   String?      @map("hero_headline")
+  heroSubhead    String?      @map("hero_subhead")
+  heroImageId    String?      @map("hero_image_id") @db.Uuid
+  sections       Json         @default("[]")
+  seoTitle       String?      @map("seo_title")
+  seoDescription String?      @map("seo_description")
+  lastModifiedAt DateTime     @default(now()) @map("last_modified_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  heroImage      GalleryItem? @relation("PageHeroImage", fields: [heroImageId], references: [id])
 
   @@map("pages")
 }
 
-// GalleryItem entity
 model GalleryItem {
-  id            String            @id @default(uuid()) @db.Uuid
-  title         String            @db.Text
-  caption       String?           @db.Text
-  category      GalleryCategory
-  imageUrl      String            @map("image_url") @db.Text
-  altText       String            @map("alt_text") @db.Text
-  projectDate   DateTime?         @map("project_date") @db.Date
-  publishStatus PublishStatus     @default(DRAFT) @map("publish_status")
-  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz
-
-  // Relation for pages using this as hero image
-  pagesUsingAsHero Page[] @relation("PageHeroImage")
+  id               String          @id @default(uuid()) @db.Uuid
+  title            String
+  caption          String?
+  category         GalleryCategory
+  imageUrl         String          @map("image_url")
+  altText          String          @map("alt_text")
+  projectDate      DateTime?       @map("project_date") @db.Date
+  publishStatus    PublishStatus   @default(DRAFT) @map("publish_status")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  pagesUsingAsHero Page[]          @relation("PageHeroImage")
 
   @@index([category, publishStatus, createdAt(sort: Desc)])
   @@map("gallery_items")
 }
 
-// FAQ entity
 model FAQ {
   id           String   @id @default(uuid()) @db.Uuid
-  question     String   @db.Text
-  answer       String   @db.Text
+  question     String
+  answer       String
   displayOrder Int      @default(0) @map("display_order")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("faqs")
 }
 
-// Submission entity
 model Submission {
   id             String   @id @default(uuid()) @db.Uuid
-  payload        Json     @db.JsonB
+  payload        Json
   sourcePageSlug String   @map("source_page_slug") @db.VarChar(255)
   consentFlag    Boolean  @map("consent_flag")
-  consentText    String   @map("consent_text") @db.Text
-  ipHash         String   @map("ip_hash") @db.Text
-  userAgent      String?  @map("user_agent") @db.Text
-  emailLog       Json?    @map("email_log") @db.JsonB
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  consentText    String   @map("consent_text")
+  ipHash         String   @map("ip_hash")
+  userAgent      String?  @map("user_agent")
+  emailLog       Json?    @map("email_log")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([createdAt(sort: Desc)])
   @@index([sourcePageSlug])
@@ -95,21 +82,51 @@ model Submission {
   @@map("submissions")
 }
 
-// Redirect entity
 model Redirect {
   id             String   @id @default(uuid()) @db.Uuid
   sourceSlug     String   @unique @map("source_slug") @db.VarChar(255)
-  destinationUrl String   @map("destination_url") @db.Text
+  destinationUrl String   @map("destination_url")
   active         Boolean  @default(true)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("redirects")
 }
 
-// Enums
+model Customer {
+  id          String    @id @default(uuid()) @db.Uuid
+  product     String    @db.VarChar(50)
+  status      String    @default("active") @db.VarChar(20)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String    @map("created_by") @db.VarChar(255)
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.VarChar(255)
+  address     String?
+  eircode     String?   @db.VarChar(20)
+  email       String    @db.VarChar(255)
+  firstName   String    @map("first_name") @db.VarChar(100)
+  phone       String?   @db.VarChar(50)
+  quoteDate   DateTime  @default(now()) @map("quote_date") @db.Timestamptz(6)
+  quoteNumber String    @unique @map("quote_number") @db.VarChar(20)
+  surname     String?   @db.VarChar(100)
+  notes       Note[]
+
+  @@map("customers")
+}
+
+model Note {
+  id         String   @id @default(uuid()) @db.Uuid
+  customerId String   @map("customer_id") @db.Uuid
+  message    String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String   @map("created_by") @db.VarChar(255)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
 enum GalleryCategory {
-  GARDEN_ROOM       @map("garden-room")
-  HOUSE_EXTENSION   @map("house-extension")
+  GARDEN_ROOM     @map("garden-room")
+  HOUSE_EXTENSION @map("house-extension")
 
   @@map("gallery_category")
 }

@@ -1,0 +1,145 @@
+.feature-section {
+  padding: 150px 0;
+  background-color: #FeFeFe;
+  font-family: "Inter", sans-serif;
+  color: #121414;
+}
+
+.feature-section__container {
+  max-width: 1290px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.feature-section__top-heading-wrapper {
+  margin-bottom: 25px;
+}
+
+.feature-section__top-heading {
+  font-size: 14px;
+  text-transform: uppercase;
+  line-height: 1em;
+  letter-spacing: 0.08em;
+  margin: 0;
+  font-weight: 600;
+  color: #121414;
+}
+
+.feature-section__split {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 95px;
+  gap: 30px;
+}
+
+.feature-section__split-left {
+  width: 50%;
+}
+
+.feature-section__split-right {
+  width: 50%;
+  padding-top: 10px;
+}
+
+.feature-section__main-heading {
+  font-family: "Inter Tight", sans-serif;
+  font-size: clamp(25px, 1.563rem + 1.751vw, 42px);
+  line-height: 1.2;
+  margin: 0;
+  font-weight: 600;
+}
+
+.feature-section__intro-text {
+  color: #666;
+  line-height: 1.6;
+}
+
+.feature-section__intro-text p {
+  margin-bottom: 1.5em;
+}
+
+.feature-section__intro-text p:last-child {
+  margin-bottom: 0;
+}
+
+.feature-section__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.feature-section__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.feature-section__icon-wrapper {
+  margin-bottom: 22px;
+}
+
+.feature-section__icon {
+  display: inline-block;
+  width: 65px;
+  height: 65px;
+}
+
+.feature-section__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: #B55329;
+}
+
+.feature-section__content {
+  width: 100%;
+}
+
+.feature-section__item-title {
+  font-family: "Inter Tight", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #121414;
+}
+
+.feature-section__item-description {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #666;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .feature-section {
+    padding: 100px 0;
+  }
+  
+  .feature-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-section {
+    padding: 60px 0;
+  }
+
+  .feature-section__split {
+    flex-direction: column;
+    margin-bottom: 50px;
+    gap: 20px;
+  }
+
+  .feature-section__split-left,
+  .feature-section__split-right {
+    width: 100%;
+  }
+
+  .feature-section__grid {
+    grid-template-columns: 1fr;
+    row-gap: 40px;
+  }
+}

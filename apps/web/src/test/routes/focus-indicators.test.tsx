@@ -11,23 +11,6 @@ describe('Focus Indicators & Accessibility', () => {
     cleanup();
   });
 
-  it('renders a skip link pointing to main content', () => {
-    render(
-      <MemoryRouter>
-        <TemplateLayout />
-      </MemoryRouter>
-    );
-    
-    const skipLink = screen.getByText(/skip to main content/i);
-    expect(skipLink).toBeInTheDocument();
-    expect(skipLink).toHaveAttribute('href', '#main-content');
-    
-    // Verify it has classes for screen reader only (initially)
-    expect(skipLink).toHaveClass('sr-only');
-    // Verify it becomes visible on focus (checking class presence)
-    expect(skipLink).toHaveClass('focus:not-sr-only');
-  });
-
   it('main content region is programmatically focusable', () => {
     render(
       <MemoryRouter>

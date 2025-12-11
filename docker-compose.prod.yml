@@ -1,0 +1,22 @@
+services:
+  # --- Your App Services (New) ---
+  web:
+    image: ghcr.io/${GITHUB_USER_NAME}/modular-house-web:latest
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+  api:
+    image: ghcr.io/${GITHUB_USER_NAME}/modular-house-api:latest
+    restart: always
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}  # Connection to remote DB
+    ports:
+      - "3000:3000"
+
+networks:
+  default:
+    name: modular-house-network

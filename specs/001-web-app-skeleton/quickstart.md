@@ -105,6 +105,9 @@ pnpm -C apps\api dev
 
 # 3. Check if web can start
 pnpm -C apps\web dev
+
+# 4. Check if Storybook start
+pnpm --filter @modular-house/ui run storybook
 ```
 
 - Web: http://localhost:5173

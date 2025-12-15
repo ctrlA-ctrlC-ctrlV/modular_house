@@ -4,7 +4,7 @@
 **Date**: 2025-12-11
 **Target Environment**: Ubuntu 24.04 LTS (Web Server) + Ubuntu 24.04 LTS (Database Server)
 
-## Overview
+## Overview 
 
 This document outlines the deployment architecture and operational procedures for the Modular House web application. The pipeline utilizes GitHub Actions for CI/CD, GitHub Container Registry (GHCR) for artifact storage, and SSH for deployment orchestration.
 

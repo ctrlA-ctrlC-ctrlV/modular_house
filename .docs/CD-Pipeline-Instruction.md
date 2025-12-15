@@ -111,7 +111,7 @@ The Web Server must be authenticated to pull images from GHCR.
 
 ## GitHub Repository Configuration
 
-Configure the following **Secrets** in the GitHub Repository settings (*Settings -> Secrets and variables -> Actions -> Variables -> New Repository Variable (Name: `PROD_HOST`, Value: `example.com`)*).
+Configure the following **Secrets** in the GitHub Repository settings (*Settings -> Secrets and variables -> Actions -> Secrets -> New Repository secrete (Name: `PROD_HOST`, Value: `example.com`)*).
 
 | Secret Name | Description |
 | :--- | :--- |

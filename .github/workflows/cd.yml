@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # We will calculate REPO_OWNER dynamically in steps to handle casing issues
+  # Calculate REPO_OWNER dynamically in steps to handle casing issues
 
 jobs:
   build-and-push:
@@ -49,6 +49,8 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:${{ github.sha }}
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:latest
+          build-args:
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
 
   deploy:
     needs: build-and-push
@@ -64,7 +66,7 @@ jobs:
       - name: Debug Secret
         run: |
           if [ -z "$MY_KEY" ]; then
-            echo "::error::The secret is EMPTY! Check spelling. Lenght: ${#MY_KEY}"
+            echo "::error::The secret is EMPTY! Check if SSH key exist."
           else
             echo "The secret is present. Lenght: ${#MY_KEY}"
           fi
@@ -89,19 +91,30 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           # Pass the specific SHA as an environment variable to the script
-          envs: GITHUB_SHA,REPO_OWNER
+          envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL
           script: |
             cd ~/app
             
-            # Export variables for docker-compose to use
+            # --- 1. Check if .env file exists, if not create it ---
+            if [ ! -f .env ]; then
+              echo ".env file not found, creating empty one."
+              touch .env
+            fi
+
+            # --- 2. Check if GitHub secret contains DATABASE_URL, if yes export it ---
+            if [ ! -z "$DATABASE_URL" ]; then
+               export DATABASE_URL=$DATABASE_URL
+            fi
+
+            # --- 3. Export other variables ---
             export GITHUB_USER_NAME=$REPO_OWNER
             export IMAGE_TAG=$GITHUB_SHA
             
-            # Pull the exact images built in the previous job
+            # --- 4. Pull the exact images built in the previous job ---
             docker compose -f docker-compose.prod.yml pull
             
-            # Restart services with the new images
+            # --- 5. Restart services with the new images ---
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             
-            # Cleanup old images to save disk space
+            # --- 6. Cleanup old images to save disk space ---
             docker image prune -f

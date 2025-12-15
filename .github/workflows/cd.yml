@@ -64,7 +64,7 @@ jobs:
       - name: Debug Secret
         run: |
           if [ -z "$MY_KEY" ]; then
-            echo "::error::The secret is EMPTY! Check spelling."
+            echo "::error::The secret is EMPTY! Check spelling. Lenght: ${#MY_KEY}"
           else
             echo "The secret is present. Lenght: ${#MY_KEY}"
           fi

@@ -4,7 +4,7 @@ services:
     image: ghcr.io/${GITHUB_USER_NAME}/modular-house-web:latest
     restart: always
     ports:
-      - "80:80"
+      - "127.0.0.1:3000:80"
     depends_on:
       - api
 
@@ -15,7 +15,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}  # Connection to remote DB
     ports:
-      - "3000:3000"
+      - "127.0.0.1:4000:3000"
 
 networks:
   default:

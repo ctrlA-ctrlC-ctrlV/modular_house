@@ -16,6 +16,7 @@ This document outlines the deployment architecture and operational procedures fo
 4.  **Deployment**: GitHub Actions connects to the Web Server via SSH, updates the `docker-compose.prod.yml`, and restarts containers.
 5.  **Runtime**: Docker Compose manages the application lifecycle on the Web Server, connecting to the remote Database Server via a private network.
 
+
 ## Prerequisites
 
 ### 1. Web Server Configuration

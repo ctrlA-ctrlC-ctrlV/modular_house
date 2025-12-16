@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Calculate REPO_OWNER dynamically in steps to handle casing issues
 
 jobs:
   build-and-push:
@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Lowercase Repo Owner
+        run: echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -32,7 +35,10 @@ jobs:
           context: .
           file: apps/api/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/modular-house-api:latest
+          # Tags both specific SHA (for stability) and latest (for convenience)
+          tags: |
+            ghcr.io/${{ env.REPO_OWNER }}/modular-house-api:${{ github.sha }}
+            ghcr.io/${{ env.REPO_OWNER }}/modular-house-api:latest
 
       - name: Build and push Web image
         uses: docker/build-push-action@v5
@@ -40,7 +46,11 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/modular-house-web:latest
+          tags: |
+            ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:${{ github.sha }}
+            ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:latest
+          build-args:
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
 
   deploy:
     needs: build-and-push
@@ -50,8 +60,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Lowercase Repo Owner
+        run: echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Debug Secret
+        run: |
+          if [ -z "$MY_KEY" ]; then
+            echo "::error::The secret is EMPTY! Check if SSH key exist."
+          else
+            echo "The secret is present. Lenght: ${#MY_KEY}"
+          fi
+        env:
+          MY_KEY: ${{ secrets.SERVER_SSH_KEY }}
+
       - name: Copy docker-compose to server
-        uses: appleboy/scp-action@master
+        # Pinned to specific version v0.1.7 for stability
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
@@ -60,21 +84,37 @@ jobs:
           target: "~/app/"
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
+        # Pinned to specific version v1.2.0 for stability
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          # Pass the specific SHA as an environment variable to the script
+          envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL
           script: |
             cd ~/app
-            # Ensure env var is set for compose
-            export GITHUB_USER_NAME=${{ github.repository_owner }}
             
-            # Pull latest images
+            # --- 1. Check if .env file exists, if not create it ---
+            if [ ! -f .env ]; then
+              echo ".env file not found, creating empty one."
+              touch .env
+            fi
+
+            # --- 2. Check if GitHub secret contains DATABASE_URL, if yes export it ---
+            if [ ! -z "$DATABASE_URL" ]; then
+               export DATABASE_URL=$DATABASE_URL
+            fi
+
+            # --- 3. Export other variables ---
+            export GITHUB_USER_NAME=$REPO_OWNER
+            export IMAGE_TAG=$GITHUB_SHA
+            
+            # --- 4. Pull the exact images built in the previous job ---
             docker compose -f docker-compose.prod.yml pull
             
-            # Restart services
+            # --- 5. Restart services with the new images ---
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             
-            # Cleanup old images
+            # --- 6. Cleanup old images to save disk space ---
             docker image prune -f

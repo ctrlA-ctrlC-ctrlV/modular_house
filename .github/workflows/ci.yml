@@ -6,6 +6,7 @@ on:
       - main
       - develop
       - '**-web-app-skeleton'
+      - '**-template-skeleton-integration'
       - '**-ssl-traefik'
   pull_request:
     branches:

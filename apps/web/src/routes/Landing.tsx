@@ -30,18 +30,6 @@ function Landing() {
   return (
     <div>
       {/* Hero Section */}
-      {/*Discover high performance garden rooms and house extensions designed for modern living.
-
-
-        backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-          title="Beautifully built for life."
-          subtitle="DISCOVER MODULAR LIVING"
-          buttonText="Contact Us"
-          
-
-          Enhanced comfort made <br />
-          stylish, <span className="text-highlight">secure and durable</span>
-      */}
       <div>
         <HeroWithSideText 
           backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
@@ -62,15 +50,15 @@ function Landing() {
 
       <div>
         <FeatureSection
-          topHeading='Why Choose Us'
-          mainHeading='Excellence in Every Detail'
+          topHeading='Built in steetl, Finished for living'
+          mainHeading='Reimagine your living space'
           introText={
             <>
               <p>
-                We specialize in creating sustainable, modern living spaces that adapt to your needs.
+                We believe expanding your home shouldn't disrupt your life. By choosing steel frame construction, you are choosing a cleaner, quieter, and faster path to the extra space you crave.
               </p>
               <p>
-                Our modular approach ensures speed without compromising on quality or design.
+                Whether you need a sanctuary at the bottom of the garden or a modern open-plan extension, our team manages the entire process from design to completion, delivering turnkey results ready for you to enjoy.
               </p>
             </>
           }
@@ -83,8 +71,8 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Detached Garden Studio",
+              description: "Create your ideal home office, gym, or studio. Fully insulated, habitable year-round."
             },
             {
               icon: <CustomIcons 
@@ -94,8 +82,8 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Seamless House Extension",
+              description: "Expand your living footprint with lightweight steel structures that reduce foundation costs and maximize internal floor space."
             },
             {
               icon: <CustomIcons 
@@ -105,8 +93,8 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Engineered Steel Frame",
+              description: "Unlike timber, our galvanized steel frames never rot, warp, or twist, giving you a structure built to last a lifetime."
             },
             {
               icon: <CustomIcons 
@@ -116,8 +104,8 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Extreme Energy Efficiency",
+              description: "Our multi-layer insulation systems eliminate cold bridges, keeping your new space warm in winter and cool in summer"
             },
           ]}
         />

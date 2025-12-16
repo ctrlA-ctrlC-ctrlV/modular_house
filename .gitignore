@@ -85,6 +85,7 @@ media/
 *.crt
 *.p12
 *.pfx
+acme.json
 
 # Docker
 .dockerignore

@@ -4,7 +4,7 @@
 **Date**: 2025-12-11
 **Target Environment**: Ubuntu 24.04 LTS (Web Server) + Ubuntu 24.04 LTS (Database Server)
 
-## Overview
+## Overview 
 
 This document outlines the deployment architecture and operational procedures for the Modular House web application. The pipeline utilizes GitHub Actions for CI/CD, GitHub Container Registry (GHCR) for artifact storage, and SSH for deployment orchestration.
 
@@ -111,7 +111,7 @@ The Web Server must be authenticated to pull images from GHCR.
 
 ## GitHub Repository Configuration
 
-Configure the following **Secrets** in the GitHub Repository settings (*Settings -> Secrets and variables -> Actions -> Variables -> New Repository Variable (Name: `PROD_HOST`, Value: `example.com`)*).
+Configure the following **Secrets** in the GitHub Repository settings (*Settings -> Secrets and variables -> Actions -> Secrets -> New Repository secrete (Name: `PROD_HOST`, Value: `example.com`)*).
 
 | Secret Name | Description |
 | :--- | :--- |

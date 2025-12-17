@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Footer as UIFooter, TrueFooter as UITrueFooter } from '@modular-house/ui'
+import { Footer as UIFooter} from '@modular-house/ui'
 
 function Footer() {
   const navigate = useNavigate()

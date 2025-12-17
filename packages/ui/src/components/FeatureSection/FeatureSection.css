@@ -1,30 +1,55 @@
+/* Import: Fonts used for branding (Libre Baskerville) and UI clarity (Inter) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  /* Design Tokens: Font definitions mapped to semantic variables */
+  /* Clean, invisible sans-serif for body text and UI elements */
+  --font-base: 'Inter', sans-serif;
+  /* Elegant, editorial serif for headings to establish brand identity */
+  --font-display: 'Libre Baskerville', serif;
+}
+
+/**
+ * Main Section Container
+ * Establishes vertical rhythm (padding) and background context.
+ */
 .feature-section {
   padding: 150px 0;
   background-color: #FeFeFe;
-  font-family: "Inter", sans-serif;
-  color: #121414;
+  font-family: var(--font-base);
+  color: #1a1a1a; 
+  font-weight: 400; 
 }
 
+/**
+ * Layout Container
+ * Centers content with a max-width of 1400px and provides horizontal gutters.
+ */
 .feature-section__container {
-  max-width: 1290px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
   box-sizing: border-box;
 }
+
+/* --- Top Heading Styles --- */
 
 .feature-section__top-heading-wrapper {
   margin-bottom: 25px;
 }
 
 .feature-section__top-heading {
-  font-size: 14px;
+  font-family: var(--font-base);
+  font-size: 13px; 
   text-transform: uppercase;
   line-height: 1em;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.15em; 
   margin: 0;
-  font-weight: 600;
-  color: #121414;
+  font-weight: 500;
+  color: #888; /* Muted color for de-emphasis */
 }
+
+/* --- Split Header Layout (Heading + Intro) --- */
 
 .feature-section__split {
   display: flex;
@@ -39,22 +64,27 @@
 
 .feature-section__split-right {
   width: 50%;
-  padding-top: 10px;
+  padding-top: 10px; /* Optical alignment with the display heading line-height */
 }
 
 .feature-section__main-heading {
-  font-family: "Inter Tight", sans-serif;
+  font-family: var(--font-display);
+  /* Fluid typography: Scales between 25px and 42px depending on viewport */
   font-size: clamp(25px, 1.563rem + 1.751vw, 42px);
-  line-height: 1.2;
+  line-height: 1.25;
   margin: 0;
-  font-weight: 600;
+  font-weight: 400; 
+  letter-spacing: -0.02em; 
+  color: #121414;
 }
 
 .feature-section__intro-text {
-  color: #666;
-  line-height: 1.6;
+  color: #555;
+  line-height: 1.7;
+  font-weight: 300;
 }
 
+/* Spacing for paragraphs injected via ReactNode */
 .feature-section__intro-text p {
   margin-bottom: 1.5em;
 }
@@ -63,8 +93,11 @@
   margin-bottom: 0;
 }
 
+/* --- Feature Grid Layout --- */
+
 .feature-section__grid {
   display: grid;
+  /* 4-column layout for large screens */
   grid-template-columns: repeat(4, 1fr);
   gap: 30px;
 }
@@ -86,10 +119,11 @@
   height: 65px;
 }
 
+/* SVG Styling: Enforce fill color and responsive sizing */
 .feature-section__icon svg {
   width: 100%;
   height: 100%;
-  fill: #B55329;
+  fill: #B55329; /* Brand accent color */
 }
 
 .feature-section__content {
@@ -97,49 +131,42 @@
 }
 
 .feature-section__item-title {
-  font-family: "Inter Tight", sans-serif;
-  font-size: 20px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
   margin: 0 0 12px 0;
   color: #121414;
 }
 
 .feature-section__item-description {
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #666;
+  font-weight: 300;
   margin: 0;
 }
 
+/* --- Responsive Breakpoints --- */
+
+/**
+ * Tablet View (max-width: 1024px)
+ * - Reduces vertical padding.
+ * - Switches grid to 2 columns for better readability.
+ */
 @media (max-width: 1024px) {
-  .feature-section {
-    padding: 100px 0;
-  }
-  
-  .feature-section__grid {
-    grid-template-columns: repeat(2, 1fr);
-    row-gap: 50px;
-  }
+  .feature-section { padding: 100px 0; }
+  .feature-section__grid { grid-template-columns: repeat(2, 1fr); row-gap: 50px; }
 }
 
+/**
+ * Mobile View (max-width: 768px)
+ * - Further reduces vertical padding.
+ * - Stacks the split header (Title on top of Intro).
+ * - Switches grid to single column (1fr).
+ */
 @media (max-width: 768px) {
-  .feature-section {
-    padding: 60px 0;
-  }
-
-  .feature-section__split {
-    flex-direction: column;
-    margin-bottom: 50px;
-    gap: 20px;
-  }
-
-  .feature-section__split-left,
-  .feature-section__split-right {
-    width: 100%;
-  }
-
-  .feature-section__grid {
-    grid-template-columns: 1fr;
-    row-gap: 40px;
-  }
+  .feature-section { padding: 60px 0; }
+  .feature-section__split { flex-direction: column; margin-bottom: 50px; gap: 20px; }
+  .feature-section__split-left, .feature-section__split-right { width: 100%; }
+  .feature-section__grid { grid-template-columns: 1fr; row-gap: 40px; }
 }

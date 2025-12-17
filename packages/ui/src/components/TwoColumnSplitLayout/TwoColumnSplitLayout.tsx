@@ -10,6 +10,7 @@ export interface TwoColumnSplitLayoutProps {
   image2Src?: string;
   bottomText?: string;
   button2Text?: string; // New button
+  backgroundColor?: 'beige' | 'white' | 'gray' | 'dark';
 }
 
 export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
@@ -21,9 +22,10 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
   image2Src = "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-38.jpg",
   bottomText = "We value quality, safety, and teamwork, making sure each project meets our high standards and client needs. Since 2012, we have become a trusted name for those seeking reliable and efficient building solutions.",
   button2Text = "Need more info?",
+  backgroundColor = 'beige',
 }) => {
   return (
-    <div className="two-col-layout">
+    <div className={`two-col-layout two-col-layout--bg-${backgroundColor}`}>
       <div className="two-col-layout__container">
         <div className="two-col-layout__content">
           {/* Left Column */}

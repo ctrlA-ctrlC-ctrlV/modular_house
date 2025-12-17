@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Footer as UIFooter, TrueFooter as UITrueFooter } from '@modular-house/ui'
+import { Footer as UIFooter} from '@modular-house/ui'
 
 function Footer() {
   const navigate = useNavigate()
@@ -45,12 +45,6 @@ function Footer() {
   return (
     <div ref={footerRef}>
       <UIFooter />
-      <UITrueFooter 
-        copyrightText="© 2025 SDeal Construction Ltd. All Rights Reserved."
-        siteByText="Built by"
-        siteByLinkText="Z"
-        siteByLinkUrl="/"
-      />
     </div>
   )
 }

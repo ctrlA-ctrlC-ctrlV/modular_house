@@ -1,0 +1,57 @@
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, waitFor } from '@testing-library/react';
+import { HelmetProvider } from 'react-helmet-async';
+import Landing from '../../routes/Landing';
+import { BrowserRouter } from 'react-router-dom';
+
+// Mock UI components to avoid rendering full tree, but keep Seo
+vi.mock('@modular-house/ui', async () => {
+  const actual = await vi.importActual('@modular-house/ui');
+  return {
+    ...actual,
+    HeroWithSideText: () => <div data-testid="hero">Hero</div>,
+    FeatureSection: () => <div data-testid="features">Features</div>,
+    CustomIcons: () => <div data-testid="icons">Icons</div>,
+    TwoColumnSplitLayout: () => <div data-testid="split">Split</div>,
+    TestimonialGrid: () => <div data-testid="testimonials">Testimonials</div>,
+    MiniFAQs: () => <div data-testid="faqs">FAQs</div>,
+    ContactFormWithImageBg: () => <div data-testid="contact">Contact</div>,
+    MasonryGallery: () => <div data-testid="gallery">Gallery</div>,
+  };
+});
+
+describe('SEO Integration', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('updates document title on Landing page', async () => {
+    render(
+      <HelmetProvider>
+        <BrowserRouter>
+          <Landing />
+        </BrowserRouter>
+      </HelmetProvider>
+    );
+
+    await waitFor(() => {
+      expect(document.title).toBe('Home | Modular House');
+    });
+  });
+
+  it('injects meta description', async () => {
+    render(
+      <HelmetProvider>
+        <BrowserRouter>
+          <Landing />
+        </BrowserRouter>
+      </HelmetProvider>
+    );
+
+    await waitFor(() => {
+      const metaDescription = document.querySelector('meta[name="description"]');
+      expect(metaDescription).toBeInTheDocument();
+      expect(metaDescription).toHaveAttribute('content', 'Expand your lifestyle with bespoke steel frame garden rooms and extensions.');
+    });
+  });
+});

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { contentClient, GalleryItem } from '../lib/contentClient'
 import { Lightbox } from '../components/Lightbox'
 import { GalleryGrid } from '../components/GalleryGrid'
+import { Seo } from '@modular-house/ui'
 
 function Gallery() {
   const [items, setItems] = useState<GalleryItem[]>([])
@@ -51,6 +52,11 @@ function Gallery() {
 
   return (
     <div className="bg-white">
+      <Seo 
+        title="Gallery" 
+        description="Explore our portfolio of modular houses and extensions."
+        canonicalUrl="https://modular-house.com/gallery"
+      />
       <div className="l-container py-16 sm:py-24">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-gray-900">

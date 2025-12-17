@@ -9,11 +9,25 @@ import {
   MiniFAQs,
   ContactFormWithImageBg,
   type ContactFormData,
-  MasonryGallery
+  MasonryGallery,
+  Seo
 } from '@modular-house/ui'
 
 
 function Landing() {
+  const organizationSchema = {
+    '@context': 'https:schema.org',
+    '@type': 'Organization',
+    name: 'Modular House Construction',
+    url: 'https://www.modularhouse.ie',
+    logo: 'https://www.modularhouse.ie/logo_black.png',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+3530830280000',
+      contactType: 'Customer Service'
+    }
+  };
+
   const handleContactSubmit = async (data: ContactFormData) => {
     await apiClient.submitEnquiry({
       firstName: data.firstName,
@@ -29,19 +43,41 @@ function Landing() {
 
   return (
     <div>
+      {/* SEO Integration */}
+      <Seo 
+        title="Steel Frame Garden Rooms & House Extensions | Modular House" 
+        description="Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery."
+        canonicalUrl="https://modularhouse.ie/"
+
+        // Open Graph for Facebook/LinkedIn sharing optimization
+        openGraph={{
+          type: 'website',
+          title: 'Steel Frame Garden Rooms & House Extensions | Modular House',
+          description: 'Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery.',
+          image: 'https://modularhouse.ie/resource/landing_hero.png',
+          siteName: 'Modular House Construction',
+        }}
+
+        // Twitter Card optimization
+        twitter={{
+          cardType: 'summary_large_image',
+          site: '@ModularHouse',
+          title: 'Fast, Durable Steel Frame Garden Rooms & Extensions',
+          image: 'https://modularhouse.ie/resource/landing_hero.png',
+        }}
+
+        // Rich Snippets data
+        jsonLd={organizationSchema}
+      />
+
+      {/* Smooth scrolling behavior */}
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+
       {/* Hero Section */}
-      {/*Discover high performance garden rooms and house extensions designed for modern living.
-
-
-        backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-          title="Beautifully built for life."
-          subtitle="DISCOVER MODULAR LIVING"
-          buttonText="Contact Us"
-          
-
-          Enhanced comfort made <br />
-          stylish, <span className="text-highlight">secure and durable</span>
-      */}
       <div>
         <HeroWithSideText 
           backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
@@ -60,17 +96,17 @@ function Landing() {
         />
       </div>
 
-      <div>
+      <div id="features">
         <FeatureSection
-          topHeading='Why Choose Us'
-          mainHeading='Excellence in Every Detail'
+          topHeading='Built in steetl, Finished for living'
+          mainHeading='Reimagine your living space'
           introText={
             <>
               <p>
-                We specialize in creating sustainable, modern living spaces that adapt to your needs.
+                We believe expanding your home shouldn't disrupt your life. By choosing steel frame construction, you are choosing a cleaner, quieter, and faster path to the extra space you crave.
               </p>
               <p>
-                Our modular approach ensures speed without compromising on quality or design.
+                Whether you need a sanctuary at the bottom of the garden or a modern open-plan extension, our team manages the entire process from design to completion, delivering turnkey results ready for you to enjoy.
               </p>
             </>
           }
@@ -83,19 +119,19 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Precision Steel Framing",
+              description: "Pre-engineered off-site for millimeter-perfect accuracy, ensuring a straighter, stronger structure that never warps or rots"
             },
             {
               icon: <CustomIcons 
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 65 65"
-                      name="measureTape"
+                      name="bioEnergy"
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Superior Energy Efficiency",
+              description: "Advanced insulation systems that exceed building regulations, keeping your heating bills low and your comfort high year-round"
             },
             {
               icon: <CustomIcons 
@@ -105,19 +141,19 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Bespoke Architectural Design",
+              description: "Your vision, our expertise. We tailor every dimension and detail to fit your lifestyle and property perfectly"
             },
             {
               icon: <CustomIcons 
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 65 65"
-                      name="sinkTrap"
+                      name="keyCircle"
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Rapid Construction",
-              description: "Get your project done in half the time of traditional builds."
+              title: "Turnkey Project Delivery",
+              description: "We handle everything. From the initial ground screws to the final plaster, one team manages your entire build journey"
             },
           ]}
         />
@@ -126,6 +162,7 @@ function Landing() {
       {/* garden room Section */}
       <div>
         <TwoColumnSplitLayout 
+          backgroundColor="beige"
           subtitle="Garden Room"
           title={"Expand your space,\nelevate your lifestyle"}
           description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
@@ -140,6 +177,7 @@ function Landing() {
       {/* house extension Section */}
       <div>
           <TwoColumnSplitLayout 
+            backgroundColor="white"
             subtitle="House Extension"
             title={"Inspired by vision,\nbuild for you"}
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
@@ -214,18 +252,18 @@ function Landing() {
           faqs={[
             {
               number: '01',
-              title: 'It starts with floors',
-              description: 'At Rebar, we install and upgrade floor coverings that blend style, function, and durability. Our team delivers tailored solutions for homes and businesses, using top materials and expert care.'
+              title: 'Why choose Steel Frame over timber or block?',
+              description: 'Steel is faster, stronger, and more precise. It builds roughly 30% faster than traditional methods, will never rot, warp, or twist, and offers superior thermal values, keeping your space warm and energy bills low.'
             },
             {
               number: '02',
-              title: 'Covering all flooring needs',
-              description: 'Rebar’s floor covering services include hardwood, tile, carpet, and more. We guide you from selection to finish, ensuring your new floors are safe, stylish, and built to last.'
+              title: 'Do I need planning permission?',
+              description: 'Most of our projects are "Exempted Developments" and do not require planning permission. This typically applies to Garden Rooms under 25m² and single-story rear extensions under 40m², provided the roof height does not exceed 2.5m. We will confirm your specific compliance during our initial site survey.'
             },
             {
               number: '03',
-              title: 'Handling all flooring needs',
-              description: 'We offer expert advice on floor coverings, from moisture control to heavy use areas. Our team ensures your floors meet every need, blending design, safety, and long-term value.'
+              title: 'Is my build guaranteed?',
+              description: 'Yes. We provide a comprehensive 50-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.'
             }
           ]}
         />

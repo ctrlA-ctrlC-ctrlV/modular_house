@@ -13,4 +13,5 @@ export * from './components/MiniFAQs/MiniFAQs'
 export * from './components/ContactFormWithImageBg/ContactFormWithImageBg'
 export * from './components/MasonryGallery/MasonryGallery'
 export { NewsletterSection, type NewsletterSectionProps } from './components/NewsletterSection/NewsletterSection'
+export * from './components/Seo/Seo'
 // Add your shared UI components here

@@ -71,19 +71,19 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Detached Garden Studio",
-              description: "Create your ideal home office, gym, or studio. Fully insulated, habitable year-round."
+              title: "Precision Steel Framing",
+              description: "Pre-engineered off-site for millimeter-perfect accuracy, ensuring a straighter, stronger structure that never warps or rots"
             },
             {
               icon: <CustomIcons 
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 65 65"
-                      name="measureTape"
+                      name="bioEnergy"
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Seamless House Extension",
-              description: "Expand your living footprint with lightweight steel structures that reduce foundation costs and maximize internal floor space."
+              title: "Superior Energy Efficiency",
+              description: "Advanced insulation systems that exceed building regulations, keeping your heating bills low and your comfort high year-round"
             },
             {
               icon: <CustomIcons 
@@ -93,19 +93,19 @@ function Landing() {
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Engineered Steel Frame",
-              description: "Unlike timber, our galvanized steel frames never rot, warp, or twist, giving you a structure built to last a lifetime."
+              title: "Bespoke Architectural Design",
+              description: "Your vision, our expertise. We tailor every dimension and detail to fit your lifestyle and property perfectly"
             },
             {
               icon: <CustomIcons 
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 65 65"
-                      name="sinkTrap"
+                      name="keyCircle"
                       size={32} 
                       className="text-blue-500"
                     />,
-              title: "Extreme Energy Efficiency",
-              description: "Our multi-layer insulation systems eliminate cold bridges, keeping your new space warm in winter and cool in summer"
+              title: "Turnkey Project Delivery",
+              description: "We handle everything. From the initial ground screws to the final plaster, one team manages your entire build journey"
             },
           ]}
         />

@@ -29,6 +29,13 @@ function Landing() {
 
   return (
     <div>
+      {/* Smooth scrolling behavior */}
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+
       {/* Hero Section */}
       <div>
         <HeroWithSideText 
@@ -48,7 +55,7 @@ function Landing() {
         />
       </div>
 
-      <div>
+      <div id="features">
         <FeatureSection
           topHeading='Built in steetl, Finished for living'
           mainHeading='Reimagine your living space'
@@ -114,6 +121,7 @@ function Landing() {
       {/* garden room Section */}
       <div>
         <TwoColumnSplitLayout 
+          backgroundColor="beige"
           subtitle="Garden Room"
           title={"Expand your space,\nelevate your lifestyle"}
           description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
@@ -128,6 +136,7 @@ function Landing() {
       {/* house extension Section */}
       <div>
           <TwoColumnSplitLayout 
+            backgroundColor="white"
             subtitle="House Extension"
             title={"Inspired by vision,\nbuild for you"}
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
@@ -202,18 +211,18 @@ function Landing() {
           faqs={[
             {
               number: '01',
-              title: 'It starts with floors',
-              description: 'At Rebar, we install and upgrade floor coverings that blend style, function, and durability. Our team delivers tailored solutions for homes and businesses, using top materials and expert care.'
+              title: 'Why choose Steel Frame over timber or block?',
+              description: 'Steel is faster, stronger, and more precise. It builds roughly 30% faster than traditional methods, will never rot, warp, or twist, and offers superior thermal values, keeping your space warm and energy bills low.'
             },
             {
               number: '02',
-              title: 'Covering all flooring needs',
-              description: 'Rebar’s floor covering services include hardwood, tile, carpet, and more. We guide you from selection to finish, ensuring your new floors are safe, stylish, and built to last.'
+              title: 'Do I need planning permission?',
+              description: 'Most of our projects are "Exempted Developments" and do not require planning permission. This typically applies to Garden Rooms under 25m² and single-story rear extensions under 40m², provided the roof height does not exceed 2.5m. We will confirm your specific compliance during our initial site survey.'
             },
             {
               number: '03',
-              title: 'Handling all flooring needs',
-              description: 'We offer expert advice on floor coverings, from moisture control to heavy use areas. Our team ensures your floors meet every need, blending design, safety, and long-term value.'
+              title: 'Is my build guaranteed?',
+              description: 'Yes. We provide a comprehensive 50-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.'
             }
           ]}
         />

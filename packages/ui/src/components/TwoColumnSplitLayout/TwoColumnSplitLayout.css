@@ -2,7 +2,54 @@
   width: 100%;
   padding-top: 4rem;
   padding-bottom: 4rem;
-  background-color: #fefefe;
+  background-color: #F8F7F4;
+}
+
+/* Background Color Variants */
+.two-col-layout--bg-beige {
+  background-color: #F8F7F4;
+}
+
+.two-col-layout--bg-white {
+  background-color: #ffffff;
+}
+
+.two-col-layout--bg-gray {
+  background-color: #f9fafb;
+}
+
+.two-col-layout--bg-dark {
+  background-color: #111827;
+  color: #ffffff;
+}
+
+.two-col-layout--bg-dark .two-col-layout__title {
+  color: #ffffff;
+}
+
+.two-col-layout--bg-dark .two-col-layout__subtitle {
+  color: #d1d5db;
+}
+
+.two-col-layout--bg-dark .two-col-layout__description {
+  color: #e5e7eb;
+}
+
+.two-col-layout--bg-dark .two-col-layout__btn-text {
+  color: #ffffff;
+}
+
+.two-col-layout--bg-dark .two-col-layout__btn-text:hover {
+  color: #d1d5db;
+}
+
+.two-col-layout--bg-dark .two-col-layout__btn-primary {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.two-col-layout--bg-dark .two-col-layout__btn-primary:hover {
+  background-color: #f3f4f6;
 }
 
 .two-col-layout__container {

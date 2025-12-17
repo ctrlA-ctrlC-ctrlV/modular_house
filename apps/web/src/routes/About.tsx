@@ -16,7 +16,7 @@ function About() {
       <Seo 
         title={page?.title || 'About Us'} 
         description={page?.heroSubhead || 'Learn more about our mission and values.'}
-        canonicalUrl="https://modular-house.com/about"
+        canonicalUrl="https://modularhouse.ie/about"
       />
       <div className="l-container py-16 sm:py-24">
         <div className="text-center">

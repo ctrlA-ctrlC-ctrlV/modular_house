@@ -6,7 +6,7 @@ function Privacy() {
       <Seo 
         title="Privacy Policy" 
         description="Our privacy policy."
-        canonicalUrl="https://modular-house.com/privacy"
+        canonicalUrl="https://modularhouse.ie/privacy"
       />
       <div className="l-container py-16 sm:py-24">
         <div className="max-w-3xl mx-auto">

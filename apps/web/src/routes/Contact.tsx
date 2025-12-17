@@ -48,7 +48,7 @@ function Contact() {
       <Seo 
         title="Contact Us" 
         description="Get in touch with us for your modular house needs."
-        canonicalUrl="https://modular-house.com/contact"
+        canonicalUrl="https://modularhouse.ie/contact"
       />
       <div className="l-container py-16 sm:py-24">
         <div className="text-center">

@@ -35,7 +35,7 @@ describe('SEO Integration', () => {
     );
 
     await waitFor(() => {
-      expect(document.title).toBe('Home | Modular House');
+      expect(document.title).toBe('Steel Frame Garden Rooms & House Extensions | Modular House');
     });
   });
 
@@ -51,7 +51,7 @@ describe('SEO Integration', () => {
     await waitFor(() => {
       const metaDescription = document.querySelector('meta[name="description"]');
       expect(metaDescription).toBeInTheDocument();
-      expect(metaDescription).toHaveAttribute('content', 'Expand your lifestyle with bespoke steel frame garden rooms and extensions.');
+      expect(metaDescription).toHaveAttribute('content', 'Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery.');
     });
   });
 });

@@ -7,7 +7,7 @@ const HouseExtension: React.FC = () => {
       <Seo 
         title="House Extension" 
         description="Expand your home with our modular extensions."
-        canonicalUrl="https://modular-house.com/house-extension"
+        canonicalUrl="https://modularhouse.ie/house-extension"
       />
       <h1>House Extension</h1>
       <p>Coming soon...</p>

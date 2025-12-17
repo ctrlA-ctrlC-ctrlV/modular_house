@@ -55,7 +55,7 @@ function Gallery() {
       <Seo 
         title="Gallery" 
         description="Explore our portfolio of modular houses and extensions."
-        canonicalUrl="https://modular-house.com/gallery"
+        canonicalUrl="https://modularhouse.ie/gallery"
       />
       <div className="l-container py-16 sm:py-24">
         <div className="text-center">

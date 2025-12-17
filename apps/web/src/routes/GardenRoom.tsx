@@ -7,7 +7,7 @@ const GardenRoom: React.FC = () => {
       <Seo 
         title="Garden Room" 
         description="Discover our bespoke garden rooms."
-        canonicalUrl="https://modular-house.com/garden-room"
+        canonicalUrl="https://modularhouse.ie/garden-room"
       />
       <h1>Garden Room</h1>
       <p>Coming soon...</p>

@@ -6,7 +6,7 @@ function Terms() {
       <Seo 
         title="Terms of Service" 
         description="Our terms of service."
-        canonicalUrl="https://modular-house.com/terms"
+        canonicalUrl="https://modularhouse.ie/terms"
       />
       <div className="l-container py-16 sm:py-24">
         <div className="max-w-3xl mx-auto">

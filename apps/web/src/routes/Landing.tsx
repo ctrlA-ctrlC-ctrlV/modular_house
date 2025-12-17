@@ -16,7 +16,7 @@ import {
 
 function Landing() {
   const organizationSchema = {
-    '@context': 'https:schema.org',
+    '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Modular House Construction',
     url: 'https://www.modularhouse.ie',
@@ -45,7 +45,7 @@ function Landing() {
     <div>
       {/* SEO Integration */}
       <Seo 
-        title="Steel Frame Garden Rooms & House Extensions | Modular House" 
+        title="Steel Frame Garden Rooms & House Extensions" 
         description="Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery."
         canonicalUrl="https://modularhouse.ie/"
 

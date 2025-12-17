@@ -45,12 +45,6 @@ function Footer() {
   return (
     <div ref={footerRef}>
       <UIFooter />
-      <UITrueFooter 
-        copyrightText="© 2025 SDeal Construction Ltd. All Rights Reserved."
-        siteByText="Built by"
-        siteByLinkText="Z"
-        siteByLinkUrl="/"
-      />
     </div>
   )
 }

@@ -80,7 +80,7 @@ export const Seo: React.FC<SeoProps> = ({
   openGraph,
   twitter,
   jsonLd,
-  siteTitleSuffix = ' | Rebar Construction', // Default suffix based on previous context
+  siteTitleSuffix = ' | Modular House', // Default suffix based on previous context
 }) => {
   // Construct the final document title
   const fullTitle = `${title}${siteTitleSuffix}`;

@@ -1,6 +1,13 @@
+import { Seo } from '@modular-house/ui';
+
 function Terms() {
   return (
     <div className="bg-white">
+      <Seo 
+        title="Terms of Service" 
+        description="Our terms of service."
+        canonicalUrl="https://modular-house.com/terms"
+      />
       <div className="l-container py-16 sm:py-24">
         <div className="max-w-3xl mx-auto">
           <div className="text-center">

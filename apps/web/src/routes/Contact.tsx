@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { EnquiryForm } from '../forms';
+import { Seo } from '@modular-house/ui';
 
 interface ContactState {
   showThankYou: boolean;
@@ -44,6 +45,11 @@ function Contact() {
 
   return (
     <div className="bg-white">
+      <Seo 
+        title="Contact Us" 
+        description="Get in touch with us for your modular house needs."
+        canonicalUrl="https://modular-house.com/contact"
+      />
       <div className="l-container py-16 sm:py-24">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-gray-900">

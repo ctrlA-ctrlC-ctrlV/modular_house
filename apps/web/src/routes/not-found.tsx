@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom'
+import { Seo } from '@modular-house/ui'
 
 function NotFound() {
   return (
     <div className="min-h-full pt-16 pb-12 flex flex-col bg-white">
+      <Seo 
+        title="Page Not Found" 
+        description="The page you are looking for does not exist."
+        robots="noindex, nofollow"
+      />
       <main className="flex-grow flex flex-col justify-center l-container w-full">
         <div className="flex-shrink-0 flex justify-center">
           <Link to="/" className="inline-flex">

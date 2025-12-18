@@ -49,8 +49,9 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:${{ github.sha }}
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:latest
-          build-args:
+          build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
+            GENERATE_SOURCEMAP=false
 
   deploy:
     needs: build-and-push

@@ -10,7 +10,7 @@
   --hero-color-white: #fefefe;
   --hero-color-accent: #eebb54; /* Yellow for "secure and durable" */
   --hero-color-button: #AF522D; /* Rust/Orange for button */
-  --hero-color-button-hover: #a55a2b;
+  --hero-color-button-hover: #8B4513;
   --hero-overlay-opacity: 0.4;
   --hero-padding: 60px;
 }
@@ -24,7 +24,8 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: 100vh;
+  max-height: 100vh;
+  min-height: 600px;
   padding: 200px 70px 60px 70px;
   background-position: center center;
   background-repeat: no-repeat;
@@ -138,6 +139,7 @@
 
 .hero-bold-bottom-text__cta:hover {
   background-color: var(--hero-color-button-hover);
+  color: #fff;
   transform: translateY(-2px);
 }
 

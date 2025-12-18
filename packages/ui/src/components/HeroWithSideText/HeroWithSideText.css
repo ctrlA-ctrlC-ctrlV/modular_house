@@ -106,6 +106,7 @@
 
 .hero-button:hover {
   background-color: var(--hero-color-button-hover);
+  color: #fff;
   transform: translateY(-2px);
 }
 

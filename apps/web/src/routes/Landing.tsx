@@ -78,7 +78,7 @@ function Landing() {
       `}</style>
 
       {/* Hero Section */}
-      <div>
+      <div id='landing_hero'>
         <HeroWithSideText 
           backgroundImage="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
           subtitle="DISCOVER MODULAR LIVING"
@@ -92,11 +92,11 @@ function Landing() {
           buttonText="Get Started"
           buttonLink="/get-started"
           exploreText="Explore"
-          exploreLink="#features"
+          exploreLink="#landing_features"
         />
       </div>
 
-      <div id="features">
+      <div id="landing_features">
         <FeatureSection
           topHeading='Built in steetl, Finished for living'
           mainHeading='Reimagine your living space'
@@ -160,7 +160,7 @@ function Landing() {
       </div>
 
       {/* garden room Section */}
-      <div>
+      <div id='landing_garden_room_description'>
         <TwoColumnSplitLayout 
           backgroundColor="beige"
           subtitle="Garden Room"
@@ -175,7 +175,7 @@ function Landing() {
       </div>
 
       {/* house extension Section */}
-      <div>
+      <div id='landing_house_extension_description'>
           <TwoColumnSplitLayout 
             backgroundColor="white"
             subtitle="House Extension"
@@ -190,7 +190,7 @@ function Landing() {
       </div>
 
       {/* Social proof Section */}
-      <div>
+      <div id='landing_testimonial'>
         <TestimonialGrid
           subTitle = "Building trust through our work"
           title = "We deliver quality construction"
@@ -229,7 +229,7 @@ function Landing() {
       </div>
 
       {/*   Mini Gallary Section */}
-      <div>
+      <div id='landing_gallary'>
         <MasonryGallery
           images={[
             { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg" },
@@ -246,7 +246,7 @@ function Landing() {
       </div>
 
       {/*   Mini FAQ Section    */}      
-      <div>
+      <div id='landing_faq'>
         <MiniFAQs
           title='Modular..'
           faqs={[
@@ -270,7 +270,7 @@ function Landing() {
       </div>
 
       {/* CTA Section */}
-      <div>
+      <div id='landing_cta_form'>
         <ContactFormWithImageBg onSubmit={handleContactSubmit} />
       </div>
                  

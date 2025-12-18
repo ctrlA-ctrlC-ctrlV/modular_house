@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
@@ -14,7 +14,9 @@ const dirname =
     : path.dirname(fileURLToPath(import.meta.url));
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  return {
   plugins: [react()],
   build: {
     lib: {
@@ -42,7 +44,7 @@ export default defineConfig({
     cssCodeSplit: false,
     outDir: "dist",
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: env.GENERATE_SOURCEMAP !== 'false',
   },
   test: {
     projects: [
@@ -72,4 +74,5 @@ export default defineConfig({
       },
     ],
   },
+};
 });

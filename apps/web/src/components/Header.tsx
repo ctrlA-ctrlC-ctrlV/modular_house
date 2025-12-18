@@ -44,7 +44,7 @@ function Header() {
    * Update: Changed fill to white (%23ffffff) to match the new dark theme.
    */
   //const logoSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="180" height="28" viewBox="0 0 180 28"%3E%3Ctext x="0" y="20" font-family="Outfit" font-size="28" font-weight="SemiBold" fill="%23ffffff"%3EModular House%3C/text%3E%3C/svg%3E'
-  const logoSrc = "../../public/resource/logo_white.svg"
+  const logoSrc = "/logo_white.svg"
   const logoSrcRetina = undefined
 
   // ===========================================================================

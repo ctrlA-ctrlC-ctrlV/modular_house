@@ -1,5 +1,5 @@
 // Placeholder UI package entry point
-export const version = "0.1.0";
+export const version = "0.15.0";
 export { Header, type MenuItem, type SocialLink, type HeaderProps } from './components/Header/Header';
 export * from './components/HeroWithSideText/HeroWithSideText';
 export * from './components/Footer/Footer';
@@ -14,4 +14,5 @@ export * from './components/ContactFormWithImageBg/ContactFormWithImageBg'
 export * from './components/MasonryGallery/MasonryGallery'
 export { NewsletterSection, type NewsletterSectionProps } from './components/NewsletterSection/NewsletterSection'
 export * from './components/Seo/Seo'
+export * from './components/HeroBoldBottomText/HeroBoldBottomText'
 // Add your shared UI components here

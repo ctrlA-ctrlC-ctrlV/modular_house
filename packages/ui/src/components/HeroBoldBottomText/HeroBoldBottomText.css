@@ -1,3 +1,24 @@
+/**
+ * Global typography dependencies for font-family and scale variables.
+ */
+@import '../../styles/typography.css';
+
+/* -------------------------------------------------------------------------- */
+/* Variables & Theming                                                        */
+/* -------------------------------------------------------------------------- */
+:root {
+  --hero-color-white: #fefefe;
+  --hero-color-accent: #eebb54; /* Yellow for "secure and durable" */
+  --hero-color-button: #AF522D; /* Rust/Orange for button */
+  --hero-color-button-hover: #a55a2b;
+  --hero-overlay-opacity: 0.4;
+  --hero-padding: 60px;
+}
+
+/**
+ * Main container for the Hero component.
+ * Utilizes a full-viewport height layout with Flexbox to align content to the bottom.
+ */
 .hero-bold-bottom-text {
   position: relative;
   display: flex;
@@ -10,9 +31,13 @@
   background-size: cover;
   box-sizing: border-box;
   overflow: hidden;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
 }
 
+/**
+ * Semi-transparent overlay to ensure text legibility against dynamic background images.
+ * pointer-events: none ensures the overlay does not interfere with CTA interactions.
+ */
 .hero-bold-bottom-text__overlay {
   position: absolute;
   top: 0;
@@ -25,6 +50,9 @@
   pointer-events: none;
 }
 
+/**
+ * High-level content wrapper to establish a new stacking context above the overlay.
+ */
 .hero-bold-bottom-text__content {
   position: relative;
   z-index: 2;
@@ -35,12 +63,16 @@
   justify-content: flex-end;
 }
 
+/**
+ * Grouping for the title and CTA button. 
+ * Right-aligned within the flex container on desktop.
+ */
 .hero-bold-bottom-text__info-group {
   display: flex;
   flex-direction: column;
   align-self: flex-end;
   width: 100%;
-  max-width: 450px;
+  max-width: 550px; /* Increased width to accommodate single-line title text */
   margin-bottom: 6.5vw;
   text-align: left;
 }
@@ -49,43 +81,63 @@
   margin-bottom: 35px;
 }
 
+/**
+ * Primary descriptive heading styles using serif variables for high-contrast branding.
+ */
 .hero-bold-bottom-text__title {
   margin: 0;
-  font-family: "Inter Tight", sans-serif;
-  font-weight: 600;
-  font-size: 24px;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-heading-m);
   line-height: 1.3;
-  color: #F1CC53;
+  color: #fefefe;
+  letter-spacing: var(--tracking-tight);
 }
 
+/**
+ * Inline-level elements for the title. 
+ * display: inline ensures both title props occupy the same line.
+ */
 .hero-bold-bottom-text__title-line {
-  display: block;
+  display: inline;
+}
+
+/**
+ * Modifier for the second line of the title to provide visual emphasis.
+ * Uses the brand primary color for visual hierarchy.
+ */
+.hero-bold-bottom-text__title-line--secondary {
+  color: #F1CC53;
+  margin-left: 0.25em; /* Provides horizontal spacing between title segments */
 }
 
 .hero-bold-bottom-text__cta-wrapper {
   display: flex;
 }
 
+/**
+ * Interactive Call-to-Action button with hover transitions for elevation and color depth.
+ */
 .hero-bold-bottom-text__cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 15px 40px;
-  background-color: #B55329;
-  color: #ffffff;
+  padding: 16px 32px;
+  background-color: var(--hero-color-button);
+  color: #fff;
   text-decoration: none;
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-wide);
+  border-radius: 9px;
   transition: background-color 0.3s ease, transform 0.2s ease;
   border: none;
   cursor: pointer;
 }
 
 .hero-bold-bottom-text__cta:hover {
-  background-color: #9F4017;
+  background-color: var(--hero-color-button-hover);
   transform: translateY(-2px);
 }
 
@@ -94,18 +146,25 @@
   text-align: left;
 }
 
+/**
+ * Large-scale display typography positioned at the base of the hero.
+ * Uses viewport width (vw) for fluid scaling and tight line-height for a bold aesthetic.
+ */
 .hero-bold-bottom-text__big-text {
   margin: 0;
-  font-family: "Inter Tight", sans-serif;
-  font-weight: 700;
-  font-size: 15.65vw;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-regular);
+  font-size: 13.65vw;
   line-height: 0.8em;
   text-transform: uppercase;
-  letter-spacing: -0.03em;
-  color: #F1CC53;
+  letter-spacing: var(--tracking-tight);
+  color: #fefefe;
   word-wrap: break-word;
 }
 
+/**
+ * Media query for tablet and medium screens.
+ */
 @media (max-width: 1279px) {
   .hero-bold-bottom-text {
     padding: 150px 30px 40px 30px;
@@ -116,6 +175,9 @@
   }
 }
 
+/**
+ * Media query for mobile devices.
+ */
 @media (max-width: 767px) {
   .hero-bold-bottom-text {
     padding: 120px 20px 30px 20px;
@@ -127,6 +189,6 @@
   }
   .hero-bold-bottom-text__big-text {
     font-size: 18vw;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tracking-tight);
   }
 }

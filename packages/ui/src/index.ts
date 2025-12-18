@@ -15,4 +15,5 @@ export * from './components/MasonryGallery/MasonryGallery'
 export { NewsletterSection, type NewsletterSectionProps } from './components/NewsletterSection/NewsletterSection'
 export * from './components/Seo/Seo'
 export * from './components/HeroBoldBottomText/HeroBoldBottomText'
+export * from './components/FullMassonryGallery/FullMassonryGallery'
 // Add your shared UI components here

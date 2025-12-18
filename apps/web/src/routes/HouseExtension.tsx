@@ -1,6 +1,7 @@
 import React from 'react';
 import { Seo } from '@modular-house/ui';
 import { HeroBoldBottomText } from '@modular-house/ui';
+import { FullMassonryGallery } from '@modular-house/ui';
 
 const HouseExtension: React.FC = () => {
   return (
@@ -23,8 +24,30 @@ const HouseExtension: React.FC = () => {
         />
       </div>
 
-      <h1>House Extension</h1>
-      <p>Coming soon...</p>
+      <div id='house_extension_gallery'>
+        <FullMassonryGallery
+          itemCount = {15}
+          items = {[
+            { imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80', title: 'Modern Glass Extension', category: 'Architecture' },
+            { imageUrl: 'https://images.unsplash.com/photo-1600607687940-4720033095c5?auto=format&fit=crop&w=800&q=80', title: 'Contemporary Side Return', category: 'Residential' },
+            { imageUrl: 'https://images.unsplash.com/photo-1600566753190-17f0bb2a6c3e?auto=format&fit=crop&w=800&q=80', title: 'Kitchen Extension Hub', category: 'Interior' },
+            { imageUrl: 'https://images.unsplash.com/photo-1600210491892-03d54c0aaf87?auto=format&fit=crop&w=800&q=80', title: 'Minimalist Zinc Addition', category: 'Design' },
+            { imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80', title: 'Luxury Garden Suite', category: 'Exterior' },
+            { imageUrl: 'https://images.unsplash.com/photo-1513584684374-8bdb7483fe8f?auto=format&fit=crop&w=800&q=80', title: 'Brickwork Continuity', category: 'Architecture' },
+            { imageUrl: 'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?auto=format&fit=crop&w=800&q=80', title: 'Open Plan Living', category: 'Lifestyle' },
+            { imageUrl: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=800&q=80', title: 'Timber Clad Retreat', category: 'Design' },
+            { imageUrl: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80', title: 'Bright Sunroom Addition', category: 'Renovation' },
+            { imageUrl: 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=800&q=80', title: 'Double Storey Growth', category: 'Construction' },
+            { imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80', title: 'Loft Conversion Link', category: 'Architecture' },
+            { imageUrl: 'https://images.unsplash.com/photo-1464146072230-91cabc968266?auto=format&fit=crop&w=800&q=80', title: 'Urban Space Optimization', category: 'City Living' },
+            { imageUrl: 'https://images.unsplash.com/photo-1416331108676-a22ccb276e35?auto=format&fit=crop&w=800&q=80', title: 'Seamless Indoor-Outdoor', category: 'Landscape' },
+            { imageUrl: 'https://images.unsplash.com/photo-1505691722718-25036f1fe4aa?auto=format&fit=crop&w=800&q=80', title: 'Basement Light-well', category: 'Engineering' },
+            { imageUrl: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=800&q=80', title: 'Architectural Statement', category: 'Modern' },
+          ]}
+          title = "House Extension Projects"
+          description = "Explore our portfolio of seamless home transformations. See how Modular House utilizes precision steel framing to create expansive, light-filled extensions that integrate perfectly with your existing property and lifestyle."
+        />
+      </div>
     </div>
   );
 };

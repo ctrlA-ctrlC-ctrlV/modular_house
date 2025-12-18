@@ -1,0 +1,200 @@
+/**
+ * Layout and Typography Constants
+ */
+.gallery-section {
+  padding: 80px 15px;
+  background-color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/**
+ * Header Section Styles
+ */
+.gallery-header {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 60px auto;
+}
+
+.gallery-heading {
+  font-weight: 300;
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.gallery-subtext {
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.gallery-hr-divider {
+  width: 60px;
+  height: 1px;
+  background-color: #dee2e6;
+  margin: 0 auto;
+}
+
+/**
+ * Masonry Grid Implementation
+ * Utilizes column-count for organic image stacking.
+ */
+.gallery-grid-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.gallery-masonry-grid {
+  column-count: 3;
+  column-gap: 20px;
+}
+
+@media (max-width: 992px) {
+  .gallery-masonry-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 576px) {
+  .gallery-masonry-grid {
+    column-count: 1;
+  }
+}
+
+/**
+ * Individual Gallery Item Styles
+ */
+.gallery-item {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 20px;
+  cursor: pointer;
+  break-inside: avoid;
+}
+
+.gallery-figure {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px; /* Matches visual reference rounded corners */
+}
+
+.gallery-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.5s ease;
+}
+
+.gallery-item:hover .gallery-image {
+  transform: scale(1.05);
+}
+
+/**
+ * Hover Overlay
+ */
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: #ffffff;
+}
+
+.gallery-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+.gallery-item-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.gallery-item-category {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+/**
+ * Lightbox Focus Mode Styles
+ */
+.gallery-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-content-wrapper {
+  position: relative;
+  max-width: 85%;
+  max-height: 85vh;
+  text-align: center;
+}
+
+.lightbox-main-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.lightbox-caption {
+  margin-top: 15px;
+  color: #fff;
+}
+
+.lightbox-caption h4 { margin: 0; font-weight: 400; }
+.lightbox-caption p { color: #aaa; margin: 5px 0 0 0; }
+
+/**
+ * Lightbox Navigation
+ */
+.lightbox-btn-close {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 40px;
+  cursor: pointer;
+}
+
+.lightbox-btn-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 30px;
+  padding: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lightbox-btn-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-btn-nav.prev { left: 40px; }
+.lightbox-btn-nav.next { right: 40px; }
+
+@media (max-width: 768px) {
+  .lightbox-btn-nav { padding: 10px; }
+  .lightbox-btn-nav.prev { left: 10px; }
+  .lightbox-btn-nav.next { right: 10px; }
+}

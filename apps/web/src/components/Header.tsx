@@ -21,11 +21,11 @@ function Header() {
    * Note: 'Contact' has been removed from here to be used as the CTA button.
    */
   const menuItems: MenuItem[] = [
-    // { label: 'Home', href: '/' }, // Standard practice is usually Logo = Home, but can be added back if needed
+    { label: 'Home', href: '/' }, // Standard practice is usually Logo = Home, but can be added back if needed
     { label: 'Garden Room', href: '/garden-room' },
     { label: 'House Extension', href: '/house-extension' },
-    { label: 'Gallery', href: '/gallery' },
-    { label: 'About', href: '/about' },
+    //{ label: 'Gallery', href: '/gallery' },
+    //{ label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' }
   ]
 

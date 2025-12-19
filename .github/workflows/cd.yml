@@ -75,8 +75,8 @@ jobs:
           MY_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
       - name: Copy docker-compose to server
-        # Pinned to specific version v0.1.7 for stability
-        uses: appleboy/scp-action@v0.1.7
+        # Updated to v1.0.0 to fix Docker build issues with v0.1.7
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}

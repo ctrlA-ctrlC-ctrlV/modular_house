@@ -1,0 +1,110 @@
+/* TextWithContactForm.css */
+
+/* 
+  Using @apply to bridge Bootstrap classes with Tailwind utilities.
+  Assuming Bootstrap 5 is available globally or via a wrapper.
+  We are not importing bootstrap here to avoid duplication if it's already in the app.
+*/
+
+.text-with-contact-form-section {
+  @apply py-16 px-4 md:px-8 lg:px-16 bg-white;
+}
+
+.text-with-contact-form-container {
+  @apply container mx-auto;
+}
+
+.text-with-contact-form-row {
+  @apply flex flex-col lg:flex-row gap-12;
+}
+
+/* Left Column: Text Content */
+.text-content-column {
+  @apply flex-1 lg:w-5/12;
+}
+
+.common-questions-label {
+  @apply text-sm font-bold tracking-widest text-gray-500 uppercase mb-4 block;
+}
+
+.main-heading {
+  @apply text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight;
+}
+
+.description-text {
+  @apply text-gray-600 mb-8 text-lg leading-relaxed;
+}
+
+.contact-info-list {
+  @apply space-y-4;
+}
+
+.contact-info-item {
+  @apply flex items-start gap-4;
+}
+
+.contact-icon-wrapper {
+  @apply text-yellow-500 mt-1 flex-shrink-0;
+}
+
+.contact-text {
+  @apply text-gray-700 font-medium;
+}
+
+/* Right Column: Form */
+.form-column {
+  @apply flex-1 lg:w-7/12;
+}
+
+.contact-form-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6 mb-6;
+}
+
+.form-group {
+  @apply flex flex-col;
+}
+
+.form-group-full {
+  @apply col-span-1 md:col-span-2;
+}
+
+.form-label {
+  @apply mb-2 font-medium text-gray-900;
+}
+
+.required-asterisk {
+  @apply text-red-500 ml-1;
+}
+
+.form-input,
+.form-textarea {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-colors outline-none;
+}
+
+.form-textarea {
+  @apply min-h-[150px] resize-y;
+}
+
+.form-error-message {
+  @apply text-red-500 text-sm mt-1;
+}
+
+.checkbox-group {
+  @apply flex items-start gap-3 mb-8;
+}
+
+.checkbox-input {
+  @apply mt-1 w-5 h-5 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500;
+}
+
+.checkbox-label {
+  @apply text-gray-600 text-sm;
+}
+
+.privacy-link {
+  @apply text-yellow-600 hover:underline font-medium;
+}
+
+.submit-button {
+  @apply px-8 py-4 bg-yellow-700 text-white font-bold rounded hover:bg-yellow-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed;
+}

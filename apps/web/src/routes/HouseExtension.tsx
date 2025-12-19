@@ -4,12 +4,45 @@ import { HeroBoldBottomText } from '@modular-house/ui';
 import { FullMassonryGallery } from '@modular-house/ui';
 
 const HouseExtension: React.FC = () => {
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Modular House Construction',
+    url: 'https://www.modularhouse.ie',
+    logo: 'https://www.modularhouse.ie/logo_black.png',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+3530830280000',
+      contactType: 'Customer Service'
+    }
+  };
+
   return (
     <div className="l-container py-16">
       <Seo 
-        title="House Extension" 
-        description="Expand your home with our modular extensions."
+        title="Modern Steel Frame House Extensions" 
+        description="Expand your home with a precision-engineered steel frame extension. Built faster and cleaner than traditional methods with superior thermal performance."
         canonicalUrl="https://modularhouse.ie/house-extension"
+
+        // Open Graph for Facebook/LinkedIn sharing optimization
+        openGraph={{
+          type: 'website',
+          title: 'Seamless Steel Frame House Extensions | Seamless House Extension',
+          description: 'Transform your home with a high-performance extension. Our steel frame technology ensures a faster build with less disruption and A-rated efficiency.',
+          image: 'https://modularhouse.ie/resource/landing_hero.png',
+          siteName: 'Modular House Construction',
+        }}
+
+        // Twitter Card optimization
+        twitter={{
+          cardType: 'summary_large_image',
+          site: '@ModularHouse',
+          title: 'The Future of Home Extensions: Faster, Stronger, Smarter',
+          image: 'https://modularhouse.ie/resource/landing_hero.png',
+        }}
+
+        // Rich Snippets data
+        jsonLd={organizationSchema}
       />
 
       {/** /garden-room hero Section */}

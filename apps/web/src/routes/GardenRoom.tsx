@@ -4,14 +4,47 @@ import { HeroBoldBottomText } from '@modular-house/ui';
 import { FullMassonryGallery } from '@modular-house/ui';
 
 const GardenRoom: React.FC = () => {
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Modular House Construction',
+    url: 'https://www.modularhouse.ie',
+    logo: 'https://www.modularhouse.ie/logo_black.png',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+3530830280000',
+      contactType: 'Customer Service'
+    }
+  };
+
   return (
     <div className="l-container py-16">
       {/** SEO Mapping Section */}
       <div id='garden_room_seo'>
         <Seo 
-        title="Garden Room" 
-        description="Discover our bespoke garden rooms."
+        title="Insulated Steel Frame Garden Rooms & Studios" 
+        description="Custom-built, steel-frame garden rooms designed for year-round use. Fully insulated, energy-efficient, and most builds require no planning permission."
         canonicalUrl="https://modularhouse.ie/garden-room"
+
+        // Open Graph for Facebook/LinkedIn sharing optimization
+        openGraph={{
+          type: 'website',
+          title: 'Bespoke Steel Frame Garden Rooms | Luxury Garden Studios',
+          description: 'Escape to your private garden sanctuary. Our precision-engineered steel rooms offer superior comfort and durability with turnkey delivery.',
+          image: 'https://modularhouse.ie/resource/landing_hero.png',
+          siteName: 'Modular House Construction',
+        }}
+
+        // Twitter Card optimization
+        twitter={{
+          cardType: 'summary_large_image',
+          site: '@ModularHouse',
+          title: 'Garden Rooms Built to Last: Precision Steel Engineering',
+          image: 'https://modularhouse.ie/resource/landing_hero.png',
+        }}
+
+        // Rich Snippets data
+        jsonLd={organizationSchema}
       />
       </div>
       

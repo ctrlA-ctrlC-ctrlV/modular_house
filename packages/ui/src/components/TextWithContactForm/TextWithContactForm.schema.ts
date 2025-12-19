@@ -5,7 +5,7 @@ export const contactFormSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   phone: z.string().optional(),
   message: z.string().optional(),
-  gdprConsent: z.boolean().refine((val) => val === true, {
+  gdprConsent: z.boolean().refine((val: boolean) => val === true, {
     message: "You must agree to the data collection policy",
   }),
 });

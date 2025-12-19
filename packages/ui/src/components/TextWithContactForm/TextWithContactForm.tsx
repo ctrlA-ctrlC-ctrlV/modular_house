@@ -151,19 +151,36 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
               <form onSubmit={handleSubmit(onFormSubmit)} noValidate aria-label="Contact form">
                 <div className="contact-form-grid">
                   <div className="form-group">
-                    <label htmlFor="name" className="form-label">
-                      Name <span className="required-asterisk">*</span>
+                    <label htmlFor="firstName" className="form-label">
+                      First Name <span className="required-asterisk">*</span>
                     </label>
                     <input
-                      id="name"
+                      id="firstName"
                       type="text"
-                      className={`form-input ${errors.name ? 'border-red-500' : ''}`}
-                      placeholder="Enter your name"
-                      aria-invalid={errors.name ? "true" : "false"}
-                      {...register("name")}
+                      className={`form-input ${errors.firstName ? 'border-red-500' : ''}`}
+                      placeholder="Enter your first name"
+                      aria-invalid={errors.firstName ? "true" : "false"}
+                      {...register("firstName")}
                     />
-                    {errors.name && (
-                      <span className="form-error-message" role="alert">{errors.name.message}</span>
+                    {errors.firstName && (
+                      <span className="form-error-message" role="alert">{errors.firstName.message}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="surname" className="form-label">
+                      Surname
+                    </label>
+                    <input
+                      id="surname"
+                      type="text"
+                      className={`form-input ${errors.surname ? 'border-red-500' : ''}`}
+                      placeholder="Enter your surname"
+                      aria-invalid={errors.surname ? "true" : "false"}
+                      {...register("surname")}
+                    />
+                    {errors.surname && (
+                      <span className="form-error-message" role="alert">{errors.surname.message}</span>
                     )}
                   </div>
 
@@ -184,17 +201,55 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
                     )}
                   </div>
 
-                  <div className="form-group form-group-full">
+                  <div className="form-group">
                     <label htmlFor="phone" className="form-label">
-                      Phone
+                      Phone <span className="required-asterisk">*</span>
                     </label>
                     <input
                       id="phone"
                       type="tel"
-                      className="form-input"
+                      className={`form-input ${errors.phone ? 'border-red-500' : ''}`}
                       placeholder="Enter your number"
+                      aria-invalid={errors.phone ? "true" : "false"}
                       {...register("phone")}
                     />
+                    {errors.phone && (
+                      <span className="form-error-message" role="alert">{errors.phone.message}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group form-group-full">
+                    <label htmlFor="address" className="form-label">
+                      First Line Address <span className="required-asterisk">*</span>
+                    </label>
+                    <input
+                      id="address"
+                      type="text"
+                      className={`form-input ${errors.address ? 'border-red-500' : ''}`}
+                      placeholder="Enter your address"
+                      aria-invalid={errors.address ? "true" : "false"}
+                      {...register("address")}
+                    />
+                    {errors.address && (
+                      <span className="form-error-message" role="alert">{errors.address.message}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="eircode" className="form-label">
+                      Eircode <span className="required-asterisk">*</span>
+                    </label>
+                    <input
+                      id="eircode"
+                      type="text"
+                      className={`form-input ${errors.eircode ? 'border-red-500' : ''}`}
+                      placeholder="Enter your eircode"
+                      aria-invalid={errors.eircode ? "true" : "false"}
+                      {...register("eircode")}
+                    />
+                    {errors.eircode && (
+                      <span className="form-error-message" role="alert">{errors.eircode.message}</span>
+                    )}
                   </div>
 
                   <div className="form-group form-group-full">

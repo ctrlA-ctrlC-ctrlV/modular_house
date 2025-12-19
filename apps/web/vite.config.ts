@@ -9,8 +9,6 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     resolve: {
       alias: {
-        '@modular-house/ui/style.css': path.resolve(__dirname, './src/test/empty.css'),
-        '@modular-house/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts')
       }
     },
     server: {

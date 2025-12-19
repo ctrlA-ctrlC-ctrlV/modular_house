@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TextWithContactForm } from './TextWithContactForm';
-import React from 'react';
 
 describe('TextWithContactForm', () => {
   it('renders correctly with default props', () => {

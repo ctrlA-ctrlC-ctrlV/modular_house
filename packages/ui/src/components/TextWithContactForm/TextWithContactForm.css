@@ -44,7 +44,7 @@
 }
 
 .contact-icon-wrapper {
-  @apply text-yellow-500 mt-1 flex-shrink-0;
+  @apply text-yellow-500 mt-1 shrink-0;
 }
 
 .contact-text {

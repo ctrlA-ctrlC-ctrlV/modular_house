@@ -1,49 +1,7 @@
-import { useState } from 'react';
-import { EnquiryForm } from '../forms';
 import { Seo } from '@modular-house/ui';
 import { TextWithContactForm } from '@modular-house/ui';
 
-interface ContactState {
-  showThankYou: boolean;
-  submissionId?: string;
-  error?: string;
-}
-
 function Contact() {
-  const [contactState, setContactState] = useState<ContactState>({
-    showThankYou: false
-  });
-
-  const handleFormSuccess = (submissionId: string) => {
-    setContactState({
-      showThankYou: true,
-      submissionId,
-      error: undefined
-    });
-
-    // Scroll to top to show success message
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleFormError = (error: string) => {
-    setContactState(prev => ({
-      ...prev,
-      error,
-      showThankYou: false
-    }));
-
-    // Scroll to top to show error message
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const resetForm = () => {
-    setContactState({
-      showThankYou: false,
-      submissionId: undefined,
-      error: undefined
-    });
-  };
-
   return (
     <div className="bg-white">
       <Seo 

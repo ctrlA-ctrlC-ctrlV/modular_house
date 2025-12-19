@@ -26,12 +26,25 @@ export default defineConfig(({ mode }) => {
       fileName: (format) => `index.${format === "es" ? "mjs" : "js"}`,
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
+      external: [
+        "react", 
+        "react-dom", 
+        "react/jsx-runtime", 
+        "react-router-dom", 
+        "react-helmet-async", 
+        "react-hook-form", 
+        "@hookform/resolvers/zod", 
+        "zod"
+      ],
       output: {
         globals: {
           react: "React",
           "react-dom": "ReactDOM",
           "react/jsx-runtime": "react/jsx-runtime",
+          "react-router-dom": "ReactRouterDOM",
+          "react-helmet-async": "ReactHelmetAsync",
+          "react-hook-form": "ReactHookForm",
+          "zod": "Zod"
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === "style.css") {

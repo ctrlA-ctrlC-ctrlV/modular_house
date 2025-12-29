@@ -76,7 +76,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          touch .env
+          touch test.md
 
       - name: Populate .env file
         env:
@@ -87,6 +87,7 @@ jobs:
           REPO_OWNER: ${{ env.REPO_OWNER }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
+          touch .env
           if [ ! -z "$DATABASE_URL" ]; then printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env; fi
           if [ ! -z "$ACME_EMAIL" ]; then printf "ACME_EMAIL=%s\n" "$ACME_EMAIL" >> .env; fi
           if [ ! -z "$DOMAIN_NAME" ]; then printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env; fi

@@ -50,7 +50,8 @@ jobs:
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:${{ github.sha }}
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:latest
           build-args: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            # API is served through Traefik at /api path (see docker-compose.prod.yml)
+            VITE_API_BASE_URL=https://${{ secrets.DOMAIN_NAME }}/api
             GENERATE_SOURCEMAP=false
 
   deploy:
@@ -75,23 +76,20 @@ jobs:
           MY_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
       - name: Create .env file
-        run: |
-          touch test.md
-
-      - name: Populate .env file
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           REPO_OWNER: ${{ env.REPO_OWNER }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
           touch .env
           if [ ! -z "$DATABASE_URL" ]; then printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env; fi
           if [ ! -z "$ACME_EMAIL" ]; then printf "ACME_EMAIL=%s\n" "$ACME_EMAIL" >> .env; fi
-          if [ ! -z "$DOMAIN_NAME" ]; then printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env; fi
-          if [ ! -z "$VITE_API_BASE_URL" ]; then printf "VITE_API_BASE_URL=%s\n" "$VITE_API_BASE_URL" >> .env; fi
+          if [ ! -z "$DOMAIN_NAME" ]; then 
+          printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env;
+          printf "VITE_API_BASE_URL=https://${{ secrets.DOMAIN_NAME }}/api" >> .env;
+          fi
           printf "GITHUB_USER_NAME=%s\n" "$REPO_OWNER" >> .env
           printf "IMAGE_TAG=%s\n" "$GITHUB_SHA" >> .env
           if [ ! -z "$DOMAIN_NAME" ]; then

@@ -109,8 +109,6 @@ jobs:
           # Pass the specific SHA as an environment variable to the script
           envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL,ACME_EMAIL,DOMAIN_NAME,VITE_API_BASE_URL
           script: |
-
-
             # Fail on any error
             set -e
             

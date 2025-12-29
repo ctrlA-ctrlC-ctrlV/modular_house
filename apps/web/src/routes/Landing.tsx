@@ -196,7 +196,7 @@ function Landing() {
           title = "We deliver quality construction"
           testimonials = {[
             {
-              text: "Rebar made our dream home a reality. Their team was skilled, reliable, and always kept us informed. We felt supported from start to finish.",
+              text: "Test Rebar made our dream home a reality. Their team was skilled, reliable, and always kept us informed. We felt supported from start to finish.",
               authorName: "Emily Chen",
               authorLocation: "San Francisco, CA",
               authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-25.jpg",

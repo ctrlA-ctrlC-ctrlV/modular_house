@@ -50,7 +50,7 @@ jobs:
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:${{ github.sha }}
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:latest
           build-args: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_URL }}
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
             GENERATE_SOURCEMAP=false
 
   deploy:

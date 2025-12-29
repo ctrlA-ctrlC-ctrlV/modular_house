@@ -74,6 +74,26 @@ jobs:
         env:
           MY_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
+      - name: Create .env file
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
+          DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          REPO_OWNER: ${{ env.REPO_OWNER }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          touch .env
+          if [ ! -z "$DATABASE_URL" ]; then printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env; fi
+          if [ ! -z "$ACME_EMAIL" ]; then printf "ACME_EMAIL=%s\n" "$ACME_EMAIL" >> .env; fi
+          if [ ! -z "$DOMAIN_NAME" ]; then printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env; fi
+          if [ ! -z "$VITE_API_BASE_URL" ]; then printf "VITE_API_BASE_URL=%s\n" "$VITE_API_BASE_URL" >> .env; fi
+          printf "GITHUB_USER_NAME=%s\n" "$REPO_OWNER" >> .env
+          printf "IMAGE_TAG=%s\n" "$GITHUB_SHA" >> .env
+          if [ ! -z "$DOMAIN_NAME" ]; then
+            printf "CORS_ORIGIN=https://%s,https://www.%s\n" "$DOMAIN_NAME" "$DOMAIN_NAME" >> .env
+          fi
+
       - name: Create App Directory
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -82,84 +102,29 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: mkdir -p ~/app
 
-      - name: Copy docker-compose to server
-        # Updated to v1.0.0 to fix Docker build issues with v0.1.7
+      - name: Copy files to server
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.prod.yml"
+          source: "docker-compose.prod.yml,.env"
           target: "~/app/"
 
       - name: Deploy via SSH
-        # Pinned to specific version v1.2.0 for stability
         uses: appleboy/ssh-action@v1.2.0
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
-          DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-          REPO_OWNER: ${{ env.REPO_OWNER }}
-          GITHUB_SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          # Pass the specific SHA as an environment variable to the script
-          envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL,ACME_EMAIL,DOMAIN_NAME,VITE_API_BASE_URL
           script: |
-            # Fail on any error
             set -e
-            
-            # Ensure directory exists and enter it
-            mkdir -p ~/app
             cd ~/app
-
-            touch test.txt
             
-            # --- 1. Clear old .env and create new .env ---
-            echo "Refreshing .env file..."
-            rm -f .env
-            touch .env
-
-            # --- 2. Check if GitHub secret contains DATABASE_URL, if yes export it ---
-            if [ ! -z "$DATABASE_URL" ]; then
-              echo "DATABASE_URL=$DATABASE_URL" >> .env
-            fi
-
-            # --- 3. Check if GitHub secret contains ACME_EMAIL, if yes export it ---
-            if [ ! -z "$ACME_EMAIL" ]; then
-              echo "ACME_EMAIL=$ACME_EMAIL" >> .env
-            fi
-
-            # --- 4. Check if GitHub secret contains DOMAIN_NAME, if yes export it ---
-            if [ ! -z "$DOMAIN_NAME" ]; then
-              echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
-            fi
-
-            # --- 5. Check if GitHub secret contains VITE_API_BASE_URL, if yes export it ---
-            if [ ! -z "$VITE_API_BASE_URL" ]; then
-              echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" >> .env
-            fi
-
-            # --- 6. Export other variables ---
-            echo "GITHUB_USER_NAME=$REPO_OWNER" >> .env
-            echo "IMAGE_TAG=$GITHUB_SHA" >> .env
-            
-            # --- 7. Set CORS_ORIGIN to allow the domain and www subdomain ---
-            if [ ! -z "$DOMAIN_NAME" ]; then
-              echo "CORS_ORIGIN=https://$DOMAIN_NAME,https://www.$DOMAIN_NAME" >> .env
-            fi
-
-            # --- 8. Change .env permission ---
+            # Secure the .env file
             chmod 600 .env
             
-            # --- 9. Pull the exact images built in the previous job ---
+            # Pull and restart
             docker compose -f docker-compose.prod.yml pull
-            
-            # --- 10. Restart services with the new images ---
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            
-            # --- 11. Cleanup old images to save disk space ---
             docker image prune -f

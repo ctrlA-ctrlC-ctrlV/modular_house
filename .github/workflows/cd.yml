@@ -50,7 +50,7 @@ jobs:
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:${{ github.sha }}
             ghcr.io/${{ env.REPO_OWNER }}/modular-house-web:latest
           build-args: |
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_API_BASE_URL=${{ secrets.VITE_API_URL }}
             GENERATE_SOURCEMAP=false
 
   deploy:
@@ -124,6 +124,11 @@ jobs:
             # --- 5. Export other variables ---
             echo "GITHUB_USER_NAME=$REPO_OWNER" >> .env
             echo "IMAGE_TAG=$GITHUB_SHA" >> .env
+            
+            # Set CORS_ORIGIN to allow the domain and www subdomain
+            if [ ! -z "$DOMAIN_NAME" ]; then
+              echo "CORS_ORIGIN=https://$DOMAIN_NAME,https://www.$DOMAIN_NAME" >> .env
+            fi
 
             # --- 6. Change .env permission ---
             chmod 600 .env

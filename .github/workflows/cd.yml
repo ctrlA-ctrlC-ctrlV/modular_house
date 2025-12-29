@@ -89,6 +89,7 @@ jobs:
           if [ ! -z "$DOMAIN_NAME" ]; then 
           printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env;
           printf "VITE_API_BASE_URL=https://${{ secrets.DOMAIN_NAME }}/api" >> .env;
+          printf "" >> .env;
           fi
           printf "GITHUB_USER_NAME=%s\n" "$REPO_OWNER" >> .env
           printf "IMAGE_TAG=%s\n" "$GITHUB_SHA" >> .env

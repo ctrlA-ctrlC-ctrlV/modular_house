@@ -88,6 +88,7 @@ jobs:
         # Pinned to specific version v1.2.0 for stability
         uses: appleboy/ssh-action@v1.2.0
         env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
@@ -121,23 +122,28 @@ jobs:
               echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
             fi
 
-            # --- 5. Export other variables ---
+            # --- 5. Check if GitHub secret contains VITE_API_BASE_URL, if yes export it ---
+            if [ ! -z "$VITE_API_BASE_URL" ]; then
+              echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" >> .env
+            fi
+
+            # --- 6. Export other variables ---
             echo "GITHUB_USER_NAME=$REPO_OWNER" >> .env
             echo "IMAGE_TAG=$GITHUB_SHA" >> .env
             
-            # Set CORS_ORIGIN to allow the domain and www subdomain
+            # --- 7. Set CORS_ORIGIN to allow the domain and www subdomain ---
             if [ ! -z "$DOMAIN_NAME" ]; then
               echo "CORS_ORIGIN=https://$DOMAIN_NAME,https://www.$DOMAIN_NAME" >> .env
             fi
 
-            # --- 6. Change .env permission ---
+            # --- 8. Change .env permission ---
             chmod 600 .env
             
-            # --- 4. Pull the exact images built in the previous job ---
+            # --- 9. Pull the exact images built in the previous job ---
             docker compose -f docker-compose.prod.yml pull
             
-            # --- 5. Restart services with the new images ---
+            # --- 10. Restart services with the new images ---
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             
-            # --- 6. Cleanup old images to save disk space ---
+            # --- 11. Cleanup old images to save disk space ---
             docker image prune -f

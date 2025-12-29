@@ -438,7 +438,12 @@ class ApiClient {
  * Create and configure API client instance
  */
 function createApiClient(): ApiClient {
-  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  let baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+  // Ensure baseURL has a protocol to prevent relative path resolution
+  if (baseURL && !baseURL.startsWith('http://') && !baseURL.startsWith('https://')) {
+    baseURL = `https://${baseURL}`;
+  }
   
   if (import.meta.env.DEV && !import.meta.env.VITE_API_BASE_URL) {
     console.warn('[API Client] VITE_API_BASE_URL not set, using default:', baseURL);

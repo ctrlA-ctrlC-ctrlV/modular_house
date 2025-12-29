@@ -107,7 +107,7 @@ export const config: EnvConfig = {
   app: {
     port: getNumericEnvVar('PORT', 8080),
     nodeEnv: getEnvVar('NODE_ENV', 'development'),
-    corsOrigin: getEnvVar('CORS_ORIGIN', 'http://localhost:5173'),
+    corsOrigin: getEnvVar('CORS_ORIGIN', 'http://localhost:3000'),
     logLevel: getEnvVar('LOG_LEVEL', 'info'),
     customerConfirmEnabled: getBooleanEnvVar('CUSTOMER_CONFIRM_ENABLED', true),
     robotsAllow: getBooleanEnvVar('ROBOTS_ALLOW', false),

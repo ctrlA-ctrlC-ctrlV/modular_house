@@ -29,7 +29,9 @@ app.use(helmet());
 
 // CORS configuration from environment
 const corsOptions = {
-  origin: config.app.corsOrigin,
+  origin: config.app.corsOrigin.includes(',')
+    ? config.app.corsOrigin.split(',').map((origin) => origin.trim())
+    : config.app.corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

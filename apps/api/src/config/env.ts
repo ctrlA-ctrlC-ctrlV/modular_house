@@ -1,7 +1,32 @@
 import * as dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 
-// Load environment variables
-dotenv.config();
+// Get current file directory for ESM modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Try to load .env from multiple possible locations (monorepo context)
+const possibleEnvPaths = [
+  path.resolve(__dirname, '../../../.env'),           // From apps/api/src/config -> root
+  path.resolve(process.cwd(), '.env'),                // From current working directory
+  path.resolve(process.cwd(), '../../.env'),          // From apps/api -> root
+];
+
+let envLoaded = false;
+for (const envPath of possibleEnvPaths) {
+  if (existsSync(envPath)) {
+    console.log(`[Config] Loading environment from: ${envPath}`);
+    dotenv.config({ path: envPath });
+    envLoaded = true;
+    break;
+  }
+}
+
+if (!envLoaded) {
+  console.warn('[Config] No .env file found, using process environment only');
+}
 
 interface DatabaseConfig {
   url: string;

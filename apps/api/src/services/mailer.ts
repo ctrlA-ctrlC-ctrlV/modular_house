@@ -36,8 +36,11 @@ export class MailerService {
       maxMessages: 100,
     });
 
-    // Verify connection configuration on startup
-    this.verifyConnection();
+    // Verify connection configuration on startup (async, non-blocking)
+    // In development, SMTP might not be available - log but don't block startup
+    this.verifyConnection().catch((err) => {
+      logger.warn({ error: err }, 'SMTP connection verification skipped - email sending may fail');
+    });
   }
 
   private async verifyConnection(): Promise<void> {
@@ -45,7 +48,8 @@ export class MailerService {
       await this.transporter.verify();
       logger.info('SMTP connection verified successfully');
     } catch (error) {
-      logger.error({ error }, 'SMTP connection verification failed');
+      // Log but don't throw - allow server to start without SMTP
+      logger.warn({ error }, 'SMTP connection verification failed - email sending will not work');
     }
   }
 

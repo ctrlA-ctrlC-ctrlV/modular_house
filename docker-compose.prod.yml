@@ -44,6 +44,7 @@ services:
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
       - "traefik.http.routers.api.middlewares=api-strip"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
 
 networks:
   default:

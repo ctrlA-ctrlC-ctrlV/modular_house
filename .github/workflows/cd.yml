@@ -98,7 +98,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           # Pass the specific SHA as an environment variable to the script
-          envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL,ACME_EMAIL,DOMAIN_NAME
+          envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL,ACME_EMAIL,DOMAIN_NAME,VITE_API_BASE_URL
           script: |
             cd ~/app
             

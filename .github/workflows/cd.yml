@@ -109,6 +109,14 @@ jobs:
           # Pass the specific SHA as an environment variable to the script
           envs: GITHUB_SHA,REPO_OWNER,DATABASE_URL,ACME_EMAIL,DOMAIN_NAME,VITE_API_BASE_URL
           script: |
+            echo "--- DEBUGGING VARIABLES ---"
+            echo "GITHUB_SHA is: $GITHUB_SHA"
+            echo "REPO_OWNER is: $REPO_OWNER"
+            echo "DOMAIN_NAME is: $DOMAIN_NAME"
+            echo "ACME_EMAIL is: $ACME_EMAIL"
+            echo "DATABASE_URL is: $DATABASE_URL"
+            echo "VITE_API_BASE_URL is: $VITE_API_BASE_URL"
+
             # Fail on any error
             set -e
             

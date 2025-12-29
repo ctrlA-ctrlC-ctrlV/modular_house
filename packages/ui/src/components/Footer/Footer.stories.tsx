@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MemoryRouter } from 'react-router-dom';
 import { Footer } from './Footer';
 
 /**
@@ -8,6 +9,13 @@ import { Footer } from './Footer';
 const meta = {
   title: 'Components/Footer',
   component: Footer,
+  decorators: [
+    (Story) => (
+      <MemoryRouter>
+        <Story />
+      </MemoryRouter>
+    ),
+  ],
   parameters: {
     layout: 'fullscreen',
     backgrounds: {

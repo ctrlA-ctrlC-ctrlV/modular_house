@@ -10,6 +10,9 @@ COPY apps/web ./apps/web
 
 RUN pnpm install --frozen-lockfile
 
+# Build dependencies first
+RUN pnpm --filter @modular-house/ui build
+
 WORKDIR /app/apps/web
 
 ARG VITE_API_URL

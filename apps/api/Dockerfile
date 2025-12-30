@@ -36,6 +36,9 @@ RUN if [ ! -f dist/server.js ]; then \
 # Production image
 FROM node:20-alpine AS runner
 
+# Install OpenSSL 1.1 compatibility for Prisma
+RUN apk add --no-cache openssl1.1-compat
+
 WORKDIR /app
 
 # Install pnpm

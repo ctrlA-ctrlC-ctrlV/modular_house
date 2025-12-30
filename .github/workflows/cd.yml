@@ -108,10 +108,23 @@ jobs:
           printf "PORT=8080\n" >> .env;
           printf "\n" >> .env;
 
-          # Database secrets (quoted to handle special characters in connection strings)
+          # Database secrets
           printf "# Database secrets\n" >> .env;
-          if [ ! -z "$DATABASE_URL" ]; then printf 'DATABASE_URL="%s"\n' "$DATABASE_URL" >> .env; fi
-          if [ ! -z "$SHADOW_DATABASE_URL" ]; then printf 'SHADOW_DATABASE_URL="%s"\n' "$SHADOW_DATABASE_URL" >> .env; fi
+          if [ ! -z "$DATABASE_URL" ]; then 
+            # Verify DATABASE_URL format before writing
+            if echo "$DATABASE_URL" | grep -qE "^postgres(ql)?://"; then
+              printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env
+              echo "DATABASE_URL written successfully (starts with postgres://)"
+            else
+              echo "::error::DATABASE_URL does not start with postgres:// or postgresql://"
+              echo "DATABASE_URL value (first 20 chars): ${DATABASE_URL:0:20}..."
+              exit 1
+            fi
+          else
+            echo "::error::DATABASE_URL secret is empty!"
+            exit 1
+          fi
+          if [ ! -z "$SHADOW_DATABASE_URL" ]; then printf "SHADOW_DATABASE_URL=%s\n" "$SHADOW_DATABASE_URL" >> .env; fi
           printf "\n" >> .env;
 
           # Certification email
@@ -167,16 +180,47 @@ jobs:
           printf "\n" >> .env;
 
       - name: Verify .env file created
-        run: |
-          echo "=== .env file contents (redacted) ==="
-          if [ -f .env ]; then
-            echo ".env file exists with $(wc -l < .env) lines"
-            # Show structure without values
-            grep -E "^[A-Z_]+=" .env | cut -d= -f1 | sort
-          else
-            echo "::error::.env file was NOT created!"
-            exit 1
-          fi
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          debug: true
+          script: |
+            cd /app || exit 1
+            
+            echo "=== .env file verification ==="
+            if [ -f .env ]; then
+              echo ".env file exists with $(wc -l < .env) lines"
+              
+              # Show structure without values
+              echo "=== Environment variables present: ==="
+              grep -E "^[A-Z_]+=" .env | cut -d= -f1 | sort
+              
+              # Verify DATABASE_URL format in the file
+              echo "=== DATABASE_URL verification: ==="
+              if grep -q "^DATABASE_URL=" .env; then
+                # We use parameter expansion ${var#*=} to safely handle passwords containing '='
+                DB_LINE=$(grep "^DATABASE_URL=" .env)
+                DB_FULL_VAL="${DB_LINE#*=}"
+                DB_URL_PREFIX=$(echo "$DB_FULL_VAL" | cut -c1-15)
+                
+                echo "DATABASE_URL starts with: ${DB_URL_PREFIX}..."
+                
+                if echo "$DB_URL_PREFIX" | grep -qE "^postgres"; then
+                  echo "✓ DATABASE_URL format looks correct"
+                else
+                  echo "✗ DATABASE_URL may have incorrect format"
+                  echo "First 30 chars: $(echo "$DB_FULL_VAL" | cut -c1-30)"
+                fi
+              else
+                echo "::error::DATABASE_URL not found in .env file!"
+                exit 1
+              fi
+            else
+              echo "::error::.env file was NOT created!"
+              exit 1
+            fi
 
       - name: Create App Directory
         uses: appleboy/ssh-action@v1.2.0
@@ -213,6 +257,15 @@ jobs:
               exit 1
             fi
             echo "=== .env exists with $(wc -l < .env) lines ==="
+            
+            # Debug: Check DATABASE_URL format on server
+            echo "=== DATABASE_URL check on server ==="
+            if grep -q "^DATABASE_URL=" .env; then
+              DB_PREFIX=$(grep "^DATABASE_URL=" .env | cut -d= -f2 | cut -c1-20)
+              echo "DATABASE_URL starts with: ${DB_PREFIX}..."
+            else
+              echo "WARNING: DATABASE_URL not found in .env"
+            fi
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -237,10 +290,14 @@ jobs:
             echo "=== Waiting for containers to start ==="
             sleep 10
             
+            # Debug: Check what DATABASE_URL the container sees
+            echo "=== Checking DATABASE_URL in container ==="
+            docker compose -f docker-compose.prod.yml exec -T api sh -c 'echo "DATABASE_URL starts with: $(echo $DATABASE_URL | cut -c1-20)..."' || echo "Could not check DATABASE_URL"
+            
             # Run database migrations inside the API container
             echo "=== Running database migrations ==="
             docker compose -f docker-compose.prod.yml exec -T api npx prisma migrate deploy || {
-              echo "Migration failed - checking if this is first deployment..."
+              echo "Migration failed - checking container logs..."
               docker compose -f docker-compose.prod.yml logs --tail=50 api
               exit 1
             }

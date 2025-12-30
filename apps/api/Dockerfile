@@ -1,6 +1,7 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
-# Install pnpm
+# Install pnpm and OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
@@ -34,10 +35,10 @@ RUN if [ ! -f dist/server.js ]; then \
     echo "Build successful - dist/server.js exists"
 
 # Production image
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
-# Install OpenSSL 1.1 compatibility for Prisma
-RUN apk add --no-cache openssl1.1-compat
+# Install OpenSSL for Prisma runtime
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

@@ -41,6 +41,7 @@ interface MailConfig {
   fromName: string;
   fromEmail: string;
   internalTo: string;
+  rejectUnauthorized: boolean;
 }
 
 interface SecurityConfig {
@@ -124,6 +125,7 @@ export const config: EnvConfig = {
     fromName: getEnvVar('MAIL_FROM_NAME', 'Modular House'),
     fromEmail: getRequiredEnvVar('MAIL_FROM_EMAIL'),
     internalTo: getRequiredEnvVar('MAIL_INTERNAL_TO'),
+    rejectUnauthorized: getBooleanEnvVar('MAIL_REJECT_UNAUTHORIZED', true),
   },
   security: {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),

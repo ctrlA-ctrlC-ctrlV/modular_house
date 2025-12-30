@@ -88,6 +88,7 @@ jobs:
           MAIL_FROM_NAME: ${{ secrets.MAIL_FROM_NAME }}
           MAIL_FROM_EMAIL: ${{ secrets.MAIL_FROM_EMAIL }}
           MAIL_INTERNAL_TO: ${{ secrets.MAIL_INTERNAL_TO }}
+          MAIL_REJECT_UNAUTHORIZED: ${{ secrets.MAIL_REJECT_UNAUTHORIZED }}
           CUSTOMER_CONFIRM_ENABLED: ${{ secrets.CUSTOMER_CONFIRM_ENABLED }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN}}
@@ -157,6 +158,7 @@ jobs:
           if [ ! -z "$MAIL_FROM_NAME" ]; then printf "MAIL_FROM_NAME=%s\n" "$MAIL_FROM_NAME" >> .env; fi
           if [ ! -z "$MAIL_FROM_EMAIL" ]; then printf "MAIL_FROM_EMAIL=%s\n" "$MAIL_FROM_EMAIL" >> .env; fi
           if [ ! -z "$MAIL_INTERNAL_TO" ]; then printf "MAIL_INTERNAL_TO=%s\n" "$MAIL_INTERNAL_TO" >> .env; fi
+          if [ ! -z "$MAIL_REJECT_UNAUTHORIZED" ]; then printf "MAIL_REJECT_UNAUTHORIZED=%s\n" "$MAIL_REJECT_UNAUTHORIZED" >> .env; fi
           if [ ! -z "$CUSTOMER_CONFIRM_ENABLED" ]; then printf "CUSTOMER_CONFIRM_ENABLED=%s\n" "$CUSTOMER_CONFIRM_ENABLED" >> .env; fi
           printf "\n" >> .env;
 

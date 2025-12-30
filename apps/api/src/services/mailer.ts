@@ -49,6 +49,13 @@ export class MailerService {
       );
     }
 
+    if (!config.mail.rejectUnauthorized) {
+      logger.warn(
+        'MAIL_REJECT_UNAUTHORIZED is set to false. ' +
+        'TLS certificate validation is disabled. This should only be used temporarily.'
+      );
+    }
+
     this.transporter = nodemailer.createTransport({
       host: config.mail.host,
       port: config.mail.port,
@@ -63,6 +70,9 @@ export class MailerService {
       connectionTimeout: CONNECTION_TIMEOUT_MS,
       greetingTimeout: GREETING_TIMEOUT_MS,
       socketTimeout: SOCKET_TIMEOUT_MS,
+      tls: {
+        rejectUnauthorized: config.mail.rejectUnauthorized,
+      },
     });
 
     // Store verification promise for readiness checks

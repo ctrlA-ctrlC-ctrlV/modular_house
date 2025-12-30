@@ -108,10 +108,10 @@ jobs:
           printf "PORT=8080\n" >> .env;
           printf "\n" >> .env;
 
-          # Database secrets
+          # Database secrets (quoted to handle special characters in connection strings)
           printf "# Database secrets\n" >> .env;
-          if [ ! -z "$DATABASE_URL" ]; then printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env; fi
-          if [ ! -z "$SHADOW_DATABASE_URL" ]; then printf "SHADOW_DATABASE_URL=%s\n" "$SHADOW_DATABASE_URL" >> .env; fi
+          if [ ! -z "$DATABASE_URL" ]; then printf 'DATABASE_URL="%s"\n' "$DATABASE_URL" >> .env; fi
+          if [ ! -z "$SHADOW_DATABASE_URL" ]; then printf 'SHADOW_DATABASE_URL="%s"\n' "$SHADOW_DATABASE_URL" >> .env; fi
           printf "\n" >> .env;
 
           # Certification email

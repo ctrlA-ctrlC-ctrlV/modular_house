@@ -43,6 +43,7 @@ COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 WORKDIR /app/apps/api
 
-EXPOSE 3000
+# API runs on port 8080 by default (see config/env.ts)
+EXPOSE 8080
 
 CMD ["node", "dist/server.js"]

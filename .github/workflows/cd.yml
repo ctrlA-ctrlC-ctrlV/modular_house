@@ -78,24 +78,89 @@ jobs:
       - name: Create .env file
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SHADOW_DATABASE_URL: ${{secrets.SHADOW_DATABASE_URL}}
           ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_SECURE: ${{ secrets.MAIL_SECURE }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_FROM_NAME: ${{ secrets.MAIL_FROM_NAME }}
+          MAIL_FROM_EMAIL: ${{ secrets.MAIL_FROM_EMAIL }}
+          MAIL_INTERNAL_TO: ${{ secrets.MAIL_INTERNAL_TO }}
+          CUSTOMER_CONFIRM_ENABLED: ${{ secrets.CUSTOMER_CONFIRM_ENABLED }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN}}
+          PASSWORD_SALT_ROUNDS: ${{ secrets.PASSWORD_SALT_ROUNDS }}
+          IP_SALT: ${{ secrets.IP_SALT }}
+          ROBOTS_ALLOW: ${{ secrets.ROBOTS_ALLOW }}
+          ADMIN_LOGIN_EMAIL: ${{ secrets.ADMIN_LOGIN_EMAIL }}
+          ADMIN_LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
           REPO_OWNER: ${{ env.REPO_OWNER }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
+          # Create local .env
           touch .env
+
+          # Database secrets
+          printf "# Database secrets\n" >> .env;
           if [ ! -z "$DATABASE_URL" ]; then printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env; fi
+          if [ ! -z "$SHADOW_DATABASE_URL" ]; then printf "SHADOW_DATABASE_URL=%s\n" "$SHADOW_DATABASE_URL" >> .env; fi
+          printf "\n" >> .env;
+
+          # Certification email
+          printf "# Certification email\n" >> .env;
           if [ ! -z "$ACME_EMAIL" ]; then printf "ACME_EMAIL=%s\n" "$ACME_EMAIL" >> .env; fi
+          printf "\n" >> .env;
+
+          # URL and API URL configuration
+          printf "# URL and API URL configuration\n" >> .env;
           if [ ! -z "$DOMAIN_NAME" ]; then 
-          printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env;
-          printf "VITE_API_BASE_URL=https://${{ secrets.DOMAIN_NAME }}/api\n" >> .env;
+            printf "DOMAIN_NAME=%s\n" "$DOMAIN_NAME" >> .env;
+            printf "VITE_API_BASE_URL=https://${{ secrets.DOMAIN_NAME }}/api\n" >> .env;
+            printf "CORS_ORIGIN=https://%s,https://www.%s\n" "$DOMAIN_NAME" "$DOMAIN_NAME" >> .env;
           fi
+          printf "\n" >> .env;
+
+          # ghcr configuration
+          printf "# ghcr configuration\n" >> .env;
           printf "GITHUB_USER_NAME=%s\n" "$REPO_OWNER" >> .env
           printf "IMAGE_TAG=%s\n" "$GITHUB_SHA" >> .env
-          if [ ! -z "$DOMAIN_NAME" ]; then
-            printf "CORS_ORIGIN=https://%s,https://www.%s\n" "$DOMAIN_NAME" "$DOMAIN_NAME" >> .env
-          fi
+          printf "\n" >> .env;
+          
+          # Mail configuration
+          printf "# Mail configuration\n" >> .env;
+          if [ ! -z "$MAIL_HOST" ]; then printf "MAIL_HOST=%s\n" "$MAIL_HOST" >> .env; fi
+          if [ ! -z "$MAIL_PORT" ]; then printf "MAIL_PORT=%s\n" "$MAIL_PORT" >> .env; fi
+          if [ ! -z "$MAIL_SECURE" ]; then printf "MAIL_SECURE=%s\n" "$MAIL_SECURE" >> .env; fi
+          if [ ! -z "$MAIL_USER" ]; then printf "MAIL_USER=%s\n" "$MAIL_USER" >> .env; fi
+          if [ ! -z "$MAIL_PASS" ]; then printf "MAIL_PASS=%s\n" "$MAIL_PASS" >> .env; fi
+          if [ ! -z "$MAIL_FROM_NAME" ]; then printf "MAIL_FROM_NAME=%s\n" "$MAIL_FROM_NAME" >> .env; fi
+          if [ ! -z "$MAIL_FROM_EMAIL" ]; then printf "MAIL_FROM_EMAIL=%s\n" "$MAIL_FROM_EMAIL" >> .env; fi
+          if [ ! -z "$MAIL_INTERNAL_TO" ]; then printf "MAIL_INTERNAL_TO=%s\n" "$MAIL_INTERNAL_TO" >> .env; fi
+          if [ ! -z "$CUSTOMER_CONFIRM_ENABLED" ]; then printf "CUSTOMER_CONFIRM_ENABLED=%s\n" "$CUSTOMER_CONFIRM_ENABLED" >> .env; fi
+          printf "\n" >> .env;
 
+          # Security configuration
+          printf "# Security configuration\n" >> .env;
+          if [ ! -z "$JWT_SECRET" ]; then printf "JWT_SECRET=%s\n" "$JWT_SECRET" >> .env; fi
+          if [ ! -z "$JWT_EXPIRES_IN" ]; then printf "JWT_EXPIRES_IN=%s\n" "$JWT_EXPIRES_IN" >> .env; fi
+          if [ ! -z "$PASSWORD_SALT_ROUNDS" ]; then printf "PASSWORD_SALT_ROUNDS=%s\n" "$PASSWORD_SALT_ROUNDS" >> .env; fi
+          if [ ! -z "$IP_SALT" ]; then printf "IP_SALT=%s\n" "$IP_SALT" >> .env; fi
+          printf "\n" >> .env;
+
+          # SEO & Robots
+          printf "# SEO & Robots\n" >> .env;
+          if [ ! -z "$ROBOTS_ALLOW" ]; then printf "ROBOTS_ALLOW=%s\n" "$ROBOTS_ALLOW" >> .env; fi
+          printf "\n" >> .env;
+
+          # Admin login configuration
+          printf "# Admin login configuration\n" >> .env;
+          if [ ! -z "$ADMIN_LOGIN_EMAIL" ]; then printf "ADMIN_LOGIN_EMAIL=%s\n" "$ADMIN_LOGIN_EMAIL" >> .env; fi
+          if [ ! -z "$ADMIN_LOGIN_PASSWORD" ]; then printf "ADMIN_LOGIN_PASSWORD=%s\n" "$ADMIN_LOGIN_PASSWORD" >> .env; fi
+          printf "\n" >> .env;
+          
       - name: Create App Directory
         uses: appleboy/ssh-action@v1.2.0
         with:

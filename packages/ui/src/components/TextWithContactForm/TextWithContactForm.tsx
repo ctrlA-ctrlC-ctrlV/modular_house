@@ -1,8 +1,11 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { contactFormSchema, ContactFormData } from './TextWithContactForm.schema';
+import { textContactFormSchema, type TextContactFormData } from './TextWithContactForm.schema';
 import './TextWithContactForm.css';
+
+// Re-export the form data type for consumers
+export type { TextContactFormData } from './TextWithContactForm.schema';
 
 export interface ContactInfo {
   address?: string;
@@ -30,7 +33,7 @@ export interface TextWithContactFormProps {
   /**
    * Callback when form is submitted
    */
-  onSubmit?: (data: ContactFormData) => Promise<void> | void;
+  onSubmit?: (data: TextContactFormData) => Promise<void> | void;
   /**
    * Whether the form is currently submitting
    */
@@ -84,16 +87,17 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
     handleSubmit,
     formState: { errors, isSubmitting: formIsSubmitting },
     reset
-  } = useForm<ContactFormData>({
-    resolver: zodResolver(contactFormSchema),
+  } = useForm<TextContactFormData>({
+    resolver: zodResolver(textContactFormSchema),
     defaultValues: {
-      gdprConsent: false
+      gdprConsent: false,
+      website: ''
     }
   });
 
   const isSubmitting = externalIsSubmitting || formIsSubmitting;
 
-  const onFormSubmit = async (data: ContactFormData) => {
+  const onFormSubmit = async (data: TextContactFormData) => {
     if (onSubmit) {
       await onSubmit(data);
       if (!submissionError) {
@@ -218,9 +222,9 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
                     )}
                   </div>
 
-                  <div className="form-group form-group-full">
+                  <div className="form-group">
                     <label htmlFor="address" className="form-label">
-                      First Line Address <span className="required-asterisk">*</span>
+                      First Line Address
                     </label>
                     <input
                       id="address"
@@ -237,7 +241,7 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
 
                   <div className="form-group">
                     <label htmlFor="eircode" className="form-label">
-                      Eircode <span className="required-asterisk">*</span>
+                      Eircode
                     </label>
                     <input
                       id="eircode"
@@ -250,6 +254,37 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
                     {errors.eircode && (
                       <span className="form-error-message" role="alert">{errors.eircode.message}</span>
                     )}
+                  </div>
+
+                  <div className="form-group form-group-full">
+                    <label htmlFor="preferredProduct" className="form-label">
+                      Preferred Product
+                    </label>
+                    <select
+                      id="preferredProduct"
+                      className={`form-input ${errors.preferredProduct ? 'border-red-500' : ''}`}
+                      aria-invalid={errors.preferredProduct ? "true" : "false"}
+                      {...register("preferredProduct")}
+                    >
+                      <option value="">Select a product</option>
+                      <option value="Garden Room">Garden Room</option>
+                      <option value="House Extension">House Extension</option>
+                    </select>
+                    {errors.preferredProduct && (
+                      <span className="form-error-message" role="alert">{errors.preferredProduct.message}</span>
+                    )}
+                  </div>
+
+                  {/* Honeypot field - hidden from users, catches bots */}
+                  <div className="form-group" style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+                    <label htmlFor="website">Website</label>
+                    <input
+                      id="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      {...register("website")}
+                    />
                   </div>
 
                   <div className="form-group form-group-full">

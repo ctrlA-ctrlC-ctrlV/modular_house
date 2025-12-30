@@ -151,17 +151,4 @@ if (config.app.nodeEnv === 'production') {
   if (config.admin.adminPassword === 'admin123!') {
     throw new Error('ADMIN_LOGIN_PASSWORD must be changed from default value in production');
   }
-  // Validate SMTP configuration in production
-  if (!config.mail.user || !config.mail.pass) {
-    console.warn(
-      '[Config] WARNING: MAIL_USER or MAIL_PASS not configured in production. ' +
-      'Email sending may fail if SMTP server requires authentication.'
-    );
-  }
-  if (!config.mail.host) {
-    throw new Error('MAIL_HOST must be configured in production for email notifications');
-  }
-  if (!config.mail.internalTo) {
-    throw new Error('MAIL_INTERNAL_TO must be configured in production for internal notifications');
-  }
 }

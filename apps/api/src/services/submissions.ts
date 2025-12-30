@@ -1,7 +1,7 @@
 import { PrismaClient, Submission, Prisma } from '@prisma/client';
 import { logger } from '../middleware/logger.js';
-import { SubmissionPayload, EmailLog } from '../types/submission.js';
-import { mailer } from './mailer.js';
+import { SubmissionPayload, EmailLog, EmailResultLog } from '../types/submission.js';
+import { mailer, EmailResult } from './mailer.js';
 import { config } from '../config/env.js';
 
 // Initialize Prisma client
@@ -275,13 +275,40 @@ export class SubmissionsService {
   }
 
   /**
+   * Convert mailer result to email result log format
+   */
+  private static toEmailResultLog(
+    result: EmailResult, 
+    status: 'success' | 'failure' | 'not-sent' = result.success ? 'success' : 'failure'
+  ): EmailResultLog {
+    return {
+      status,
+      reason: result.error,
+      sentAt: result.timestamp.toISOString(),
+      attempts: result.attempt,
+      messageId: result.messageId,
+    };
+  }
+
+  /**
    * Send internal notification email for a submission
    */
-  static async sendInternalNotification(submission: Submission): Promise<{
-    status: 'success' | 'failure';
-    reason?: string;
-  }> {
+  static async sendInternalNotification(submission: Submission): Promise<EmailResultLog> {
     try {
+      // Check if mailer is ready
+      const isReady = await mailer.ensureReady();
+      if (!isReady) {
+        logger.warn({
+          submissionId: submission.id,
+        }, 'Mailer not ready - SMTP connection may be misconfigured');
+        
+        return {
+          status: 'failure',
+          reason: 'SMTP connection not available',
+          attempts: 0,
+        };
+      }
+
       const payload = submission.payload as SubmissionPayload;
       
       const subject = `New Enquiry from ${payload.firstName} ${payload.lastName || ''}`.trim();
@@ -379,7 +406,7 @@ export class SubmissionsService {
           attempts: result.attempt,
         }, 'Internal notification email sent successfully');
         
-        return { status: 'success' };
+        return this.toEmailResultLog(result);
       } else {
         logger.warn({
           submissionId: submission.id,
@@ -387,10 +414,7 @@ export class SubmissionsService {
           attempts: result.attempt,
         }, 'Internal notification email failed');
         
-        return {
-          status: 'failure',
-          reason: result.error || 'Unknown error',
-        };
+        return this.toEmailResultLog(result);
       }
 
     } catch (error) {
@@ -403,6 +427,7 @@ export class SubmissionsService {
       return {
         status: 'failure',
         reason: error instanceof Error ? error.message : 'Unknown error',
+        attempts: 0,
       };
     }
   }
@@ -410,10 +435,7 @@ export class SubmissionsService {
   /**
    * Send customer confirmation email (if enabled)
    */
-  static async sendCustomerConfirmation(submission: Submission): Promise<{
-    status: 'success' | 'failure';
-    reason?: string;
-  } | null> {
+  static async sendCustomerConfirmation(submission: Submission): Promise<EmailResultLog | null> {
     // Check if customer confirmation is enabled
     if (!config.app.customerConfirmEnabled) {
       logger.info({
@@ -423,6 +445,20 @@ export class SubmissionsService {
     }
 
     try {
+      // Check if mailer is ready
+      const isReady = await mailer.ensureReady();
+      if (!isReady) {
+        logger.warn({
+          submissionId: submission.id,
+        }, 'Mailer not ready for customer confirmation - SMTP connection may be misconfigured');
+        
+        return {
+          status: 'failure',
+          reason: 'SMTP connection not available',
+          attempts: 0,
+        };
+      }
+
       const payload = submission.payload as SubmissionPayload;
       
       const subject = 'Thank you for your enquiry - Modular House';
@@ -497,7 +533,7 @@ export class SubmissionsService {
           attempts: result.attempt,
         }, 'Customer confirmation email sent successfully');
         
-        return { status: 'success' };
+        return this.toEmailResultLog(result);
       } else {
         logger.warn({
           submissionId: submission.id,
@@ -506,10 +542,7 @@ export class SubmissionsService {
           attempts: result.attempt,
         }, 'Customer confirmation email failed');
         
-        return {
-          status: 'failure',
-          reason: result.error || 'Unknown error',
-        };
+        return this.toEmailResultLog(result);
       }
 
     } catch (error) {
@@ -522,6 +555,7 @@ export class SubmissionsService {
       return {
         status: 'failure',
         reason: error instanceof Error ? error.message : 'Unknown error',
+        attempts: 0,
       };
     }
   }
@@ -542,23 +576,18 @@ export class SubmissionsService {
     // Send customer confirmation (optional, based on config)
     const customerResult = await this.sendCustomerConfirmation(submission);
 
-    // Build email log
+    const duration = Date.now() - startTime;
+
+    // Build email log with proper structure
     const emailLog: EmailLog = {
-      internal: {
-        status: internalResult.status,
-        reason: internalResult.reason,
-        sentAt: new Date().toISOString(),
-      },
-      attempts: 1,
+      internal: internalResult,
+      processedAt: new Date().toISOString(),
+      totalDurationMs: duration,
     };
 
-    // Add customer email result if enabled
+    // Add customer email result if enabled and sent
     if (customerResult) {
-      emailLog.customer = {
-        status: customerResult.status,
-        reason: customerResult.reason,
-        sentAt: new Date().toISOString(),
-      };
+      emailLog.customer = customerResult;
     }
 
     // Update submission with email log
@@ -577,12 +606,12 @@ export class SubmissionsService {
       }, 'Failed to persist email log to database, but email processing completed');
     }
 
-    const duration = Date.now() - startTime;
-
     logger.info({
       submissionId: submission.id,
       internalStatus: internalResult.status,
+      internalAttempts: internalResult.attempts,
       customerStatus: customerResult?.status || 'not-sent',
+      customerAttempts: customerResult?.attempts || 0,
       duration_ms: duration,
     }, 'Submission email processing completed');
   }

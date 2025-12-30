@@ -55,19 +55,23 @@ export const submissionPayloadSchema = enquirySubmissionSchema.omit({ website: t
 
 export type SubmissionPayload = z.infer<typeof submissionPayloadSchema>;
 
-// Email logging structure
+/** Schema for individual email result in the log */
+export const emailResultSchema = z.object({
+  status: z.enum(['success', 'failure', 'not-sent']),
+  reason: z.string().optional(),
+  sentAt: z.string().datetime().optional(),
+  attempts: z.number().int().min(0).default(0),
+  messageId: z.string().optional(),
+});
+
+export type EmailResultLog = z.infer<typeof emailResultSchema>;
+
+/** Email logging structure for tracking all email outcomes */
 export const emailLogSchema = z.object({
-  internal: z.object({
-    status: z.enum(['success', 'failure']),
-    reason: z.string().optional(),
-    sentAt: z.string().datetime()
-  }),
-  customer: z.object({
-    status: z.enum(['success', 'failure']),
-    reason: z.string().optional(),
-    sentAt: z.string().datetime()
-  }).optional(),
-  attempts: z.number().int().min(0).default(0)
+  internal: emailResultSchema,
+  customer: emailResultSchema.optional(),
+  processedAt: z.string().datetime(),
+  totalDurationMs: z.number().int().min(0).optional(),
 });
 
 export type EmailLog = z.infer<typeof emailLogSchema>;

@@ -3,6 +3,21 @@ import type { Transporter, SendMailOptions } from 'nodemailer';
 import { config } from '../config/env.js';
 import { logger } from '../middleware/logger.js';
 
+/** Maximum retry attempts for transient email failures */
+const MAX_RETRY_ATTEMPTS = 3;
+
+/** Base delay for exponential backoff (milliseconds) */
+const RETRY_BASE_DELAY_MS = 2000;
+
+/** SMTP connection timeout (milliseconds) */
+const CONNECTION_TIMEOUT_MS = 10000;
+
+/** SMTP greeting timeout (milliseconds) */
+const GREETING_TIMEOUT_MS = 10000;
+
+/** Socket inactivity timeout (milliseconds) */
+const SOCKET_TIMEOUT_MS = 30000;
+
 export interface EmailOptions {
   to: string;
   subject: string;
@@ -21,57 +36,126 @@ export interface EmailResult {
 
 export class MailerService {
   private transporter: Transporter;
+  private isReady: boolean = false;
+  private verificationPromise: Promise<void>;
 
   constructor() {
+    const hasAuth = !!(config.mail.user && config.mail.pass);
+    
+    if (!hasAuth) {
+      logger.warn(
+        'SMTP authentication not configured (MAIL_USER or MAIL_PASS missing). ' +
+        'Email sending may fail if the SMTP server requires authentication.'
+      );
+    }
+
     this.transporter = nodemailer.createTransport({
       host: config.mail.host,
       port: config.mail.port,
       secure: config.mail.secure,
-      auth: config.mail.user && config.mail.pass ? {
+      auth: hasAuth ? {
         user: config.mail.user,
         pass: config.mail.pass,
       } : undefined,
       pool: true,
       maxConnections: 5,
       maxMessages: 100,
+      connectionTimeout: CONNECTION_TIMEOUT_MS,
+      greetingTimeout: GREETING_TIMEOUT_MS,
+      socketTimeout: SOCKET_TIMEOUT_MS,
     });
 
-    // Verify connection configuration on startup (async, non-blocking)
-    // In development, SMTP might not be available - log but don't block startup
-    this.verifyConnection().catch((err) => {
-      logger.warn({ error: err }, 'SMTP connection verification skipped - email sending may fail');
+    // Store verification promise for readiness checks
+    this.verificationPromise = this.verifyConnection();
+    
+    // Non-blocking - allow server to start
+    this.verificationPromise.catch(() => {
+      // Error already logged in verifyConnection
     });
   }
 
+  /**
+   * Verify SMTP connection. Returns true if successful.
+   */
   private async verifyConnection(): Promise<void> {
     try {
       await this.transporter.verify();
-      logger.info('SMTP connection verified successfully');
+      this.isReady = true;
+      logger.info({
+        host: config.mail.host,
+        port: config.mail.port,
+        secure: config.mail.secure,
+        hasAuth: !!(config.mail.user && config.mail.pass),
+      }, 'SMTP connection verified successfully');
     } catch (error) {
-      // Log but don't throw - allow server to start without SMTP
-      logger.warn({ error }, 'SMTP connection verification failed - email sending will not work');
+      this.isReady = false;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error({
+        error: errorMessage,
+        host: config.mail.host,
+        port: config.mail.port,
+      }, 'SMTP connection verification failed - email sending will not work');
+      throw error;
     }
+  }
+
+  /**
+   * Wait for SMTP connection to be ready (or fail)
+   */
+  async ensureReady(): Promise<boolean> {
+    try {
+      await this.verificationPromise;
+      return this.isReady;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check if transporter is ready to send emails
+   */
+  get ready(): boolean {
+    return this.isReady;
   }
 
   private shouldRetry(error: unknown): boolean {
     if (!error || typeof error !== 'object') return false;
     
-    const nodeMailError = error as { responseCode?: number; response?: string };
+    const nodeMailError = error as { 
+      responseCode?: number; 
+      response?: string;
+      code?: string;
+    };
     
     // Retry on 5xx server errors
     if (nodeMailError.responseCode && nodeMailError.responseCode >= 500 && nodeMailError.responseCode < 600) {
       return true;
     }
 
-    // Retry on connection/timeout errors
+    // Retry on connection/timeout/network errors
+    const retryableCodes = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'ESOCKET'];
+    if (nodeMailError.code && retryableCodes.includes(nodeMailError.code)) {
+      return true;
+    }
+
+    // Retry on response-based errors
     if (nodeMailError.response) {
       const errorString = nodeMailError.response.toLowerCase();
       return errorString.includes('timeout') || 
              errorString.includes('connection') || 
-             errorString.includes('network');
+             errorString.includes('network') ||
+             errorString.includes('temporarily');
     }
 
     return false;
+  }
+
+  /**
+   * Calculate exponential backoff delay
+   */
+  private getRetryDelay(attempt: number): number {
+    // Exponential backoff: 2s, 4s, 8s, etc.
+    return RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
   }
 
   private async sendWithRetry(mailOptions: SendMailOptions, attempt: number = 1): Promise<EmailResult> {
@@ -81,7 +165,8 @@ export class MailerService {
       logger.info({ 
         to: mailOptions.to, 
         subject: mailOptions.subject, 
-        attempt 
+        attempt,
+        maxAttempts: MAX_RETRY_ATTEMPTS,
       }, 'Attempting to send email');
 
       const info = await this.transporter.sendMail(mailOptions);
@@ -111,20 +196,23 @@ export class MailerService {
         to: mailOptions.to,
         subject: mailOptions.subject,
         attempt,
+        maxAttempts: MAX_RETRY_ATTEMPTS,
         duration_ms: duration,
       }, 'Email send failed');
 
-      // Retry logic: only retry once on 5xx errors
-      if (attempt === 1 && this.shouldRetry(error)) {
+      // Retry logic: retry up to MAX_RETRY_ATTEMPTS on transient errors
+      if (attempt < MAX_RETRY_ATTEMPTS && this.shouldRetry(error)) {
+        const delay = this.getRetryDelay(attempt);
         logger.warn({
           to: mailOptions.to,
           subject: mailOptions.subject,
           error: errorMessage,
-        }, 'Retrying email send due to server error');
+          nextAttempt: attempt + 1,
+          delayMs: delay,
+        }, 'Retrying email send due to transient error');
 
-        // Wait 2 seconds before retry
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return this.sendWithRetry(mailOptions, 2);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.sendWithRetry(mailOptions, attempt + 1);
       }
 
       return {

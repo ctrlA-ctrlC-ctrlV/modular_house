@@ -178,50 +178,7 @@ jobs:
           if [ ! -z "$ADMIN_LOGIN_EMAIL" ]; then printf "ADMIN_LOGIN_EMAIL=%s\n" "$ADMIN_LOGIN_EMAIL" >> .env; fi
           if [ ! -z "$ADMIN_LOGIN_PASSWORD" ]; then printf "ADMIN_LOGIN_PASSWORD=%s\n" "$ADMIN_LOGIN_PASSWORD" >> .env; fi
           printf "\n" >> .env;
-
-      - name: Verify .env file created
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          debug: true
-          script: |
-            cd /app || exit 1
-            
-            echo "=== .env file verification ==="
-            if [ -f .env ]; then
-              echo ".env file exists with $(wc -l < .env) lines"
-              
-              # Show structure without values
-              echo "=== Environment variables present: ==="
-              grep -E "^[A-Z_]+=" .env | cut -d= -f1 | sort
-              
-              # Verify DATABASE_URL format in the file
-              echo "=== DATABASE_URL verification: ==="
-              if grep -q "^DATABASE_URL=" .env; then
-                # We use parameter expansion ${var#*=} to safely handle passwords containing '='
-                DB_LINE=$(grep "^DATABASE_URL=" .env)
-                DB_FULL_VAL="${DB_LINE#*=}"
-                DB_URL_PREFIX=$(echo "$DB_FULL_VAL" | cut -c1-15)
-                
-                echo "DATABASE_URL starts with: ${DB_URL_PREFIX}..."
-                
-                if echo "$DB_URL_PREFIX" | grep -qE "^postgres"; then
-                  echo "✓ DATABASE_URL format looks correct"
-                else
-                  echo "✗ DATABASE_URL may have incorrect format"
-                  echo "First 30 chars: $(echo "$DB_FULL_VAL" | cut -c1-30)"
-                fi
-              else
-                echo "::error::DATABASE_URL not found in .env file!"
-                exit 1
-              fi
-            else
-              echo "::error::.env file was NOT created!"
-              exit 1
-            fi
-
+     
       - name: Create App Directory
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -249,22 +206,38 @@ jobs:
           debug: true
           script: |
             set -e
-            cd ~/app
+            cd ~/app || exit 1
             echo "=== Files in ~/app ==="
-            ls -la
-            if [ ! -f .env ]; then
-              echo "::error::.env file missing on server!"
-              exit 1
-            fi
-            echo "=== .env exists with $(wc -l < .env) lines ==="
-            
-            # Debug: Check DATABASE_URL format on server
-            echo "=== DATABASE_URL check on server ==="
-            if grep -q "^DATABASE_URL=" .env; then
-              DB_PREFIX=$(grep "^DATABASE_URL=" .env | cut -d= -f2 | cut -c1-20)
-              echo "DATABASE_URL starts with: ${DB_PREFIX}..."
+            if [ -f .env ]; then
+              echo ".env file exists with $(wc -l < .env) lines"
+              
+              # Show structure without values
+              echo "=== Environment variables present: ==="
+              grep -E "^[A-Z_]+=" .env | cut -d= -f1 | sort
+              
+              # Verify DATABASE_URL format in the file
+              echo "=== DATABASE_URL verification: ==="
+              if grep -q "^DATABASE_URL=" .env; then
+                # We use parameter expansion ${var#*=} to safely handle passwords containing '='
+                DB_LINE=$(grep "^DATABASE_URL=" .env)
+                DB_FULL_VAL="${DB_LINE#*=}"
+                DB_URL_PREFIX=$(echo "$DB_FULL_VAL" | cut -c1-15)
+                
+                echo "DATABASE_URL starts with: ${DB_URL_PREFIX}..."
+                
+                if echo "$DB_URL_PREFIX" | grep -qE "^postgres"; then
+                  echo "DATABASE_URL format looks correct"
+                else
+                  echo "DATABASE_URL may have incorrect format"
+                  echo "First 30 chars: $(echo "$DB_FULL_VAL" | cut -c1-30)"
+                fi
+              else
+                echo "::error::DATABASE_URL not found in .env file!"
+                exit 1
+              fi
             else
-              echo "WARNING: DATABASE_URL not found in .env"
+              echo "::error::.env file was NOT created!"
+              exit 1
             fi
 
       - name: Deploy via SSH

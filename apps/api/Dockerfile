@@ -21,8 +21,17 @@ RUN pnpm install --frozen-lockfile
 WORKDIR /app/apps/api
 RUN pnpm db:generate
 
-# Build
+# Build TypeScript
 RUN pnpm build
+
+# Verify build output exists
+RUN if [ ! -f dist/server.js ]; then \
+      echo "ERROR: Build failed - dist/server.js not found!" && \
+      echo "Contents of apps/api:" && ls -la && \
+      echo "Contents of dist (if exists):" && ls -la dist 2>/dev/null || echo "dist folder does not exist" && \
+      exit 1; \
+    fi && \
+    echo "Build successful - dist/server.js exists"
 
 # Production image
 FROM node:20-alpine AS runner
@@ -42,6 +51,15 @@ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 WORKDIR /app/apps/api
+
+# Verify dist was copied correctly
+RUN if [ ! -f dist/server.js ]; then \
+      echo "ERROR: dist/server.js not found in runner stage!" && \
+      echo "Contents of /app/apps/api:" && ls -la && \
+      echo "Contents of dist (if exists):" && ls -la dist 2>/dev/null || echo "dist folder missing" && \
+      exit 1; \
+    fi && \
+    echo "Runner stage: dist/server.js verified"
 
 # API runs on port 8080 by default (see config/env.ts)
 EXPOSE 8080

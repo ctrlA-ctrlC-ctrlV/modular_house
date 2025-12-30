@@ -6,13 +6,12 @@
     "allowImportingTsExtensions": false,
     "noEmit": false,
     "outDir": "./dist",
+    "rootDir": "./src",
     "jsx": "preserve",
     "types": ["node"]
   },
   "include": [
-    "src/**/*", 
-    "scripts/**/*", 
-    "prisma/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules", 

@@ -101,7 +101,13 @@ jobs:
         run: |
           # Create local .env
           touch .env
-          
+
+          # Runtime configuration
+          printf "# Runtime configuration\n" >> .env;
+          printf "NODE_ENV=production\n" >> .env;
+          printf "PORT=8080\n" >> .env;
+          printf "\n" >> .env;
+
           # Database secrets
           printf "# Database secrets\n" >> .env;
           if [ ! -z "$DATABASE_URL" ]; then printf "DATABASE_URL=%s\n" "$DATABASE_URL" >> .env; fi
@@ -160,12 +166,6 @@ jobs:
           if [ ! -z "$ADMIN_LOGIN_PASSWORD" ]; then printf "ADMIN_LOGIN_PASSWORD=%s\n" "$ADMIN_LOGIN_PASSWORD" >> .env; fi
           printf "\n" >> .env;
 
-          # Runtime configuration - Critical for production
-          printf "# Runtime configuration\n" >> .env;
-          printf "NODE_ENV=production\n" >> .env;
-          printf "PORT=8080\n" >> .env;
-          printf "\n" >> .env;
-
       - name: Verify .env file created
         run: |
           echo "=== .env file contents (redacted) ==="
@@ -219,6 +219,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          debug: true
           script: |
             set -e
             cd ~/app

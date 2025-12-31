@@ -1,65 +1,130 @@
+/**
+ * ContactFormWithImageBg.css
+ * 
+ * Stylesheet for the ContactFormWithImageBg component.
+ * This component displays a contact form overlaid on a full-width background image.
+ * 
+ * Layout Structure:
+ * - Outer container (.contact-form-split-section) provides the background image
+ * - Inner card (.contact-form-card) contains the form and sits on the right side
+ * 
+ * Responsive Behavior:
+ * - Desktop: Form card aligned to the right with percentage-based padding
+ * - Mobile: Form card centered with full width
+ */
+
+/* ===========================================================================
+   Main Container Section
+   
+   The outer wrapper that holds the background image and positions the form.
+   Uses flexbox to align the form card to the right side of the container.
+   =========================================================================== */
 .contact-form-split-section {
   position: relative;
   min-height: 800px;
   display: flex;
-  /* Changed from center to flex-end to push form to right */
+  /* Align form card to the right side on desktop */
   justify-content: flex-end; 
-  align-items: center; /* Vertically center the form */
-  padding: 30px 10%; /* Add % padding to keep it off the extreme edge */
+  /* Vertically center the form card within the container */
+  align-items: center;
+  /* Horizontal padding uses percentage for responsive spacing from edges */
+  padding: 30px 10%;
+  /* Background image properties for full coverage */
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
+  /* Typography foundation for the section */
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* ===========================================================================
+   Form Card Container
+   
+   The white card that contains the form elements.
+   Positioned over the background image with subtle shadow for depth.
+   =========================================================================== */
 .contact-form-card {
   background-color: #ffffff;
   padding: 50px 40px;
   width: 100%;
-  max-width: 480px; /* Slightly narrower to match screenshot */
-  box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-  border-radius: 4px; /* Slight rounding on the card itself */
+  /* Constrain maximum width to maintain form readability */
+  max-width: 480px;
+  /* Subtle shadow for visual separation from background */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
 }
 
+/* ===========================================================================
+   Form Heading
+   
+   The title displayed above the form fields.
+   Uses a serif font for visual contrast with body text.
+   =========================================================================== */
 .contact-form-heading {
   margin-bottom: 25px;
   font-size: 2rem;
   line-height: 1.2;
   font-weight: 700;
   color: #1a1a1a;
-  /* Screenshot uses a serif font for the heading */
+  /* Serif font provides elegant contrast with form inputs */
   font-family: 'Georgia', 'Times New Roman', serif; 
 }
 
+/* ===========================================================================
+   Form Input Wrapper
+   
+   Container for each form field providing consistent vertical spacing.
+   =========================================================================== */
 .mf-input-wrapper {
   margin-bottom: 15px;
 }
 
-/* New class for the split row */
+/* ===========================================================================
+   Split Row Layout
+   
+   Used for displaying two input fields side by side (e.g., First Name, Surname).
+   Switches to stacked layout on mobile devices.
+   =========================================================================== */
 .form-row-split {
   display: flex;
   gap: 15px;
 }
 
+/* Half-width input container within a split row */
 .mf-input-half {
   flex: 1;
 }
 
+/* ===========================================================================
+   Base Input Styling
+   
+   Shared styles for all text inputs, selects, and textareas.
+   Provides consistent appearance and interaction states.
+   =========================================================================== */
 .mf-input {
   box-sizing: border-box;
   width: 100%;
   padding: 12px 15px;
   border: 1px solid #e5e5e5;
-  background-color: #fff; /* Screenshot looks pure white input */
+  background-color: #ffffff;
   font-size: 0.95rem;
-  color: #333;
+  color: #333333;
   outline: none;
-  border-radius: 4px; /* Rounded corners for inputs */
+  border-radius: 4px;
+  /* Smooth transition for focus state */
   transition: all 0.3s ease;
 }
 
+/* ===========================================================================
+   Select Dropdown Styling
+   
+   Custom styling for select elements including a custom dropdown arrow.
+   Removes default browser appearance for consistent cross-browser look.
+   =========================================================================== */
 .mf-select {
+  /* Remove default browser select appearance */
   appearance: none;
+  /* Custom dropdown arrow using inline SVG */
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat;
   background-position: right 15px top 50%;
@@ -67,97 +132,153 @@
   cursor: pointer;
 }
 
+/* ===========================================================================
+   Input Focus State
+   
+   Visual feedback when an input field is focused.
+   Border color changes to brand accent for clear indication.
+   =========================================================================== */
 .mf-input:focus {
-  border-color: #bf5e2e; /* Highlight color matches button */
-  background-color: #fff;
+  /* Brand accent color for focus highlight */
+  border-color: #bf5e2e;
+  background-color: #ffffff;
 }
 
+/* ===========================================================================
+   Textarea Specific Styling
+   
+   Additional styles for the message textarea field.
+   =========================================================================== */
 .mf-textarea {
-  min-height: 100px; /* Slightly shorter to fit everything */
+  /* Minimum height to ensure adequate input space */
+  min-height: 100px;
+  /* Allow vertical resizing only to maintain layout */
   resize: vertical;
 }
 
+/* ===========================================================================
+   Checkbox Option Styling
+   
+   Layout and styling for the GDPR consent checkbox and label.
+   =========================================================================== */
 .mf-checkbox-option label {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   cursor: pointer;
   font-size: 0.85rem;
-  color: #888;
+  color: #888888;
 }
 
+/* Checkbox input sizing within the label layout */
 .mf-checkbox-input {
   width: auto;
+  /* Slight top margin to align with first line of text */
   margin-top: 2px;
 }
 
+/* ===========================================================================
+   Consent Link Styling
+   
+   Styling for the privacy policy link within the consent text.
+   =========================================================================== */
 .consent-link {
-  color: #bf5e2e; /* Match screenshot link color */
+  /* Brand accent color for link visibility */
+  color: #bf5e2e;
   text-decoration: none;
 }
+
 .consent-link:hover {
   text-decoration: underline;
 }
 
+/* ===========================================================================
+   Submit Button Container
+   
+   Wrapper for the submit button with top margin for spacing.
+   =========================================================================== */
 .mf-btn-wraper {
   margin-top: 20px;
 }
 
+/* ===========================================================================
+   Submit Button Styling
+   
+   Primary call-to-action button styling with brand colors.
+   Full width to match form field appearance.
+   =========================================================================== */
 .metform-submit-btn {
-  /* Updated to Burnt Orange from screenshot */
+  /* Brand burnt orange color */
   background-color: #bf5e2e; 
   color: #ffffff;
   border: none;
   padding: 15px 40px;
   font-size: 1rem;
   font-weight: 600;
-  text-transform: capitalize; /* Screenshot is not uppercase */
+  text-transform: capitalize;
   border-radius: 4px;
   cursor: pointer;
+  /* Smooth transition for hover effects */
   transition: all 0.3s ease;
+  /* Full width button */
   width: 100%;
 }
 
+/* Submit button hover state with darker shade and subtle lift effect */
 .metform-submit-btn:hover {
   background-color: #a64d24;
   transform: translateY(-1px);
 }
 
+/* ===========================================================================
+   Responsive Styles - Mobile Devices
+   
+   Adjustments for screens 768px and below.
+   Form card centers horizontally and stacks split rows vertically.
+   =========================================================================== */
 @media (max-width: 768px) {
+  /* Adjust container for mobile layout */
   .contact-form-split-section {
     min-height: auto;
     padding: 60px 20px;
-    justify-content: center; /* Center on mobile */
+    /* Center form card on mobile */
+    justify-content: center;
     align-items: center;
   }
 
+  /* Adjust input width to account for padding */
   .mf-input {
     width: 93%;
   }
   
+  /* Form card takes full available width on mobile */
   .contact-form-card {
     padding: 30px 20px;
     max-width: 100%;
   }
   
+  /* Stack split row inputs vertically on mobile */
   .form-row-split {
     flex-direction: column;
     gap: 0;
   }
   
+  /* Add bottom margin to stacked inputs for spacing */
   .mf-input-wrapper.form-row-split .mf-input-half {
     margin-bottom: 15px;
   }
 
+  /* Adjust checkbox layout for mobile */
   .mf-checkbox-option label {
     display: flex;
     align-items: flex-start;
     gap: 5px;
     cursor: pointer;
     font-size: 0.85rem;
-    color: #888;
+    color: #888888;
   }
 
+  /* Maintain checkbox sizing on mobile */
   .mf-checkbox-input {
     width: auto;
     margin-top: 2px;

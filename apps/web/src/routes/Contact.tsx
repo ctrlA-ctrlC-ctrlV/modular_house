@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Seo } from '@modular-house/ui';
 import { TextWithContactForm, type TextContactFormData } from '@modular-house/ui';
 import { apiClient } from '../lib/apiClient';
+import { useHeaderConfig } from '../components/HeaderContext';
 
 function Contact() {
+  const { setHeaderConfig } = useHeaderConfig();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
+  // Configure header for light variant on this page
+  useEffect(() => {
+    setHeaderConfig({ variant: 'light', positionOver: false });
+    
+    // Reset to defaults when leaving this page
+    return () => {
+      setHeaderConfig({ variant: 'dark', positionOver: true });
+    };
+  }, [setHeaderConfig]);
 
   const handleContactSubmit = async (data: TextContactFormData): Promise<void> => {
     setIsSubmitting(true);

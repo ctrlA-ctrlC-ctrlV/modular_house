@@ -319,6 +319,135 @@
 }
 
 /* ==========================================
+   Variant: Light
+   
+   The "light" variant is designed for pages with light or white backgrounds.
+   It applies a light (white) background to the header and uses dark (black)
+   text for navigation links, ensuring proper contrast and readability.
+   
+   Use this variant on pages such as Contact or other content pages
+   that do not feature a dark hero image behind the header.
+   ========================================== */
+.header--light {
+  background-color: #ffffff;
+}
+
+/* When the header is positioned over content, remove the background
+   to allow the page content to show through. */
+.header--light.header--position-over {
+  background-color: transparent;
+}
+
+/* Navigation link styling for light variant uses dark text. */
+.header--light .header__menu-link {
+  color: #1a1a1a;
+}
+
+/* Hover state changes link color to the brand accent color. */
+.header--light .header__menu-link:hover {
+  color: var(--header-accent);
+}
+
+/* Dropdown chevron icon uses dark fill for visibility on light backgrounds. */
+.header--light .header__dropdown-icon {
+  fill: #1a1a1a;
+}
+
+/* Mobile hamburger menu toggle uses dark color for light backgrounds. */
+.header--light .header__mobile-toggle {
+  color: #1a1a1a;
+}
+
+/* Submenu dropdown panel styling for light variant. */
+.header--light .header__submenu {
+  background-color: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Submenu link text color for light variant. */
+.header--light .header__submenu-link {
+  color: #333333;
+}
+
+/* Submenu link hover state with subtle background highlight. */
+.header--light .header__submenu-link:hover {
+  background-color: #f5f5f5;
+  color: var(--header-accent);
+}
+
+/* Light variant does not apply logo inversion filter.
+   The logo file itself should be dark (black) for proper contrast. */
+.header--light .header__logo-image {
+  filter: none;
+}
+
+/* ==========================================
+   Variant: Dark (Default)
+   
+   The "dark" variant is designed for pages with dark backgrounds
+   or hero sections with background images. It applies a dark (black)
+   background to the header and uses light (white) text for navigation
+   links, ensuring proper contrast against dark imagery.
+   
+   This is the default variant used on landing pages and pages
+   featuring full-width hero images.
+   ========================================== */
+.header--dark {
+  background-color: #010101;
+}
+
+/* When the header is positioned over content (e.g., hero images),
+   the background becomes transparent to overlay the content seamlessly. */
+.header--dark.header--position-over {
+  background-color: transparent;
+}
+
+/* Navigation link styling for dark variant uses light (white) text. */
+.header--dark .header__menu-link {
+  color: #fefefe;
+}
+
+/* Hover state changes link color to the brand accent color. */
+.header--dark .header__menu-link:hover {
+  color: var(--header-accent);
+}
+
+/* Dropdown chevron icon uses light fill for visibility on dark backgrounds. */
+.header--dark .header__dropdown-icon {
+  fill: #fefefe;
+}
+
+/* Mobile hamburger menu toggle uses light color for dark backgrounds. */
+.header--dark .header__mobile-toggle {
+  color: #fefefe;
+}
+
+/* Submenu dropdown panel styling for dark variant.
+   Uses a light background to ensure readability of submenu items. */
+.header--dark .header__submenu {
+  background-color: #1a1a1a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Submenu link text color for dark variant dropdown. */
+.header--dark .header__submenu-link {
+  color: #cccccc;
+}
+
+/* Submenu link hover state with subtle background highlight. */
+.header--dark .header__submenu-link:hover {
+  background-color: #333333;
+  color: var(--header-accent);
+}
+
+/* Dark variant applies an inversion filter to the logo image.
+   This converts a dark logo to white for visibility on dark backgrounds.
+   The logo file should be dark (black), and this filter inverts it. */
+.header--dark .header__logo-image {
+  filter: brightness(0) invert(1);
+}
+
+/* ==========================================
    Animations
    ========================================== */
 @keyframes fadeIn {

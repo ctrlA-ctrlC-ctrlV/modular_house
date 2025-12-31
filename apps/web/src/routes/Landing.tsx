@@ -12,9 +12,21 @@ import {
   MasonryGallery,
   Seo
 } from '@modular-house/ui'
-
+import { useHeaderConfig } from '../components/HeaderContext';
+import { useEffect } from 'react';
 
 function Landing() {
+  // Configure header for dark variant on hero pages
+  const { setHeaderConfig } = useHeaderConfig();
+  useEffect(() => {
+    setHeaderConfig({ variant: 'dark', positionOver: true });
+    
+    return () => {
+      setHeaderConfig({ variant: 'dark', positionOver: true });
+    };
+  }, [setHeaderConfig]);
+  
+  // SEO orgnization schema
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',

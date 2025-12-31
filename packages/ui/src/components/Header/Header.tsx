@@ -16,6 +16,13 @@ export interface SocialLink {
   url: string;
 }
 
+/**
+ * Header visual variant for different page contexts.
+ * - 'dark': White text on dark/transparent background (default, for hero sections)
+ * - 'light': Black text on light/white background (for standard pages)
+ */
+export type HeaderVariant = 'dark' | 'light';
+
 export interface HeaderProps {
   /** Logo image source */
   logoSrc: string;
@@ -35,6 +42,8 @@ export interface HeaderProps {
   socialLinks?: SocialLink[];
   /** Toggles transparent background absolute positioning */
   positionOver?: boolean;
+  /** Visual variant: 'dark' (white text) or 'light' (black text). Defaults to 'dark'. */
+  variant?: HeaderVariant;
 }
 
 /**
@@ -53,6 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
   ctaHref,
   //socialLinks = [],
   positionOver = false,
+  variant = 'dark',
 }) => {
   // State for mobile menu toggle
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -65,8 +75,16 @@ export const Header: React.FC<HeaderProps> = ({
     setActiveSubmenu(activeSubmenu === index ? null : index);
   };
 
+  // Build class names based on props
+  const headerClasses = [
+    'header',
+    'c-header',
+    positionOver ? 'header--position-over' : '',
+    variant === 'light' ? 'header--light' : 'header--dark',
+  ].filter(Boolean).join(' ');
+
   return (
-    <header className={`header c-header ${positionOver ? 'header--position-over' : ''}`}>
+    <header className={headerClasses}>
       <div className="header__container">
         
         {/* ==========================================

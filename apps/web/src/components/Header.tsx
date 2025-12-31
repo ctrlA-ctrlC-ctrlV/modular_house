@@ -1,16 +1,40 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 // Assuming 'Header' is the named export from your UI library based on the previous file
-import { Header as UIHeader, MenuItem } from '@modular-house/ui'
+import { Header as UIHeader, MenuItem, HeaderVariant } from '@modular-house/ui'
+
+// ===========================================================================
+// Types & Interfaces
+// ===========================================================================
+
+/**
+ * Props for the integration Header component.
+ * Allows page-level control of the header's visual appearance.
+ */
+export interface HeaderProps {
+  /**
+   * Visual variant controlling text and logo colors.
+   * - 'dark': White text with white logo (for pages with hero/dark backgrounds)
+   * - 'light': Black text with black logo (for pages with light/white backgrounds)
+   * @default 'dark'
+   */
+  variant?: HeaderVariant;
+  /**
+   * Whether the header should be positioned over content (transparent background).
+   * Typically used with hero sections.
+   * @default true
+   */
+  positionOver?: boolean;
+}
 
 /**
  * Integration Header Component
  * * Bridges the gap between the purely presentational UIHeader (from the component library)
  * and the application's routing logic (react-router-dom).
  */
-function Header() {
-  const navigate = useNavigate()
-  const headerRef = useRef<HTMLDivElement>(null)
+function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
+  const navigate = useNavigate();
+  const headerRef = useRef<HTMLDivElement>(null);
 
   // ===========================================================================
   // Configuration
@@ -27,7 +51,7 @@ function Header() {
     //{ label: 'Gallery', href: '/gallery' },
     //{ label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' }
-  ]
+  ];
 
   /**
    * Primary Call-to-Action (CTA) Configuration
@@ -40,12 +64,12 @@ function Header() {
 
   /**
    * Logo Configuration
-   * Using an SVG data URL for the text-based logo.
-   * Update: Changed fill to white (%23ffffff) to match the new dark theme.
+   * Dynamically selects logo based on variant prop.
+   * - 'dark' variant: Uses white logo for visibility on dark/image backgrounds
+   * - 'light' variant: Uses black logo for visibility on light backgrounds
    */
-  //const logoSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="180" height="28" viewBox="0 0 180 28"%3E%3Ctext x="0" y="20" font-family="Outfit" font-size="28" font-weight="SemiBold" fill="%23ffffff"%3EModular House%3C/text%3E%3C/svg%3E'
-  const logoSrc = "/logo_white.svg"
-  const logoSrcRetina = undefined
+  const logoSrc = variant === 'light' ? '/logo_black.svg' : '/logo_white.svg';
+  const logoSrcRetina = undefined;
 
   // ===========================================================================
   // Event Handlers
@@ -104,11 +128,8 @@ function Header() {
         logoAlt="Modular House"
         logoHref="/"
         menuItems={menuItems}
-        // New props for the refactored layout:
-        //ctaLabel={ctaConfig.label}
-        //ctaHref={ctaConfig.href}
-        // Ensures the header sits on top of hero images (transparent bg)
-        positionOver={true} 
+        variant={variant}
+        positionOver={positionOver}
       />
     </div>
   )

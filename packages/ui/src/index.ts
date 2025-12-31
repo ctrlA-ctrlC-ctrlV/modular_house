@@ -1,7 +1,7 @@
 // Placeholder UI package entry point
 import './styles/index.css';
 export const version = "0.15.0";
-export { Header, type MenuItem, type SocialLink, type HeaderProps } from './components/Header/Header';
+export { Header, type MenuItem, type SocialLink, type HeaderProps, type HeaderVariant } from './components/Header/Header';
 export * from './components/HeroWithSideText/HeroWithSideText';
 export * from './components/Footer/Footer';
 export * from './components/TrueFooter/TrueFooter';

@@ -19,9 +19,6 @@
 .header {
   position: relative;
   z-index: 1000;
-  /* Background color is intentionally NOT set here.
-     It is controlled by variant modifier classes (.header--light, .header--dark)
-     to ensure proper specificity and avoid override conflicts. */
   width: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -31,8 +28,6 @@
   top: 0;
   left: 0;
   right: 0;
-  /* Background is transparent when positioned over content.
-     This allows hero images or page content to show through. */
   background-color: transparent;
 }
 
@@ -335,7 +330,7 @@
    that do not feature a dark hero image behind the header.
    ========================================== */
 .header--light {
-  background-color: #fefefe;
+  background-color: var(--header-bg-light);
 }
 
 /* When the header is positioned over content, remove the background

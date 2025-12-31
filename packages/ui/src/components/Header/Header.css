@@ -19,7 +19,9 @@
 .header {
   position: relative;
   z-index: 1000;
-  background-color: var(--header-bg);
+  /* Background color is intentionally NOT set here.
+     It is controlled by variant modifier classes (.header--light, .header--dark)
+     to ensure proper specificity and avoid override conflicts. */
   width: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -29,7 +31,9 @@
   top: 0;
   left: 0;
   right: 0;
-  background-color: transparent; /* Assuming content behind is dark, or use a semi-transparent black */
+  /* Background is transparent when positioned over content.
+     This allows hero images or page content to show through. */
+  background-color: transparent;
 }
 
 .header__container {
@@ -330,13 +334,13 @@
    Use this variant on pages such as Contact or other content pages
    that do not feature a dark hero image behind the header.
    ========================================== */
-.header--light {
+.header.header--light {
   background-color: var(--header-bg-light);
 }
 
 /* When the header is positioned over content, remove the background
    to allow the page content to show through. */
-.header--light.header--position-over {
+.header.header--light.header--position-over {
   background-color: transparent;
 }
 
@@ -394,13 +398,13 @@
    This is the default variant used on landing pages and pages
    featuring full-width hero images.
    ========================================== */
-.header--dark {
-  background-color: var(--header-bg);
+.header.header--dark {
+  background-color: var(--header-bg-dark);
 }
 
 /* When the header is positioned over content (e.g., hero images),
    the background becomes transparent to overlay the content seamlessly. */
-.header--dark.header--position-over {
+.header.header--dark.header--position-over {
   background-color: transparent;
 }
 

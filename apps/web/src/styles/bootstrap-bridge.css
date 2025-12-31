@@ -1,0 +1,783 @@
+/**
+ * Bootstrap 5 Bridge Stylesheet
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * This stylesheet serves as the central styling layer that bridges Bootstrap 5
+ * utility classes with the project's brand design tokens. It resolves styling
+ * conflicts between the shared UI library (`packages/ui`) and the web application
+ * (`apps/web`) by establishing a single source of truth for design tokens.
+ * 
+ * ARCHITECTURE:
+ * The file follows the Open-Closed Principle: it is open for extension via
+ * CSS custom properties but closed for modification of core Bootstrap behavior.
+ * Consumers can override tokens without altering this file directly.
+ * 
+ * IMPORT ORDER (in consuming application):
+ * 1. Bootstrap 5 CSS (base framework)
+ * 2. This bridge file (token mapping and overrides)
+ * 3. Component-specific styles (if any)
+ * 
+ * COMPATIBILITY:
+ * - Bootstrap 5.x
+ * - Modern browsers supporting CSS Custom Properties (CSS Variables)
+ * - React 18 with standard DOM event handling
+ * 
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: FONT IMPORTS
+   -----------------------------------------------------------------------------
+   External font resources required by the brand typography system.
+   Libre Baskerville provides the editorial serif aesthetic for headings.
+   Inter provides the clean sans-serif for body text and UI elements.
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* =============================================================================
+   SECTION 2: BRAND DESIGN TOKENS (ROOT CUSTOM PROPERTIES)
+   -----------------------------------------------------------------------------
+   These CSS custom properties define the brand's visual language. All values
+   are derived from the brand-color.css and typography.css specifications.
+   
+   TOKEN NAMING CONVENTION:
+   - `--brand-*`: Brand-specific tokens (colors, shadows, gradients)
+   - `--font-*`: Typography family tokens
+   - `--text-*`: Typography scale tokens (font sizes)
+   - `--weight-*`: Font weight tokens
+   - `--tracking-*`: Letter spacing tokens
+   - `--bs-*`: Bootstrap 5 override tokens (maps brand to Bootstrap)
+   ============================================================================= */
+
+:root {
+  /* -------------------------------------------------------------------------
+     2.1 TYPOGRAPHY: FONT FAMILIES
+     ------------------------------------------------------------------------- */
+  
+  /** Primary sans-serif stack for body text, UI elements, and buttons */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /** Serif stack for headings and editorial content */
+  --font-serif: 'Libre Baskerville', serif;
+
+  /* -------------------------------------------------------------------------
+     2.2 TYPOGRAPHY: TYPE SCALE (FLUID SIZING)
+     ------------------------------------------------------------------------- 
+     Uses CSS clamp() for fluid typography that scales between viewport sizes.
+     This eliminates the need for breakpoint-specific font size overrides.
+     */
+  
+  /** Display heading (H1): scales from 2rem to 3.5rem based on viewport */
+  --text-display: clamp(2rem, 5vw, 3.5rem);
+  
+  /** Large heading (H2): scales from 1.75rem to 2.5rem */
+  --text-heading-l: clamp(1.75rem, 4vw, 2.5rem);
+  
+  /** Medium heading (H3): fixed at 1.5rem */
+  --text-heading-m: 1.5rem;
+  
+  /** Small heading (H4): fixed at 1.25rem */
+  --text-heading-s: 1.25rem;
+  
+  /** Large body text for introductions and lead paragraphs */
+  --text-body-lg: 1.125rem;
+  
+  /** Standard body text size */
+  --text-body: 1rem;
+  
+  /** Caption and helper text */
+  --text-caption: 0.875rem;
+  
+  /** Tiny text for labels, eyebrows, and metadata */
+  --text-tiny: 0.75rem;
+
+  /* -------------------------------------------------------------------------
+     2.3 TYPOGRAPHY: FONT WEIGHTS
+     ------------------------------------------------------------------------- */
+  
+  /** Light weight for modern, airy text appearance */
+  --weight-light: 300;
+  
+  /** Regular weight for standard body text */
+  --weight-regular: 400;
+  
+  /** Medium weight for emphasis and UI elements */
+  --weight-medium: 500;
+  
+  /** Semibold weight for strong emphasis */
+  --weight-semibold: 600;
+
+  /* -------------------------------------------------------------------------
+     2.4 TYPOGRAPHY: LETTER SPACING
+     ------------------------------------------------------------------------- */
+  
+  /** Tight tracking for elegant, compact headings */
+  --tracking-tight: -0.02em;
+  
+  /** Wide tracking for uppercase labels and eyebrow text */
+  --tracking-wide: 0.12em;
+
+  /* -------------------------------------------------------------------------
+     2.5 BRAND COLORS: CORE PALETTE
+     ------------------------------------------------------------------------- 
+     These colors form the brand's neutral and elegant aesthetic.
+     */
+  
+  /** Primary ink color for main text content */
+  --brand-ink: #1a1a1a;
+  
+  /** Secondary slate color for body text */
+  --brand-slate: #555555;
+  
+  /** Tertiary stone color for metadata and labels */
+  --brand-stone: #888888;
+  
+  /** Border color for dividers and input fields */
+  --brand-border: #e0e0e0;
+
+  /* -------------------------------------------------------------------------
+     2.6 BRAND COLORS: THEME PALETTE
+     ------------------------------------------------------------------------- 
+     Extended color palette from the WordPress theme specification.
+     */
+  
+  /** Standard palette colors */
+  --brand-black: #000000;
+  --brand-white: #fefefe;
+  --brand-cyan-bluish-gray: #abb8c3;
+  --brand-pale-pink: #f78da7;
+  --brand-vivid-red: #cf2e2e;
+  --brand-luminous-vivid-orange: #ff6900;
+  --brand-luminous-vivid-amber: #fcb900;
+  --brand-light-green-cyan: #7bdcb5;
+  --brand-vivid-green-cyan: #00d084;
+  --brand-pale-cyan-blue: #8ed1fc;
+  --brand-vivid-cyan-blue: #0693e3;
+  --brand-vivid-purple: #9b51e0;
+
+  /* -------------------------------------------------------------------------
+     2.7 BRAND COLORS: THEME-SPECIFIC SEMANTIC COLORS
+     ------------------------------------------------------------------------- */
+  
+  /** Primary background color */
+  --brand-bg-primary: #FEFEFE;
+  
+  /** Secondary/alternate background color */
+  --brand-bg-secondary: #F6F5F0;
+  
+  /** Border/divider color from theme */
+  --brand-bd-color: #E5E7DE;
+  
+  /** Title and heading color */
+  --brand-title: #121414;
+  
+  /** Metadata and secondary text color */
+  --brand-meta: #ACAFB2;
+  
+  /** Link color (primary action) */
+  --brand-link: #B55329;
+  
+  /** Link hover state color */
+  --brand-link-hover: #9F4017;
+
+  /* -------------------------------------------------------------------------
+     2.8 BRAND GRADIENTS
+     ------------------------------------------------------------------------- 
+     Pre-defined gradient values for decorative and accent purposes.
+     */
+  
+  --gradient-cyan-purple: linear-gradient(135deg, rgb(6, 147, 227) 0%, rgb(155, 81, 224) 100%);
+  --gradient-green-cyan: linear-gradient(135deg, rgb(122, 220, 180) 0%, rgb(0, 208, 130) 100%);
+  --gradient-amber-orange: linear-gradient(135deg, rgb(252, 185, 0) 0%, rgb(255, 105, 0) 100%);
+  --gradient-orange-red: linear-gradient(135deg, rgb(255, 105, 0) 0%, rgb(207, 46, 46) 100%);
+  --gradient-gray-bluish: linear-gradient(135deg, rgb(238, 238, 238) 0%, rgb(169, 184, 195) 100%);
+  --gradient-cool-warm: linear-gradient(135deg, rgb(74, 234, 220) 0%, rgb(151, 120, 209) 20%, rgb(207, 42, 186) 40%, rgb(238, 44, 130) 60%, rgb(251, 105, 98) 80%, rgb(254, 248, 76) 100%);
+  --gradient-blush-purple: linear-gradient(135deg, rgb(255, 206, 236) 0%, rgb(152, 150, 240) 100%);
+  --gradient-blush-bordeaux: linear-gradient(135deg, rgb(254, 205, 165) 0%, rgb(254, 45, 45) 50%, rgb(107, 0, 62) 100%);
+  --gradient-luminous-dusk: linear-gradient(135deg, rgb(255, 203, 112) 0%, rgb(199, 81, 192) 50%, rgb(65, 88, 208) 100%);
+  --gradient-pale-ocean: linear-gradient(135deg, rgb(255, 245, 203) 0%, rgb(182, 227, 212) 50%, rgb(51, 167, 181) 100%);
+  --gradient-electric-grass: linear-gradient(135deg, rgb(202, 248, 128) 0%, rgb(113, 206, 126) 100%);
+  --gradient-midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
+  --gradient-link-vertical: linear-gradient(to bottom, var(--brand-link) 0%, var(--brand-link-hover) 100%);
+  --gradient-link-diagonal: linear-gradient(to bottom right, var(--brand-link) 0%, var(--brand-link-hover) 100%);
+
+  /* -------------------------------------------------------------------------
+     2.9 BRAND SHADOWS
+     ------------------------------------------------------------------------- 
+     Elevation and depth effects for cards, modals, and interactive elements.
+     */
+  
+  /** Natural shadow with soft diffusion */
+  --shadow-natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
+  
+  /** Deep shadow for elevated elements */
+  --shadow-deep: 12px 12px 50px rgba(0, 0, 0, 0.4);
+  
+  /** Sharp shadow with no blur */
+  --shadow-sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);
+  
+  /** Outlined shadow with white border effect */
+  --shadow-outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);
+  
+  /** Crisp shadow with solid black offset */
+  --shadow-crisp: 6px 6px 0px rgb(0, 0, 0);
+
+  /* -------------------------------------------------------------------------
+     2.10 ASPECT RATIOS
+     ------------------------------------------------------------------------- 
+     Common aspect ratio values for responsive media containers.
+     */
+  
+  --aspect-square: 1;
+  --aspect-4-3: 4 / 3;
+  --aspect-3-4: 3 / 4;
+  --aspect-3-2: 3 / 2;
+  --aspect-2-3: 2 / 3;
+  --aspect-16-9: 16 / 9;
+  --aspect-9-16: 9 / 16;
+
+  /* -------------------------------------------------------------------------
+     2.11 BOOTSTRAP 5 VARIABLE OVERRIDES
+     ------------------------------------------------------------------------- 
+     These mappings integrate brand tokens with Bootstrap's theming system.
+     Bootstrap components will automatically use these values.
+     */
+  
+  /** Bootstrap primary color mapped to brand link color */
+  --bs-primary: var(--brand-link);
+  --bs-primary-rgb: 181, 83, 41;
+  
+  /** Bootstrap secondary color mapped to brand slate */
+  --bs-secondary: var(--brand-slate);
+  --bs-secondary-rgb: 85, 85, 85;
+  
+  /** Bootstrap body text color */
+  --bs-body-color: var(--brand-ink);
+  --bs-body-color-rgb: 26, 26, 26;
+  
+  /** Bootstrap body background */
+  --bs-body-bg: var(--brand-bg-primary);
+  --bs-body-bg-rgb: 255, 255, 255;
+  
+  /** Bootstrap link colors */
+  --bs-link-color: var(--brand-link);
+  --bs-link-color-rgb: 181, 83, 41;
+  --bs-link-hover-color: var(--brand-link-hover);
+  --bs-link-hover-color-rgb: 159, 64, 23;
+  
+  /** Bootstrap font family overrides */
+  --bs-body-font-family: var(--font-sans);
+  --bs-font-sans-serif: var(--font-sans);
+  
+  /** Bootstrap border color */
+  --bs-border-color: var(--brand-border);
+  
+  /** Bootstrap danger color mapped to vivid red */
+  --bs-danger: var(--brand-vivid-red);
+  --bs-danger-rgb: 207, 46, 46;
+  
+  /** Bootstrap success color mapped to vivid green */
+  --bs-success: var(--brand-vivid-green-cyan);
+  --bs-success-rgb: 0, 208, 132;
+  
+  /** Bootstrap warning color mapped to vivid amber */
+  --bs-warning: var(--brand-luminous-vivid-amber);
+  --bs-warning-rgb: 252, 185, 0;
+  
+  /** Bootstrap info color mapped to vivid cyan blue */
+  --bs-info: var(--brand-vivid-cyan-blue);
+  --bs-info-rgb: 6, 147, 227;
+}
+
+/* =============================================================================
+   SECTION 3: BASE ELEMENT RESETS
+   -----------------------------------------------------------------------------
+   Foundational styles that normalize element appearance and apply brand
+   typography. These rules establish the baseline visual treatment.
+   ============================================================================= */
+
+/**
+ * Document root styles
+ * Sets up the primary font stack and ensures consistent text rendering
+ * across different operating systems and browsers.
+ */
+html {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--brand-ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/**
+ * Body element reset
+ * Ensures full viewport coverage and applies brand background.
+ */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--brand-bg-primary);
+  color: var(--brand-ink);
+  font-family: var(--font-sans);
+}
+
+/**
+ * Heading styles (H1-H6)
+ * Applies the serif font family for editorial elegance.
+ * Note: Font weight is intentionally set to regular for a refined appearance.
+ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-regular);
+  color: var(--brand-title);
+  margin-top: 0;
+  margin-bottom: 0.75em;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.25;
+}
+
+h1 { font-size: var(--text-display); }
+h2 { font-size: var(--text-heading-l); }
+h3 { font-size: var(--text-heading-m); }
+h4 { font-size: var(--text-heading-s); }
+h5 { font-size: var(--text-body-lg); }
+h6 { font-size: var(--text-body); }
+
+/**
+ * Paragraph styles
+ * Uses light weight for a modern, clean aesthetic with appropriate
+ * color contrast for readability.
+ */
+p {
+  margin-bottom: 1.5em;
+  font-weight: var(--weight-light);
+  color: var(--brand-slate);
+}
+
+/**
+ * Anchor (link) styles
+ * Applies brand link colors with smooth transition for hover states.
+ */
+a {
+  color: var(--brand-link);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--brand-link-hover);
+}
+
+/* =============================================================================
+   SECTION 4: BOOTSTRAP 5 CLASS EXTENSIONS
+   -----------------------------------------------------------------------------
+   Custom utility classes that extend Bootstrap's class system with brand-
+   specific behaviors. These follow Bootstrap's naming conventions for
+   consistency and developer familiarity.
+   ============================================================================= */
+
+/* -------------------------------------------------------------------------
+   4.1 TYPOGRAPHY UTILITY CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Brand Eyebrow Text
+ * Small uppercase text used above headings for categorization or labeling.
+ * Usage: <span class="text-eyebrow">Category</span>
+ */
+.text-eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-weight: var(--weight-medium);
+  color: var(--brand-stone);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/**
+ * Display Text Size Classes
+ * Extends Bootstrap's display classes with brand typography.
+ */
+.text-display {
+  font-family: var(--font-serif);
+  font-size: var(--text-display);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+
+/**
+ * Lead Text
+ * Larger body text for introductions and key paragraphs.
+ */
+.text-lead {
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-light);
+  color: var(--brand-slate);
+  line-height: 1.7;
+}
+
+/**
+ * Caption Text
+ * Smaller text for captions, footnotes, and helper text.
+ */
+.text-caption {
+  font-size: var(--text-caption);
+  color: var(--brand-stone);
+}
+
+/**
+ * Serif Font Utility
+ * Applies the serif font family to any element.
+ */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/**
+ * Sans Font Utility
+ * Applies the sans-serif font family to any element.
+ */
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* -------------------------------------------------------------------------
+   4.2 COLOR UTILITY CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Brand Color Text Classes
+ * Apply brand colors to text content.
+ */
+.text-brand-ink { color: var(--brand-ink); }
+.text-brand-slate { color: var(--brand-slate); }
+.text-brand-stone { color: var(--brand-stone); }
+.text-brand-link { color: var(--brand-link); }
+.text-brand-title { color: var(--brand-title); }
+.text-brand-meta { color: var(--brand-meta); }
+
+/**
+ * Brand Background Color Classes
+ * Apply brand colors as backgrounds.
+ */
+.bg-brand-primary { background-color: var(--brand-bg-primary); }
+.bg-brand-secondary { background-color: var(--brand-bg-secondary); }
+.bg-brand-ink { background-color: var(--brand-ink); }
+
+/**
+ * Brand Border Color Classes
+ * Apply brand colors to borders.
+ */
+.border-brand { border-color: var(--brand-border); }
+.border-brand-bd { border-color: var(--brand-bd-color); }
+
+/* -------------------------------------------------------------------------
+   4.3 BUTTON COMPONENT CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Primary Brand Button
+ * The main call-to-action button style following brand guidelines.
+ * Usage: <button class="btn btn-brand-primary">Submit</button>
+ */
+.btn-brand-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8em 2em;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--brand-ink);
+  color: var(--brand-white);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-brand-primary:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+}
+
+.btn-brand-primary:focus-visible {
+  outline: 2px solid var(--brand-link);
+  outline-offset: 2px;
+}
+
+/**
+ * Secondary Brand Button
+ * Outlined variant for secondary actions.
+ * Usage: <button class="btn btn-brand-secondary">Cancel</button>
+ */
+.btn-brand-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8em 2em;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: transparent;
+  color: var(--brand-ink);
+  border: 1px solid var(--brand-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-brand-secondary:hover {
+  border-color: var(--brand-ink);
+  background-color: var(--brand-bg-secondary);
+}
+
+.btn-brand-secondary:focus-visible {
+  outline: 2px solid var(--brand-link);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   4.4 LINK COMPONENT CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Editorial Link Style
+ * Italic serif link with underline for editorial content.
+ * Usage: <a href="#" class="link-editorial">Read more</a>
+ */
+.link-editorial {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--brand-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--brand-border);
+  transition: border-color 0.2s ease;
+}
+
+.link-editorial:hover {
+  border-bottom-color: var(--brand-ink);
+  color: var(--brand-ink);
+}
+
+/* -------------------------------------------------------------------------
+   4.5 FORM INPUT CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Minimal Input Style
+ * Clean, underlined input field following brand aesthetics.
+ * Usage: <input type="text" class="form-control input-minimal" />
+ */
+.input-minimal {
+  width: 100%;
+  padding: 12px 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--brand-ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--brand-border);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input-minimal:focus {
+  border-bottom-color: var(--brand-ink);
+  box-shadow: none;
+}
+
+.input-minimal::placeholder {
+  color: var(--brand-stone);
+  font-weight: var(--weight-light);
+}
+
+/**
+ * Brand Form Control
+ * Standard bordered input with brand styling.
+ * Extends Bootstrap's .form-control class.
+ */
+.form-control-brand {
+  font-family: var(--font-sans);
+  color: var(--brand-ink);
+  border-color: var(--brand-border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control-brand:focus {
+  border-color: var(--brand-link);
+  box-shadow: 0 0 0 0.2rem rgba(181, 83, 41, 0.15);
+}
+
+/* -------------------------------------------------------------------------
+   4.6 CARD COMPONENT CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Brand Content Card
+ * Card container with brand-consistent styling.
+ * Usage: <div class="card card-brand">...</div>
+ */
+.card-brand {
+  background: var(--brand-bg-primary);
+  border: 1px solid var(--brand-bg-secondary);
+  border-radius: 4px;
+}
+
+.card-brand .card-body {
+  padding: 2rem;
+}
+
+.card-brand .card-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-m);
+  font-weight: var(--weight-regular);
+  color: var(--brand-title);
+  margin-bottom: 0.5rem;
+}
+
+/* -------------------------------------------------------------------------
+   4.7 SHADOW UTILITY CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Brand Shadow Classes
+ * Apply brand-defined shadow effects to elements.
+ */
+.shadow-brand-natural { box-shadow: var(--shadow-natural); }
+.shadow-brand-deep { box-shadow: var(--shadow-deep); }
+.shadow-brand-sharp { box-shadow: var(--shadow-sharp); }
+.shadow-brand-outlined { box-shadow: var(--shadow-outlined); }
+.shadow-brand-crisp { box-shadow: var(--shadow-crisp); }
+
+/* -------------------------------------------------------------------------
+   4.8 GRADIENT UTILITY CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Brand Gradient Background Classes
+ * Apply brand-defined gradients as backgrounds.
+ */
+.bg-gradient-cyan-purple { background: var(--gradient-cyan-purple); }
+.bg-gradient-green-cyan { background: var(--gradient-green-cyan); }
+.bg-gradient-amber-orange { background: var(--gradient-amber-orange); }
+.bg-gradient-orange-red { background: var(--gradient-orange-red); }
+.bg-gradient-midnight { background: var(--gradient-midnight); }
+.bg-gradient-link { background: var(--gradient-link-vertical); }
+.bg-gradient-link-diagonal { background: var(--gradient-link-diagonal); }
+
+/* -------------------------------------------------------------------------
+   4.9 ASPECT RATIO UTILITY CLASSES
+   ------------------------------------------------------------------------- */
+
+/**
+ * Aspect Ratio Container Classes
+ * Maintain consistent aspect ratios for media containers.
+ */
+.aspect-square { aspect-ratio: var(--aspect-square); }
+.aspect-4-3 { aspect-ratio: var(--aspect-4-3); }
+.aspect-3-4 { aspect-ratio: var(--aspect-3-4); }
+.aspect-3-2 { aspect-ratio: var(--aspect-3-2); }
+.aspect-2-3 { aspect-ratio: var(--aspect-2-3); }
+.aspect-16-9 { aspect-ratio: var(--aspect-16-9); }
+.aspect-9-16 { aspect-ratio: var(--aspect-9-16); }
+
+/* =============================================================================
+   SECTION 5: ACCESSIBILITY ENHANCEMENTS
+   -----------------------------------------------------------------------------
+   Focus states and accessibility utilities that ensure WCAG 2.1 AA compliance
+   while maintaining brand aesthetics.
+   ============================================================================= */
+
+/**
+ * Focus Visible States
+ * Consistent focus indicator using brand colors for keyboard navigation.
+ */
+*:focus-visible {
+  outline: 2px solid var(--brand-link);
+  outline-offset: 2px;
+}
+
+/**
+ * Remove default focus for mouse users while preserving keyboard focus.
+ */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/**
+ * Skip Link Accessibility Pattern
+ * Hidden link that becomes visible on focus for keyboard navigation.
+ */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--brand-ink);
+  color: var(--brand-white);
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+  z-index: 9999;
+  border-radius: 0 0 4px 4px;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid var(--brand-white);
+  outline-offset: -2px;
+}
+
+/* =============================================================================
+   SECTION 6: RESPONSIVE ADJUSTMENTS
+   -----------------------------------------------------------------------------
+   Breakpoint-specific overrides for typography and spacing.
+   Uses Bootstrap 5 breakpoint values for consistency.
+   ============================================================================= */
+
+/**
+ * Small devices (landscape phones, 576px and up)
+ */
+@media (min-width: 576px) {
+  .text-eyebrow {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/**
+ * Medium devices (tablets, 768px and up)
+ */
+@media (min-width: 768px) {
+  body {
+    font-size: calc(var(--text-body) * 1.05);
+  }
+}
+
+/**
+ * Large devices (desktops, 992px and up)
+ */
+@media (min-width: 992px) {
+  .btn-brand-primary,
+  .btn-brand-secondary {
+    padding: 0.9em 2.5em;
+  }
+}
+
+/* =============================================================================
+   END OF BOOTSTRAP BRIDGE STYLESHEET
+   ============================================================================= */

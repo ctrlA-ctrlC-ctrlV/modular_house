@@ -2,8 +2,20 @@ import React from 'react';
 import { Seo } from '@modular-house/ui';
 import { HeroBoldBottomText } from '@modular-house/ui';
 import { FullMassonryGallery } from '@modular-house/ui';
+import { useHeaderConfig } from '../components/HeaderContext';
+import { useEffect } from 'react';
 
 const HouseExtension: React.FC = () => {
+  // Configure header for dark variant on hero pages
+  const { setHeaderConfig } = useHeaderConfig();
+  useEffect(() => {
+    setHeaderConfig({ variant: 'dark', positionOver: true });
+    
+    return () => {
+      setHeaderConfig({ variant: 'dark', positionOver: true });
+    };
+  }, [setHeaderConfig]);
+
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',

@@ -2,7 +2,7 @@
    Variables & Theme
    ========================================== */
 :root {
-  --header-bg: #000;
+  --header-bg: #0d0d0d;
   --header-text: #fefefe;
   --header-text-hover: #cccccc;
   --header-accent: #B55329; /* Burnt Orange from screenshot/stories */
@@ -393,7 +393,7 @@
    featuring full-width hero images.
    ========================================== */
 .header--dark {
-  background-color: #010101;
+  background-color: var(--header-bg);
 }
 
 /* When the header is positioned over content (e.g., hero images),

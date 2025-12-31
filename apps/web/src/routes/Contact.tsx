@@ -4,7 +4,7 @@ import { TextWithContactForm, type TextContactFormData } from '@modular-house/ui
 import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
 
-function Contact() {
+function Contact() {  
   const { setHeaderConfig } = useHeaderConfig();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);

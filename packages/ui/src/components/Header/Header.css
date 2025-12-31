@@ -334,13 +334,13 @@
    Use this variant on pages such as Contact or other content pages
    that do not feature a dark hero image behind the header.
    ========================================== */
-.header.header--light {
-  background-color: var(--header-bg-light);
+.header--light {
+  background-color: #fefefe;
 }
 
 /* When the header is positioned over content, remove the background
    to allow the page content to show through. */
-.header.header--light.header--position-over {
+.header--light.header--position-over {
   background-color: transparent;
 }
 
@@ -398,13 +398,13 @@
    This is the default variant used on landing pages and pages
    featuring full-width hero images.
    ========================================== */
-.header.header--dark {
-  background-color: var(--header-bg-dark);
+.header--dark {
+  background-color: #0d0d0d;
 }
 
 /* When the header is positioned over content (e.g., hero images),
    the background becomes transparent to overlay the content seamlessly. */
-.header.header--dark.header--position-over {
+.header--dark.header--position-over {
   background-color: transparent;
 }
 

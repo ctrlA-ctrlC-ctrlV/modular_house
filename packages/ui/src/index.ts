@@ -1,5 +1,4 @@
 // Placeholder UI package entry point
-import './styles/index.css';
 export const version = "0.15.0";
 export { Header, type MenuItem, type SocialLink, type HeaderProps, type HeaderVariant } from './components/Header/Header';
 export * from './components/HeroWithSideText/HeroWithSideText';

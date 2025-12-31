@@ -1,17 +1,38 @@
 /**
- * Global typography dependencies for font-family and scale variables.
+ * HeroBoldBottomText Component Stylesheet
+ * 
+ * PURPOSE:
+ * Provides full-viewport hero section styling with bottom-aligned bold text.
+ * This component consumes brand design tokens from the central style.css
+ * file located in apps/web/src/styles/.
+ * 
+ * DEPENDENCIES:
+ * Requires style.css to be imported in the consuming application to ensure
+ * brand token availability (--font-sans, --font-serif, --weight-*, etc.).
  */
-@import '../../styles/typography.css';
 
 /* -------------------------------------------------------------------------- */
-/* Variables & Theming                                                        */
+/* SECTION 1: Component-Level Design Tokens                                   */
 /* -------------------------------------------------------------------------- */
+/*
+ * These variables bridge global brand tokens to component-specific naming.
+ * Consumers can override these without modifying brand tokens.
+ */
 :root {
-  --hero-color-white: #fefefe;
-  --hero-color-accent: #eebb54; /* Yellow for "secure and durable" */
-  --hero-color-button: #AF522D; /* Rust/Orange for button */
-  --hero-color-button-hover: #8B4513;
+  /* Text color using brand white token */
+  --hero-color-white: var(--brand-white, #fefefe);
+  
+  /* Accent color for highlighted text (uses brand amber) */
+  --hero-color-accent: var(--brand-luminous-vivid-amber, #eebb54);
+  
+  /* CTA button colors mapped to brand link colors */
+  --hero-color-button: var(--brand-link, #AF522D);
+  --hero-color-button-hover: var(--brand-link-hover, #8B4513);
+  
+  /* Overlay opacity for background image darkening */
   --hero-overlay-opacity: 0.4;
+  
+  /* Layout spacing token */
   --hero-padding: 60px;
 }
 

@@ -8,6 +8,7 @@ on:
       - '**-web-app-skeleton'
       - '**-template-skeleton-integration'
       - '**-ssl-traefik'
+      - '**-style-makeover'
   pull_request:
     branches:
       - main

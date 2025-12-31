@@ -115,15 +115,32 @@
   
   /** Tight tracking for elegant, compact headings */
   --tracking-tight: -0.02em;
+
+  /** Default, zero*/
+  --tracking-default: 0em;
   
   /** Wide tracking for uppercase labels and eyebrow text */
   --tracking-wide: 0.12em;
 
   /* -------------------------------------------------------------------------
-     2.5 BRAND COLORS: CORE PALETTE
-     ------------------------------------------------------------------------- 
-     These colors form the brand's neutral and elegant aesthetic.
-     */
+    2.5 TYPOGRAPHY: LINE HEIGHTS
+    ------------------------------------------------------------------------- */
+
+  /** Tight for headings where letters are large */
+  --lh-heading: 1.2;
+
+  /** Standard ratio for body text (WCAG 2.1 compliance) */
+  --lh-body: 1.5;
+
+  /** Relaxed for long-form content or light font weights */
+  --lh-article: 1.65;
+
+  /** Solid for single-line UI elements like buttons */
+  --lh-none: 1;
+
+  /* -------------------------------------------------------------------------
+     2.6 BRAND COLORS: CORE PALETTE
+     ------------------------------------------------------------------------- */
   
   /** Primary ink color for main text content */
   --brand-ink: #1a1a1a;
@@ -138,10 +155,8 @@
   --brand-border: #e0e0e0;
 
   /* -------------------------------------------------------------------------
-     2.6 BRAND COLORS: THEME PALETTE
-     ------------------------------------------------------------------------- 
-     Extended color palette from the WordPress theme specification.
-     */
+     2.7 BRAND COLORS: THEME PALETTE
+     ------------------------------------------------------------------------- */
   
   /** Standard palette colors */
   --brand-black: #000000;
@@ -158,7 +173,7 @@
   --brand-vivid-purple: #9b51e0;
 
   /* -------------------------------------------------------------------------
-     2.7 BRAND COLORS: THEME-SPECIFIC SEMANTIC COLORS
+     2.8 BRAND COLORS: THEME-SPECIFIC SEMANTIC COLORS
      ------------------------------------------------------------------------- */
   
   /** Primary background color */
@@ -183,7 +198,7 @@
   --brand-link-hover: #9F4017;
 
   /* -------------------------------------------------------------------------
-     2.8 BRAND GRADIENTS
+     2.9 BRAND GRADIENTS
      ------------------------------------------------------------------------- 
      Pre-defined gradient values for decorative and accent purposes.
      */
@@ -204,7 +219,7 @@
   --gradient-link-diagonal: linear-gradient(to bottom right, var(--brand-link) 0%, var(--brand-link-hover) 100%);
 
   /* -------------------------------------------------------------------------
-     2.9 BRAND SHADOWS
+     2.10 BRAND SHADOWS
      ------------------------------------------------------------------------- 
      Elevation and depth effects for cards, modals, and interactive elements.
      */
@@ -225,7 +240,7 @@
   --shadow-crisp: 6px 6px 0px rgb(0, 0, 0);
 
   /* -------------------------------------------------------------------------
-     2.10 ASPECT RATIOS
+     2.11 ASPECT RATIOS
      ------------------------------------------------------------------------- 
      Common aspect ratio values for responsive media containers.
      */
@@ -239,7 +254,7 @@
   --aspect-9-16: 9 / 16;
 
   /* -------------------------------------------------------------------------
-     2.11 BOOTSTRAP 5 VARIABLE OVERRIDES
+     2.12 BOOTSTRAP 5 VARIABLE OVERRIDES
      ------------------------------------------------------------------------- 
      These mappings integrate brand tokens with Bootstrap's theming system.
      Bootstrap components will automatically use these values.

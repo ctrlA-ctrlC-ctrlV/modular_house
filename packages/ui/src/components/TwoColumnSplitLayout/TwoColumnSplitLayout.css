@@ -337,11 +337,11 @@
  * Uppercase with wide letter-spacing for emphasis.
  */
 .two-col-layout__subtitle {
-  font-size: var(--text-tiny, 0.875rem);
-  line-height: 1.25rem;
-  font-weight: var(--weight-semibold, 700);
+  font-size: var(--text-tiny);
+  line-height: var(--lh-none);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  letter-spacing: var(--tracking-wide, 0.05em);
+  letter-spacing: var(--tracking-wide);
   color: var(--two-col-text-subtitle);
   margin: 0;
 }
@@ -352,8 +352,9 @@
  */
 .two-col-layout__title {
   font-family: var(--font-serif);
-  font-size: var(--text-heading-l, 2.25rem);
-  font-weight: var(--weight-regular, 400);
+  font-size: var(--text-tiny);
+  line-height: var(--lh-article);
+  font-weight: var(--weight-regular);
   color: var(--two-col-text-heading);
   line-height: 1.25;
   margin: 0;

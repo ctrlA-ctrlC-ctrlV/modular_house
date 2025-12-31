@@ -1,5 +1,4 @@
-import { apiClient } from '../lib/apiClient'
-import '@modular-house/ui/style.css'
+import { apiClient } from '../lib/apiClient';
 import { 
   FeatureSection, 
   HeroWithSideText, 

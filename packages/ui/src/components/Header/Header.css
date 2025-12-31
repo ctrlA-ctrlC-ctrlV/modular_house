@@ -3,6 +3,8 @@
    ========================================== */
 :root {
   --header-bg: #0d0d0d;
+  --header-bg-light: #fefefe;
+  --header-bg-dark: #0d0d0d;
   --header-text: #fefefe;
   --header-text-hover: #cccccc;
   --header-accent: #B55329; /* Burnt Orange from screenshot/stories */
@@ -329,7 +331,7 @@
    that do not feature a dark hero image behind the header.
    ========================================== */
 .header--light {
-  background-color: #ffffff;
+  background-color: var(--header-bg-light);
 }
 
 /* When the header is positioned over content, remove the background

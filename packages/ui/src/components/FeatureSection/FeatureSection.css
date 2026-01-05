@@ -39,31 +39,31 @@
    * Primary background color for the section.
    * Maps to brand white for a clean, professional appearance.
    */
-  --feature-bg: var(--brand-bg-primary, #fefefe);
+  --feature-bg: var(--brand-bg-primary);
   
   /**
    * Primary text color for main content.
    * Uses brand ink color for optimal readability.
    */
-  --feature-text-primary: var(--brand-ink, #1a1a1a);
+  --feature-text-primary: var(--brand-ink);
   
   /**
    * Heading color for titles and main headings.
    * Uses brand title color for visual hierarchy.
    */
-  --feature-text-heading: var(--brand-title, #121414);
+  --feature-text-heading: var(--brand-title);
   
   /**
    * Secondary text color for body content.
    * Uses brand slate for comfortable reading.
    */
-  --feature-text-secondary: var(--brand-slate, #555555);
+  --feature-text-secondary: var(--brand-slate);
   
   /**
    * Tertiary text color for metadata and labels.
    * Uses brand stone for de-emphasized text elements.
    */
-  --feature-text-muted: var(--brand-stone, #888888);
+  --feature-text-muted: var(--brand-stone);
   
   /**
    * Description text color for feature items.
@@ -75,13 +75,13 @@
    * Icon accent color for feature icons.
    * Uses brand link color for visual consistency with CTAs.
    */
-  --feature-icon-color: var(--brand-link, #B55329);
+  --feature-icon-color: var(--brand-link);
   
   /**
    * Maximum container width for content area.
    * Constrains content for optimal readability on large screens.
    */
-  --feature-container-max-width: 1400px;
+  --feature-container-max-width: 1525px;
   
   /**
    * Vertical padding for the section.
@@ -110,9 +110,9 @@
 .feature-section {
   padding: var(--feature-padding-vertical) 0;
   background-color: var(--feature-bg);
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-sans);
   color: var(--feature-text-primary);
-  font-weight: var(--weight-regular, 400);
+  font-weight: var(--weight-regular);
 }
 
 /**
@@ -147,14 +147,13 @@
  * Uses uppercase transformation and wide letter-spacing for emphasis.
  */
 .feature-section__top-heading {
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
-  font-size: var(--text-tiny, 0.8125rem);
+  font-size: var(--text-caption);
+  line-height: var(--lh-none);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  line-height: 1em;
-  letter-spacing: var(--tracking-wide, 0.15em);
-  margin: 0;
-  font-weight: var(--weight-medium, 500);
+  letter-spacing: var(--tracking-wide);
   color: var(--feature-text-muted);
+  margin: 0;
 }
 
 
@@ -198,12 +197,12 @@
  * Uses serif font for editorial aesthetic with fluid typography.
  */
 .feature-section__main-heading {
-  font-family: var(--font-serif, 'Libre Baskerville', serif);
-  font-size: clamp(25px, 1.563rem + 1.751vw, 42px);
-  line-height: 1.25;
+  font-family: var(--font-serif);
+  font-size: var(--text-display);
+  line-height: var(--lh-tight);
   margin: 0;
-  font-weight: var(--weight-regular, 400);
-  letter-spacing: var(--tracking-tight, -0.02em);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-tight);
   color: var(--feature-text-heading);
 }
 
@@ -212,9 +211,11 @@
  * Uses lighter font weight for comfortable extended reading.
  */
 .feature-section__intro-text {
+  font-family: var(--font-sans);
   color: var(--feature-text-secondary);
-  line-height: 1.7;
-  font-weight: var(--weight-light, 300);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-light);
+  font-size: var(--text-body-lg);
 }
 
 /**
@@ -303,9 +304,9 @@
  * Uses serif font for consistency with section heading.
  */
 .feature-section__item-title {
-  font-family: var(--font-serif, 'Libre Baskerville', serif);
-  font-size: 22px;
-  font-weight: var(--weight-regular, 400);
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-m);
+  font-weight: var(--weight-regular);
   margin: 0 0 12px 0;
   color: var(--feature-text-heading);
 }
@@ -315,10 +316,11 @@
  * Uses lighter weight for comfortable reading at smaller size.
  */
 .feature-section__item-description {
-  font-size: var(--text-body, 1rem);
-  line-height: 1.6;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  line-height: var(--lh-body);
   color: var(--feature-text-description);
-  font-weight: var(--weight-light, 300);
+  font-weight: var(--weight-light);
   margin: 0;
 }
 

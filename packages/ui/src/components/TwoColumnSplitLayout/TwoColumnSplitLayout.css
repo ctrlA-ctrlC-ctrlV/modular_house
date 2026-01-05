@@ -39,13 +39,13 @@
    * Default background color (beige variant).
    * Maps to brand secondary background for warm appearance.
    */
-  --two-col-bg-beige: var(--brand-bg-secondary, #F8F7F4);
+  --two-col-bg-beige: var(--brand-bg-secondary);
   
   /**
    * White background variant.
    * Uses brand primary background for clean appearance.
    */
-  --two-col-bg-white: var(--brand-bg-primary, #ffffff);
+  --two-col-bg-white: var(--brand-bg-primary);
   
   /**
    * Gray background variant.
@@ -57,55 +57,55 @@
    * Dark background variant.
    * Uses brand ink color for dramatic contrast.
    */
-  --two-col-bg-dark: var(--brand-ink, #111827);
+  --two-col-bg-dark: var(--brand-ink);
   
   /**
    * Primary text color for headings.
    * Uses brand title color for visual hierarchy.
    */
-  --two-col-text-heading: var(--brand-title, #111827);
+  --two-col-text-heading: var(--brand-title);
   
   /**
    * Secondary text color for subtitles and labels.
    * Uses brand stone for muted appearance.
    */
-  --two-col-text-subtitle: var(--brand-stone, #6b7280);
+  --two-col-text-subtitle: var(--brand-stone);
   
   /**
    * Body text color for descriptions.
    * Uses brand slate for comfortable reading.
    */
-  --two-col-text-body: var(--brand-slate, #4b5563);
+  --two-col-text-body: var(--brand-slate);
   
   /**
    * Primary button background color.
    * Uses brand link color for consistency with CTAs.
    */
-  --two-col-btn-primary-bg: var(--brand-link, #B55329);
+  --two-col-btn-primary-bg: var(--brand-link);
   
   /**
    * Primary button hover state color.
    * Uses brand link hover for visual feedback.
    */
-  --two-col-btn-primary-bg-hover: var(--brand-link-hover, #9F4017);
+  --two-col-btn-primary-bg-hover: var(--brand-link-hover);
   
   /**
    * Primary button text color.
    * Uses brand white for contrast against dark backgrounds.
    */
-  --two-col-btn-primary-text: var(--brand-white, #ffffff);
+  --two-col-btn-primary-text: var(--brand-white);
   
   /**
    * Text button color.
    * Matches heading color for visual consistency.
    */
-  --two-col-btn-text-color: var(--brand-title, #111827);
+  --two-col-btn-text-color: var(--brand-title);
   
   /**
    * Text button hover color.
    * Slightly muted for visual feedback.
    */
-  --two-col-btn-text-color-hover: var(--brand-slate, #4b5563);
+  --two-col-btn-text-color-hover: var(--brand-slate);
   
   /**
    * Image border radius for rounded corners.
@@ -177,7 +177,7 @@
  */
 .two-col-layout--bg-dark {
   background-color: var(--two-col-bg-dark);
-  color: var(--brand-white, #ffffff);
+  color: var(--brand-white);
 }
 
 /**
@@ -185,7 +185,7 @@
  * Ensures proper contrast against dark background.
  */
 .two-col-layout--bg-dark .two-col-layout__title {
-  color: var(--brand-white, #ffffff);
+  color: var(--brand-white);
 }
 
 .two-col-layout--bg-dark .two-col-layout__subtitle {
@@ -197,7 +197,7 @@
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-text {
-  color: var(--brand-white, #ffffff);
+  color: var(--brand-white);
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-text:hover {
@@ -205,7 +205,7 @@
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-primary {
-  background-color: var(--brand-white, #ffffff);
+  background-color: var(--brand-white);
   color: var(--two-col-bg-dark);
 }
 
@@ -330,7 +330,7 @@
  * Uppercase with wide letter-spacing for emphasis.
  */
 .two-col-layout__subtitle {
-  font-size: var(--text-tiny);
+  font-size: var(--text-caption);
   line-height: var(--lh-none);
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
@@ -391,7 +391,10 @@
  * Uses medium weight for emphasis.
  */
 .two-col-layout__description-highlight {
-  font-weight: var(--weight-medium, 500);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--lh-body);
   white-space: pre-line;
 }
 
@@ -460,9 +463,9 @@
   background: none;
   border: none;
   padding: 0;
-  font-size: var(--text-body, 1rem);
-  font-weight: var(--weight-semibold, 600);
-  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-serif);
   color: var(--two-col-btn-text-color);
   cursor: pointer;
   text-align: left;
@@ -493,9 +496,9 @@
   background-color: var(--two-col-btn-primary-bg);
   color: var(--two-col-btn-primary-text);
   padding: 0.75rem 1.5rem;
-  font-weight: var(--weight-semibold, 600);
+  font-weight: var(--weight-semibold);
   font-family: var(--font-sans);
-  font-size: var(--text-body, 1rem);
+  font-size: var(--text-body);
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;

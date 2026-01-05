@@ -12,17 +12,22 @@
  * - Default: Standard configuration with default props
  * - CustomTitle: Demonstrates custom heading text
  * - CustomBackground: Shows component with alternative background image
+ * 
+ * Dependencies:
+ * - @storybook/react for Meta and StoryObj types
+ * - ContactFormWithImageBg component
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
 import { ContactFormWithImageBg } from './ContactFormWithImageBg';
 
-// ===========================================================================
-// Story Configuration (Meta)
-// 
-// Defines how the component appears in the Storybook sidebar
-// and configures default behavior for all stories.
-// ===========================================================================
+/* =============================================================================
+   SECTION 1: STORY CONFIGURATION (META)
+   -----------------------------------------------------------------------------
+   Defines how the component appears in the Storybook sidebar
+   and configures default behavior for all stories.
+   ============================================================================= */
+
 const meta: Meta<typeof ContactFormWithImageBg> = {
   /**
    * Title determines the component's location in the Storybook sidebar.
@@ -59,9 +64,12 @@ export default meta;
  */
 type Story = StoryObj<typeof ContactFormWithImageBg>;
 
-// ===========================================================================
-// Stories
-// ===========================================================================
+
+/* =============================================================================
+   SECTION 2: STORIES
+   -----------------------------------------------------------------------------
+   Individual story definitions demonstrating various component configurations.
+   ============================================================================= */
 
 /**
  * Default Story
@@ -72,7 +80,6 @@ type Story = StoryObj<typeof ContactFormWithImageBg>;
  */
 export const Default: Story = {
   args: {
-    // Override the default title to show multi-line heading capability
     title: "Have questions?\nGet in touch!",
   }
 };
@@ -100,7 +107,6 @@ export const CustomTitle: Story = {
  */
 export const CustomBackground: Story = {
   args: {
-    // Alternative architectural image for visual variety
     backgroundImage: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", 
   },
 };

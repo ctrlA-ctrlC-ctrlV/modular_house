@@ -1,23 +1,68 @@
 /* -------------------------------------------------------------------------- */
-/* Variables & Theming                                                        */
+/* HeroWithSideText Component Stylesheet                                      */
 /* -------------------------------------------------------------------------- */
+/*
+ * PURPOSE:
+ * Provides full-viewport hero section styling with right-aligned main content
+ * and a split footer layout. This component consumes brand design tokens from
+ * the central style.css file located in apps/web/src/styles/.
+ *
+ * ARCHITECTURE:
+ * Component-specific CSS variables (--hero-*) are derived from global brand
+ * tokens (--brand-*, --font-*). This creates a layer of indirection that
+ * allows the hero to adapt to brand changes while maintaining component-
+ * specific customization capability.
+ *
+ * LAYOUT STRUCTURE:
+ * - Full viewport container with background image
+ * - Dark overlay for text readability
+ * - Right-aligned main content area (title, subtitle, CTA)
+ * - Split footer area (description left, explore link right)
+ *
+ * DEPENDENCIES:
+ * Requires style.css to be imported before this stylesheet to ensure
+ * brand token availability.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* SECTION 1: Component-Level Design Tokens                                   */
+/* -------------------------------------------------------------------------- */
+/*
+ * These variables bridge global brand tokens to component-specific naming.
+ * Consumers can override these without modifying brand tokens.
+ */
 :root {
-  --hero-color-white: #fefefe;
-  --hero-color-accent: #eebb54; /* Yellow for "secure and durable" */
-  --hero-color-button: #c06c36; /* Rust/Orange for button */
-  --hero-color-button-hover: #a55a2b;
+  /* Text color using brand white token */
+  --hero-color-white: var(--brand-white, #fefefe);
+  
+  /* Accent color for highlighted text (uses brand amber) */
+  --hero-color-accent: var(--brand-luminous-vivid-amber, #fcb900);
+  
+  /* CTA button colors mapped to brand link colors */
+  --hero-color-button: var(--brand-link, #B55329);
+  --hero-color-button-hover: var(--brand-link-hover, #9F4017);
+  
+  /* Overlay opacity for background image darkening */
   --hero-overlay-opacity: 0.4;
-  --hero-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;/*'Nunito Sans', sans-serif;*/
+  
+  /* Typography using brand font stack */
+  --hero-font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+  
+  /* Layout spacing token */
   --hero-padding: 60px;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Main Container                                                             */
+/* SECTION 2: Main Container                                                  */
 /* -------------------------------------------------------------------------- */
+/*
+ * The hero container establishes the full-viewport background image section.
+ * Uses CSS custom properties for theming and responsive behavior.
+ */
 .hero-container {
   position: relative;
   width: 100%;
-  height: 100vh; /* Force full viewport height */
+  height: 100vh;
   min-height: 600px;
   background-size: cover;
   background-position: center;
@@ -27,6 +72,10 @@
   overflow: hidden;
 }
 
+/*
+ * Semi-transparent overlay improves text readability against busy backgrounds.
+ * Opacity is configurable via --hero-overlay-opacity token.
+ */
 .hero-overlay {
   position: absolute;
   inset: 0;
@@ -34,7 +83,10 @@
   z-index: 1;
 }
 
-/* Wrapper handles the Grid/Flex layout over the overlay */
+/*
+ * Content wrapper positions all hero content above the overlay.
+ * Uses flexbox with space-between to push footer to bottom.
+ */
 .hero-content-wrapper {
   position: relative;
   z-index: 2;
@@ -44,43 +96,62 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Pushes Main to center, Footer to bottom */
+  justify-content: space-between;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Main Content Area (Right Aligned)                                          */
+/* SECTION 3: Main Content Area (Right Aligned)                               */
 /* -------------------------------------------------------------------------- */
+/*
+ * Primary content block containing subtitle, title, and CTA button.
+ * Right-aligned horizontally and vertically centered within the viewport.
+ */
 .hero-main-area {
-  flex: 1; /* Takes up available middle space */
+  flex: 1;
   display: flex;
-  align-items: center; /* Vertically center */
-  justify-content: right; /* Horizontally align right */
+  align-items: center;
+  justify-content: right;
   width: 100%;
 }
 
 .hero-text-block {
-  max-width: 750px; /* Limits width to match screenshot */
+  max-width: 750px;
   text-align: left;
   margin: 0 12rem 0 0;
 }
 
-.hero-subtitle {
-  font-size: 0.85rem;
+/*
+ * Eyebrow/subtitle text using brand typography tokens.
+ * Small uppercase format for category or tagline display.
+ * Scoped to .hero-container for specificity over global h6 styles.
+ */
+.hero-container .hero-subtitle {
+  font-size: var(--text-caption, 0.85rem);
   text-transform: uppercase;
-  letter-spacing: 0px;
-  font-weight: 500;  
+  color: var(--hero-color-white);
+  letter-spacing: var(--tracking-wide, 0px);
+  font-weight: var(--weight-medium, 500);
   margin: 0 0 0.9rem 0.5rem;
   opacity: 0.9;
 }
 
-.hero-title {
-  font-size: clamp(2.5rem, 5vw, 6rem); /* Responsive typography */
+/*
+ * Main hero title with fluid responsive sizing.
+ * Uses clamp() for smooth scaling between viewport widths.
+ * Scoped to .hero-container for specificity over global h1 styles.
+ */
+.hero-container .hero-title {
+  font-size: clamp(2.5rem, 5vw, 6rem);
+  color: var(--hero-color-white);
   line-height: 1.1;
-  font-weight: 600;
+  font-weight: var(--weight-semibold, 600);
   margin: 0 0 2rem 0;
 }
 
-/* Helper class for the yellow text passed via props */
+/*
+ * Highlighted text utility class for accent-colored spans within titles.
+ * Uses brand amber color for visual emphasis.
+ */
 .text-highlight {
   color: var(--hero-color-accent);
 }
@@ -89,30 +160,39 @@
   margin-top: 1rem;
 }
 
+/*
+ * Primary call-to-action button with brand link colors.
+ * Includes hover state with subtle lift animation.
+ */
 .hero-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 16px 32px;
   background-color: var(--hero-color-button);
-  color: #fff;
+  color: var(--brand-white, #fff);
   text-decoration: none;
-  font-weight: 700;
-  font-size: 0.9rem;
-  border-radius: 9px; /* Slight rounded corners per design */
+  font-weight: var(--weight-semibold, 700);
+  font-size: var(--text-caption, 0.9rem);
+  border-radius: 9px;
   transition: background-color 0.3s ease, transform 0.2s ease;
   border: none;
 }
 
 .hero-button:hover {
   background-color: var(--hero-color-button-hover);
-  color: #fff;
+  color: var(--brand-white, #fefefe);
   transform: translateY(-2px);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Footer Area (Split Left/Right)                                             */
+/* SECTION 4: Footer Area (Split Left/Right)                                  */
 /* -------------------------------------------------------------------------- */
+/*
+ * Footer section with two-column layout:
+ * - Left: Descriptive text for context
+ * - Right: Explore/scroll link with icon
+ */
 .hero-footer-area {
   display: flex;
   justify-content: space-between;
@@ -126,10 +206,16 @@
   max-width: 500px;
 }
 
-.hero-description {
-  font-size: 1.4rem;
+/*
+ * Description text using brand typography for readability.
+ * Slightly reduced opacity maintains visual hierarchy.
+ * Scoped to .hero-container for specificity over global p styles.
+ */
+.hero-container .hero-description {
+  font-size: var(--text-heading-s, 1.4rem);
+  color: var(--hero-color-white);
   line-height: 1.5;
-  font-weight: 500;
+  font-weight: var(--weight-medium, 500);
   margin: 0;
   opacity: 0.95;
 }
@@ -138,12 +224,16 @@
   flex: 0 0 auto;
 }
 
+/*
+ * Explore link with icon for scroll-to-section behavior.
+ * Uses brand white color with opacity transition on hover.
+ */
 .hero-explore-link {
   display: flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  color: #fff;
+  color: var(--brand-white, #fff);
   transition: opacity 0.3s ease;
   cursor: pointer;
 }
@@ -153,10 +243,10 @@
 }
 
 .hero-explore-text {
-  font-size: 0.9rem;
+  font-size: var(--text-caption, 0.9rem);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold, 600);
 }
 
 .hero-explore-icon {
@@ -166,8 +256,12 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Responsive Design (Mobile)                                                 */
+/* SECTION 5: Responsive Design (Mobile)                                      */
 /* -------------------------------------------------------------------------- */
+/*
+ * Mobile breakpoint adjustments for screens 768px and below.
+ * Reduces padding, adjusts typography scale, and stacks layout vertically.
+ */
 @media (max-width: 768px) {
   :root {
     --hero-padding: 30px;
@@ -179,21 +273,23 @@
   }
 
   .hero-content-wrapper {
-    padding-top: 100px; /* Header space */
+    padding-top: 100px;
   }
 
-  /* Stack content on mobile */
+  /* Stack content on mobile with left alignment */
   .hero-main-area {
     justify-content: flex-start;
     margin-bottom: 60px;
   }
-  
+
   .hero-text-block {
     max-width: 100%;
+    margin: 0;
   }
 
+  /* Reverse footer order and stack vertically on mobile */
   .hero-footer-area {
-    flex-direction: column-reverse; /* Put explore link above or below description */
+    flex-direction: column-reverse;
     align-items: flex-start;
     gap: 30px;
   }

@@ -1,56 +1,173 @@
-/* Import: Fonts used for branding (Libre Baskerville) and UI clarity (Inter) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+/**
+ * FeatureSection Component Stylesheet
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * Provides styling for a responsive feature showcase section with a split header
+ * layout and multi-column grid for feature items. This component consumes brand
+ * design tokens from the central style.css file located in apps/web/src/styles/.
+ * 
+ * ARCHITECTURE:
+ * This stylesheet follows the Open-Closed Principle: component-level tokens are
+ * defined at the root level with fallback values, allowing consumers to override
+ * appearance without modifying this file. All color, typography, and spacing
+ * values reference centralized brand tokens.
+ * 
+ * DEPENDENCIES:
+ * - Requires style.css to be imported in the consuming application
+ * - Brand tokens: --font-sans, --font-serif, --weight-*, --tracking-*, --brand-*
+ * 
+ * BEM NAMING CONVENTION:
+ * - Block: .feature-section
+ * - Element: .feature-section__[element]
+ * - Modifier: .feature-section__[element]--[modifier]
+ * 
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   These CSS custom properties bridge global brand tokens to component-specific
+   naming. Consumers can override these variables without modifying brand tokens.
+   Fallback values ensure the component remains functional in isolation.
+   ============================================================================= */
 
 :root {
-  /* Design Tokens: Font definitions mapped to semantic variables */
-  /* Clean, invisible sans-serif for body text and UI elements */
-  --font-base: 'Inter', sans-serif;
-  /* Elegant, editorial serif for headings to establish brand identity */
-  --font-display: 'Libre Baskerville', serif;
+  /**
+   * Primary background color for the section.
+   * Maps to brand white for a clean, professional appearance.
+   */
+  --feature-bg: var(--brand-bg-primary);
+  
+  /**
+   * Primary text color for main content.
+   * Uses brand ink color for optimal readability.
+   */
+  --feature-text-primary: var(--brand-ink);
+  
+  /**
+   * Heading color for titles and main headings.
+   * Uses brand title color for visual hierarchy.
+   */
+  --feature-text-heading: var(--brand-title);
+  
+  /**
+   * Secondary text color for body content.
+   * Uses brand slate for comfortable reading.
+   */
+  --feature-text-secondary: var(--brand-slate);
+  
+  /**
+   * Tertiary text color for metadata and labels.
+   * Uses brand stone for de-emphasized text elements.
+   */
+  --feature-text-muted: var(--brand-stone);
+  
+  /**
+   * Description text color for feature items.
+   * Slightly lighter than secondary for visual balance.
+   */
+  --feature-text-description: #666666;
+  
+  /**
+   * Icon accent color for feature icons.
+   * Uses brand link color for visual consistency with CTAs.
+   */
+  --feature-icon-color: var(--brand-link);
+  
+  /**
+   * Maximum container width for content area.
+   * Constrains content for optimal readability on large screens.
+   */
+  --feature-container-max-width: 1525px;
+  
+  /**
+   * Vertical padding for the section.
+   * Provides generous whitespace for visual breathing room.
+   */
+  --feature-padding-vertical: 150px;
+  
+  /**
+   * Horizontal padding for content gutters.
+   * Ensures content does not touch viewport edges.
+   */
+  --feature-padding-horizontal: 20px;
 }
 
+
+/* =============================================================================
+   SECTION 2: MAIN SECTION CONTAINER
+   -----------------------------------------------------------------------------
+   Establishes vertical rhythm and background context for the entire section.
+   ============================================================================= */
+
 /**
- * Main Section Container
- * Establishes vertical rhythm (padding) and background context.
+ * Primary section container.
+ * Provides consistent padding and establishes the base typography context.
  */
 .feature-section {
-  padding: 150px 0;
-  background-color: #FeFeFe;
-  font-family: var(--font-base);
-  color: #1a1a1a; 
-  font-weight: 400; 
+  padding: var(--feature-padding-vertical) 0;
+  background-color: var(--feature-bg);
+  font-family: var(--font-sans);
+  color: var(--feature-text-primary);
+  font-weight: var(--weight-regular);
 }
 
 /**
- * Layout Container
- * Centers content with a max-width of 1400px and provides horizontal gutters.
+ * Layout container for centered content.
+ * Constrains width and provides horizontal gutters.
  */
 .feature-section__container {
-  max-width: 1400px;
+  max-width: var(--feature-container-max-width);
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 var(--feature-padding-horizontal);
   box-sizing: border-box;
 }
 
-/* --- Top Heading Styles --- */
 
+/* =============================================================================
+   SECTION 3: TOP HEADING (EYEBROW TEXT)
+   -----------------------------------------------------------------------------
+   Small overline text appearing above the main heading.
+   Provides contextual category or section identification.
+   ============================================================================= */
+
+/**
+ * Wrapper for the top heading element.
+ * Provides spacing below the eyebrow text.
+ */
 .feature-section__top-heading-wrapper {
   margin-bottom: 25px;
 }
 
+/**
+ * Eyebrow text styling.
+ * Uses uppercase transformation and wide letter-spacing for emphasis.
+ */
 .feature-section__top-heading {
-  font-family: var(--font-base);
-  font-size: 13px; 
+  font-size: var(--text-caption);
+  line-height: var(--lh-none);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  line-height: 1em;
-  letter-spacing: 0.15em; 
+  letter-spacing: var(--tracking-wide);
+  color: var(--feature-text-muted);
   margin: 0;
-  font-weight: 500;
-  color: #888; /* Muted color for de-emphasis */
 }
 
-/* --- Split Header Layout (Heading + Intro) --- */
 
+/* =============================================================================
+   SECTION 4: SPLIT HEADER LAYOUT
+   -----------------------------------------------------------------------------
+   Two-column layout for heading (left) and introductory text (right).
+   Collapses to single column on mobile viewports.
+   ============================================================================= */
+
+/**
+ * Flexbox container for split layout.
+ * Uses row direction on desktop with equal column widths.
+ */
 .feature-section__split {
   display: flex;
   flex-direction: row;
@@ -58,50 +175,87 @@
   gap: 30px;
 }
 
+/**
+ * Left column containing the main heading.
+ * Occupies 50% width on desktop.
+ */
 .feature-section__split-left {
   width: 50%;
 }
 
+/**
+ * Right column containing introductory text.
+ * Includes top padding for optical alignment with display heading baseline.
+ */
 .feature-section__split-right {
   width: 50%;
-  padding-top: 10px; /* Optical alignment with the display heading line-height */
+  padding-top: 10px;
 }
 
+/**
+ * Main display heading.
+ * Uses serif font for editorial aesthetic with fluid typography.
+ */
 .feature-section__main-heading {
-  font-family: var(--font-display);
-  /* Fluid typography: Scales between 25px and 42px depending on viewport */
-  font-size: clamp(25px, 1.563rem + 1.751vw, 42px);
-  line-height: 1.25;
+  font-family: var(--font-serif);
+  font-size: var(--text-display);
+  line-height: var(--lh-tight);
   margin: 0;
-  font-weight: 400; 
-  letter-spacing: -0.02em; 
-  color: #121414;
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-tight);
+  color: var(--feature-text-heading);
 }
 
+/**
+ * Introductory text container.
+ * Uses lighter font weight for comfortable extended reading.
+ */
 .feature-section__intro-text {
-  color: #555;
-  line-height: 1.7;
-  font-weight: 300;
+  font-family: var(--font-sans);
+  color: var(--feature-text-secondary);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-light);
+  font-size: var(--text-body-lg);
 }
 
-/* Spacing for paragraphs injected via ReactNode */
+/**
+ * Paragraph spacing within intro text.
+ * Provides vertical rhythm for multi-paragraph content.
+ */
 .feature-section__intro-text p {
   margin-bottom: 1.5em;
 }
 
+/**
+ * Removes bottom margin from last paragraph.
+ * Prevents excessive spacing after intro text block.
+ */
 .feature-section__intro-text p:last-child {
   margin-bottom: 0;
 }
 
-/* --- Feature Grid Layout --- */
 
+/* =============================================================================
+   SECTION 5: FEATURE GRID LAYOUT
+   -----------------------------------------------------------------------------
+   Responsive grid system for feature items.
+   Transitions from 4 columns to 2 columns to 1 column based on viewport.
+   ============================================================================= */
+
+/**
+ * CSS Grid container for feature items.
+ * Uses 4-column layout on large screens with consistent gap.
+ */
 .feature-section__grid {
   display: grid;
-  /* 4-column layout for large screens */
   grid-template-columns: repeat(4, 1fr);
   gap: 30px;
 }
 
+/**
+ * Individual feature item container.
+ * Uses column flex direction for icon-above-content layout.
+ */
 .feature-section__item {
   display: flex;
   flex-direction: column;
@@ -109,64 +263,112 @@
   text-align: left;
 }
 
+/**
+ * Icon wrapper providing consistent spacing.
+ * Separates icon from text content below.
+ */
 .feature-section__icon-wrapper {
   margin-bottom: 22px;
 }
 
+/**
+ * Icon display container with fixed dimensions.
+ * Ensures consistent sizing across different icon sources.
+ */
 .feature-section__icon {
   display: inline-block;
   width: 65px;
   height: 65px;
 }
 
-/* SVG Styling: Enforce fill color and responsive sizing */
+/**
+ * SVG icon styling.
+ * Applies brand accent color and ensures responsive sizing.
+ */
 .feature-section__icon svg {
   width: 100%;
   height: 100%;
-  fill: #B55329; /* Brand accent color */
+  fill: var(--feature-icon-color);
 }
 
+/**
+ * Content wrapper for title and description.
+ * Ensures full width for text content.
+ */
 .feature-section__content {
   width: 100%;
 }
 
+/**
+ * Feature item title.
+ * Uses serif font for consistency with section heading.
+ */
 .feature-section__item-title {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 400;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-m);
+  font-weight: var(--weight-regular);
   margin: 0 0 12px 0;
-  color: #121414;
+  color: var(--feature-text-heading);
 }
 
+/**
+ * Feature item description text.
+ * Uses lighter weight for comfortable reading at smaller size.
+ */
 .feature-section__item-description {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #666;
-  font-weight: 300;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  line-height: var(--lh-body);
+  color: var(--feature-text-description);
+  font-weight: var(--weight-light);
   margin: 0;
 }
 
-/* --- Responsive Breakpoints --- */
+
+/* =============================================================================
+   SECTION 6: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Media queries adjust layout and spacing for tablet and mobile viewports.
+   Breakpoint values align with Bootstrap 5 grid system conventions.
+   ============================================================================= */
 
 /**
- * Tablet View (max-width: 1024px)
- * - Reduces vertical padding.
- * - Switches grid to 2 columns for better readability.
+ * Tablet breakpoint (max-width: 1024px).
+ * Reduces vertical padding and switches to 2-column grid.
  */
 @media (max-width: 1024px) {
-  .feature-section { padding: 100px 0; }
-  .feature-section__grid { grid-template-columns: repeat(2, 1fr); row-gap: 50px; }
+  .feature-section {
+    padding: 100px 0;
+  }
+  
+  .feature-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 50px;
+  }
 }
 
 /**
- * Mobile View (max-width: 768px)
- * - Further reduces vertical padding.
- * - Stacks the split header (Title on top of Intro).
- * - Switches grid to single column (1fr).
+ * Mobile breakpoint (max-width: 768px).
+ * Stacks split header and switches to single-column grid.
  */
 @media (max-width: 768px) {
-  .feature-section { padding: 60px 0; }
-  .feature-section__split { flex-direction: column; margin-bottom: 50px; gap: 20px; }
-  .feature-section__split-left, .feature-section__split-right { width: 100%; }
-  .feature-section__grid { grid-template-columns: 1fr; row-gap: 40px; }
+  .feature-section {
+    padding: 60px 0;
+  }
+  
+  .feature-section__split {
+    flex-direction: column;
+    margin-bottom: 50px;
+    gap: 20px;
+  }
+  
+  .feature-section__split-left,
+  .feature-section__split-right {
+    width: 100%;
+  }
+  
+  .feature-section__grid {
+    grid-template-columns: 1fr;
+    row-gap: 40px;
+  }
 }

@@ -1,16 +1,86 @@
+/**
+ * FeatureSection Storybook Stories
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * Provides interactive documentation and visual testing for the FeatureSection
+ * component. Stories demonstrate various configuration options and use cases.
+ * 
+ * STORYBOOK CONFIGURATION:
+ * - Layout: fullscreen (removes default padding for accurate representation)
+ * - Tags: autodocs (enables automatic documentation generation)
+ * 
+ * USAGE:
+ * Run `pnpm storybook` from the packages/ui directory to view these stories.
+ * 
+ * =============================================================================
+ */
+
 import type { Meta, StoryObj } from '@storybook/react';
 import { FeatureSection } from './FeatureSection';
 
+
+/* =============================================================================
+   SECTION 1: STORYBOOK META CONFIGURATION
+   -----------------------------------------------------------------------------
+   Defines component metadata for Storybook sidebar organization
+   and default rendering parameters.
+   ============================================================================= */
+
+/**
+ * Storybook metadata configuration.
+ * Registers the component within the Components category and applies
+ * fullscreen layout for accurate section representation.
+ */
 const meta: Meta<typeof FeatureSection> = {
   title: 'Components/FeatureSection',
   component: FeatureSection,
   parameters: {
+    /**
+     * Fullscreen layout removes Storybook's default padding.
+     * Required for accurate representation of full-width sections.
+     */
     layout: 'fullscreen',
   },
+  /**
+   * Autodocs tag enables automatic documentation page generation.
+   * Storybook extracts prop types and descriptions from TypeScript interfaces.
+   */
   tags: ['autodocs'],
+  /**
+   * ArgTypes configuration for Storybook controls panel.
+   * Defines control types and descriptions for each prop.
+   */
+  argTypes: {
+    topHeading: {
+      control: 'text',
+      description: 'Eyebrow text appearing above the main heading.',
+    },
+    mainHeading: {
+      control: 'text',
+      description: 'Primary section heading displayed on the left.',
+    },
+    introText: {
+      control: 'object',
+      description: 'Introductory content displayed on the right. Accepts ReactNode.',
+    },
+    features: {
+      control: 'object',
+      description: 'Array of feature items with icon, title, and description.',
+    },
+    onFeatureClick: {
+      action: 'featureClicked',
+      description: 'Callback fired when a feature item is clicked.',
+    },
+  },
 };
 
 export default meta;
+
+/**
+ * Story type alias for FeatureSection component.
+ * Provides type safety for story configurations.
+ */
 type Story = StoryObj<typeof FeatureSection>;
 
 const icon1 = (

@@ -3,6 +3,7 @@ import { render, waitFor } from '@testing-library/react';
 import { HelmetProvider } from 'react-helmet-async';
 import Landing from '../../routes/Landing';
 import { BrowserRouter } from 'react-router-dom';
+import { HeaderProvider } from '../../components/HeaderContext';
 
 // Mock UI components to avoid rendering full tree, but keep Seo
 vi.mock('@modular-house/ui', async () => {
@@ -28,9 +29,11 @@ describe('SEO Integration', () => {
   it('updates document title on Landing page', async () => {
     render(
       <HelmetProvider>
-        <BrowserRouter>
-          <Landing />
-        </BrowserRouter>
+        <HeaderProvider>
+          <BrowserRouter>
+            <Landing />
+          </BrowserRouter>
+        </HeaderProvider>
       </HelmetProvider>
     );
 
@@ -42,9 +45,11 @@ describe('SEO Integration', () => {
   it('injects meta description', async () => {
     render(
       <HelmetProvider>
-        <BrowserRouter>
-          <Landing />
-        </BrowserRouter>
+        <HeaderProvider>
+          <BrowserRouter>
+            <Landing />
+          </BrowserRouter>
+        </HeaderProvider>
       </HelmetProvider>
     );
 

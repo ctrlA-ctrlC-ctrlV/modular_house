@@ -1,118 +1,324 @@
-.mini-faqs-container {
-    padding: 80px 0;
-    /* 1. CONTROL THE MARGIN TO THE LEFT OF THE NUMBER */
-    /* Adjust this percentage or pixel value to slide the whole list left/right */
-    padding-left: 20%; 
-    padding-right: 20%; /* Keep some breathing room on the right edge */
-    background-color: #fefefe;
+/**
+ * MiniFAQs Component Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides styling for the MiniFAQs component using brand design tokens
+ * defined in the project's style.css bridge file. This stylesheet follows the
+ * Open-Closed Principle by leveraging CSS custom properties for extension.
+ *
+ * NAMING CONVENTION:
+ * Uses BEM (Block Element Modifier) methodology for predictable, maintainable
+ * class names that avoid specificity conflicts with Bootstrap utilities.
+ *
+ * DEPENDENCY:
+ * Requires the brand design tokens from apps/web/src/styles/style.css to be
+ * loaded in the consuming application for proper token resolution.
+ *
+ * TOKEN FALLBACKS:
+ * Each CSS variable includes a fallback value to ensure graceful degradation
+ * when tokens are not available (e.g., in isolated Storybook environment).
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: CONTAINER STYLES
+   -----------------------------------------------------------------------------
+   Root container and wrapper elements that establish the component boundaries.
+   ============================================================================= */
+
+/**
+ * Root Container
+ * Full-width section with horizontal padding using percentage-based values
+ * for responsive spacing. Uses brand background color token.
+ */
+.mini-faqs {
+  width: 100%;
+  padding: 5rem 1rem;
+  padding-inline: 10%;
+  background-color: var(--brand-bg-primary, #FEFEFE);
+  box-sizing: border-box;
 }
 
-.mini-faqs-main-title-wrapper {
-    margin-bottom: 60px;
-    /* Align title with the content if desired, or keep centered */
-    text-align: center; 
+/**
+ * Universal Box-Sizing Reset
+ * Ensures all child elements inherit border-box sizing for predictable layouts.
+ */
+.mini-faqs *,
+.mini-faqs *::before,
+.mini-faqs *::after {
+  box-sizing: border-box;
 }
 
-.mini-faqs-main-title {
-    font-family: sans-serif;
-    font-size: 20rem;/*clamp(3rem, 10vw, 8rem);*/
-    font-weight: bold;
-    color: #8B4513;
-    margin: 0;
-    line-height: 1;
+/**
+ * Inner Container
+ * Centers content with a maximum width constraint for optimal readability.
+ * Uses flexbox column layout for vertical stacking of FAQ items.
+ */
+.mini-faqs__container {
+  max-width: 75%;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
 }
 
-.mini-faqs-inner {
-    display: flex;
-    flex-direction: column;
-    /* REMOVED max-width and margin: 0 auto */
-    /* This allows the container to stretch and obey the padding of the parent */
-    max-width: 1600px;
-    width: 100%;
+/* =============================================================================
+   SECTION 2: HEADER STYLES
+   -----------------------------------------------------------------------------
+   Section header containing the large decorative title.
+   ============================================================================= */
+
+/**
+ * Header Wrapper
+ * Centers the main title text and provides bottom margin for visual separation.
+ */
+.mini-faqs__header {
+  text-align: center;
+  margin-bottom: 4rem;
 }
 
-.mini-faq-item {
-    display: grid;
-    /* 2. CONTROL THE GAP BETWEEN NUMBER AND LINE */
-    /* 200px is the fixed width for the number column. 
-       Reduce this (e.g. 150px) to bring the line closer to the number.
-       Increase it to push the line further away. */
-    grid-template-columns: 220px 1px 1fr;
-    
-    gap: 60px; /* Space between the Vertical Line and the Text */
-    padding: 60px 0;
-    border-bottom: 1px solid #eee;
-    background: #fefefe;
-    border-radius: 0;
-    position: sticky;
-    top: 0;
+/**
+ * Main Title
+ * Large decorative display text using serif font family for editorial elegance.
+ * Uses fluid typography via clamp() for responsive scaling across viewports.
+ */
+.mini-faqs__title {
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-size: clamp(4rem, 12vw, 14rem);
+  font-weight: var(--weight-regular, 400);
+  line-height: var(--lh-none, 1);
+  letter-spacing: var(--tracking-tight, -0.02em);
+  background: var(--gradient-orange-brown);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  margin: 0;
 }
 
-.mini-faq-item:last-child {
-    border-bottom: none;
+/* =============================================================================
+   SECTION 3: FAQ LIST STYLES
+   -----------------------------------------------------------------------------
+   Container for the list of FAQ items with vertical stacking.
+   ============================================================================= */
+
+/**
+ * FAQ List Wrapper
+ * Semantic list container with removed default list styling.
+ */
+.mini-faqs__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.mini-faq-number-wrapper {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
+/* =============================================================================
+   SECTION 4: FAQ ITEM STYLES
+   -----------------------------------------------------------------------------
+   Individual FAQ item containers with three-column grid layout.
+   ============================================================================= */
+
+/**
+ * FAQ Item Container
+ * Uses CSS Grid with three columns: number, divider, and content.
+ * The sticky positioning creates a stacking effect on scroll.
+ * Border-top is used instead of border-bottom to ensure horizontal lines
+ * appear between all items consistently.
+ */
+.mini-faqs__item {
+  display: grid;
+  grid-template-columns: 180px 1px 1fr;
+  gap: 3rem;
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--brand-border, #e0e0e0);
+  background-color: var(--brand-bg-primary, #FEFEFE);
+  position: sticky;
+  top: 0;
 }
 
-.mini-faq-number {
-    margin: 0;
-    font-family: sans-serif;
-    font-size: 1.6rem;
-    color: #000;
-    font-weight: 500;
+/**
+ * FAQ Item Last Child
+ * Adds bottom border to the last item in the list to complete the visual frame.
+ */
+.mini-faqs__item:last-child {
+  border-bottom: 1px solid var(--brand-border, #e0e0e0);
 }
 
-.mini-faq-divider {
-    width: 1px;
-    height: 100%;
-    background-color: #eee;
+/* =============================================================================
+   SECTION 5: NUMBER COLUMN STYLES
+   -----------------------------------------------------------------------------
+   Left column containing the sequential FAQ number indicator.
+   ============================================================================= */
+
+/**
+ * Number Wrapper
+ * Flexbox container aligning the number to the top-left of its column.
+ */
+.mini-faqs__number-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
-.mini-faq-content {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
+/**
+ * Number Text
+ * Displays the FAQ sequence number with medium weight for visual distinction.
+ */
+.mini-faqs__number {
+  margin: 0;
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-heading-m, 1.5rem);
+  font-weight: var(--weight-medium, 500);
+  color: var(--brand-ink, #1a1a1a);
+  line-height: var(--lh-tight, 1.2);
 }
 
-.mini-faq-title {
-    margin: 0;
-    font-family: sans-serif;
-    font-size: 3rem;
-    font-weight: bold;
-    color: #000;
-    line-height: 1.1;
+/* =============================================================================
+   SECTION 6: DIVIDER STYLES
+   -----------------------------------------------------------------------------
+   Vertical separator line between number and content columns.
+   ============================================================================= */
+
+/**
+ * Vertical Divider
+ * Thin vertical line using brand border color for visual separation.
+ */
+.mini-faqs__divider {
+  width: 1px;
+  height: 100%;
+  background-color: var(--brand-border, #e0e0e0);
 }
 
-.mini-faq-description {
-    margin: 0;
-    color: #666;
-    line-height: 1.6;
-    font-family: sans-serif;
-    font-size: 1rem;
-    
-    /* 3. FIX THE "GAP ON THE RIGHT" */
-    /* Increased from 650px to 100% so it uses all available space. 
-       If lines get too long, try setting this to 800px or 900px. */
-    max-width: 100%; 
+/* =============================================================================
+   SECTION 7: CONTENT STYLES
+   -----------------------------------------------------------------------------
+   Right column containing the FAQ title and description text.
+   ============================================================================= */
+
+/**
+ * Content Wrapper
+ * Vertical flexbox layout for stacking title and description with gap spacing.
+ */
+.mini-faqs__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* Mobile Responsiveness */
+/**
+ * Item Title
+ * Large heading text using serif font for editorial consistency.
+ * Uses fluid typography for responsive scaling.
+ */
+.mini-faqs__item-title {
+  margin: 0;
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-size: var(--text-heading-l, clamp(1.75rem, 4vw, 2.5rem));
+  font-weight: var(--weight-regular, 400);
+  color: var(--brand-title, #121414);
+  line-height: var(--lh-tight, 1.2);
+  letter-spacing: var(--tracking-tight, -0.02em);
+}
+
+/**
+ * Item Description
+ * Body text with comfortable line height for readability.
+ * Uses maximum width constraint to prevent overly long lines.
+ */
+.mini-faqs__description {
+  margin: 0;
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-body, 1rem);
+  font-weight: var(--weight-regular, 400);
+  line-height: var(--lh-relaxed, 1.625);
+  color: var(--brand-slate, #555555);
+  max-width: 800px;
+}
+
+/* =============================================================================
+   SECTION 8: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Media queries for adaptive layout across device sizes.
+   Breakpoints aligned with Bootstrap 5 standard values.
+   ============================================================================= */
+
+/**
+ * Large Desktops (1200px and below)
+ * Reduces padding and adjusts grid column widths.
+ */
+@media (max-width: 1200px) {
+  .mini-faqs {
+    padding-inline: 5%;
+  }
+
+  .mini-faqs__item {
+    grid-template-columns: 140px 1px 1fr;
+    gap: 2rem;
+  }
+}
+
+/**
+ * Tablets (1024px and below)
+ * Further reduces grid column width and gap spacing.
+ */
+@media (max-width: 1024px) {
+  .mini-faqs__item {
+    grid-template-columns: 100px 1px 1fr;
+    gap: 1.5rem;
+  }
+
+  .mini-faqs__title {
+    font-size: clamp(3rem, 10vw, 8rem);
+  }
+
+  .mini-faqs__item-title {
+    font-size: var(--text-heading-m, 1.5rem);
+  }
+}
+
+/**
+ * Mobile Devices (768px and below)
+ * Converts to compact layout with reduced column widths.
+ * Adjusts typography scale for smaller screens.
+ */
 @media (max-width: 768px) {
-    .mini-faqs-container {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-    
-    .mini-faq-item {
-        grid-template-columns: 50px 1px 1fr;
-        gap: 20px;
-    }
-    
-    .mini-faq-title {
-        font-size: 2rem;
-    }
+  .mini-faqs {
+    padding: 3rem 1rem;
+    padding-inline: 1rem;
+  }
+
+  .mini-faqs__header {
+    margin-bottom: 2rem;
+  }
+
+  .mini-faqs__title {
+    font-size: clamp(2rem, 15vw, 4rem);
+  }
+
+  .mini-faqs__item {
+    grid-template-columns: 50px 1px 1fr;
+    gap: 1rem;
+    padding: 2rem 0;
+  }
+
+  .mini-faqs__number {
+    font-size: var(--text-body, 1rem);
+  }
+
+  .mini-faqs__item-title {
+    font-size: var(--text-heading-s, 1.25rem);
+  }
+
+  .mini-faqs__content {
+    gap: 1rem;
+  }
+
+  .mini-faqs__description {
+    font-size: var(--text-caption, 0.875rem);
+  }
 }
+
+/* =============================================================================
+   END OF MINI FAQS STYLES
+   ============================================================================= */

@@ -1,29 +1,63 @@
 /* ==========================================
-   Variables & Theme
+   Header Component Stylesheet
+   ==========================================
+   
+   PURPOSE:
+   Provides responsive header navigation styling with support for light
+   and dark variants. This component consumes brand design tokens from
+   the central style.css file located in apps/web/src/styles/.
+   
+   ARCHITECTURE:
+   Component-specific CSS variables (--header-*) are derived from the
+   global brand tokens (--brand-*, --font-*). This creates a layer of
+   indirection that allows the header to adapt to brand changes while
+   maintaining component-specific customization capability.
+   
+   VARIANT SYSTEM:
+   - .header--dark: White text on dark/transparent background (hero sections)
+   - .header--light: Dark text on light background (standard pages)
+   
+   DEPENDENCIES:
+   Requires style.css to be imported before this stylesheet to ensure
+   brand token availability.
+   
+   ========================================== */
+
+/* ==========================================
+   SECTION 1: Component-Level Design Tokens
+   ------------------------------------------
+   These variables bridge global brand tokens to component-specific
+   naming. Consumers can override these without modifying brand tokens.
    ========================================== */
 :root {
-  --header-bg: #0d0d0d;
-  --header-bg-light: #fefefe;
-  --header-bg-dark: #0d0d0d;
-  --header-text: #fefefe;
-  --header-text-hover: #cccccc;
-  --header-accent: #B55329; /* Burnt Orange from screenshot/stories */
-  --header-accent-hover: #d66433;
+  /* Background colors derived from brand palette */
+  --header-bg: var(--brand-ink, #0d0d0d);
+  --header-bg-light: var(--brand-bg-primary, #fefefe);
+  --header-bg-dark: var(--brand-ink, #0d0d0d);
+  
+  /* Text colors using brand tokens */
+  --header-text: var(--brand-white, #fefefe);
+  --header-text-hover: var(--brand-meta, #cccccc);
+  
+  /* Accent colors mapped to brand link colors */
+  --header-accent: var(--brand-link, #B55329);
+  --header-accent-hover: var(--brand-link-hover, #9F4017);
+  
+  /* Component-specific layout token */
   --header-height: 90px;
 }
 
 /* ==========================================
-   Main Layout
+   SECTION 2: Main Layout Structure
+   ------------------------------------------
+   Core structural styles for the header container and positioning.
    ========================================== */
 
 .header {
   position: relative;
   z-index: 1000;
-  /* Background color is intentionally NOT set here.
-     It is controlled by variant modifier classes (.header--light, .header--dark)
-     to ensure proper specificity and avoid override conflicts. */
   width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
 
 .header--position-over {
@@ -31,8 +65,6 @@
   top: 0;
   left: 0;
   right: 0;
-  /* Background is transparent when positioned over content.
-     This allows hero images or page content to show through. */
   background-color: transparent;
 }
 
@@ -47,7 +79,10 @@
 }
 
 /* ==========================================
-   Logo Section
+   SECTION 3: Logo Section
+   ------------------------------------------
+   Brand logo display with responsive sizing and variant-aware
+   color inversion for dark/light background compatibility.
    ========================================== */
 .header__logo-wrapper {
   flex-shrink: 0;
@@ -70,12 +105,15 @@
 }
 
 /* ==========================================
-   Desktop Navigation
+   SECTION 4: Desktop Navigation
+   ------------------------------------------
+   Primary navigation menu for desktop viewports (1024px+).
+   Features dropdown submenus with hover-activated display.
    ========================================== */
 .header__nav-desktop {
-  display: none; /* Hidden on mobile */
+  display: none;
   flex: 1;
-  justify-content: right; /* Centers the menu items */
+  justify-content: right;
   padding: 0 2rem;
 }
 
@@ -104,8 +142,8 @@
   gap: 6px;
   text-decoration: none;
   color: var(--header-text);
-  font-size: 18px;
-  font-weight: 500;
+  font-size: var(--text-body-lg, 18px);
+  font-weight: var(--weight-medium, 500);
   letter-spacing: 0.5px;
   transition: color 0.3s ease;
 }
@@ -126,21 +164,22 @@
   transform: rotate(180deg);
 }
 
-/* Desktop Submenu (Dropdown) */
+/* Desktop Submenu (Dropdown)
+   Uses brand ink color for dark dropdown panels. */
 .header__submenu {
   display: none;
   position: absolute;
   top: 100%;
   left: -20px;
   min-width: 220px;
-  background-color: #1a1a1a; /* Dark gray dropdown */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background-color: var(--brand-ink, #1a1a1a);
+  box-shadow: var(--shadow-deep, 0 10px 30px rgba(0, 0, 0, 0.5));
   list-style: none;
   margin: 0;
   padding: 1rem 0;
   border-radius: 4px;
   z-index: 1001;
-  padding-top: 10px; /* Spacing from link */
+  padding-top: 10px;
 }
 
 .header__menu-item:hover .header__submenu {
@@ -152,19 +191,22 @@
   display: block;
   padding: 0.75rem 1.5rem;
   text-decoration: none;
-  color: #ccc;
-  font-size: 14px;
+  color: var(--brand-meta, #ccc);
+  font-size: var(--text-caption, 14px);
   transition: all 0.2s ease;
 }
 
 .header__submenu-link:hover {
-  background-color: #333;
+  background-color: var(--brand-slate, #333);
   color: var(--header-accent);
-  padding-left: 1.75rem; /* Slight slide effect */
+  padding-left: 1.75rem;
 }
 
 /* ==========================================
-   Actions Section (CTA & Toggle)
+   SECTION 5: Actions Section (CTA and Toggle)
+   ------------------------------------------
+   Right-aligned action area containing the primary CTA button
+   and mobile menu toggle. CTA hidden on small mobile devices.
    ========================================== */
 .header__actions {
   display: flex;
@@ -173,16 +215,17 @@
   flex-shrink: 0;
 }
 
-/* CTA Button Styling */
+/* Primary Call-to-Action Button
+   Uses brand accent color with hover state animation. */
 .header__cta-btn {
-  display: none; /* Hidden on small mobile */
+  display: none;
   background-color: var(--header-accent);
-  color: #fff;
+  color: var(--brand-white, #fff);
   text-decoration: none;
   padding: 0.5rem 1.0rem;
-  border-radius: 4px; /* Slightly rounded corners */
-  font-weight: 600;
-  font-size: 18px;
+  border-radius: 4px;
+  font-weight: var(--weight-semibold, 600);
+  font-size: var(--text-body-lg, 18px);
   transition: background-color 0.3s ease, transform 0.2s ease;
   white-space: nowrap;
 }
@@ -228,17 +271,20 @@
 }
 
 /* ==========================================
-   Mobile Menu Drawer
+   SECTION 6: Mobile Menu Drawer
+   ------------------------------------------
+   Expandable mobile navigation panel displayed below the header.
+   Features accordion-style submenus and mobile CTA placement.
    ========================================== */
 .header__mobile-menu {
   position: absolute;
   top: var(--header-height);
   left: 0;
   width: 100%;
-  background-color: #111; /* Slightly lighter than pure black */
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background-color: var(--brand-ink, #111);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0 0 2rem 0;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-natural, 0 10px 20px rgba(0, 0, 0, 0.5));
 }
 
 .header__mobile-list {
@@ -262,8 +308,8 @@
   display: block;
   padding: 1rem 2rem;
   text-decoration: none;
-  color: #fff;
-  font-weight: 500;
+  color: var(--brand-white, #fff);
+  font-weight: var(--weight-medium, 500);
   flex: 1;
 }
 
@@ -287,27 +333,29 @@
   color: var(--header-accent);
 }
 
-/* Mobile Submenu List */
+/* Mobile Submenu List
+   Nested submenu items displayed in accordion format. */
 .header__mobile-submenu {
   list-style: none;
   margin: 0;
   padding: 0;
-  background-color: #000;
+  background-color: var(--brand-black, #000);
 }
 
 .header__mobile-submenu-link {
   display: block;
-  padding: 0.75rem 0.75rem 0.75rem 3rem; /* Indented */
+  padding: 0.75rem 0.75rem 0.75rem 3rem;
   text-decoration: none;
-  color: #999;
-  font-size: 0.9rem;
+  color: var(--brand-stone, #999);
+  font-size: var(--text-caption, 0.9rem);
 }
 
 .header__mobile-submenu-link:hover {
-  color: #fff;
+  color: var(--brand-white, #fff);
 }
 
-/* Mobile CTA placement */
+/* Mobile CTA Button Placement
+   Full-width CTA button positioned at the bottom of the mobile menu. */
 .header__mobile-item--cta {
   border-bottom: none;
   padding: 1.5rem 2rem;
@@ -317,16 +365,16 @@
   display: block;
   text-align: center;
   background-color: var(--header-accent);
-  color: #fff;
+  color: var(--brand-white, #fff);
   text-decoration: none;
   padding: 1rem;
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold, 600);
 }
 
 /* ==========================================
-   Variant: Light
-   
+   SECTION 7: Variant - Light
+   ------------------------------------------
    The "light" variant is designed for pages with light or white backgrounds.
    It applies a light (white) background to the header and uses dark (black)
    text for navigation links, ensuring proper contrast and readability.
@@ -335,7 +383,7 @@
    that do not feature a dark hero image behind the header.
    ========================================== */
 .header--light {
-  background-color: #fefefe;
+  background-color: var(--header-bg-light);
 }
 
 /* When the header is positioned over content, remove the background
@@ -346,7 +394,7 @@
 
 /* Navigation link styling for light variant uses dark text. */
 .header--light .header__menu-link {
-  color: #1a1a1a;
+  color: var(--brand-ink, #1a1a1a);
 }
 
 /* Hover state changes link color to the brand accent color. */
@@ -356,28 +404,28 @@
 
 /* Dropdown chevron icon uses dark fill for visibility on light backgrounds. */
 .header--light .header__dropdown-icon {
-  fill: #1a1a1a;
+  fill: var(--brand-ink, #1a1a1a);
 }
 
 /* Mobile hamburger menu toggle uses dark color for light backgrounds. */
 .header--light .header__mobile-toggle {
-  color: #1a1a1a;
+  color: var(--brand-ink, #1a1a1a);
 }
 
 /* Submenu dropdown panel styling for light variant. */
 .header--light .header__submenu {
-  background-color: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  background-color: var(--brand-bg-primary, #ffffff);
+  box-shadow: var(--shadow-natural, 0 10px 30px rgba(0, 0, 0, 0.15));
 }
 
 /* Submenu link text color for light variant. */
 .header--light .header__submenu-link {
-  color: #333333;
+  color: var(--brand-slate, #333333);
 }
 
 /* Submenu link hover state with subtle background highlight. */
 .header--light .header__submenu-link:hover {
-  background-color: #f5f5f5;
+  background-color: var(--brand-bg-secondary, #f5f5f5);
   color: var(--header-accent);
 }
 
@@ -388,8 +436,8 @@
 }
 
 /* ==========================================
-   Variant: Dark (Default)
-   
+   SECTION 8: Variant - Dark (Default)
+   ------------------------------------------
    The "dark" variant is designed for pages with dark backgrounds
    or hero sections with background images. It applies a dark (black)
    background to the header and uses light (white) text for navigation
@@ -399,7 +447,7 @@
    featuring full-width hero images.
    ========================================== */
 .header--dark {
-  background-color: #0d0d0d;
+  background-color: var(--header-bg-dark);
 }
 
 /* When the header is positioned over content (e.g., hero images),
@@ -410,7 +458,7 @@
 
 /* Navigation link styling for dark variant uses light (white) text. */
 .header--dark .header__menu-link {
-  color: #fefefe;
+  color: var(--brand-white, #fefefe);
 }
 
 /* Hover state changes link color to the brand accent color. */
@@ -420,29 +468,29 @@
 
 /* Dropdown chevron icon uses light fill for visibility on dark backgrounds. */
 .header--dark .header__dropdown-icon {
-  fill: #fefefe;
+  fill: var(--brand-white, #fefefe);
 }
 
 /* Mobile hamburger menu toggle uses light color for dark backgrounds. */
 .header--dark .header__mobile-toggle {
-  color: #fefefe;
+  color: var(--brand-white, #fefefe);
 }
 
 /* Submenu dropdown panel styling for dark variant.
-   Uses a light background to ensure readability of submenu items. */
+   Uses brand ink color to ensure readability of submenu items. */
 .header--dark .header__submenu {
-  background-color: #1a1a1a;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background-color: var(--brand-ink, #1a1a1a);
+  box-shadow: var(--shadow-deep, 0 10px 30px rgba(0, 0, 0, 0.5));
 }
 
 /* Submenu link text color for dark variant dropdown. */
 .header--dark .header__submenu-link {
-  color: #cccccc;
+  color: var(--brand-meta, #cccccc);
 }
 
 /* Submenu link hover state with subtle background highlight. */
 .header--dark .header__submenu-link:hover {
-  background-color: #333333;
+  background-color: var(--brand-slate, #333333);
   color: var(--header-accent);
 }
 
@@ -454,9 +502,17 @@
 }
 
 /* ==========================================
-   Animations
+   SECTION 9: Animations
+   ------------------------------------------
+   Keyframe animations for dropdown and menu transitions.
    ========================================== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }

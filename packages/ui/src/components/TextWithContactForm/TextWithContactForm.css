@@ -1,110 +1,620 @@
-/* TextWithContactForm.css */
+/**
+ * TextWithContactForm Component Stylesheet
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * Provides styling for a two-column layout combining informational text content
+ * with a contact form. Supports responsive design with mobile-first approach.
+ * This component consumes brand design tokens from the central style.css file.
+ * 
+ * ARCHITECTURE:
+ * This stylesheet follows the Open-Closed Principle: component-level tokens are
+ * defined at the root level with fallback values, allowing consumers to override
+ * appearance without modifying this file. The layout uses CSS Flexbox for
+ * responsive column management.
+ * 
+ * DEPENDENCIES:
+ * - Requires style.css to be imported in the consuming application
+ * - Brand tokens: --font-sans, --font-serif, --brand-*, --text-*, --weight-*
+ * 
+ * BEM NAMING CONVENTION:
+ * - Block: .text-contact
+ * - Element: .text-contact__[element]
+ * - Modifier: .text-contact__[element]--[modifier]
+ * 
+ * =============================================================================
+ */
 
-/* 
-  Using @apply to bridge Bootstrap classes with Tailwind utilities.
-  Assuming Bootstrap 5 is available globally or via a wrapper.
-  We are not importing bootstrap here to avoid duplication if it's already in the app.
-*/
 
-.text-with-contact-form-section {
-  @apply py-16 px-4 md:px-8 lg:px-16 bg-white;
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   These CSS custom properties bridge global brand tokens to component-specific
+   naming. Consumers can override these variables without modifying brand tokens.
+   Fallback values ensure the component remains functional in isolation.
+   ============================================================================= */
+
+:root {
+  /**
+   * Section background color.
+   * Uses brand primary background for clean appearance.
+   */
+  --text-contact-bg: var(--brand-bg-primary, #fefefe);
+
+  /**
+   * Primary heading color.
+   * Uses brand title color for visual hierarchy.
+   */
+  --text-contact-heading: var(--brand-title, #121414);
+
+  /**
+   * Body text color for descriptions.
+   * Uses brand slate for comfortable reading.
+   */
+  --text-contact-body: var(--brand-slate, #555555);
+
+  /**
+   * Label and metadata text color.
+   * Uses brand stone for muted appearance.
+   */
+  --text-contact-label: var(--brand-stone, #888888);
+
+  /**
+   * Accent color for icons and interactive elements.
+   * Uses brand link color for consistency.
+   */
+  --text-contact-accent: var(--brand-link, #B55329);
+
+  /**
+   * Accent hover state color.
+   */
+  --text-contact-accent-hover: var(--brand-link-hover, #9F4017);
+
+  /**
+   * Input border color.
+   * Uses brand border for consistency.
+   */
+  --text-contact-input-border: var(--brand-border, #e0e0e0);
+
+  /**
+   * Input background color.
+   * Subtle off-white for visual distinction.
+   */
+  --text-contact-input-bg: var(--brand-bg-secondary, #f6f5f0);
+
+  /**
+   * Input focus background color.
+   * White background on focus for clarity.
+   */
+  --text-contact-input-bg-focus: var(--brand-bg-primary, #fefefe);
+
+  /**
+   * Error state color.
+   * Uses vivid red for attention.
+   */
+  --text-contact-error: var(--brand-vivid-red, #cf2e2e);
+
+  /**
+   * Success state color.
+   * Uses vivid green for positive feedback.
+   */
+  --text-contact-success: var(--brand-vivid-green-cyan, #00d084);
+
+  /**
+   * Primary font family for content.
+   * Uses brand sans-serif stack.
+   */
+  --text-contact-font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+
+  /**
+   * Heading font family.
+   * Uses brand serif stack for editorial feel.
+   */
+  --text-contact-font-heading: var(--font-serif, 'Libre Baskerville', serif);
+
+  /**
+   * Section vertical padding.
+   */
+  --text-contact-padding-y: 4rem;
+
+  /**
+   * Section horizontal padding (mobile).
+   */
+  --text-contact-padding-x: 1rem;
+
+  /**
+   * Gap between columns.
+   */
+  --text-contact-gap: 3rem;
+
+  /**
+   * Transition duration for interactive elements.
+   */
+  --text-contact-transition: 0.3s ease;
 }
 
-.text-with-contact-form-container {
-  @apply container mx-auto;
+
+/* =============================================================================
+   SECTION 2: MAIN LAYOUT CONTAINER
+   -----------------------------------------------------------------------------
+   Establishes the primary section container with background and padding.
+   ============================================================================= */
+
+/**
+ * Primary section container.
+ * Provides full-width coverage with vertical padding and background.
+ */
+.text-contact {
+  background-color: var(--text-contact-bg);
+  font-family: var(--text-contact-font-family);
+  padding: var(--text-contact-padding-y) var(--text-contact-padding-x);
+  width: 100%;
 }
 
-.text-with-contact-form-row {
-  @apply flex flex-col lg:flex-row gap-12;
+/**
+ * Responsive horizontal padding for larger screens.
+ */
+@media (min-width: 768px) {
+  .text-contact {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
-/* Left Column: Text Content */
-.text-content-column {
-  @apply flex-1 lg:w-5/12;
+@media (min-width: 1024px) {
+  .text-contact {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
 }
 
-.common-questions-label {
-  @apply text-sm font-bold tracking-widest text-gray-500 uppercase mb-4 block;
+
+/* =============================================================================
+   SECTION 3: CONTENT CONTAINER
+   -----------------------------------------------------------------------------
+   Centered container with max-width constraint for content.
+   ============================================================================= */
+
+/**
+ * Inner container with centered alignment.
+ * Constrains content width for readability on large screens.
+ */
+.text-contact__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.main-heading {
-  @apply text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight;
+
+/* =============================================================================
+   SECTION 4: TWO-COLUMN ROW LAYOUT
+   -----------------------------------------------------------------------------
+   Responsive flex layout that stacks on mobile and splits on desktop.
+   ============================================================================= */
+
+/**
+ * Row container for two-column layout.
+ * Mobile: stacked vertically. Desktop: side-by-side.
+ */
+.text-contact__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--text-contact-gap);
 }
 
-.description-text {
-  @apply text-gray-600 mb-8 text-lg leading-relaxed;
+@media (min-width: 1024px) {
+  .text-contact__row {
+    flex-direction: row;
+  }
 }
 
-.contact-info-list {
-  @apply space-y-4;
+
+/* =============================================================================
+   SECTION 5: TEXT CONTENT COLUMN (LEFT)
+   -----------------------------------------------------------------------------
+   Contains the informational content: label, heading, description, and
+   contact information list.
+   ============================================================================= */
+
+/**
+ * Text content column.
+ * Takes 5/12 width on desktop layouts.
+ */
+.text-contact__content {
+  flex: 1;
 }
 
-.contact-info-item {
-  @apply flex items-start gap-4;
+@media (min-width: 1024px) {
+  .text-contact__content {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
 }
 
-.contact-icon-wrapper {
-  @apply text-yellow-500 mt-1 shrink-0;
+/**
+ * Eyebrow label above the main heading.
+ * Uppercase with wide letter-spacing for emphasis.
+ */
+.text-contact__label {
+  display: block;
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  letter-spacing: var(--tracking-wide, 0.12em);
+  text-transform: uppercase;
+  color: var(--text-contact-label);
+  margin-bottom: 1rem;
 }
 
-.contact-text {
-  @apply text-gray-700 font-medium;
+/**
+ * Main section heading.
+ * Uses serif font for editorial appearance.
+ */
+.text-contact__heading {
+  font-family: var(--text-contact-font-heading);
+  font-size: var(--text-heading-l, clamp(1.75rem, 4vw, 2.5rem));
+  font-weight: var(--weight-semibold, 600);
+  color: var(--text-contact-heading);
+  line-height: var(--lh-tight, 1.2);
+  margin: 0 0 1.5rem 0;
 }
 
-/* Right Column: Form */
-.form-column {
-  @apply flex-1 lg:w-7/12;
+/**
+ * Description paragraph below the heading.
+ * Comfortable line-height for readability.
+ */
+.text-contact__description {
+  font-size: var(--text-body-lg, 1.125rem);
+  color: var(--text-contact-body);
+  line-height: var(--lh-relaxed, 1.625);
+  margin: 0 0 2rem 0;
 }
 
-.contact-form-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-6 mb-6;
+
+/* =============================================================================
+   SECTION 6: CONTACT INFORMATION LIST
+   -----------------------------------------------------------------------------
+   Vertical list of contact items with icons.
+   ============================================================================= */
+
+/**
+ * Contact information list container.
+ * Vertical stack with consistent spacing.
+ */
+.text-contact__info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.form-group {
-  @apply flex flex-col;
+/**
+ * Individual contact information item.
+ * Horizontal layout with icon and text.
+ */
+.text-contact__info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
-.form-group-full {
-  @apply col-span-1 md:col-span-2;
+/**
+ * Icon wrapper for contact items.
+ * Accent color with consistent sizing.
+ */
+.text-contact__info-icon {
+  color: var(--text-contact-accent);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
-.form-label {
-  @apply mb-2 font-medium text-gray-900;
+/**
+ * Contact information text.
+ */
+.text-contact__info-text {
+  font-size: var(--text-body, 1rem);
+  font-weight: var(--weight-medium, 500);
+  color: var(--text-contact-body);
 }
 
-.required-asterisk {
-  @apply text-red-500 ml-1;
+
+/* =============================================================================
+   SECTION 7: FORM COLUMN (RIGHT)
+   -----------------------------------------------------------------------------
+   Contains the contact form with inputs and submit button.
+   ============================================================================= */
+
+/**
+ * Form column container.
+ * Takes 7/12 width on desktop layouts.
+ */
+.text-contact__form-column {
+  flex: 1;
 }
 
-.form-input,
-.form-textarea {
-  @apply w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-colors outline-none;
+@media (min-width: 1024px) {
+  .text-contact__form-column {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
 }
 
-.form-textarea {
-  @apply min-h-[150px] resize-y;
+
+/* =============================================================================
+   SECTION 8: FORM GRID LAYOUT
+   -----------------------------------------------------------------------------
+   Responsive grid for form fields with two columns on larger screens.
+   ============================================================================= */
+
+/**
+ * Form fields grid container.
+ * Single column on mobile, two columns on tablet and up.
+ */
+.text-contact__form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.form-error-message {
-  @apply text-red-500 text-sm mt-1;
+@media (min-width: 768px) {
+  .text-contact__form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.checkbox-group {
-  @apply flex items-start gap-3 mb-8;
+
+/* =============================================================================
+   SECTION 9: FORM GROUP ELEMENTS
+   -----------------------------------------------------------------------------
+   Individual form field containers with labels and inputs.
+   ============================================================================= */
+
+/**
+ * Form group container.
+ * Vertical layout for label and input.
+ */
+.text-contact__form-group {
+  display: flex;
+  flex-direction: column;
 }
 
-.checkbox-input {
-  @apply mt-1 w-5 h-5 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500;
+/**
+ * Full-width form group modifier.
+ * Spans both columns in grid layout.
+ */
+.text-contact__form-group--full {
+  grid-column: 1 / -1;
 }
 
-.checkbox-label {
-  @apply text-gray-600 text-sm;
+/**
+ * Form field label.
+ */
+.text-contact__label--field {
+  display: block;
+  font-size: var(--text-body, 1rem);
+  font-weight: var(--weight-medium, 500);
+  color: var(--text-contact-heading);
+  margin-bottom: 0.5rem;
 }
 
-.privacy-link {
-  @apply text-yellow-600 hover:underline font-medium;
+/**
+ * Required field indicator asterisk.
+ */
+.text-contact__required {
+  color: var(--text-contact-error);
+  margin-left: 0.25rem;
 }
 
-.submit-button {
-  @apply px-8 py-4 bg-yellow-700 text-white font-bold rounded hover:bg-yellow-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed;
+
+/* =============================================================================
+   SECTION 10: FORM INPUT ELEMENTS
+   -----------------------------------------------------------------------------
+   Styling for text inputs, selects, and textareas.
+   ============================================================================= */
+
+/**
+ * Base input styling.
+ * Consistent appearance for all text-based inputs.
+ */
+.text-contact__input,
+.text-contact__textarea,
+.text-contact__select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--text-contact-font-family);
+  font-size: var(--text-body, 1rem);
+  color: var(--text-contact-heading);
+  background-color: var(--text-contact-input-bg);
+  border: 1px solid var(--text-contact-input-border);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: background-color var(--text-contact-transition),
+              border-color var(--text-contact-transition),
+              box-shadow var(--text-contact-transition);
+}
+
+/**
+ * Input focus state.
+ * Accent border with subtle ring effect.
+ */
+.text-contact__input:focus,
+.text-contact__textarea:focus,
+.text-contact__select:focus {
+  background-color: var(--text-contact-input-bg-focus);
+  border-color: var(--text-contact-accent);
+  box-shadow: 0 0 0 2px rgba(181, 83, 41, 0.15);
+}
+
+/**
+ * Input error state.
+ */
+.text-contact__input--error,
+.text-contact__textarea--error,
+.text-contact__select--error {
+  border-color: var(--text-contact-error);
+}
+
+/**
+ * Textarea specific styling.
+ * Minimum height with vertical resize only.
+ */
+.text-contact__textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+/**
+ * Form error message.
+ */
+.text-contact__error {
+  font-size: var(--text-caption, 0.875rem);
+  color: var(--text-contact-error);
+  margin-top: 0.25rem;
+}
+
+
+/* =============================================================================
+   SECTION 11: CHECKBOX GROUP
+   -----------------------------------------------------------------------------
+   GDPR consent checkbox with label styling.
+   ============================================================================= */
+
+/**
+ * Checkbox group container.
+ * Horizontal layout with gap.
+ */
+.text-contact__checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+/**
+ * Checkbox input styling.
+ * Custom sizing with accent color.
+ */
+.text-contact__checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  accent-color: var(--text-contact-accent);
+  cursor: pointer;
+}
+
+/**
+ * Checkbox label text.
+ */
+.text-contact__checkbox-label {
+  font-size: var(--text-caption, 0.875rem);
+  color: var(--text-contact-body);
+  line-height: var(--lh-body, 1.5);
+}
+
+/**
+ * Privacy policy link within checkbox label.
+ */
+.text-contact__privacy-link {
+  color: var(--text-contact-accent);
+  font-weight: var(--weight-medium, 500);
+  text-decoration: none;
+  transition: color var(--text-contact-transition);
+}
+
+.text-contact__privacy-link:hover {
+  color: var(--text-contact-accent-hover);
+  text-decoration: underline;
+}
+
+
+/* =============================================================================
+   SECTION 12: SUBMIT BUTTON
+   -----------------------------------------------------------------------------
+   Primary action button for form submission.
+   ============================================================================= */
+
+/**
+ * Submit button styling.
+ * Accent background with hover state.
+ */
+.text-contact__submit {
+  display: inline-block;
+  padding: 1rem 2rem;
+  font-family: var(--text-contact-font-family);
+  font-size: var(--text-body, 1rem);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--brand-white, #fefefe);
+  background-color: var(--text-contact-accent);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color var(--text-contact-transition);
+}
+
+.text-contact__submit:hover:not(:disabled) {
+  background-color: var(--text-contact-accent-hover);
+}
+
+.text-contact__submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+
+/* =============================================================================
+   SECTION 13: STATUS MESSAGES
+   -----------------------------------------------------------------------------
+   Success and error message containers for form feedback.
+   ============================================================================= */
+
+/**
+ * Success message container.
+ * Green-tinted background with matching border.
+ */
+.text-contact__success-message {
+  padding: 1.5rem;
+  background-color: rgba(0, 208, 132, 0.1);
+  border: 1px solid var(--text-contact-success);
+  border-radius: 0.5rem;
+  color: #065f46;
+}
+
+.text-contact__success-message h3 {
+  font-size: var(--text-heading-s, 1.25rem);
+  font-weight: var(--weight-semibold, 600);
+  margin: 0 0 0.5rem 0;
+}
+
+.text-contact__success-message p {
+  margin: 0;
+}
+
+/**
+ * Error message container.
+ * Red-tinted background with matching border.
+ */
+.text-contact__error-message {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: rgba(207, 46, 46, 0.1);
+  border: 1px solid var(--text-contact-error);
+  border-radius: 0.25rem;
+  color: #991b1b;
+}
+
+
+/* =============================================================================
+   SECTION 14: HONEYPOT FIELD
+   -----------------------------------------------------------------------------
+   Hidden field for spam prevention. Visually hidden but accessible to bots.
+   ============================================================================= */
+
+/**
+ * Honeypot field container.
+ * Positioned off-screen to hide from users.
+ */
+.text-contact__honeypot {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
 }

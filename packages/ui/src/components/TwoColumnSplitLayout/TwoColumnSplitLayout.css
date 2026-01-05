@@ -1,30 +1,191 @@
+/**
+ * TwoColumnSplitLayout Component Stylesheet
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * Provides styling for a responsive two-column layout with split content areas.
+ * Supports multiple background color variants and flexible content placement.
+ * This component consumes brand design tokens from the central style.css file.
+ * 
+ * ARCHITECTURE:
+ * This stylesheet follows the Open-Closed Principle: component-level tokens are
+ * defined at the root level with fallback values, allowing consumers to override
+ * appearance without modifying this file. Background variants are implemented
+ * using BEM modifier classes.
+ * 
+ * DEPENDENCIES:
+ * - Requires style.css to be imported in the consuming application
+ * - Brand tokens: --font-sans, --font-serif, --weight-*, --brand-*
+ * 
+ * BEM NAMING CONVENTION:
+ * - Block: .two-col-layout
+ * - Element: .two-col-layout__[element]
+ * - Modifier: .two-col-layout--[modifier]
+ * 
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   These CSS custom properties bridge global brand tokens to component-specific
+   naming. Consumers can override these variables without modifying brand tokens.
+   Fallback values ensure the component remains functional in isolation.
+   ============================================================================= */
+
+:root {
+  /**
+   * Default background color (beige variant).
+   * Maps to brand secondary background for warm appearance.
+   */
+  --two-col-bg-beige: var(--brand-bg-secondary);
+  
+  /**
+   * White background variant.
+   * Uses brand primary background for clean appearance.
+   */
+  --two-col-bg-white: var(--brand-bg-primary);
+  
+  /**
+   * Gray background variant.
+   * Provides subtle separation between sections.
+   */
+  --two-col-bg-gray: #f9fafb;
+  
+  /**
+   * Dark background variant.
+   * Uses brand ink color for dramatic contrast.
+   */
+  --two-col-bg-dark: var(--brand-ink);
+  
+  /**
+   * Primary text color for headings.
+   * Uses brand title color for visual hierarchy.
+   */
+  --two-col-text-heading: var(--brand-title);
+  
+  /**
+   * Secondary text color for subtitles and labels.
+   * Uses brand stone for muted appearance.
+   */
+  --two-col-text-subtitle: var(--brand-stone);
+  
+  /**
+   * Body text color for descriptions.
+   * Uses brand slate for comfortable reading.
+   */
+  --two-col-text-body: var(--brand-slate);
+  
+  /**
+   * Primary button background color.
+   * Uses brand link color for consistency with CTAs.
+   */
+  --two-col-btn-primary-bg: var(--brand-link);
+  
+  /**
+   * Primary button hover state color.
+   * Uses brand link hover for visual feedback.
+   */
+  --two-col-btn-primary-bg-hover: var(--brand-link-hover);
+  
+  /**
+   * Primary button text color.
+   * Uses brand white for contrast against dark backgrounds.
+   */
+  --two-col-btn-primary-text: var(--brand-white);
+  
+  /**
+   * Text button color.
+   * Matches heading color for visual consistency.
+   */
+  --two-col-btn-text-color: var(--brand-title);
+  
+  /**
+   * Text button hover color.
+   * Slightly muted for visual feedback.
+   */
+  --two-col-btn-text-color-hover: var(--brand-slate);
+  
+  /**
+   * Image border radius for rounded corners.
+   * Provides consistent styling across images.
+   */
+  --two-col-image-radius: 0.5rem;
+  
+  /**
+   * Image shadow for depth effect.
+   * Uses brand natural shadow for elevation.
+   */
+  --two-col-image-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+
+/* =============================================================================
+   SECTION 2: MAIN LAYOUT CONTAINER
+   -----------------------------------------------------------------------------
+   Establishes the primary section container with padding and background.
+   ============================================================================= */
+
+/**
+ * Primary layout container.
+ * Provides full-width coverage with vertical padding.
+ */
 .two-col-layout {
   width: 100%;
   padding-top: 4rem;
   padding-bottom: 4rem;
-  background-color: #F8F7F4;
+  background-color: var(--two-col-bg-beige);
+  font-family: var(--font-sans);
 }
 
-/* Background Color Variants */
+
+/* =============================================================================
+   SECTION 3: BACKGROUND COLOR VARIANTS
+   -----------------------------------------------------------------------------
+   BEM modifier classes for different background color themes.
+   Each variant adjusts text colors for proper contrast.
+   ============================================================================= */
+
+/**
+ * Beige background variant (default).
+ * Warm, neutral tone for comfortable viewing.
+ */
 .two-col-layout--bg-beige {
-  background-color: #F8F7F4;
+  background-color: var(--two-col-bg-beige);
 }
 
+/**
+ * White background variant.
+ * Clean appearance for high contrast sections.
+ */
 .two-col-layout--bg-white {
-  background-color: #ffffff;
+  background-color: var(--two-col-bg-white);
 }
 
+/**
+ * Gray background variant.
+ * Subtle separation for alternating sections.
+ */
 .two-col-layout--bg-gray {
-  background-color: #f9fafb;
+  background-color: var(--two-col-bg-gray);
 }
 
+/**
+ * Dark background variant.
+ * Inverts color scheme for dramatic effect.
+ */
 .two-col-layout--bg-dark {
-  background-color: #111827;
-  color: #ffffff;
+  background-color: var(--two-col-bg-dark);
+  color: var(--brand-white);
 }
 
+/**
+ * Dark variant text color overrides.
+ * Ensures proper contrast against dark background.
+ */
 .two-col-layout--bg-dark .two-col-layout__title {
-  color: #ffffff;
+  color: var(--brand-white);
 }
 
 .two-col-layout--bg-dark .two-col-layout__subtitle {
@@ -36,7 +197,7 @@
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-text {
-  color: #ffffff;
+  color: var(--brand-white);
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-text:hover {
@@ -44,14 +205,25 @@
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-primary {
-  background-color: #ffffff;
-  color: #111827;
+  background-color: var(--brand-white);
+  color: var(--two-col-bg-dark);
 }
 
 .two-col-layout--bg-dark .two-col-layout__btn-primary:hover {
   background-color: #f3f4f6;
 }
 
+
+/* =============================================================================
+   SECTION 4: CONTAINER AND CONTENT STRUCTURE
+   -----------------------------------------------------------------------------
+   Responsive container with max-width constraints and content layout.
+   ============================================================================= */
+
+/**
+ * Centered container with responsive max-width.
+ * Provides consistent horizontal gutters.
+ */
 .two-col-layout__container {
   width: 100%;
   margin-right: auto;
@@ -60,22 +232,44 @@
   padding-left: 1rem;
 }
 
+/**
+ * Responsive container max-width breakpoints.
+ * Aligns with standard Bootstrap/Tailwind breakpoint system.
+ */
 @media (min-width: 640px) {
-  .two-col-layout__container { max-width: 640px; }
-}
-@media (min-width: 768px) {
-  .two-col-layout__container { max-width: 768px; }
-}
-@media (min-width: 1024px) {
-  .two-col-layout__container { max-width: 1024px; }
-}
-@media (min-width: 1280px) {
-  .two-col-layout__container { max-width: 1280px; }
-}
-@media (min-width: 1536px) {
-  .two-col-layout__container { max-width: 1536px; }
+  .two-col-layout__container {
+    max-width: 640px;
+  }
 }
 
+@media (min-width: 768px) {
+  .two-col-layout__container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .two-col-layout__container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .two-col-layout__container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .two-col-layout__container {
+    max-width: 1536px;
+  }
+}
+
+/**
+ * Content wrapper using flexbox.
+ * Stacks vertically on mobile, horizontal on desktop.
+ */
 .two-col-layout__content {
   display: flex;
   flex-direction: column;
@@ -89,6 +283,17 @@
   }
 }
 
+
+/* =============================================================================
+   SECTION 5: COLUMN LAYOUT
+   -----------------------------------------------------------------------------
+   Individual column styling with equal width distribution.
+   ============================================================================= */
+
+/**
+ * Column container with equal flex distribution.
+ * Uses column flex direction for internal content stacking.
+ */
 .two-col-layout__column {
   flex: 1 1 0%;
   display: flex;
@@ -96,127 +301,221 @@
   gap: 2rem;
 }
 
-/* --- LOGIC CHANGE FOR ALIGNMENT --- */
-/* Removed the top margin here so Right Image aligns with Left Title */
+/**
+ * Right column modifier.
+ * Removes default margin for proper alignment with left column.
+ */
 .two-col-layout__column--right {
   margin-top: 0;
 }
 
-@media (min-width: 1024px) {
-  .two-col-layout__column--right {
-    margin-top: 0rem;
-  }
-}
-/* ---------------------------------- */
+/* =============================================================================
+   SECTION 6: HEADER AND TYPOGRAPHY
+   -----------------------------------------------------------------------------
+   Heading styles including subtitle (eyebrow) and main title.
+   ============================================================================= */
 
+/**
+ * Header container for title elements.
+ * Uses flex column with consistent gap.
+ */
 .two-col-layout__header {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
+/**
+ * Subtitle (eyebrow) styling.
+ * Uppercase with wide letter-spacing for emphasis.
+ */
 .two-col-layout__subtitle {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--lh-none);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
+  letter-spacing: var(--tracking-wide);
+  color: var(--two-col-text-subtitle);
   margin: 0;
 }
 
+/**
+ * Main title styling.
+ * Uses serif font for editorial aesthetic with responsive sizing.
+ */
 .two-col-layout__title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1.25;
+  font-family: var(--font-serif);
+  font-size: var(--text-display);
+  line-height: var(--lh-tight);
+  font-weight: var(--weight-regular);
+  color: var(--two-col-text-heading);
   margin: 0;
   white-space: pre-line;
 }
 
-@media (min-width: 768px) {
+/*@media (min-width: 768px) {
   .two-col-layout__title {
-    font-size: 3rem;
+    font-size: clamp(2.25rem, 4vw, 3rem);
     line-height: 1;
   }
-}
+}*/
 
+
+/* =============================================================================
+   SECTION 7: DESCRIPTION AND CONTENT
+   -----------------------------------------------------------------------------
+   Body text and content area styling.
+   ============================================================================= */
+
+/**
+ * Description container.
+ * Provides consistent spacing for text and button elements.
+ */
 .two-col-layout__description {
-  color: #4b5563;
+  color: var(--two-col-text-body);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Increased gap slightly to accommodate buttons */
+  gap: 1.5rem;
 }
 
+/**
+ * Paragraph reset within description.
+ * Removes default browser margins.
+ */
 .two-col-layout__description p {
   margin: 0;
 }
 
+/**
+ * Highlighted description text.
+ * Uses medium weight for emphasis.
+ */
 .two-col-layout__description-highlight {
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--lh-body);
   white-space: pre-line;
 }
 
+
+/* =============================================================================
+   SECTION 8: IMAGE STYLING
+   -----------------------------------------------------------------------------
+   Image wrapper and image element styling with shadows and rounded corners.
+   ============================================================================= */
+
+/**
+ * Image wrapper with top margin.
+ * Provides spacing above image elements.
+ */
 .two-col-layout__image-wrapper {
   margin-top: 1rem;
 }
 
-/* --- NEW: Push the left image down on desktop --- */
-/* This ensures the left image ends in line with the right button content */
+/**
+ * Push-down modifier for left image alignment.
+ * Uses margin-top: auto to push image to bottom of container.
+ */
 @media (min-width: 1024px) {
   .two-col-layout__image-wrapper--push-down {
-    margin-top: auto; /* Pushes to bottom of container */
-    padding-top: 0rem; /* Adds visual offset similar to original right-col offset */
+    margin-top: auto;
+    padding-top: 0;
   }
 }
-/* ----------------------------------------------- */
 
+/**
+ * Left image styling.
+ * Full width with rounded corners and shadow.
+ */
 .two-col-layout__image--left {
   width: 100%;
   height: auto;
   object-fit: cover;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-radius: var(--two-col-image-radius);
+  box-shadow: var(--two-col-image-shadow);
 }
+
+/**
+ * Right image styling.
+ * Matches left image for visual consistency.
+ */
 .two-col-layout__image--right {
   width: 100%;
   height: auto;
   object-fit: cover;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-radius: var(--two-col-image-radius);
+  box-shadow: var(--two-col-image-shadow);
 }
 
-/* --- NEW BUTTON STYLES --- */
+
+/* =============================================================================
+   SECTION 9: BUTTON STYLING
+   -----------------------------------------------------------------------------
+   Text link button and primary CTA button styles with hover states.
+   ============================================================================= */
+
+/**
+ * Text-style button (link appearance).
+ * Uses underline decoration for affordance.
+ */
 .two-col-layout__btn-text {
   background: none;
   border: none;
   padding: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-serif);
+  color: var(--two-col-btn-text-color);
   cursor: pointer;
   text-align: left;
   text-decoration: underline;
   text-underline-offset: 4px;
   width: fit-content;
+  transition: color 0.2s ease;
 }
 
 .two-col-layout__btn-text:hover {
-  color: #4b5563;
+  color: var(--two-col-btn-text-color-hover);
 }
 
+/**
+ * Focus-visible state for keyboard navigation.
+ * Provides clear visual indication for accessibility.
+ */
+.two-col-layout__btn-text:focus-visible {
+  outline: 2px solid var(--two-col-btn-primary-bg);
+  outline-offset: 2px;
+}
+
+/**
+ * Primary CTA button styling.
+ * Uses brand colors with rounded corners.
+ */
 .two-col-layout__btn-primary {
-  background-color: #111827;
-  color: #ffffff;
+  background-color: var(--two-col-btn-primary-bg);
+  color: var(--two-col-btn-primary-text);
   padding: 0.75rem 1.5rem;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;
   width: fit-content;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .two-col-layout__btn-primary:hover {
-  background-color: #374151;
+  background-color: var(--two-col-btn-primary-bg-hover);
+}
+
+/**
+ * Focus-visible state for primary button.
+ * High contrast outline for accessibility compliance.
+ */
+.two-col-layout__btn-primary:focus-visible {
+  outline: 2px solid var(--two-col-btn-primary-text);
+  outline-offset: 2px;
 }

@@ -7,7 +7,6 @@ export * from './components/TrueFooter/TrueFooter';
 export * from './components/FeatureSection/FeatureSection';
 export * from './components/CustomIcons/CustomIcons';
 export * from './components/TwoColumnSplitLayout/TwoColumnSplitLayout';
-export * from './components/TwoMirroSplitColumnLayout/TwoMirrorSplitColumnLayout';
 export * from './components/TestimonialGrid/TestimonialGrid'
 export * from './components/MiniFAQs/MiniFAQs'
 export * from './components/ContactFormWithImageBg/ContactFormWithImageBg'

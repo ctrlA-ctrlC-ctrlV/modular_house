@@ -125,17 +125,11 @@
   /* -------------------------------------------------------------------------
     2.5 TYPOGRAPHY: LINE HEIGHTS
     ------------------------------------------------------------------------- */
-
-  /** Tight for headings where letters are large */
-  --lh-heading: 1.2;
-
-  /** Standard ratio for body text (WCAG 2.1 compliance) */
+  --lh-loose: 2;
+  --lh-relaxed: 1.625;
   --lh-body: 1.5;
-
-  /** Relaxed for long-form content or light font weights */
-  --lh-article: 1.65;
-
-  /** Solid for single-line UI elements like buttons */
+  --lh-snug: 1.375;
+  --lh-tight: 1.2;
   --lh-none: 1;
 
   /* -------------------------------------------------------------------------

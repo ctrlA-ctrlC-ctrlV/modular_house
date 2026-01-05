@@ -309,13 +309,6 @@
   margin-top: 0;
 }
 
-@media (min-width: 1024px) {
-  .two-col-layout__column--right {
-    margin-top: 0;
-  }
-}
-
-
 /* =============================================================================
    SECTION 6: HEADER AND TYPOGRAPHY
    -----------------------------------------------------------------------------
@@ -353,19 +346,19 @@
 .two-col-layout__title {
   font-family: var(--font-serif);
   font-size: var(--text-display);
-  line-height: var(--lh-article);
+  line-height: var(--lh-tight);
   font-weight: var(--weight-regular);
   color: var(--two-col-text-heading);
   margin: 0;
   white-space: pre-line;
 }
 
-@media (min-width: 768px) {
+/*@media (min-width: 768px) {
   .two-col-layout__title {
     font-size: clamp(2.25rem, 4vw, 3rem);
     line-height: 1;
   }
-}
+}*/
 
 
 /* =============================================================================

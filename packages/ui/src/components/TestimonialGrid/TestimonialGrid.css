@@ -1,177 +1,319 @@
-/* --- Global Container --- */
+/**
+ * TestimonialGrid Component Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides styling for the TestimonialGrid component using brand design tokens
+ * defined in the project's style.css bridge file. This stylesheet follows the
+ * Open-Closed Principle by leveraging CSS custom properties for extension.
+ *
+ * NAMING CONVENTION:
+ * Uses BEM (Block Element Modifier) methodology for predictable, maintainable
+ * class names that avoid specificity conflicts with Bootstrap utilities.
+ *
+ * DEPENDENCY:
+ * Requires the brand design tokens from apps/web/src/styles/style.css to be
+ * loaded in the consuming application for proper token resolution.
+ *
+ * TOKEN FALLBACKS:
+ * Each CSS variable includes a fallback value to ensure graceful degradation
+ * when tokens are not available (e.g., in isolated Storybook environment).
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: CONTAINER STYLES
+   -----------------------------------------------------------------------------
+   Root container and wrapper elements that establish the component boundaries.
+   ============================================================================= */
+
+/**
+ * Root Container
+ * Full-width section with vertical padding and brand background color.
+ * Uses box-sizing border-box to include padding in width calculations.
+ */
 .testimonial-grid {
   width: 100%;
   padding: 5rem 1rem;
-  background-color: #F8F7F4; /* Light beige background */
+  background-color: var(--brand-bg-secondary, #F6F5F0);
   box-sizing: border-box;
 }
 
-.testimonial-grid * {
+/**
+ * Universal Box-Sizing Reset
+ * Ensures all child elements inherit border-box sizing for predictable layouts.
+ */
+.testimonial-grid *,
+.testimonial-grid *::before,
+.testimonial-grid *::after {
   box-sizing: border-box;
 }
 
+/**
+ * Inner Container
+ * Centers content with a maximum width constraint for optimal readability.
+ */
 .testimonial-grid__container {
   max-width: 1600px;
-  margin: 0 auto;
+  margin-inline: auto;
 }
 
-/* --- Header Section --- */
+/* =============================================================================
+   SECTION 2: HEADER STYLES
+   -----------------------------------------------------------------------------
+   Section header containing the eyebrow subtitle and main title.
+   ============================================================================= */
+
+/**
+ * Header Wrapper
+ * Centers text content and provides bottom margin for visual separation.
+ */
 .testimonial-grid__header {
   text-align: center;
   margin-bottom: 4rem;
 }
 
+/**
+ * Eyebrow Subtitle
+ * Small uppercase text styled using brand typography tokens.
+ * Inherits .text-eyebrow utility class styles from style.css.
+ */
 .testimonial-grid__subtitle {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: var(--text-tiny, 0.75rem);
+  font-weight: var(--weight-medium, 500);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #6b7280;
+  letter-spacing: var(--tracking-wide, 0.12em);
+  color: var(--brand-stone, #888888);
+  display: block;
   margin: 0 0 1rem 0;
 }
 
+/**
+ * Main Title
+ * Large serif heading using brand typography for editorial elegance.
+ * Inherits font-serif utility class behavior.
+ */
 .testimonial-grid__title {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1.2;
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-size: var(--text-heading-l, clamp(1.75rem, 4vw, 2.5rem));
+  font-weight: var(--weight-regular, 400);
+  color: var(--brand-title, #121414);
+  line-height: var(--lh-tight, 1.2);
+  letter-spacing: var(--tracking-tight, -0.02em);
   margin: 0;
 }
 
-/* --- Slider Track --- */
+/* =============================================================================
+   SECTION 3: SLIDER TRACK STYLES
+   -----------------------------------------------------------------------------
+   Horizontal scrolling container with scroll-snap behavior for card alignment.
+   ============================================================================= */
+
+/**
+ * Slider Track Container
+ * Flexbox container enabling horizontal overflow with snap points.
+ * Hides scrollbar for cleaner visual appearance across browsers.
+ */
 .testimonial-grid__slider {
   display: flex;
   overflow-x: auto;
-  gap: 2rem; /* 32px gap */
-  padding-bottom: 2rem; /* Space for shadow */
+  gap: 2rem;
+  padding-bottom: 2rem;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  /* Hide Scrollbar */
-  scrollbar-width: none; 
+  /* Cross-browser scrollbar hiding */
+  scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
+/**
+ * WebKit Scrollbar Override
+ * Explicitly hides scrollbar in WebKit-based browsers (Chrome, Safari, Edge).
+ */
 .testimonial-grid__slider::-webkit-scrollbar {
   display: none;
 }
 
-/* --- Slider Item (Wrapper) --- */
+/* =============================================================================
+   SECTION 4: CARD ITEM STYLES
+   -----------------------------------------------------------------------------
+   Individual testimonial card containers with responsive width calculations.
+   ============================================================================= */
+
+/**
+ * Card Item Wrapper
+ * Flex item with calculated width for 4-column desktop layout.
+ * Width formula: (100% - (n-1 gaps * gap-size)) / n items
+ */
 .testimonial-grid__item {
-  /* Logic: (100% width - (2 gaps * 2rem size)) / 3 items */
   min-width: calc((100% - 6rem) / 4);
   scroll-snap-align: start;
-  display: flex; /* Makes inner wrapper stretch to full height */
+  display: flex;
+  cursor: pointer;
 }
 
-@media (max-width: 1200px) {
-  .testimonial-grid__item {
-    /* Optional: Drop back to 3 items on standard laptops if 4 is too crowded */
-    min-width: calc((100% - 4rem) / 3);
-  }
+/**
+ * Interactive Focus State
+ * Visible focus indicator for keyboard navigation accessibility.
+ */
+.testimonial-grid__item:focus-visible {
+  outline: 2px solid var(--brand-link, #B55329);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-@media (max-width: 1024px) {
-  .testimonial-grid__item {
-    /* 2 items on tablets */
-    min-width: calc((100% - 2rem) / 2);
-  }
-}
-
-@media (max-width: 768px) {
-  .testimonial-grid__item {
-    /* 1 item on mobile */
-    min-width: 100%;
-  }
-}
-
-/* --- Card Content --- */
-.trx-addons-testimonials-content-wrapper {
-  background: #ffffff;
+/**
+ * Card Content Container
+ * White background card with padding and hover interaction effects.
+ * Uses brand shadow tokens for elevation on hover state.
+ */
+.testimonial-grid__card {
+  background-color: var(--brand-bg-primary, #FEFEFE);
   padding: 2.5rem;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  /* Visuals */
-  border-radius: 0px; 
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.trx-addons-testimonials-content-wrapper:hover {
+/**
+ * Card Hover State
+ * Elevates card with upward translation and deeper shadow for visual feedback.
+ */
+.testimonial-grid__card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-natural, 6px 6px 9px rgba(0, 0, 0, 0.2));
 }
 
-/* --- Ratings --- */
-.trx-addons-testimonials__rating-wrapper {
+/* =============================================================================
+   SECTION 5: RATING STARS STYLES
+   -----------------------------------------------------------------------------
+   Star rating display using SVG icons with brand accent color.
+   ============================================================================= */
+
+/**
+ * Rating Container
+ * Wrapper providing bottom margin for separation from testimonial text.
+ */
+.testimonial-grid__rating {
   margin-bottom: 1.5rem;
 }
 
-.trx-addons-fb-rev-stars {
-  display: flex;
+/**
+ * Stars Container
+ * Inline flex container for horizontal star alignment with consistent gap.
+ */
+.testimonial-grid__stars {
+  display: inline-flex;
   gap: 4px;
-  color: #E88F2A;
+  color: var(--brand-luminous-vivid-orange, #ff6900);
 }
 
-.trx-addons-fb-rev-stars svg {
+/**
+ * Individual Star Icon
+ * Sets dimensions for SVG star icons with fill color inheritance.
+ */
+.testimonial-grid__star svg {
   width: 14px;
   height: 14px;
   fill: currentColor;
 }
 
-/* --- Main Text --- */
-.trx-addons-testimonials-text-wrapper {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: #374151;
-  font-weight: 400;
-  margin-bottom: 2rem;
-  flex-grow: 1; /* Pushes footer down */
+/* =============================================================================
+   SECTION 6: TESTIMONIAL TEXT STYLES
+   -----------------------------------------------------------------------------
+   Quote text content styled with brand typography tokens.
+   ============================================================================= */
+
+/**
+ * Testimonial Quote Block
+ * Semantic blockquote with brand body text styling.
+ * Uses flex-grow to push author footer to bottom of card.
+ */
+.testimonial-grid__text {
+  margin: 0 0 2rem 0;
+  flex-grow: 1;
 }
 
-/* --- Author Footer --- */
-.trx-addons-testimonials__img-info {
+/**
+ * Quote Paragraph
+ * Body text with brand color and comfortable line height for readability.
+ */
+.testimonial-grid__text p {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: var(--text-body, 1rem);
+  font-weight: var(--weight-light, 300);
+  line-height: var(--lh-relaxed, 1.625);
+  color: var(--brand-slate, #555555);
+  margin: 0;
+}
+
+/* =============================================================================
+   SECTION 7: AUTHOR INFORMATION STYLES
+   -----------------------------------------------------------------------------
+   Footer section displaying author name and location.
+   ============================================================================= */
+
+/**
+ * Author Footer Container
+ * Aligns author image and info horizontally with proper gap spacing.
+ */
+.testimonial-grid__author {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-top: auto;
 }
 
-.trx-addons-testimonials-img-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.trx-addons-testimonials-img-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.trx-addons-testimonials-author-info {
+/**
+ * Author Info Wrapper
+ * Vertical stack for name and location text elements.
+ */
+.testimonial-grid__author-info {
   display: flex;
   flex-direction: column;
 }
 
-.trx-addons-testimonials-person-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-  line-height: 1.2;
+/**
+ * Author Name
+ * Semantic cite element with bold brand title styling.
+ */
+.testimonial-grid__author-name {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: var(--text-body, 1rem);
+  font-weight: var(--weight-semibold, 600);
+  font-style: normal;
+  color: var(--brand-title, #121414);
+  line-height: var(--lh-tight, 1.2);
 }
 
-.trx-addons-testimonials-company {
-  font-size: 0.875rem;
-  color: #9CA3AF;
-  margin: 0;
+/**
+ * Author Location
+ * Secondary metadata text with muted brand color.
+ * Inherits .text-caption utility class behavior.
+ */
+.testimonial-grid__author-location {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: var(--text-caption, 0.875rem);
+  color: var(--brand-meta, #ACAFB2);
+  margin-top: 0.25rem;
 }
 
-/* --- Dots Navigation --- */
+/* =============================================================================
+   SECTION 8: PAGINATION DOT STYLES
+   -----------------------------------------------------------------------------
+   Navigation dots for carousel position indication and manual navigation.
+   ============================================================================= */
+
+/**
+ * Dots Navigation Container
+ * Centered horizontal layout for pagination dots.
+ */
 .testimonial-grid__dots {
   display: flex;
   justify-content: center;
@@ -179,6 +321,11 @@
   margin-top: 1rem;
 }
 
+/**
+ * Individual Dot Button
+ * Circular button with transition effects for state changes.
+ * Uses native button element for accessibility compliance.
+ */
 .testimonial-grid__dot {
   width: 8px;
   height: 8px;
@@ -186,17 +333,99 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
+/**
+ * Active Dot State
+ * Highlighted with brand link color and subtle scale increase.
+ */
 .testimonial-grid__dot--active {
-  background-color: #E88F2A; /* Orange match */
-  transform: scale(1.2);
+  background-color: var(--brand-link, #B55329);
+  transform: scale(1.25);
 }
 
+/**
+ * Inactive Dot State
+ * Muted appearance using brand border color for visual hierarchy.
+ */
 .testimonial-grid__dot--inactive {
-  background-color: #d1d5db;
+  background-color: var(--brand-border, #e0e0e0);
 }
+
+/**
+ * Dot Focus State
+ * Visible focus ring for keyboard navigation accessibility.
+ */
+.testimonial-grid__dot:focus-visible {
+  outline: 2px solid var(--brand-link, #B55329);
+  outline-offset: 2px;
+}
+
+/**
+ * Dot Hover State
+ * Subtle opacity change for interactive feedback on non-active dots.
+ */
+.testimonial-grid__dot--inactive:hover {
+  background-color: var(--brand-stone, #888888);
+}
+
+/* =============================================================================
+   SECTION 9: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Media queries for adaptive layout across device sizes.
+   Breakpoints aligned with Bootstrap 5 standard values.
+   ============================================================================= */
+
+/**
+ * Large Desktops (1200px and below)
+ * Reduces to 3-column layout for standard laptop displays.
+ */
+@media (max-width: 1200px) {
+  .testimonial-grid__item {
+    min-width: calc((100% - 4rem) / 3);
+  }
+}
+
+/**
+ * Tablets (1024px and below)
+ * Reduces to 2-column layout for tablet portrait and landscape.
+ */
+@media (max-width: 1024px) {
+  .testimonial-grid__item {
+    min-width: calc((100% - 2rem) / 2);
+  }
+
+  .testimonial-grid__title {
+    font-size: var(--text-heading-m, 1.5rem);
+  }
+}
+
+/**
+ * Mobile Devices (768px and below)
+ * Single column layout with reduced padding for mobile screens.
+ */
+@media (max-width: 768px) {
+  .testimonial-grid {
+    padding: 3rem 1rem;
+  }
+
+  .testimonial-grid__header {
+    margin-bottom: 2rem;
+  }
+
+  .testimonial-grid__item {
+    min-width: 100%;
+  }
+
+  .testimonial-grid__card {
+    padding: 1.5rem;
+  }
+}
+
+/* =============================================================================
+   END OF TESTIMONIAL GRID STYLES
+   ============================================================================= */
 
 .testimonial-grid__dot--inactive:hover {
   background-color: #9ca3af;

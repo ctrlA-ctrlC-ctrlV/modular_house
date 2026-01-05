@@ -14,14 +14,26 @@
  * 
  * This component is purely presentational and delegates form submission
  * handling to the parent component via the onSubmit callback.
+ * 
+ * Architecture:
+ * This component follows the Open-Closed Principle by accepting callbacks
+ * for form submission rather than handling API calls internally. State
+ * management is encapsulated within the component for simplicity.
+ * 
+ * Dependencies:
+ * - React 18 with standard DOM event handling
+ * - ContactFormWithImageBg.css for styling (uses brand design tokens)
  */
 
 import React, { useState } from 'react';
 import './ContactFormWithImageBg.css';
 
-// ===========================================================================
-// Types and Interfaces
-// ===========================================================================
+/* =============================================================================
+   SECTION 1: TYPE DEFINITIONS
+   -----------------------------------------------------------------------------
+   TypeScript interfaces for component props and form data structure.
+   These interfaces ensure type safety and provide documentation for consumers.
+   ============================================================================= */
 
 /**
  * ContactFormData Interface
@@ -84,13 +96,18 @@ export interface ContactFormWithImageBgProps {
    * Callback function invoked when the form is submitted.
    * Receives the form data and should return a Promise.
    * The component handles loading and error states internally.
+   * 
+   * @param data - The form data collected from user input
+   * @returns Promise that resolves on success or rejects on failure
    */
   onSubmit?: (data: ContactFormData) => Promise<void>;
 }
 
-// ===========================================================================
-// Component Definition
-// ===========================================================================
+/* =============================================================================
+   SECTION 2: COMPONENT DEFINITION
+   -----------------------------------------------------------------------------
+   Main component implementation with state management and event handlers.
+   ============================================================================= */
 
 /**
  * ContactFormWithImageBg Component
@@ -105,15 +122,16 @@ export interface ContactFormWithImageBgProps {
  * - 'error': Submission failed, shows error message
  * 
  * @param props - Component configuration options
+ * @returns JSX element representing the contact form section
  */
 export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
   backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-04.jpg",
   title = "Have questions?\nGet in touch!",
   onSubmit
 }) => {
-  // ---------------------------------------------------------------------------
-  // State Management
-  // ---------------------------------------------------------------------------
+  /* ---------------------------------------------------------------------------
+     State Management
+     --------------------------------------------------------------------------- */
   
   /**
    * Form data state containing all field values.
@@ -142,14 +160,16 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
    */
   const [errorMessage, setErrorMessage] = useState('');
 
-  // ---------------------------------------------------------------------------
-  // Event Handlers
-  // ---------------------------------------------------------------------------
+  /* ---------------------------------------------------------------------------
+     Event Handlers
+     --------------------------------------------------------------------------- */
 
   /**
    * Handles changes to form input fields.
    * Supports text inputs, selects, textareas, and checkboxes.
    * Updates the corresponding field in formData state.
+   * 
+   * Uses standard DOM event types for interoperability with native HTML elements.
    * 
    * @param e - Change event from the form element
    */
@@ -170,6 +190,8 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
    * Handles form submission.
    * Validates that onSubmit callback is provided, manages loading state,
    * calls the callback with form data, and handles success/error responses.
+   * 
+   * Uses standard DOM FormEvent for interoperability.
    * 
    * @param e - Form submission event
    */
@@ -208,24 +230,34 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
+  /**
+   * Resets the form to idle state.
+   * Allows the user to send another message after success.
+   */
+  const handleReset = () => {
+    setStatus('idle');
+  };
+
+  /* ---------------------------------------------------------------------------
+     Render
+     --------------------------------------------------------------------------- */
 
   return (
-    <div 
-      className="contact-form-split-section"
+    <section 
+      className="contact-form-bg"
       style={{ backgroundImage: `url(${backgroundImage})` }}
+      aria-label="Contact form section"
     >
       {/* Form Card Container - White card overlay on the background image */}
-      <div className="contact-form-card">
+      <div className="contact-form-bg__card">
         {/* Heading Section */}
-        <div className="elementor-widget-container">
-          <h3 className="contact-form-heading">
+        <div className="contact-form-bg__heading-wrapper">
+          <h3 className="contact-form-bg__heading">
             {/* Split title by newlines to create multi-line heading with <br/> tags */}
             {title.split('\n').map((line, i) => (
               <React.Fragment key={i}>
-                {line}<br/>
+                {line}
+                {i < title.split('\n').length - 1 && <br />}
               </React.Fragment>
             ))}
           </h3>
@@ -233,31 +265,37 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
         
         {/* Conditional Rendering: Success Message or Form */}
         {status === 'success' ? (
-          // Success State - Shows confirmation message and option to send another
-          <div className="text-center py-10">
-            <h4 className="text-xl font-bold text-green-600 mb-4">Thank you!</h4>
-            <p className="text-gray-600">
-              Your message has been sent successfully. We'll be in touch soon.
+          /* Success State - Shows confirmation message and option to send another */
+          <div className="contact-form-bg__success">
+            <h4 className="contact-form-bg__success-heading">Thank you!</h4>
+            <p className="contact-form-bg__success-text">
+              Your message has been sent successfully. We will be in touch soon.
             </p>
             <button 
-              onClick={() => setStatus('idle')}
-              className="mt-6 text-orange-600 hover:underline"
+              type="button"
+              onClick={handleReset}
+              className="contact-form-bg__reset-btn"
             >
               Send another message
             </button>
           </div>
         ) : (
-          // Form State - Shows the contact form
-          <form onSubmit={handleSubmit} className="metform-form-content">
+          /* Form State - Shows the contact form */
+          <form 
+            onSubmit={handleSubmit} 
+            className="contact-form-bg__form"
+            noValidate
+            aria-label="Contact form"
+          >
             {/* 
               Honeypot Field (Hidden from Users)
               
               This is a spam prevention technique. The field is hidden via CSS
-              (display: none) so legitimate users cannot see or fill it.
-              Automated bots often fill all fields, including hidden ones.
-              The backend should reject submissions where this field has a value.
+              so legitimate users cannot see or fill it. Automated bots often 
+              fill all fields, including hidden ones. The backend should reject 
+              submissions where this field has a value.
             */}
-            <div style={{ display: 'none' }}>
+            <div className="contact-form-bg__honeypot" aria-hidden="true">
               <input
                 type="text"
                 name="address"
@@ -269,22 +307,23 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
             </div>
 
             {/* Row 1: First Name and Surname - Split into two columns */}
-            <div className="mf-input-wrapper form-row-split">
-              <div className="mf-input-half">
+            <div className="contact-form-bg__field-group contact-form-bg__field-group--split">
+              <div className="contact-form-bg__field-half">
                 <input
                   type="text"
-                  className="mf-input"
+                  className="contact-form-bg__input"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
                   placeholder="First Name (required)"
                   required
+                  aria-required="true"
                 />
               </div>
-              <div className="mf-input-half">
+              <div className="contact-form-bg__field-half">
                 <input
                   type="text"
-                  className="mf-input"
+                  className="contact-form-bg__input"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
@@ -294,38 +333,41 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
             </div>
 
             {/* Row 2: Email Address */}
-            <div className="mf-input-wrapper">
+            <div className="contact-form-bg__field-group">
               <input
                 type="email"
-                className="mf-input"
+                className="contact-form-bg__input"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
                 required
+                aria-required="true"
               />
             </div>
 
             {/* Row 3: Phone Number */}
-            <div className="mf-input-wrapper">
+            <div className="contact-form-bg__field-group">
               <input
                 type="tel"
-                className="mf-input"
+                className="contact-form-bg__input"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="Phone Number"
                 required
+                aria-required="true"
               />
             </div>
 
             {/* Row 4: Product Type Selection Dropdown */}
-            <div className="mf-input-wrapper">
+            <div className="contact-form-bg__field-group">
               <select 
-                className="mf-input mf-select"
+                className="contact-form-bg__input contact-form-bg__select"
                 name="productType"
                 value={formData.productType}
                 onChange={handleChange}
+                aria-label="Select product type"
               >
                 <option value="" disabled>Select Product Type</option>
                 <option value="Garden Room">Garden Room</option>
@@ -334,33 +376,35 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
             </div>
 
             {/* Row 5: Message Textarea */}
-            <div className="mf-input-wrapper">
+            <div className="contact-form-bg__field-group">
               <textarea
-                className="mf-input mf-textarea"
+                className="contact-form-bg__input contact-form-bg__textarea"
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Message"
                 cols={30}
                 rows={4}
+                aria-label="Message"
               ></textarea>
             </div>
 
             {/* GDPR Consent Checkbox - Required for form submission */}
-            <div className="mf-input-wrapper">
-              <div className="mf-checkbox-option">
-                <label>
+            <div className="contact-form-bg__field-group">
+              <div className="contact-form-bg__checkbox-group">
+                <label className="contact-form-bg__checkbox-label">
                   <input
                     type="checkbox"
-                    className="mf-input mf-checkbox-input"
+                    className="contact-form-bg__checkbox-input"
                     name="consent"
                     checked={formData.consent}
                     onChange={handleChange}
                     required
+                    aria-required="true"
                   />
                   <span>
                     I agree that my submitted data is being{' '}
-                    <a href="/privacy-policy/" className="consent-link">
+                    <a href="/privacy-policy/" className="contact-form-bg__consent-link">
                       collected and stored
                     </a>.
                   </span>
@@ -370,17 +414,18 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
 
             {/* Error Message Display - Only shown when status is 'error' */}
             {status === 'error' && (
-              <div className="text-red-600 text-sm mb-4">
+              <div className="contact-form-bg__error" role="alert">
                 {errorMessage}
               </div>
             )}
 
             {/* Submit Button - Disabled during submission */}
-            <div className="mf-btn-wraper">
+            <div className="contact-form-bg__btn-wrapper">
               <button 
                 type="submit" 
-                className="metform-submit-btn"
+                className="contact-form-bg__submit-btn"
                 disabled={status === 'submitting'}
+                aria-busy={status === 'submitting'}
               >
                 <span>
                   {status === 'submitting' ? 'Sending...' : 'Send Message'}
@@ -390,6 +435,6 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
           </form>
         )}
       </div>
-    </div>
+    </section>
   );
 };

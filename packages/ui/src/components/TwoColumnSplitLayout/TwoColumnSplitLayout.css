@@ -235,7 +235,7 @@
 /**
  * Responsive container max-width breakpoints.
  * Aligns with standard Bootstrap/Tailwind breakpoint system.
- 
+ */
 @media (min-width: 640px) {
   .two-col-layout__container {
     max-width: 640px;
@@ -264,7 +264,7 @@
   .two-col-layout__container {
     max-width: 1536px;
   }
-}*/
+}
 
 /**
  * Content wrapper using flexbox.
@@ -352,7 +352,7 @@
  */
 .two-col-layout__title {
   font-family: var(--font-serif);
-  font-size: var(--text-tiny);
+  font-size: var(--text-display);
   line-height: var(--lh-article);
   font-weight: var(--weight-regular);
   color: var(--two-col-text-heading);

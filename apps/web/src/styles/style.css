@@ -201,6 +201,7 @@
   --gradient-green-cyan: linear-gradient(135deg, rgb(122, 220, 180) 0%, rgb(0, 208, 130) 100%);
   --gradient-amber-orange: linear-gradient(135deg, rgb(252, 185, 0) 0%, rgb(255, 105, 0) 100%);
   --gradient-orange-red: linear-gradient(135deg, rgb(255, 105, 0) 0%, rgb(207, 46, 46) 100%);
+  --gradient-orange-brown: linear-gradient(215deg, #4F2412 0%, #B55329 100%);
   --gradient-gray-bluish: linear-gradient(135deg, rgb(238, 238, 238) 0%, rgb(169, 184, 195) 100%);
   --gradient-cool-warm: linear-gradient(135deg, rgb(74, 234, 220) 0%, rgb(151, 120, 209) 20%, rgb(207, 42, 186) 40%, rgb(238, 44, 130) 60%, rgb(251, 105, 98) 80%, rgb(254, 248, 76) 100%);
   --gradient-blush-purple: linear-gradient(135deg, rgb(255, 206, 236) 0%, rgb(152, 150, 240) 100%);
@@ -212,7 +213,9 @@
   --gradient-link-vertical: linear-gradient(to bottom, var(--brand-link) 0%, var(--brand-link-hover) 100%);
   --gradient-link-diagonal: linear-gradient(to bottom right, var(--brand-link) 0%, var(--brand-link-hover) 100%);
 
-  /* -------------------------------------------------------------------------
+  /* background-color: transparent;
+    background-image: linear-gradient(215deg, #4F2412 0%, var(--e-global-color-theme_color_link) 100%);
+  -------------------------------------------------------------------------
      2.10 BRAND SHADOWS
      ------------------------------------------------------------------------- 
      Elevation and depth effects for cards, modals, and interactive elements.

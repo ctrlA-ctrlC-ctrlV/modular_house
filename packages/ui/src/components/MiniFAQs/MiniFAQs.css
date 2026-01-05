@@ -123,13 +123,15 @@
  * FAQ Item Container
  * Uses CSS Grid with three columns: number, divider, and content.
  * The sticky positioning creates a stacking effect on scroll.
+ * Border-top is used instead of border-bottom to ensure horizontal lines
+ * appear between all items consistently.
  */
 .mini-faqs__item {
   display: grid;
   grid-template-columns: 180px 1px 1fr;
   gap: 3rem;
   padding: 3.5rem 0;
-  border-bottom: 1px solid var(--brand-border, #e0e0e0);
+  border-top: 1px solid var(--brand-border, #e0e0e0);
   background-color: var(--brand-bg-primary, #FEFEFE);
   position: sticky;
   top: 0;
@@ -137,10 +139,10 @@
 
 /**
  * FAQ Item Last Child
- * Removes bottom border from the last item in the list.
+ * Adds bottom border to the last item in the list to complete the visual frame.
  */
 .mini-faqs__item:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid var(--brand-border, #e0e0e0);
 }
 
 /* =============================================================================

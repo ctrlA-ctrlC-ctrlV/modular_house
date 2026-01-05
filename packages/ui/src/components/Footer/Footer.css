@@ -1,181 +1,446 @@
-/* * Footer Component Styles
- * Uses BEM (Block Element Modifier) naming convention.
- * Variables defined locally for component isolation, 
- * ideally should be moved to a global theme file.
+/**
+ * Footer Component Stylesheet
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * Provides styling for a responsive four-column footer layout with brand identity,
+ * contact information, navigation links, and social media integration.
+ * This component consumes brand design tokens from the central style.css file.
+ * 
+ * ARCHITECTURE:
+ * This stylesheet follows the Open-Closed Principle: component-level tokens are
+ * defined at the root level with fallback values, allowing consumers to override
+ * appearance without modifying this file. The layout uses CSS Grid for responsive
+ * column management.
+ * 
+ * DEPENDENCIES:
+ * - Requires style.css to be imported in the consuming application
+ * - Brand tokens: --font-sans, --brand-ink, --brand-white, --brand-stone, etc.
+ * 
+ * BEM NAMING CONVENTION:
+ * - Block: .footer
+ * - Element: .footer__[element]
+ * - Modifier: .footer--[modifier]
+ * 
+ * =============================================================================
  */
 
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   These CSS custom properties bridge global brand tokens to component-specific
+   naming. Consumers can override these variables without modifying brand tokens.
+   Fallback values ensure the component remains functional in isolation.
+   ============================================================================= */
+
 :root {
-  --footer-bg-color: #0d0d0d;
-  --footer-text-color: #888888;
-  --footer-heading-color: #ffffff;
-  --footer-accent-color: #ffffff;
-  --footer-border-color: #1a1a1a;
-  --footer-font-family: 'Inter', sans-serif; /* Assumed font based on visual */
+  /**
+   * Footer background color.
+   * Uses brand ink color for dark footer appearance.
+   * Fallback: #0d0d0d (near-black)
+   */
+  --footer-bg: var(--brand-ink, #0d0d0d);
+
+  /**
+   * Primary text color for body content.
+   * Uses brand stone for muted appearance against dark background.
+   * Fallback: #abb8c3 (cyan bluish gray)
+   */
+  --footer-text: var(--brand-cyan-bluish-gray, #abb8c3);
+
+  /**
+   * Heading and accent text color.
+   * Uses brand white for high contrast against dark background.
+   * Fallback: #ffffff (white)
+   */
+  --footer-heading: var(--brand-white, #ffffff);
+
+  /**
+   * Accent color for hover states and highlights.
+   * Matches heading color for visual consistency.
+   */
+  --footer-accent: var(--brand-white, #ffffff);
+
+  /**
+   * Border color for dividers and separators.
+   * Slightly lighter than background for subtle definition.
+   * Fallback: #1a1a1a (dark gray)
+   */
+  --footer-border: #1a1a1a;
+
+  /**
+   * Primary font family for footer content.
+   * Uses brand sans-serif stack for consistent typography.
+   */
+  --footer-font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+
+  /**
+   * Base font size for footer body text.
+   * Slightly smaller than standard body for compact layout.
+   */
+  --footer-font-size-base: 0.95rem;
+
+  /**
+   * Logo/brand name font size.
+   * Prominent sizing for brand identity emphasis.
+   */
+  --footer-font-size-logo: 1.8rem;
+
+  /**
+   * Section heading font size.
+   * Balanced sizing for visual hierarchy.
+   */
+  --footer-font-size-heading: 1.1rem;
+
+  /**
+   * Small text font size for copyright and credits.
+   */
+  --footer-font-size-small: 0.85rem;
+
+  /**
+   * Transition duration for interactive elements.
+   * Provides smooth visual feedback on hover/focus.
+   */
+  --footer-transition-duration: 0.3s;
+
+  /**
+   * Transition timing function.
+   * Ease provides natural acceleration/deceleration.
+   */
+  --footer-transition-timing: ease;
+
+  /**
+   * Social icon button dimensions.
+   * Square sizing for circular button appearance.
+   */
+  --footer-social-btn-size: 40px;
+
+  /**
+   * Social icon SVG dimensions.
+   * Proportional to button size for visual balance.
+   */
+  --footer-social-icon-size: 14px;
+
+  /**
+   * Container maximum width.
+   * Constrains content for comfortable reading on large screens.
+   */
+  --footer-container-max-width: 1900px;
+
+  /**
+   * Vertical padding for main footer section.
+   */
+  --footer-padding-vertical: 80px;
+
+  /**
+   * Horizontal padding for content containers.
+   */
+  --footer-padding-horizontal: 20px;
 }
 
-/* Main Container */
+
+/* =============================================================================
+   SECTION 2: MAIN LAYOUT CONTAINER
+   -----------------------------------------------------------------------------
+   Establishes the primary footer container with background and typography.
+   ============================================================================= */
+
+/**
+ * Primary footer container.
+ * Provides full-width coverage with dark background and base typography.
+ */
 .footer {
-  background-color: var(--footer-bg-color);
-  color: var(--footer-text-color);
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
   font-family: var(--footer-font-family);
-  font-size: 0.95rem;
+  font-size: var(--footer-font-size-base);
   width: 100%;
 }
 
+
+/* =============================================================================
+   SECTION 3: CONTENT GRID CONTAINER
+   -----------------------------------------------------------------------------
+   Responsive grid layout that adapts from single-column mobile to
+   four-column desktop configuration.
+   ============================================================================= */
+
+/**
+ * Inner container with max-width constraint and responsive grid.
+ * Mobile-first approach: starts as single column, expands at breakpoints.
+ */
 .footer__container {
-  max-width: 1900px;
+  max-width: var(--footer-container-max-width);
   margin: 0 auto;
-  padding: 80px 20px;
+  padding: var(--footer-padding-vertical) var(--footer-padding-horizontal);
   display: grid;
-  grid-template-columns: 1fr; /* Mobile first: Stacked */
+  grid-template-columns: 1fr;
   gap: 40px;
 }
 
-/* 
- * BRAND IDENTITY COLUMN PADDING
- * Adjust padding for the first column (Brand Identity) here.
+/**
+ * Tablet and desktop responsive breakpoint.
+ * Four-column grid with brand column taking more space (3fr).
+ * Column proportions: Brand(3fr) | Contact(1.25fr) | Links(0.8fr) | Social(0.8fr)
  */
-.footer__column--brand {
-  /* padding: 0px; */
-  padding: 0;
-}
-
-/* 
- * OTHER COLUMNS PADDING (Contact, Links, Social)
- * Adjust padding for the remaining columns here.
- */
-.footer__column {
-  /* padding: 0px; */
-  padding: 0;
-}
-
-/* Tablet & Desktop Layout */
 @media (min-width: 768px) {
   .footer__container {
-    /* 
-     * BRAND IDENTITY COLUMN WIDTH
-     * Change the first value (1.5fr) to adjust the width of the Brand Identity column.
-     */
-    grid-template-columns: 3fr 1.25fr .8fr 0.8fr; /* Brand column is slightly wider */
+    grid-template-columns: 3fr 1.25fr 0.8fr 0.8fr;
     gap: 30px;
   }
 }
 
-/* Headings & Typography */
+
+/* =============================================================================
+   SECTION 4: COLUMN ELEMENTS
+   -----------------------------------------------------------------------------
+   Individual column containers for content organization.
+   ============================================================================= */
+
+/**
+ * Generic column container.
+ * Provides consistent spacing and alignment baseline.
+ */
+.footer__column {
+  padding: 0;
+}
+
+/**
+ * Brand identity column modifier.
+ * May include additional styling for the logo/description area.
+ */
+.footer__column--brand {
+  padding: 0;
+}
+
+
+/* =============================================================================
+   SECTION 5: TYPOGRAPHY ELEMENTS
+   -----------------------------------------------------------------------------
+   Text styling for headings, descriptions, and content elements.
+   ============================================================================= */
+
+/**
+ * Brand logo/name heading.
+ * Prominent sizing with bold weight for brand emphasis.
+ */
 .footer__logo {
-  color: var(--footer-heading-color);
-  font-size: 1.8rem;
+  color: var(--footer-heading);
+  font-size: var(--text-heading-l, --footer-font-size-logo);
   font-weight: 700;
   margin: 0 0 20px 0;
 }
 
+/**
+ * Section headings for content columns.
+ * Consistent styling for visual hierarchy.
+ */
 .footer__heading {
-  color: var(--footer-heading-color);
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  color: var(--footer-heading);
+  font-size: var(--footer-font-size-heading);
+  font-weight: var(--weight-semibold);
   margin: 0 0 25px 0;
 }
 
+/**
+ * Brand description paragraph.
+ * Comfortable line-height for readability with max-width constraint.
+ */
 .footer__description {
-  line-height: 1.6;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-default);
+  line-height: var(--lh-relaxed);
+  color: var(--footer-text);
   margin: 0;
   max-width: 450px;
 }
 
-/* Column 2: Contact Info */
+
+/* =============================================================================
+   SECTION 6: CONTACT INFORMATION
+   -----------------------------------------------------------------------------
+   Address and contact details styling with interactive links.
+   ============================================================================= */
+
+/**
+ * Contact information container.
+ * Removes default address italic styling for consistent appearance.
+ */
 .footer__contact-info {
-  font-style: normal;
-  line-height: 1.6;
+  font-style: var(--font-sans);
+  line-height: var(--lh-relaxed, 1.625);
 }
 
+/**
+ * Individual contact item (email, phone, address).
+ * Consistent spacing between contact elements.
+ */
 .footer__contact-item {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-default);
+  color: var(--footer-text);
   margin-bottom: 15px;
 }
 
+/**
+ * Contact links (email, phone).
+ * Inherits text color with smooth hover transition.
+ */
 .footer__contact-item a {
   color: inherit;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color var(--footer-transition-duration) var(--footer-transition-timing);
 }
 
+/**
+ * Contact link hover state.
+ * Transitions to accent color for visual feedback.
+ */
 .footer__contact-item a:hover {
-  color: var(--footer-accent-color);
+  color: var(--footer-accent);
 }
 
-/* Column 3: Navigation Links */
+
+/* =============================================================================
+   SECTION 7: NAVIGATION LINKS
+   -----------------------------------------------------------------------------
+   Site navigation list with hover effects.
+   ============================================================================= */
+
+/**
+ * Navigation list container.
+ * Removes default list styling for clean appearance.
+ */
 .footer__nav-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+/**
+ * Navigation list item.
+ * Provides vertical spacing between links.
+ */
 .footer__nav-item {
   margin-bottom: 12px;
 }
 
+/**
+ * Navigation link element.
+ * Inline-block display enables proper hover area sizing.
+ */
 .footer__nav-link {
   color: inherit;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color var(--footer-transition-duration) var(--footer-transition-timing);
   display: inline-block;
 }
 
+/**
+ * Navigation link hover state.
+ * Transitions to accent color for visual feedback.
+ */
 .footer__nav-link:hover {
-  color: var(--footer-accent-color);
+  color: var(--footer-accent);
 }
 
-/* Column 4: Social Icons */
+
+/* =============================================================================
+   SECTION 8: SOCIAL MEDIA ICONS
+   -----------------------------------------------------------------------------
+   Circular icon buttons with hover state transformations.
+   ============================================================================= */
+
+/**
+ * Social icons container.
+ * Horizontal flex layout with consistent gap spacing.
+ */
 .footer__social-list {
   display: flex;
   gap: 12px;
 }
 
+/**
+ * Social media icon button.
+ * Circular appearance with border, centered icon content.
+ * Transitions background, border, and icon color on hover.
+ */
 .footer__social-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: var(--footer-social-btn-size);
+  height: var(--footer-social-btn-size);
   border-radius: 50%;
   border: 1px solid #333;
-  color: var(--footer-heading-color);
-  transition: all 0.3s ease;
+  color: var(--footer-heading);
+  transition: all var(--footer-transition-duration) var(--footer-transition-timing);
   background-color: transparent;
 }
 
+/**
+ * Social button hover state.
+ * Inverts color scheme for prominent visual feedback.
+ */
 .footer__social-link:hover {
-  border-color: var(--footer-accent-color);
-  background-color: var(--footer-accent-color);
-  color: var(--footer-bg-color); /* Invert icon color on hover */
+  border-color: var(--footer-accent);
+  background-color: var(--footer-accent);
+  color: var(--footer-bg);
 }
 
+/**
+ * Social media SVG icon.
+ * Sized proportionally to button container.
+ * Uses currentColor for inherited color transitions.
+ */
 .footer__social-icon {
-  width: 14px;
-  height: 14px;
+  width: var(--footer-social-icon-size);
+  height: var(--footer-social-icon-size);
   fill: currentColor;
 }
 
-/* Footer Bottom Section */
+
+/* =============================================================================
+   SECTION 9: FOOTER BOTTOM BAR
+   -----------------------------------------------------------------------------
+   Copyright and credits section with subtle separator.
+   ============================================================================= */
+
+/**
+ * Bottom bar container.
+ * Separated from main content with top border.
+ */
 .footer__bottom {
-  border-top: 1px solid var(--footer-border-color);
+  border-top: 1px solid var(--footer-border);
   padding: 25px 0;
   margin-top: 20px;
-  font-size: 0.85rem;
+  font-size: var(--footer-font-size-small);
 }
 
+/**
+ * Bottom bar inner container.
+ * Flex layout with space-between alignment for copyright and credits.
+ */
 .footer__bottom-container {
-  max-width: 1900px;
+  max-width: var(--footer-container-max-width);
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 var(--footer-padding-horizontal);
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 15px;
 }
 
+/**
+ * Credits section emphasis styling.
+ * Strong text uses heading color for prominence.
+ */
 .footer__credits strong {
-  color: var(--footer-heading-color);
+  color: var(--footer-heading);
 }
-
-/* Back to Top Button style placeholder (seen in screenshot) */
-/* Note: Functionality usually handled via JS or anchor link separately */

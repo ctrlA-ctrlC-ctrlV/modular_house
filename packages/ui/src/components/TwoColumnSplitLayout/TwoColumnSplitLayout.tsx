@@ -203,9 +203,11 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               Uses semantic heading elements for proper document structure.
             */}
             <div className="two-col-layout__header">
-              <h6 className="two-col-layout__subtitle">
-                {subtitle}
-              </h6>
+              <div id='two-col-layout__mini_heading'>
+                <h6 className="two-col-layout__subtitle">
+                  {subtitle}
+                </h6>
+              </div>
               <h1 className="two-col-layout__title">
                 {title}
               </h1>

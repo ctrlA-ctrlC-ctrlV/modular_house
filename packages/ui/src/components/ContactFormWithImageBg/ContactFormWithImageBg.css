@@ -348,6 +348,7 @@
  */
 .contact-form-bg__checkbox-group {
   /* Container for checkbox elements */
+  outline: none;
 }
 
 /**

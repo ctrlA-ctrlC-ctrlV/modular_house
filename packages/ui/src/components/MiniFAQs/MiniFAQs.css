@@ -230,7 +230,7 @@
   margin: 0;
   font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
   font-size: var(--text-body, 1rem);
-  font-weight: var(--weight-regular, 300);
+  font-weight: var(--weight-regular, 400);
   line-height: var(--lh-relaxed, 1.625);
   color: var(--brand-slate, #555555);
   max-width: 800px;

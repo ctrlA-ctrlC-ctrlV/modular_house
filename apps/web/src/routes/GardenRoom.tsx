@@ -6,7 +6,6 @@ import {
  } from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
-import { TwoColumnSplitLayout } from '@modular-house/ui';
 
 const GardenRoom: React.FC = () => {
   // Configure header for dark variant on hero pages

@@ -401,10 +401,11 @@ a:hover {
  */
 .text-eyebrow {
   font-family: var(--font-sans);
-  font-size: var(--text-tiny);
+  font-size: var(--text-caption);
+  line-height: var(--lh-none);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);  
   color: var(--brand-stone);
   display: block;
   margin-bottom: 1rem;

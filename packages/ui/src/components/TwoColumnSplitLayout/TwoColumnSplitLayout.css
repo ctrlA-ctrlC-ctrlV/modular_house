@@ -330,6 +330,7 @@
  * Uppercase with wide letter-spacing for emphasis.
  */
 .two-col-layout__subtitle {
+  font-family: var(--font-sans);
   font-size: var(--text-caption);
   line-height: var(--lh-none);
   font-weight: var(--weight-semibold);

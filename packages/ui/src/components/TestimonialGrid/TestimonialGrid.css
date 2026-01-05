@@ -77,11 +77,12 @@
 /**
  * Eyebrow Subtitle
  * Small uppercase text styled using brand typography tokens.
- * Inherits .text-eyebrow utility class styles from style.css.
+ * Contains all necessary styling - no external utility class required.
  */
 .testimonial-grid__subtitle {
-  font-family: var(--font-sans, 'Inter', sans-serif);
-  font-size: var(--text-tiny, 0.75rem);
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-caption, 0.75rem);
+  line-height: var(--lh-none, 1);
   font-weight: var(--weight-medium, 500);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide, 0.12em);
@@ -426,26 +427,3 @@
 /* =============================================================================
    END OF TESTIMONIAL GRID STYLES
    ============================================================================= */
-
-.testimonial-grid__dot--inactive:hover {
-  background-color: #9ca3af;
-}
-
-/* --- Mobile Responsiveness --- */
-@media (max-width: 1024px) {
-  .testimonial-grid__item {
-    /* Show 2 items on tablet */
-    min-width: calc((100% - 2rem) / 2);
-  }
-}
-
-@media (max-width: 768px) {
-  .testimonial-grid__title {
-    font-size: 2rem;
-  }
-  
-  .testimonial-grid__item {
-    /* Show 1 item on mobile */
-    min-width: 100%;
-  }
-}

@@ -228,6 +228,7 @@
  */
 .contact-form-bg__form {
   /* Form element serves as semantic wrapper */
+  border: none;
 }
 
 /**

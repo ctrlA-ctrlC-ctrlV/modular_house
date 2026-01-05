@@ -99,10 +99,6 @@ const GardenRoom: React.FC = () => {
           description = "Explore our portfolio of bespoke garden sanctuaries. See how Modular House combines steel-frame precision with architectural design to create high-performance spaces you can enjoy year-round."
         />
       </div>
-
-      <div id='test_split'>
-        <TwoColumnSplitLayout></TwoColumnSplitLayout>
-      </div>
     </div>
   );
 };

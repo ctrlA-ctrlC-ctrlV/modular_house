@@ -4,7 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
 
-// Import template styles to ensure theme-rebar variables are applied
+// Import template styles to ensure theme-template variables are applied
 import '../styles/template.css';
 
 /**
@@ -24,7 +24,7 @@ const LayoutContent: React.FC = () => {
       */}
       <div 
         key={location.pathname}
-        className="theme-rebar h-100 overflow-y-auto"
+        className="theme-template h-100 overflow-y-auto"
       >
         <div id='template__header-wrapper' className="position-relative w-100">
           <Header variant={config.variant} positionOver={config.positionOver} />

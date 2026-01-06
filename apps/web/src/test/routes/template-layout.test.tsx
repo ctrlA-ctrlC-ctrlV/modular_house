@@ -53,15 +53,18 @@ describe('TemplateLayout Integration', () => {
     // Verify the specific page content is rendered
     expect(screen.getByTestId(testId)).toBeInTheDocument();
     
-    // Verify the layout wrapper class (.theme-rebar)
-    // The Header is a direct child of the wrapper in TemplateLayout
+    // Verify the layout wrapper class (.theme-template)
+    // The Header is inside a wrapper div, which is inside the theme wrapper
     const header = screen.getByTestId('template-header');
-    const wrapper = header.parentElement;
-    expect(wrapper).toHaveClass('theme-rebar');
+    // Header component mock renders <header>, so parentElement is #template__header-wrapper
+    const headerWrapper = header.parentElement;
+    // #template__header-wrapper's parent is the .theme-template div
+    const wrapper = headerWrapper?.parentElement;
+    expect(wrapper).toHaveClass('theme-template');
     
     // Verify main content area attributes
     const main = wrapper?.querySelector('main');
-    expect(main).toHaveAttribute('id', 'main-content');
+    expect(main).toHaveAttribute('id', 'template__main-content');
     expect(main).toHaveAttribute('tabIndex', '-1');
   });
 });

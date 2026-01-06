@@ -30,16 +30,6 @@ export interface HeroWithSideTextProps {
   button1Link?: string;
   /** Text for the explore link */
 
-  /** Text inside the Call to Action button 
-   * @default "button2Text"
-  */
-  button2Text?: string;
-
-  /** URL for the CTA button 
-   * @default "#"
-  */
-  button2Link?: string;
-
   /** Text for the explore link 
    * @default "Explore"
   */
@@ -73,8 +63,6 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
   description = 'Upgrade your home with stylish, secure doors and energy-efficient windows',
   button1Text = 'button1Text',
   button1Link = '#',
-  button2Text = 'button2Text',
-  button2Link = '#',
   exploreText = 'Explore',
   exploreLink = '#section-anchor-02',
   className = '',
@@ -98,9 +86,6 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
             <div className="hero-cta-wrapper">
               <a href={button1Link} className="hero-button">
                 {button1Text}
-              </a>
-              <a href={button2Link} className="hero-button">
-                {button2Text}
               </a>
             </div>
           </div>

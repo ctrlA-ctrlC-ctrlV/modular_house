@@ -101,10 +101,8 @@ function Landing() {
             </>
           }
           description="Expand your lifestyle with bespoke steel frame garden rooms and extensions."
-          button1Text="Garden Room"
-          button1Link="/garden-room"
-          button2Text="House Extension"
-          button2Link="/house-extension"
+          button1Text="Get a Free Quote"
+          button1Link="/contact"
           exploreText="Explore"
           exploreLink="#landing_features"
         />

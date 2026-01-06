@@ -179,8 +179,6 @@
   border-radius: 9px;
   transition: background-color 0.3s ease, transform 0.2s ease;
   border: none;
-  margin-left: 1rem;
-  margin-right: 3rem;
 }
 
 .hero-button:hover {

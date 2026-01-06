@@ -90,6 +90,13 @@ export interface TwoColumnSplitLayoutProps {
    * @default "Get a free quote today"
    */
   button1Text?: string;
+
+  /**
+   * First button Link
+   * @default "#"
+   */
+  button1Link?: string;
+  
   
   /**
    * Source URL for the left column image.
@@ -124,7 +131,7 @@ export interface TwoColumnSplitLayoutProps {
    * Provides additional context below the right image.
    * @default "We value quality, safety, and teamwork..."
    */
-  bottomText?: string;
+  bottomText?: string; 
   
   /**
    * Text for the second button (primary CTA style).
@@ -132,6 +139,12 @@ export interface TwoColumnSplitLayoutProps {
    * @default "Need more info?"
    */
   button2Text?: string;
+
+  /**
+   * Second button Link
+   * @default "#"
+   */
+  button2Link?: string;
   
   /**
    * Background color variant for the section.
@@ -140,17 +153,6 @@ export interface TwoColumnSplitLayoutProps {
    */
   backgroundColor?: BackgroundVariant;
   
-  /**
-   * Click handler for the first button (text-link style).
-   * Receives the native mouse event for standard DOM handling.
-   */
-  onButton1Click?: React.MouseEventHandler<HTMLButtonElement>;
-  
-  /**
-   * Click handler for the second button (primary CTA).
-   * Receives the native mouse event for standard DOM handling.
-   */
-  onButton2Click?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 
@@ -182,8 +184,8 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
   bottomText = "We value quality, safety, and teamwork, making sure each project meets our high standards and client needs. Since 2012, we have become a trusted name for those seeking reliable and efficient building solutions.",
   button2Text = "Need more info?",
   backgroundColor = 'beige',
-  onButton1Click,
-  onButton2Click,
+  button1Link= "#",
+  button2Link= "#",
 }) => {
   return (
     <section 
@@ -221,13 +223,9 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               <p className="two-col-layout__description-highlight">
                 {description1}
               </p>
-              <button 
-                type="button"
-                className="two-col-layout__btn-text"
-                onClick={onButton1Click}
-              >
-                {button1Text} &rarr;
-              </button>
+              <a href={button1Link} className='two-col-layout__btn-text'>
+                {button1Text}
+              </a>              
             </div>
 
             {/* 
@@ -270,13 +268,9 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               <p className="two-col-layout__description-highlight">
                 {bottomText}
               </p>
-              <button 
-                type="button"
-                className="two-col-layout__btn-primary"
-                onClick={onButton2Click}
-              >
+              <a href={button2Link} className='two-col-layout__btn-primary'>
                 {button2Text}
-              </button>
+              </a>   
             </div>
           </div>
         </div>

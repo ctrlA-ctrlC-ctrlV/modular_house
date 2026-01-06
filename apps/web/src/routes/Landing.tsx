@@ -15,6 +15,7 @@ import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
 
 function Landing() {
+  
   // Configure header for dark variant on hero pages
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
@@ -100,8 +101,10 @@ function Landing() {
             </>
           }
           description="Expand your lifestyle with bespoke steel frame garden rooms and extensions."
-          buttonText="Get Started"
-          buttonLink="/get-started"
+          button1Text="Garden Room"
+          button1Link="/garden-room"
+          button2Text="House Extension"
+          button2Link="/house-extension"
           exploreText="Explore"
           exploreLink="#landing_features"
         />
@@ -178,10 +181,12 @@ function Landing() {
           title={"Expand your space,\nelevate your lifestyle"}
           description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
           button1Text = "Get a free quote today"
+          button1Link = "/contact"
           bottomText="We blend sleek architectural aesthetics with cutting-edge steel frame engineering to deliver garden rooms that are built to impress, and built to last. Every project is tailored to your needs, with minimal disruption and maximum impact.
 
           Our team handles everything from design to installation, ensuring a smooth, stress-free process. Whether you're after extra space for work, wellness, or weekend lounging, we’re here to make it happen, beautifully and efficiently."
           button2Text = "Need more info?"
+          button2Link = "/garden-room"
         />
       </div>
 
@@ -193,10 +198,12 @@ function Landing() {
             title={"Inspired by vision,\nbuild for you"}
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
             button1Text = "Get a free quote today"
+            button1Link = "/contact"
             bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
             
             From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."
             button2Text = "Need more info?"
+            button2Link = "/house-extension"
           />   
       </div>
 

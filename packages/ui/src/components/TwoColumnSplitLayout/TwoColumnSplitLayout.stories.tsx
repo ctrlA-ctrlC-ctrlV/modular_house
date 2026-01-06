@@ -97,13 +97,13 @@ const meta: Meta<typeof TwoColumnSplitLayout> = {
       options: ['beige', 'white', 'gray', 'dark'],
       description: 'Background color variant for the section.',
     },
-    onButton1Click: {
-      action: 'button1Clicked',
-      description: 'Click handler for the first button.',
+    button1Link: {
+      control: 'text',
+      description: 'Link URL for the first button.',
     },
-    onButton2Click: {
-      action: 'button2Clicked',
-      description: 'Click handler for the second button.',
+    button2Link: {
+      control: 'text',
+      description: 'Link URL for the second button.',
     },
   },
 };

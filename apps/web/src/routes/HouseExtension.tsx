@@ -63,7 +63,7 @@ const HouseExtension: React.FC = () => {
           titleLine1 = "Expand your living space with a seamless home extension."
           titleLine2 = "Expertly designed for light, space, and modern family life."
           ctaText = "Get a Free Quote"
-          ctaLink = "#"
+          ctaLink = "/contact"
           backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
           bigText = "House Extension"
         />

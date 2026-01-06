@@ -28,7 +28,11 @@ export interface HeroWithSideTextProps {
    * @default "#"
   */
   button1Link?: string;
-  /** Text for the explore link */
+
+  /** Click handler for CTA button - use for client-side routing (e.g. navigate('/contact'))
+   * When provided, prevents default anchor behavior to enable SPA navigation
+   */
+  onButton1Click?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 
   /** Text for the explore link 
    * @default "Explore"
@@ -39,6 +43,11 @@ export interface HeroWithSideTextProps {
    * @default "#"
   */
   exploreLink?: string;
+
+  /** Click handler for explore link - use for client-side routing
+   * When provided, prevents default anchor behavior to enable SPA navigation
+   */
+  onExploreClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 
   /** Optional extra classes for styling overrides 
    * @default ''
@@ -63,10 +72,27 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
   description = 'Upgrade your home with stylish, secure doors and energy-efficient windows',
   button1Text = 'button1Text',
   button1Link = '#',
+  onButton1Click,
   exploreText = 'Explore',
   exploreLink = '#section-anchor-02',
+  onExploreClick,
   className = '',
 }) => {
+  // Handler that enables SPA navigation when onClick is provided
+  const handleButton1Click = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onButton1Click) {
+      e.preventDefault(); // Prevent full page reload for client-side routing
+      onButton1Click(e);
+    }
+  };
+
+  const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onExploreClick) {
+      e.preventDefault();
+      onExploreClick(e);
+    }
+  };
+
   return (
     <div 
       className={`hero-container ${className}`} 
@@ -84,7 +110,7 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
             <h1 className="hero-title">{title}</h1>
             
             <div className="hero-cta-wrapper">
-              <a href={button1Link} className="hero-button">
+              <a href={button1Link} className="hero-button" onClick={handleButton1Click}>
                 {button1Text}
               </a>
             </div>
@@ -98,7 +124,7 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
           </div>
           
           <div className="hero-footer-right">
-            <a href={exploreLink} className="hero-explore-link">
+            <a href={exploreLink} className="hero-explore-link" onClick={handleExploreClick}>
               <span className="hero-explore-text">{exploreText}</span>
               <span className="hero-explore-icon">
                 {/* Simple Down Arrow SVG */}

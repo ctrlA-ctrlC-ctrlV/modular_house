@@ -145,6 +145,18 @@ export interface TwoColumnSplitLayoutProps {
    * @default "#"
    */
   button2Link?: string;
+
+  /**
+   * Click handler for button1 - use for client-side routing (e.g. navigate('/contact'))
+   * When provided, prevents default anchor behavior to enable SPA navigation
+   */
+  onButton1Click?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+
+  /**
+   * Click handler for button2 - use for client-side routing
+   * When provided, prevents default anchor behavior to enable SPA navigation
+   */
+  onButton2Click?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   
   /**
    * Background color variant for the section.
@@ -186,7 +198,24 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
   backgroundColor = 'beige',
   button1Link= "#",
   button2Link= "#",
+  onButton1Click,
+  onButton2Click,
 }) => {
+  // Handler that enables SPA navigation when onClick is provided
+  const handleButton1Click = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onButton1Click) {
+      e.preventDefault(); // Prevent full page reload for client-side routing
+      onButton1Click(e);
+    }
+  };
+
+  const handleButton2Click = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onButton2Click) {
+      e.preventDefault();
+      onButton2Click(e);
+    }
+  };
+
   return (
     <section 
       className={`two-col-layout two-col-layout--bg-${backgroundColor}`}
@@ -223,7 +252,7 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               <p className="two-col-layout__description-highlight">
                 {description1}
               </p>
-              <a href={button1Link} className='two-col-layout__btn-text'>
+              <a href={button1Link} className='two-col-layout__btn-text' onClick={handleButton1Click}>
                 {button1Text}
               </a>              
             </div>
@@ -268,7 +297,7 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               <p className="two-col-layout__description-highlight">
                 {bottomText}
               </p>
-              <a href={button2Link} className='two-col-layout__btn-primary'>
+              <a href={button2Link} className='two-col-layout__btn-primary' onClick={handleButton2Click}>
                 {button2Text}
               </a>   
             </div>

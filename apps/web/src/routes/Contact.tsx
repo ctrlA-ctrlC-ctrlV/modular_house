@@ -59,7 +59,14 @@ function Contact() {
       <TextWithContactForm 
         topLabel="GET IN TOUCH"
         heading="We'd love to hear from you"
-        description="Our team is ready to answer all your questions."
+        description={
+          <>
+            If you want to build a garden room or house extensions, visit us at our factory in Dublin 12. <strong>No appointment needed.</strong>
+            <span className="text-contact__subheading">Opening Hours</span>
+              Monday - Friday: 9:00am - 5:00pm
+            {'\n'}<span className='text-contact__smallprint'>Please be aware that our opening times are subject to change on bank holidays.</span>
+          </>
+        }
         contactInfo={{
           address: "Unit 8, Finches Business Park, Long Mile road Dublin 12, D12 N9YV",
           phone: "(+353) 0830280000",

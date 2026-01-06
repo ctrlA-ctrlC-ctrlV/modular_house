@@ -76,8 +76,8 @@ export interface TextWithContactFormProps {
   topLabel?: string;
   /** Main heading text for the section */
   heading?: string;
-  /** Description paragraph below the heading */
-  description?: string;
+  /** Description content below the heading. Accepts React nodes for rich content. */
+  description?: React.ReactNode;
   /** Contact information to display in the left column */
   contactInfo?: ContactInfo;
   /** Callback invoked when form is submitted with valid data */
@@ -244,7 +244,7 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
               <span className="text-contact__label">{topLabel}</span>
             )}
             <h2 className="text-contact__heading">{heading}</h2>
-            <p className="text-contact__description">{description}</p>
+            <div className="text-contact__description">{description}</div>
 
             {/* Contact Information List */}
             <div className="text-contact__info-list">

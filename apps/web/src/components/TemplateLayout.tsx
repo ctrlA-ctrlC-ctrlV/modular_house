@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
@@ -10,14 +10,25 @@ import { HeaderProvider, useHeaderConfig } from './HeaderContext';
  */
 const LayoutContent: React.FC = () => {
   const { config } = useHeaderConfig();
+  const location = useLocation();
   
   return (
-    <div className="theme-rebar">
-      <Header variant={config.variant} positionOver={config.positionOver} />
-      <main id="main-content" tabIndex={-1}>
-        <Outlet />
-      </main>
-      <Footer />
+    // Outer container locks the viewport height and prevents body scroll
+    <div className="vh-100 w-100 overflow-hidden">
+      {/* 
+        Scrollable container wraps the content. 
+        key={location.pathname} forces a re-mount on navigation, resetting scroll to top.
+      */}
+      <div 
+        key={location.pathname}
+        className="main h-100 overflow-y-auto"
+      >
+        <Header variant={config.variant} positionOver={config.positionOver} />
+        <main id="main-content" tabIndex={-1}>
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };

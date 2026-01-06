@@ -68,7 +68,7 @@ const GardenRoom: React.FC = () => {
           titleLine1 = "Reclaim your quiet comfort in a bespoke outdoor studio."
           titleLine2 = "Precision steel engineering meets architectural elegance."
           ctaText = "Get a Free Quote"
-          ctaLink = "#"
+          ctaLink = "/contact"
           backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
           bigText = "Garden Room"
         />

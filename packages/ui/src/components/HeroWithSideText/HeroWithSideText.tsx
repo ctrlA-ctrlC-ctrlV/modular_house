@@ -4,21 +4,55 @@ import './HeroWithSideText.css';
 export interface HeroWithSideTextProps {
   /** Background image URL */
   backgroundImage?: string;
-  /** Small uppercase text above the main title */
+  /** Small uppercase text above the main title 
+   * @default "subtitleText"
+  */
   subtitle?: string;
-  /** Main heading. Can pass JSX for specific coloring (e.g. <span>) */
+
+  /** Main heading. Can pass JSX for specific coloring (e.g. <span>) 
+   * @default "titleText"
+  */
   title?: React.ReactNode;
-  /** Text content for the bottom-left description */
+
+  /** Text content for the bottom-left description 
+   * @default "descriptionText"
+  */ 
   description?: string;
-  /** Text inside the Call to Action button */
-  buttonText?: string;
-  /** URL for the CTA button */
-  buttonLink?: string;
+
+  /** Text inside the Call to Action button 
+   * @default "button1Text"
+  */
+  button1Text?: string;
+
+  /** URL for the CTA button 
+   * @default "#"
+  */
+  button1Link?: string;
   /** Text for the explore link */
+
+  /** Text inside the Call to Action button 
+   * @default "button2Text"
+  */
+  button2Text?: string;
+
+  /** URL for the CTA button 
+   * @default "#"
+  */
+  button2Link?: string;
+
+  /** Text for the explore link 
+   * @default "Explore"
+  */
   exploreText?: string;
-  /** URL for the explore link */
+
+  /** URL for the explore link 
+   * @default "#"
+  */
   exploreLink?: string;
-  /** Optional extra classes for styling overrides */
+
+  /** Optional extra classes for styling overrides 
+   * @default ''
+  */
   className?: string;
 }
 
@@ -37,8 +71,10 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
     </>
   ),
   description = 'Upgrade your home with stylish, secure doors and energy-efficient windows',
-  buttonText = 'Get Started',
-  buttonLink = '#',
+  button1Text = 'button1Text',
+  button1Link = '#',
+  button2Text = 'button2Text',
+  button2Link = '#',
   exploreText = 'Explore',
   exploreLink = '#section-anchor-02',
   className = '',
@@ -60,8 +96,11 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
             <h1 className="hero-title">{title}</h1>
             
             <div className="hero-cta-wrapper">
-              <a href={buttonLink} className="hero-button">
-                {buttonText}
+              <a href={button1Link} className="hero-button">
+                {button1Text}
+              </a>
+              <a href={button2Link} className="hero-button">
+                {button2Text}
               </a>
             </div>
           </div>

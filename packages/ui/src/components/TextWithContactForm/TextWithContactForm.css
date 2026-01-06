@@ -269,6 +269,49 @@
   margin: 0 0 2rem 0;
 }
 
+/**
+ * Strong text emphasis within description.
+ */
+.text-contact__description strong {
+  font-weight: var(--weight-semibold, 600);
+  color: var(--text-contact-heading);
+}
+
+/**
+ * Subheading element within description.
+ * Provides visual hierarchy for secondary headings.
+ */
+.text-contact__subheading {
+  display: block;
+  font-family: var(--text-contact-font-heading);
+  font-size: var(--text-heading-s, 1.25rem);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--text-contact-heading);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/**
+ * Preserves whitespace formatting in description.
+ * Allows newline characters to render as line breaks.
+ */
+.text-contact__description {
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-body-lg, 1.125rem);
+  font-weight: var(--weight-regular, 400);
+  line-height: var(--lh-relaxed, 1.625);
+  color: var(--text-contact-body);
+  white-space: pre-line;
+}
+
+.text-contact__smallprint {
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: var(--weight-light, 300);
+  line-height: var(--lh-relaxed, 1.625);
+  color: var(--text-contact-label);
+}
+
 
 /* =============================================================================
    SECTION 6: CONTACT INFORMATION LIST

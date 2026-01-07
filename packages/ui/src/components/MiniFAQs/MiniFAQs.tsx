@@ -156,37 +156,39 @@ export const MiniFAQs: React.FC<MiniFAQsProps> = ({
             Semantic list of FAQ items with three-column grid layout.
             Each item contains number, divider, and content sections.
             ----------------------------------------------------------------------- */}
-        <ul className="mini-faqs__list" role="list">
-          {faqs.map((faq, index) => (
-            <li
-              key={`faq-item-${index}`}
-              className="mini-faqs__item"
-              onClick={() => handleItemClick(faq, index)}
-              onKeyDown={(e) => handleItemKeyDown(e, faq, index)}
-              tabIndex={onFAQClick ? 0 : undefined}
-              role={onFAQClick ? 'button' : undefined}
-              aria-label={
-                onFAQClick
-                  ? `View details for ${faq.title}`
-                  : undefined
-              }
-            >
-              {/* Number Column */}
-              <div className="mini-faqs__number-wrapper">
-                <span className="mini-faqs__number">{faq.number}</span>
-              </div>
+        <div id='mini-faqs__list-container' className='mini-faqs__list-container'>
+          <ul className="mini-faqs__list" role="list">
+            {faqs.map((faq, index) => (
+              <li
+                key={`faq-item-${index}`}
+                className="mini-faqs__item"
+                onClick={() => handleItemClick(faq, index)}
+                onKeyDown={(e) => handleItemKeyDown(e, faq, index)}
+                tabIndex={onFAQClick ? 0 : undefined}
+                role={onFAQClick ? 'button' : undefined}
+                aria-label={
+                  onFAQClick
+                    ? `View details for ${faq.title}`
+                    : undefined
+                }
+              >
+                {/* Number Column */}
+                <div className="mini-faqs__number-wrapper">
+                  <span className="mini-faqs__number">{faq.number}</span>
+                </div>
 
-              {/* Vertical Divider */}
-              <div className="mini-faqs__divider" aria-hidden="true" />
+                {/* Vertical Divider */}
+                <div className="mini-faqs__divider" aria-hidden="true" />
 
-              {/* Content Column */}
-              <div className="mini-faqs__content">
-                <h3 className="mini-faqs__item-title">{faq.title}</h3>
-                <p className="mini-faqs__description">{faq.description}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+                {/* Content Column */}
+                <div className="mini-faqs__content">
+                  <h3 className="mini-faqs__item-title">{faq.title}</h3>
+                  <p className="mini-faqs__description">{faq.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

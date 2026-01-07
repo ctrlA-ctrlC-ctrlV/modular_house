@@ -271,7 +271,7 @@ function Landing() {
       {/*   Mini FAQ Section    */}      
       <div id='landing_faq'>
         <MiniFAQs
-          title='Modular..'
+          title='Modular.'
           faqs={[
             {
               number: '01',

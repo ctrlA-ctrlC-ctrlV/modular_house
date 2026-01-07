@@ -32,11 +32,19 @@
  * Root Container
  * Full-width section with horizontal padding using percentage-based values
  * for responsive spacing. Uses brand background color token.
- */
-.mini-faqs {
+
+ .mini-faqs {
   width: 100%;
   padding: 5rem 1rem;
   padding-inline: 10%;
+  background-color: var(--brand-bg-primary, #FEFEFE);
+  box-sizing: border-box;
+}
+
+ */
+.mini-faqs {
+  margin-top: 10vh;
+  width: 100%;
   background-color: var(--brand-bg-primary, #FEFEFE);
   box-sizing: border-box;
 }
@@ -57,7 +65,7 @@
  * Uses flexbox column layout for vertical stacking of FAQ items.
  */
 .mini-faqs__container {
-  max-width: 75%;
+  max-width: 100%;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -85,7 +93,7 @@
  */
 .mini-faqs__title {
   font-family: var(--font-serif, 'Libre Baskerville', serif);
-  font-size: clamp(4rem, 12vw, 14rem);
+  font-size: clamp(3rem, 19vw, 35rem);
   font-weight: var(--weight-regular, 400);
   line-height: var(--lh-none, 1);
   letter-spacing: var(--tracking-tight, -0.02em);
@@ -102,6 +110,13 @@
    -----------------------------------------------------------------------------
    Container for the list of FAQ items with vertical stacking.
    ============================================================================= */
+.mini-faqs__list-container {
+  padding: 3rem 1rem;
+  max-width: 75%;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+}
 
 /**
  * FAQ List Wrapper
@@ -268,10 +283,6 @@
     gap: 1.5rem;
   }
 
-  .mini-faqs__title {
-    font-size: clamp(3rem, 10vw, 8rem);
-  }
-
   .mini-faqs__item-title {
     font-size: var(--text-heading-m, 1.5rem);
   }
@@ -290,10 +301,6 @@
 
   .mini-faqs__header {
     margin-bottom: 2rem;
-  }
-
-  .mini-faqs__title {
-    font-size: clamp(2rem, 15vw, 4rem);
   }
 
   .mini-faqs__item {

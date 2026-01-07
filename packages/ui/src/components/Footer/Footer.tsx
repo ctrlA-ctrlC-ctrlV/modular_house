@@ -89,8 +89,8 @@ export interface FooterProps {
  * Social media platform configurations.
  * Each entry includes the platform identifier, URL, accessibility label,
  * and SVG path data for the icon representation.
- */
-const SOCIAL_LINKS: SocialLink[] = [
+ * 
+ * const SOCIAL_LINKS: SocialLink[] = [
   {
     id: 'instagram',
     url: 'https://www.instagram.com/',
@@ -102,7 +102,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
   {
     id: 'tiktok',
-    url: 'https://www.tiktok.com/',
+    url: 'https://www.tiktok.com/@sdeal.ie',
     ariaLabel: 'TikTok',
     viewBox: '0 0 16 16',
     iconPath: (
@@ -127,6 +127,27 @@ const SOCIAL_LINKS: SocialLink[] = [
       <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" />
     )
   }
+];
+ */
+const SOCIAL_LINKS: SocialLink[] = [
+  {
+    id: 'tiktok',
+    url: 'https://www.tiktok.com/@sdeal.ie',
+    ariaLabel: 'TikTok',
+    viewBox: '0 0 16 16',
+    iconPath: (
+      <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z" />
+    )
+  },
+  {
+    id: 'facebook',
+    url: 'https://www.facebook.com/',
+    ariaLabel: 'Facebook',
+    viewBox: '0 0 8 15',
+    iconPath: (
+      <path d="M4.40924 5.15357V3.27857C4.40946 3.15538 4.43254 3.03345 4.47714 2.91973C4.52174 2.80602 4.58699 2.70277 4.66917 2.61587C4.75135 2.52896 4.84884 2.46012 4.95607 2.41328C5.0633 2.36644 5.17818 2.34251 5.29412 2.34286H6.17563V1.41826e-07H4.41092C4.06345 -0.000117134 3.71938 0.0724976 3.39833 0.213697C3.07728 0.354896 2.78556 0.561913 2.53982 0.822924C2.29409 1.08393 2.09915 1.39382 1.96615 1.73489C1.83316 2.07596 1.76471 2.44153 1.76471 2.81071V5.15357H0V7.5H1.76471V15H4.41009V7.5H6.1748L7.05882 5.15357H4.40924Z" />
+    )
+  },
 ];
 
 /**

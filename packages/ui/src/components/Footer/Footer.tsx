@@ -141,7 +141,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
   {
     id: 'facebook',
-    url: 'https://www.facebook.com/',
+    url: 'https://www.facebook.com/share/14UYzG2TMHN/?mibextid=wwXIfr',
     ariaLabel: 'Facebook',
     viewBox: '0 0 8 15',
     iconPath: (

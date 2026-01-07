@@ -30,7 +30,7 @@
  * =============================================================================
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './TestimonialGrid.css';
 
 /* =============================================================================
@@ -145,17 +145,34 @@ const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
 ];
 
 /* =============================================================================
-   COMPONENT CONSTANTS
+   COMPONENT CONSTANTS & HELPERS
    -----------------------------------------------------------------------------
-   Configuration values extracted as constants for maintainability.
-   Modifications to layout behavior can be made here without altering logic.
+   Configuration values and utility functions for layout calculations.
+   These must stay synchronized with CSS media queries.
    ============================================================================= */
-
-/** Number of testimonial cards visible at desktop breakpoint (1200px+) */
-const ITEMS_VISIBLE_DESKTOP = 4;
 
 /** Gap between testimonial cards in pixels (matches 2rem in CSS) */
 const GAP_SIZE_PX = 32;
+
+/**
+ * Calculates the number of visible items based on the viewport width.
+ * This logic mirrors the CSS breakpoints defined in TestimonialGrid.css.
+ *
+ * Breakpoints:
+ * - Mobile (<= 768px): 1 item
+ * - Tablet (<= 1024px): 2 items
+ * - Desktop Small (<= 1200px): 3 items
+ * - Desktop Large (> 1200px): 4 items
+ *
+ * @param width - The current window width in pixels
+ * @returns The number of columns/items visible in the grid
+ */
+const getVisibleItemsCount = (width: number): number => {
+  if (width <= 768) return 1;
+  if (width <= 1024) return 2;
+  if (width <= 1200) return 3;
+  return 4;
+};
 
 /* =============================================================================
    MAIN COMPONENT
@@ -178,22 +195,52 @@ export const TestimonialGrid: React.FC<TestimonialGridProps> = ({
   /* ---------------------------------------------------------------------------
      STATE MANAGEMENT
      ---------------------------------------------------------------------------
-     Active index tracks the current scroll position for dot synchronization.
-     Scroll container ref provides direct DOM access for programmatic scrolling.
+     - activeIndex: Tracks current scroll position for dot synchronization.
+     - visibleItems: Reflects the responsive column count for accurate pagination.
+     - scrollContainerRef: Provides direct DOM access for programmatic scrolling.
      --------------------------------------------------------------------------- */
 
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [visibleItems, setVisibleItems] = useState<number>(4);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  /* ---------------------------------------------------------------------------
+     SIDE EFFECTS
+     ---------------------------------------------------------------------------
+     Monitors window resize events to update the count of visible items.
+     This ensures the pagination calculation adapts to the current breakpoint.
+     --------------------------------------------------------------------------- */
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Update state only if the meaningful breakpoint value changes
+      const newCount = getVisibleItemsCount(window.innerWidth);
+      setVisibleItems((prev) => (prev !== newCount ? newCount : prev));
+    };
+
+    // Initialize on mount and subscribe to updates
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   /* ---------------------------------------------------------------------------
      COMPUTED VALUES
      ---------------------------------------------------------------------------
      Calculate the number of pagination dots based on total items and visible
      count. Formula: max(1, totalItems - visibleItems + 1)
-     Example: 4 items with 4 visible = 1 dot; 5 items with 4 visible = 2 dots
+
+     +1 because in a snap-scroll view, the last "page" can start at
+     index (total - visible).
+     
+     Example: 5 items, 4 visible.
+     - Position 0: Shows items 0, 1, 2, 3
+     - Position 1: Shows items 1, 2, 3, 4
+     Total valid starting positions = 2.
      --------------------------------------------------------------------------- */
 
-  const totalDots = Math.max(1, testimonials.length - ITEMS_VISIBLE_DESKTOP + 1);
+  const totalDots = Math.max(1, testimonials.length - visibleItems + 1);
 
   /* ---------------------------------------------------------------------------
      EVENT HANDLERS

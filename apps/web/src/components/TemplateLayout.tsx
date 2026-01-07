@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+﻿import React, { useLayoutEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
@@ -14,16 +14,40 @@ import '../styles/template.css';
 const LayoutContent: React.FC = () => {
   const { config } = useHeaderConfig();
   const location = useLocation();
+  const navigationType = useNavigationType();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositions = useRef<Record<string, number>>({});
+
+  useLayoutEffect(() => {
+    if (!scrollRef.current) return;
+
+    if (navigationType === 'POP') {
+      const savedPosition = scrollPositions.current[location.key];
+      if (typeof savedPosition === 'number') {
+        scrollRef.current.scrollTop = savedPosition;
+      }
+    } else {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [location.pathname, location.key, navigationType]);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      scrollPositions.current[location.key] = scrollRef.current.scrollTop;
+    }
+  };
   
   return (
     // Outer container locks the viewport height and prevents body scroll
     <div className="vh-100 w-100 overflow-hidden">
       {/* 
         Scrollable container wraps the content. 
-        key={location.pathname} forces a re-mount on navigation, resetting scroll to top.
+        Removed key forcing remount to maintain scroll state for restoration logic.
       */}
       <div 
-        key={location.pathname}
+        ref={scrollRef}
+        onScroll={handleScroll}
         className="theme-template h-100 overflow-y-auto"
       >
         <div id='template__header-wrapper' className="position-relative w-100">

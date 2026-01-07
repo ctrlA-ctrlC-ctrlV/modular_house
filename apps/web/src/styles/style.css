@@ -514,13 +514,13 @@ a:hover {
   background-color: var(--brand-ink);
   color: var(--brand-white);
   border: none;
-  border-radius: 2px;
+  border-radius: 9px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-brand-primary:hover {
-  background-color: #333333;
+  background-color: var(--brand-link-hover);
   transform: translateY(-1px);
 }
 

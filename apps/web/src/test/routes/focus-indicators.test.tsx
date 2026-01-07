@@ -19,7 +19,7 @@ describe('Focus Indicators & Accessibility', () => {
     );
     
     const main = screen.getByRole('main');
-    expect(main).toHaveAttribute('id', 'main-content');
+    expect(main).toHaveAttribute('id', 'template__main-content');
     expect(main).toHaveAttribute('tabIndex', '-1');
     
     main.focus();

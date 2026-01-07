@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 // Assuming 'Header' is the named export from your UI library based on the previous file
 import { Header as UIHeader, MenuItem, HeaderVariant } from '@modular-house/ui'
 
@@ -34,7 +34,20 @@ export interface HeaderProps {
  */
 function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const headerRef = useRef<HTMLDivElement>(null);
+
+  // State for controlling the mobile menu
+  // Lifted up from UI library to allow router-based closing
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  /**
+   * Effect to automatically close the mobile menu when the route changes.
+   * This ensures a fresh state when navigating to a new page.
+   */
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // ===========================================================================
   // Configuration
@@ -130,6 +143,8 @@ function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
         menuItems={menuItems}
         variant={variant}
         positionOver={positionOver}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onMobileMenuToggle={setIsMobileMenuOpen}
       />
     </div>
   )

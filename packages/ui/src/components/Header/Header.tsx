@@ -24,26 +24,49 @@ export interface SocialLink {
 export type HeaderVariant = 'dark' | 'light';
 
 export interface HeaderProps {
-  /** Logo image source */
+  /** Source URL for the brand logo image. */
   logoSrc: string;
-  /** Logo image source for retina displays (2x) */
+  /** Optional source URL for the high-resolution (retina) logo image. */
   logoSrcRetina?: string;
-  /** Logo alt text */
+  /** Alt text for the logo image for accessibility. Defaults to 'Logo'. */
   logoAlt?: string;
-  /** Logo link URL */
+  /** URL the logo should link to. Defaults to root ('/'). */
   logoHref?: string;
-  /** Main navigation menu items */
+  
+  /** Array of navigation menu items to be rendered. */
   menuItems: MenuItem[];
-  /** Optional: Text for the right-side Call to Action button */
+  
+  /** Optional label text for the primary Call-to-Action button. */
   ctaLabel?: string;
-  /** Optional: Link for the right-side Call to Action button */
+  /** Optional URL for the primary Call-to-Action button. */
   ctaHref?: string;
-  /** Optional: Social media links (Hidden in desktop based on screenshot, visible in mobile if needed) */
+  
+  /** Optional array of social media links. */
   socialLinks?: SocialLink[];
-  /** Toggles transparent background absolute positioning */
+  
+  /** 
+   * Toggles absolute positioning to overlay the header on content (e.g., hero images).
+   * @default false
+   */
   positionOver?: boolean;
-  /** Visual variant: 'dark' (white text) or 'light' (black text). Defaults to 'dark'. */
+  
+  /** 
+   * Visual style variant. 
+   * @default 'dark'
+   */
   variant?: HeaderVariant;
+
+  /**
+   * Controlled state logic for the mobile menu.
+   * If provided, the parent component controls the open/closed state.
+   */
+  isMobileMenuOpen?: boolean;
+
+  /**
+   * Callback fired when the mobile menu toggle is clicked.
+   * Required if `isMobileMenuOpen` is used, to update parent state.
+   */
+  onMobileMenuToggle?: (isOpen: boolean) => void;
 }
 
 /**
@@ -63,16 +86,61 @@ export const Header: React.FC<HeaderProps> = ({
   //socialLinks = [],
   positionOver = false,
   variant = 'dark',
+  isMobileMenuOpen,
+  onMobileMenuToggle,
 }) => {
-  // State for mobile menu toggle
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // State for mobile accordion submenus
+  // ===========================================================================
+  // State Management
+  // ===========================================================================
+
+  // Internal state for uncontrolled mode
+  const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
+  
+  // Internal state for managing active submenu in mobile view (accordion style)
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null);
 
-  // Toggle handlers
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+  /**
+   * Determines if the menu is open.
+   * uses the controlled prop `isMobileMenuOpen` if defined, otherwise falls back to internal state.
+   */
+  const isMenuOpen = typeof isMobileMenuOpen === 'boolean' ? isMobileMenuOpen : internalMobileMenuOpen;
+
+  // ===========================================================================
+  // Handlers
+  // ===========================================================================
+
+  /**
+   * Toggles the mobile menu open/closed state.
+   * Dispatches the change to the parent handler or updates internal state.
+   */
+  const handleMobileMenuToggle = () => {
+    const newState = !isMenuOpen;
+    
+    if (onMobileMenuToggle) {
+      onMobileMenuToggle(newState);
+    } else {
+      setInternalMobileMenuOpen(newState);
+    }
+  };
+
+  /**
+   * Toggles the visibility of a submenu in the mobile drawer.
+   * @param index - The index of the submenu to toggle.
+   */
   const toggleSubmenu = (index: number) => {
     setActiveSubmenu(activeSubmenu === index ? null : index);
+  };
+
+  /**
+   * Handles click events on mobile menu links.
+   * Automatically closes the menu when a link is clicked.
+   */
+  const handleMobileLinkClick = () => {
+    if (onMobileMenuToggle) {
+      onMobileMenuToggle(false);
+    } else {
+      setInternalMobileMenuOpen(false);
+    }
   };
 
   // Build class names based on props
@@ -149,15 +217,18 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           )}
 
-          {/* Mobile Menu Toggle Button (Visible only on mobile) */}
+          {/* 
+            Mobile Menu Toggle Button 
+            Uses ARIA attributes for accessibility.
+          */}
           <button
             className="header__mobile-toggle"
-            onClick={toggleMobileMenu}
+            onClick={handleMobileMenuToggle}
             aria-label="Toggle Menu"
-            aria-expanded={mobileMenuOpen}
+            aria-expanded={isMenuOpen}
           >
             <span className="header__toggle-icon">
-              {mobileMenuOpen ? (
+              {isMenuOpen ? (
                 // Close Icon (X)
                 <svg viewBox="0 0 352 512" xmlns="http://www.w3.org/2000/svg">
                   <path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path>
@@ -172,16 +243,23 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* ==========================================
-            Section 4: Mobile Menu Drawer
-            ========================================== */}
-        {mobileMenuOpen && (
+        {/*
+          ===========================================================================
+          Section 4: Mobile Menu Drawer
+          ===========================================================================
+        */}
+        {isMenuOpen && (
           <div className="header__mobile-menu">
             <ul className="header__mobile-list">
               {menuItems.map((item, index) => (
                 <li key={index} className="header__mobile-item">
                   <div className="header__mobile-link-wrapper">
-                    <a href={item.href} className="header__mobile-link">
+                    {/* Primary Link: Closes menu on click */}
+                    <a 
+                      href={item.href} 
+                      className="header__mobile-link"
+                      onClick={handleMobileLinkClick}
+                    >
                       {item.label}
                     </a>
                     {item.submenu && (
@@ -202,7 +280,11 @@ export const Header: React.FC<HeaderProps> = ({
                     <ul className="header__mobile-submenu">
                       {item.submenu.map((subItem, subIndex) => (
                         <li key={subIndex} className="header__mobile-submenu-item">
-                          <a href={subItem.href} className="header__mobile-submenu-link">
+                          <a 
+                            href={subItem.href} 
+                            className="header__mobile-submenu-link"
+                            onClick={handleMobileLinkClick}
+                          >
                             {subItem.label}
                           </a>
                         </li>
@@ -212,10 +294,14 @@ export const Header: React.FC<HeaderProps> = ({
                 </li>
               ))}
               
-              {/* Mobile version of CTA */}
+              {/* Mobile CTA (rendered as link inside menu) */}
               {ctaLabel && (
                 <li className="header__mobile-item header__mobile-item--cta">
-                  <a href={ctaHref || '#'} className="header__mobile-cta-btn">
+                  <a 
+                    href={ctaHref || '#'} 
+                    className="header__mobile-cta-btn"
+                    onClick={handleMobileLinkClick}
+                  >
                     {ctaLabel}
                   </a>
                 </li>

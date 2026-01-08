@@ -20,6 +20,11 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: true
     },
+    // Configuration for the Server-Side Rendering (SSR) build.
+    // Ensure dependencies are correctly handled during the SSG prerender step.
+    ssr: {
+      noExternal: ['react-helmet-async']
+    },
     build: {
       outDir: 'dist',
       sourcemap: env.GENERATE_SOURCEMAP !== 'false'

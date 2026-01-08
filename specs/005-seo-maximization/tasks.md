@@ -7,10 +7,10 @@
 ## Phase 1: Setup & Configuration
 *Goal: Prepare the environment for Static Site Generation and SEO management.*
 
-- [ ] T001 Install `react-helmet-async` dependency in `apps/web/package.json`
-- [ ] T002 Update `apps/web/vite.config.ts` to enable SSR build mode (implementing `ssrLoadModule` strategy)
-- [ ] T003 Create `apps/web/src/types/seo.ts` defining `AppRoute`, `SEOConfig`, and `SchemaDef` interfaces per Data Model
-- [ ] T004 Create `apps/web/src/route-config.tsx` with initial route definitions for all public pages (Home, Gallery, About, Contact, Services)
+- [x] T001 Install `react-helmet-async` dependency in `apps/web/package.json`
+- [x] T002 Update `apps/web/vite.config.ts` to enable SSR build mode (implementing `ssrLoadModule` strategy)
+- [x] T003 Create `apps/web/src/types/seo.ts` defining `AppRoute`, `SEOConfig`, and `SchemaDef` interfaces per Data Model
+- [x] T004 Create `apps/web/src/route-config.tsx` with initial route definitions for all public pages (Home, Gallery, About, Contact, Services)
 
 ## Phase 2: Foundational Architecture
 *Goal: Centralize routing logic to support both Client-side App and Server-side Prerendering.*

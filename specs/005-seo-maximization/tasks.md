@@ -15,7 +15,7 @@
 ## Phase 2: Foundational Architecture
 *Goal: Centralize routing logic to support both Client-side App and Server-side Prerendering.*
 
-- [ ] T005 Refactor `apps/web/src/App.tsx` to generate `Routes` dynamically from `route-config.tsx`
+- [x] T005 Refactor `apps/web/src/App.tsx` to generate `Routes` dynamically from `route-config.tsx`
 - [ ] T006 [P] Update `apps/web/src/main.tsx` to wrap the application with `HelmetProvider`
 - [ ] T007 Create `apps/web/src/entry-server.tsx` exporting a render function string using `ReactDOMServer.renderToString` and `StaticRouter`
 

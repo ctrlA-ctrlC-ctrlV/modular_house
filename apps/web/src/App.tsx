@@ -1,14 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { TemplateLayout } from './components/TemplateLayout'
-import Landing from './routes/Landing'
-import Gallery from './routes/Gallery'
-import About from './routes/About'
-import Contact from './routes/Contact'
-import Privacy from './routes/Privacy'
-import Terms from './routes/Terms'
-import GardenRoom from './routes/GardenRoom'
-import HouseExtension from './routes/HouseExtension'
-import NotFound from './routes/NotFound'
+import { routes } from './route-config'
+
 import AdminLogin from './routes/admin/login'
 import AdminDashboard from './routes/admin/index'
 import AdminRedirects from './routes/admin/redirects'
@@ -34,17 +27,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
+        {/* Public Routes rendered dynamically from configuration */}
         <Route element={<TemplateLayout />}>
-          <Route path="/" element={<Landing />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/garden-room" element={<GardenRoom />} />
-          <Route path="/house-extension" element={<HouseExtension />} />
-          <Route path="*" element={<NotFound />} />
+          {routes.map(({ path, component: Component }) => (
+            <Route key={path} path={path} element={<Component />} />
+          ))}
         </Route>
 
         {/* Admin Routes */}

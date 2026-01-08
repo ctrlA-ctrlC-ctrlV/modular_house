@@ -10,7 +10,7 @@ export const routesMetadata: RouteMetadata[] = [
     path: '/',
     seo: {
       title: 'Modular House Extensions & Garden Rooms',
-      description: 'Transform your home with premium modular house extensions and garden rooms. Modern design, sustainable materials, and fast installation.',
+      description: 'Transform your home into modular home. With premium modular house extensions and garden rooms. Modern design, sustainable materials, and fast installation.',
     },
     sitemap: {
       priority: 1.0,
@@ -21,7 +21,7 @@ export const routesMetadata: RouteMetadata[] = [
     path: '/garden-room',
     seo: {
       title: 'Garden Rooms & Studios',
-      description: 'Custom garden rooms, offices, and studios. Create your perfect outdoor living space with our insulated and durable modular designs.',
+      description: 'Bespok garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
     },
     sitemap: {
       priority: 0.9,
@@ -65,7 +65,7 @@ export const routesMetadata: RouteMetadata[] = [
     path: '/contact',
     seo: {
       title: 'Contact Us',
-      description: 'Get in touch for a free consultation. Discuss your garden room or extension project with our expert team today.',
+      description: 'Don\'t be a stranger! Get in touch for a free consultation. Discuss your garden room or extension project with our expert team today.',
     },
     sitemap: {
       priority: 0.8,

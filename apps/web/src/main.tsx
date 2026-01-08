@@ -19,6 +19,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -46,7 +47,15 @@ ReactDOM.createRoot(rootElement).render(
       to prevent memory leaks on the server and ensure correct state on the client.
     */}
     <HelmetProvider>
-      <App />
+      {/* 
+        BrowserRouter:
+        Provides the history object and routing context for the client-side application.
+        Must wrap the App component here (Client) but NOT in App.tsx, to allow 
+        server-side entry to use StaticRouter instead.
+      */}
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </HelmetProvider>
   </React.StrictMode>,
 )

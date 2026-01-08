@@ -9,6 +9,7 @@
     "build:client": "tsc && vite build --outDir dist/client",
     "build:server": "tsc && vite build --ssr src/entry-server.tsx --outDir dist/server",
     "prerender": "tsx scripts/prerender.ts",
+    "verify:build": "tsx scripts/verify-build.ts",
     "preview": "vite preview",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",

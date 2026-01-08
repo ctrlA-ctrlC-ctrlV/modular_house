@@ -17,7 +17,7 @@
 
 - [x] T005 Refactor `apps/web/src/App.tsx` to generate `Routes` dynamically from `route-config.tsx`
 - [x] T006 [P] Update `apps/web/src/main.tsx` to wrap the application with `HelmetProvider`
-- [ ] T007 Create `apps/web/src/entry-server.tsx` exporting a render function string using `ReactDOMServer.renderToString` and `StaticRouter`
+- [x] T007 Create `apps/web/src/entry-server.tsx` exporting a render function string using `ReactDOMServer.renderToString` and `StaticRouter`
 
 ## Phase 3: User Story 4 - Instant Page Loading (SSG)
 *Goal: Implement the build pipeline to generate static HTML for all routes.*

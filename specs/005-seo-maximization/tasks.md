@@ -37,31 +37,37 @@
 - [ ] T014 [P] [US1] Create `apps/web/scripts/sitemap-generator.ts` to generate `sitemap.xml` from `route-config.tsx`
 - [ ] T015 [US1] Update `apps/web/scripts/prerender.ts` to execute sitemap generation after HTML generation
 - [ ] T016 [US1] Create `apps/web/public/robots.txt` allowing indexing and pointing to sitemap
+- [ ] T017 [US1] Create unit tests for `SEOHead` component in `apps/web/src/components/seo/__tests__/SEOHead.test.tsx`
+- [ ] T018 [US1] Create unit tests for sitemap generation logic in `apps/web/scripts/__tests__/sitemap.test.ts`
 
 ## Phase 5: User Story 2 - Rich Search Results
 *Goal: Add structured data to pages to enable rich snippets in search results.*
 *Story: [US2] Rich Search Results*
 
-- [ ] T017 [P] [US2] Create `apps/web/src/components/seo/StructuredData.tsx` to render JSON-LD via `react-helmet-async`
-- [ ] T018 [US2] Implement `Product` schema in `route-config.tsx` for `/garden-room` and `/house-extension`
-- [ ] T019 [P] [US2] Implement `LocalBusiness` schema in `route-config.tsx` for `/contact`
-- [ ] T020 [P] [US2] Implement `Organization` schema in `route-config.tsx` for `/` (Landing)
-- [ ] T021 [US2] Integrate `StructuredData` component into `TemplateLayout` to render schema based on current route
+- [ ] T019 [P] [US2] Create `apps/web/src/components/seo/StructuredData.tsx` to render JSON-LD via `react-helmet-async`
+- [ ] T020 [US2] Implement `Product` schema in `route-config.tsx` for `/garden-room` and `/house-extension`
+- [ ] T021 [P] [US2] Implement `LocalBusiness` schema in `route-config.tsx` for `/contact`
+- [ ] T022 [P] [US2] Implement `Organization` schema in `route-config.tsx` for `/` (Landing)
+- [ ] T023 [US2] Integrate `StructuredData` component into `TemplateLayout` to render schema based on current route
+- [ ] T024 [US2] Create unit tests for `StructuredData` component in `apps/web/src/components/seo/__tests__/StructuredData.test.tsx`
 
 ## Phase 6: User Story 3 - Accessible Navigation
 *Goal: Ensure all internal links are crawlable by bots.*
 *Story: [US3] Accessible Navigation for Bots*
 
-- [ ] T022 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/components/Header.tsx`
-- [ ] T023 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/routes/Landing/Hero.tsx` (and other CTA buttons)
-- [ ] T024 [P] [US3] Verify that Footer links are semantic `<a>` tags in `apps/web/src/components/Footer.tsx`
+- [ ] T025 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/components/Header.tsx`
+- [ ] T026 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/routes/Landing/Hero.tsx` (and other CTA buttons)
+- [ ] T027 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)
+- [ ] T028 [P] [US3] Verify that Footer links are semantic `<a>` tags in `apps/web/src/components/Footer.tsx`
 
 ## Phase 7: Polish & Validation
 *Goal: Verify compliance with all success criteria.*
 
-- [ ] T025 Run local build and validation: Check `dist/` for all HTML files
-- [ ] T026 Validation: Verify `dist/sitemap.xml` contains all routes
-- [ ] T027 Validation: Inspect `dist/garden-room/index.html` for existance of JSON-LD scripts
+- [ ] T029 Run local build and validation: Check `dist/` for all HTML files
+- [ ] T030 Validation: Verify `dist/sitemap.xml` contains all routes
+- [ ] T031 Install Lighthouse CI v1.13 and add as a dev dependency
+- [ ] T032 Add Lighthouse CI to the current CI pipeline SSG implementation meets the FCP target: Performance > 90, Accessibility 100, Best Practices 100, SEO 100
+- [ ] T033 Validation: Inspect `dist/garden-room/index.html` for existance of JSON-LD scripts
 
 ## Dependencies
 - Phase 2 depends on Phase 1
@@ -74,5 +80,5 @@ We will first establish the "Hybrid" architecture (T001-T007) without breaking t
 
 ## Parallel Execution
 - T012, T013, T014 (SEO Head & Sitemap components) can be built in parallel with T008 (SSG Script).
-- T017, T018, T019 (Structured Data) can be built in parallel.
+- T019, T020, T021 (Structured Data) can be built in parallel.
 - Phase 6 (Navigation Audit) creates almost no conflicts and can be done anytime after Phase 1.

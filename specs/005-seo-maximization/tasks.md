@@ -24,7 +24,7 @@
 *Story: [US4] Instant Page Loading*
 
 - [x] T008 [US4] Create `apps/web/scripts/prerender.ts` script to load the server bundle and generate HTML files
-- [ ] T009 [US4] Update `apps/web/package.json` with `build:server` and `prerender` scripts
+- [x] T009 [US4] Update `apps/web/package.json` with `build:server` and `prerender` scripts
 - [ ] T010 [US4] Modify `apps/web/index.html` to add a placeholder `<!--app-html-->` and `<!--head-meta-->` for injection
 - [ ] T011 [US4] Create a test script `apps/web/scripts/verify-build.ts` to verify `dist/index.html` (and other routes) contains rendered content
 

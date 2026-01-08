@@ -51,6 +51,19 @@ As a search bot, I want to find links to other pages using standard HTML anchors
 
 1. **Given** a crawler parses the Landing page source code, **When** it extracts links, **Then** it finds direct `href` paths to internal pages like `/garden-room` and `/contact` instead of just buttons with event listeners.
 
+### User Story 4 - Instant Page Loading (Priority: P1)
+
+As a visitor, I want pages to load almost instantly so that I don't bounce before seeing the content, which also improves the site's ranking signals to search engines.
+
+**Why this priority**: Page speed is a critical ranking factor (Core Web Vitals) and directly impacts user retention.
+
+**Independent Test**: Can be tested using Lighthouse Performance audit or WebPageTest against the production build.
+
+**Acceptance Scenarios**:
+
+1. **Given** a user navigates to any public page (e.g., `/garden-room`), **When** the request is made, **Then** the server returns a pre-rendered HTML file immediately (low Time To First Byte), rather than a blank shell waiting for JavaScript.
+2. **Given** a search bot crawls the specific URL, **When** it parses the response, **Then** it sees the full content in the initial HTML response without executing client-side scripts.
+
 ### Edge Cases
 
 - **JavaScript Disabled**: Major search bots may render without JS. Navigation links must allow basic traversal even if styling is broken.
@@ -67,6 +80,8 @@ As a search bot, I want to find links to other pages using standard HTML anchors
 - **FR-005**: All primary call-to-action buttons that navigate to internal pages MUST be rendered as semantic `<a href>` or `<Link>` elements, not `<button>` or `<div>` with `onClick` handlers.
 - **FR-006**: All images in the Gallery and Hero sections MUST have descriptive `alt` text attributes.
 - **FR-007**: The system MUST NOT block search indexing on any public environment (production).
+- **FR-008**: The web application MUST utilize Static Site Generation (SSG) to pre-render all public pages (Home, About, Services, Contact, Gallery) into static HTML at build time.
+- **FR-009**: The build process MUST generate individual HTML files for each route (e.g., `garden-room/index.html`) to ensure direct link accessibility and proper caching.
 
 ### Key Entities
 
@@ -81,3 +96,5 @@ As a search bot, I want to find links to other pages using standard HTML anchors
 - **SC-001**: 100% of public pages are discoverable via `sitemap.xml` and accessible to bots (verified by crawler test).
 - **SC-002**: 0 errors in Google Rich Results Test for all service pages.
 - **SC-003**: Lighthouse SEO Audit score of 100/100 for the Landing page.
+- **SC-004**: First Contentful Paint (FCP) under 1.8 seconds on mobile devices (Lighthouse Standard).
+- **SC-005**: All public routes return fully populated HTML in the initial response (view-source verification).

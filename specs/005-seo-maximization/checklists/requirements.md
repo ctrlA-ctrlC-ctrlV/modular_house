@@ -1,7 +1,7 @@
 # Specification Quality Checklist: SEO Maximization
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: January 7, 2026
+**Created**: January 8, 2026
 **Feature**: [Link to spec.md](../spec.md)
 
 ## Content Quality
@@ -31,4 +31,5 @@
 
 ## Notes
 
+- Validate SSG requirements and FCP targets. 
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`

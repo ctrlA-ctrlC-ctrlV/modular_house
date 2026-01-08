@@ -39,7 +39,7 @@ export interface AppRoute {
   /** The URL path for the route (e.g., "/about"). */
   path: string;
   /** The React component to render for this route. */
-  component: ComponentType<unknown>;
+  component: ComponentType;
   /** Optional SEO metadata for this route. */
   seo?: SEOConfig;
   /** Optional sitemap configuration. */

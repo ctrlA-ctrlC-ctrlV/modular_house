@@ -7,6 +7,7 @@ import Contact from './routes/Contact';
 import Privacy from './routes/Privacy';
 import Terms from './routes/Terms';
 import { AppRoute } from './types/seo';
+import NotFound from './routes/NotFound';
 
 /**
  * Central configuration for all public application routes.
@@ -108,6 +109,19 @@ export const routes: AppRoute[] = [
     sitemap: {
       priority: 0.1,
       changefreq: 'yearly'
+    }
+  },
+  {
+    path: '*', // Catch-all path
+    component: NotFound,
+    seo: {
+      title: 'Page Not Found',
+      description: 'The page you are looking for does not exist.',
+    },
+    sitemap: {
+       // Usually excluded from sitemap, but typed here for consistency
+       priority: 0,
+       changefreq: 'yearly'
     }
   }
 ];

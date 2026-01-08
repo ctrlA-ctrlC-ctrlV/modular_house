@@ -62,7 +62,7 @@ ${urlElements}
 /**
  * Main execution function.
  */
-async function generateSitemap() {
+export async function generateSitemap() {
   console.log('Generating sitemap...');
   
   try {
@@ -83,5 +83,7 @@ async function generateSitemap() {
   }
 }
 
-// Execute the generator
-generateSitemap();
+// Execute the generator if run directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  generateSitemap();
+}

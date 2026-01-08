@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { generateSitemap } from './sitemap-generator';
 
 /**
  * Resolve the directory path of the current module to interpret relative paths correctly.
@@ -110,6 +111,9 @@ async function prerender() {
       process.exit(1);
     }
   }
+
+  // After all pages are rendered, generate the sitemap
+  await generateSitemap();
 
   console.log('Prerender complete.');
 }

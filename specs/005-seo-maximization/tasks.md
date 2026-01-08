@@ -38,7 +38,7 @@
 - [x] T015 [US1] Update `apps/web/scripts/prerender.ts` to execute sitemap generation after HTML generation
 - [x] T016 [US1] Create `apps/web/public/robots.txt` allowing indexing and pointing to sitemap
 - [x] T017 [US1] Create unit tests for `SEOHead` component in `apps/web/src/components/seo/__tests__/SEOHead.test.tsx`
-- [ ] T018 [US1] Create unit tests for sitemap generation logic in `apps/web/scripts/__tests__/sitemap.test.ts`
+- [x] T018 [US1] Create unit tests for sitemap generation logic in `apps/web/scripts/__tests__/sitemap.test.ts`
 
 ## Phase 5: User Story 2 - Rich Search Results
 *Goal: Add structured data to pages to enable rich snippets in search results.*

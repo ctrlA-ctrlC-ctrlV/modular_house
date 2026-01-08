@@ -32,7 +32,7 @@ const OUTPUT_FILE = resolve('dist/client/sitemap.xml');
 /**
  * Generates the XML content for the sitemap.
  */
-function generateSitemapXml(): string {
+export function generateSitemapXml(): string {
   const routes = routesMetadata.filter(route => {
     // Exclude Catch-all route ('*') and explicitly excluded routes
     if (route.path === '*') return false;

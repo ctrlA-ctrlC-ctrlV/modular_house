@@ -8,7 +8,7 @@
 *Goal: Prepare the environment for Static Site Generation and SEO management.*
 
 - [ ] T001 Install `react-helmet-async` dependency in `apps/web/package.json`
-- [ ] T002 Update `apps/web/vite.config.ts` to configure SSR build options (`ssr: { noExternal: ... }`)
+- [ ] T002 Update `apps/web/vite.config.ts` to enable SSR build mode (implementing `ssrLoadModule` strategy)
 - [ ] T003 Create `apps/web/src/types/seo.ts` defining `AppRoute`, `SEOConfig`, and `SchemaDef` interfaces per Data Model
 - [ ] T004 Create `apps/web/src/route-config.tsx` with initial route definitions for all public pages (Home, Gallery, About, Contact, Services)
 
@@ -26,7 +26,7 @@
 - [ ] T008 [US4] Create `apps/web/scripts/prerender.ts` script to load the server bundle and generate HTML files
 - [ ] T009 [US4] Update `apps/web/package.json` with `build:server` and `prerender` scripts
 - [ ] T010 [US4] Modify `apps/web/index.html` to add a placeholder `<!--app-html-->` and `<!--head-meta-->` for injection
-- [ ] T011 [US4] Manual Verification: Run `pnpm prerender` and verify `dist/index.html` contains rendered content
+- [ ] T011 [US4] Create a test script `apps/web/scripts/verify-build.ts` to verify `dist/index.html` (and other routes) contains rendered content
 
 ## Phase 4: User Story 1 - Crawling & Indexing
 *Goal: Ensure search engines can discover and index the content correctly.*

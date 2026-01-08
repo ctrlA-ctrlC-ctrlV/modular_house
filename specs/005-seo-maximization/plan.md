@@ -13,7 +13,7 @@ This feature implements SEO best practices for the modular house web application
 
 **Language/Version**: TypeScript ^5.6.3+
 **Primary Dependencies**: React ^18.3.1, Vite ^5.4.11, React Helmet Async ^2.0.5
-**New Dependencies**: SSG Tool (utilize Vite's native SSR build capability (`ssr: true` in config) to generate a server bundle, and then run a node script (`scripts/prerender.ts`) to generate static HTML files), Sitemap Generator (generates during the prerender step)
+**New Dependencies**: SSG Tool (utilize Vite's native SSR build capability (`ssr: true` in config) to generate a server bundle, and then run a node script (`scripts/prerender.ts`) to generate static HTML files)==, ==Sitemap Generator (generates during the prerender step)
 **Storage**: N/A (Static Files)
 **Testing**: Vitest
 **Target Platform**: Web (Static Hosting)

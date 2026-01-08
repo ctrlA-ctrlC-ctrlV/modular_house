@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { generateSitemap } from './sitemap-generator';
+import { routesMetadata } from '../src/routes-metadata';
 
 /**
  * Resolve the directory path of the current module to interpret relative paths correctly.
@@ -29,20 +30,12 @@ const resolve = (p: string) => path.resolve(__dirname, '..', p);
 
 /**
  * List of public routes to be pre-rendered into static HTML files.
- * This list must be kept in sync with the application's route configuration.
- * TODO: Ideally, this should be imported from src/route-config.tsx, but that requires
- * handling TSX/ESM compilation during the script execution.
+ * Valid routes are derived from the central metadata configuration.
+ * Excludes dynamic catch-all routes like '*'.
  */
-const routesToPrerender = [
-  '/',
-  '/garden-room',
-  '/house-extension',
-  '/gallery',
-  '/about',
-  '/contact',
-  '/privacy',
-  '/terms'
-];
+const routesToPrerender = routesMetadata
+  .map(route => route.path)
+  .filter(path => path !== '*');
 
 /**
  * Main execution function for the prerendering process.

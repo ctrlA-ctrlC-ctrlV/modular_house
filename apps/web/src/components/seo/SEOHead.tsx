@@ -36,7 +36,7 @@ export const SEOHead = ({ config, titleSuffix = '' }: SEOHeadProps) => {
             '@context': 'https://schema.org',
             '@type': item.type,
             ...item.data,
-          })}
+          }).replace(/</g, '\\u003c')}
         </script>
       ))}
     </Helmet>

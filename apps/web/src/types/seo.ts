@@ -45,3 +45,10 @@ export interface AppRoute {
   /** Optional sitemap configuration. */
   sitemap?: SitemapConfig;
 }
+
+/**
+ * Route definition without the component.
+ * Used for scripts that don't have access to the React environment (like sitemap generation).
+ */
+export type RouteMetadata = Omit<AppRoute, 'component'>;
+

@@ -34,7 +34,7 @@
 
 - [x] T012 [P] [US1] Create `apps/web/src/components/seo/SEOHead.tsx` component to render `<Helmet>` tags from `SEOConfig`
 - [x] T013 [P] [US1] Integrate `SEOHead` into `apps/web/src/components/TemplateLayout.tsx` (or App root) to read metadata from the current route match
-- [ ] T014 [P] [US1] Create `apps/web/scripts/sitemap-generator.ts` to generate `sitemap.xml` from `route-config.tsx`
+- [x] T014 [P] [US1] Create `apps/web/scripts/sitemap-generator.ts` to generate `sitemap.xml` from `route-config.tsx`
 - [ ] T015 [US1] Update `apps/web/scripts/prerender.ts` to execute sitemap generation after HTML generation
 - [ ] T016 [US1] Create `apps/web/public/robots.txt` allowing indexing and pointing to sitemap
 - [ ] T017 [US1] Create unit tests for `SEOHead` component in `apps/web/src/components/seo/__tests__/SEOHead.test.tsx`

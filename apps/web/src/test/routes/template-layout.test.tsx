@@ -20,7 +20,7 @@ vi.mock('../../routes/Privacy', () => ({ default: () => <div data-testid="page-p
 vi.mock('../../routes/Terms', () => ({ default: () => <div data-testid="page-terms">Terms Page</div> }));
 vi.mock('../../routes/GardenRoom', () => ({ default: () => <div data-testid="page-garden-room">Garden Room Page</div> }));
 vi.mock('../../routes/HouseExtension', () => ({ default: () => <div data-testid="page-house-extension">House Extension Page</div> }));
-vi.mock('../../routes/not-found', () => ({ default: () => <div data-testid="page-404">404 Page</div> }));
+vi.mock('../../routes/NotFound', () => ({ default: () => <div data-testid="page-404">404 Page</div> }));
 
 describe('TemplateLayout Integration', () => {
   afterEach(() => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import App from '../../App';
 
 // Mock components to isolate layout testing
@@ -29,8 +30,11 @@ describe('TemplateLayout Integration', () => {
   });
 
   const renderRoute = (route: string) => {
-    window.history.pushState({}, 'Test page', route);
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={[route]}>
+        <App />
+      </MemoryRouter>
+    );
   };
 
   it.each([

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import App from '../../App';
 
 // Mock components to isolate layout testing
@@ -30,10 +31,13 @@ describe('TemplateLayout Integration', () => {
   });
 
   const renderRoute = (route: string) => {
+    const helmetContext = {};
     render(
-      <MemoryRouter initialEntries={[route]}>
-        <App />
-      </MemoryRouter>
+      <HelmetProvider context={helmetContext}>
+        <MemoryRouter initialEntries={[route]}>
+          <App />
+        </MemoryRouter>
+      </HelmetProvider>
     );
   };
 

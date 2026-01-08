@@ -44,12 +44,12 @@
 *Goal: Add structured data to pages to enable rich snippets in search results.*
 *Story: [US2] Rich Search Results*
 
-- [ ] T019 [P] [US2] Create `apps/web/src/components/seo/StructuredData.tsx` to render JSON-LD via `react-helmet-async`
-- [ ] T020 [US2] Implement `Product` schema in `route-config.tsx` for `/garden-room` and `/house-extension`
-- [ ] T021 [P] [US2] Implement `LocalBusiness` schema in `route-config.tsx` for `/contact`
-- [ ] T022 [P] [US2] Implement `Organization` schema in `route-config.tsx` for `/` (Landing)
-- [ ] T023 [US2] Integrate `StructuredData` component into `TemplateLayout` to render schema based on current route
-- [ ] T024 [US2] Create unit tests for `StructuredData` component in `apps/web/src/components/seo/__tests__/StructuredData.test.tsx`
+- [x] T019 [P] [US2] Create `apps/web/src/components/seo/StructuredData.tsx` to render JSON-LD via `react-helmet-async`
+- [x] T020 [US2] Implement `Product` schema in `route-config.tsx` for `/garden-room` and `/house-extension`
+- [x] T021 [P] [US2] Implement `LocalBusiness` schema in `route-config.tsx` for `/contact`
+- [x] T022 [P] [US2] Implement `Organization` schema in `route-config.tsx` for `/` (Landing)
+- [x] T023 [US2] Integrate `StructuredData` component into `TemplateLayout` to render schema based on current route
+- [x] T024 [US2] Create unit tests for `StructuredData` component in `apps/web/src/components/seo/__tests__/StructuredData.test.tsx`
 
 ## Phase 6: User Story 3 - Accessible Navigation
 *Goal: Ensure all internal links are crawlable by bots.*

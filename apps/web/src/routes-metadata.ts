@@ -11,6 +11,20 @@ export const routesMetadata: RouteMetadata[] = [
     seo: {
       title: 'Modular House Extensions & Garden Rooms',
       description: 'Transform your home into modular home. With premium modular house extensions and garden rooms. Modern design, sustainable materials, and fast installation.',
+      schema: [
+        {
+          type: 'Organization',
+          data: {
+            name: 'Modular House',
+            url: 'https://modular-house.com',
+            logo: 'https://modular-house.com/logo.png', // Placeholder
+            sameAs: [
+              'https://www.facebook.com/modularhouse',
+              'https://www.instagram.com/modularhouse'
+            ]
+          }
+        }
+      ]
     },
     sitemap: {
       priority: 1.0,
@@ -21,7 +35,27 @@ export const routesMetadata: RouteMetadata[] = [
     path: '/garden-room',
     seo: {
       title: 'Garden Rooms & Studios',
-      description: 'Bespok garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
+      description: 'Bespoke garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
+      schema: [
+        {
+          type: 'Product',
+          data: {
+            name: 'Garden Room',
+            description: 'Bespoke garden rooms, offices, studios, and home gym.',
+            brand: {
+              '@type': 'Brand',
+              name: 'Modular House'
+            },
+            offers: {
+              '@type': 'AggregateOffer',
+              priceCurrency: 'USD',
+              lowPrice: '15000',
+              highPrice: '50000',
+              offerCount: '5'
+            }
+          }
+        }
+      ]
     },
     sitemap: {
       priority: 0.9,
@@ -33,6 +67,25 @@ export const routesMetadata: RouteMetadata[] = [
     seo: {
       title: 'Modular House Extensions',
       description: 'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
+      schema: [
+        {
+          type: 'Product', // Using Product as per Task T020, though Service could also apply
+          data: {
+            name: 'Modular House Extension',
+            description: 'Expand your living space with a high-quality modular extension.',
+            brand: {
+              '@type': 'Brand',
+              name: 'Modular House'
+            },
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'USD',
+              availability: 'https://schema.org/InStock',
+              price: '25000' // Starting price placeholder
+            }
+          }
+        }
+      ]
     },
     sitemap: {
       priority: 0.9,
@@ -66,6 +119,37 @@ export const routesMetadata: RouteMetadata[] = [
     seo: {
       title: 'Contact Us',
       description: 'Don\'t be a stranger! Get in touch for a free consultation. Discuss your garden room or extension project with our expert team today.',
+      schema: [
+        {
+          type: 'LocalBusiness',
+          data: {
+            name: 'Modular House',
+            image: 'https://modular-house.com/logo.png',
+            telephone: '+1-555-012-3456', // Placeholder
+            email: 'info@modular-house.com',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '123 Innovation Drive',
+              addressLocality: 'Tech City',
+              addressCountry: 'US'
+            },
+            openingHoursSpecification: [
+              {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: [
+                  'Monday',
+                  'Tuesday',
+                  'Wednesday',
+                  'Thursday',
+                  'Friday'
+                ],
+                opens: '09:00',
+                closes: '17:00'
+              }
+            ]
+          }
+        }
+      ]
     },
     sitemap: {
       priority: 0.8,

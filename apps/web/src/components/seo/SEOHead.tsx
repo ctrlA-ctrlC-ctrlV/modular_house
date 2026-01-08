@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { SEOConfig } from '../../types/seo';
+import { StructuredData } from './StructuredData';
 
 /**
  * Props for the SEOHead component.
@@ -22,23 +23,17 @@ export const SEOHead = ({ config, titleSuffix = '' }: SEOHeadProps) => {
   const { title, description, schema } = config;
 
   return (
-    <Helmet>
-      {/* Basic Metadata */}
-      <title>{`${title}${titleSuffix}`}</title>
-      <meta name="description" content={description} />
+    <>
+      <Helmet>
+        {/* Basic Metadata */}
+        <title>{`${title}${titleSuffix}`}</title>
+        <meta name="description" content={description} />
 
-      {/* Open Graph / Twitter Card tags could be added here in the future extending SEOConfig */}
+        {/* Open Graph / Twitter Card tags could be added here in the future extending SEOConfig */}
+      </Helmet>
 
-      {/* Structured Data (JSON-LD) */}
-      {schema?.map((item, index) => (
-        <script type="application/ld+json" key={`schema-${index}`}>
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': item.type,
-            ...item.data,
-          }).replace(/</g, '\\u003c')}
-        </script>
-      ))}
-    </Helmet>
+      {/* Structured Data (JSON-LD) component */}
+      <StructuredData schema={schema} />
+    </>
   );
 };

@@ -32,7 +32,7 @@
 *Goal: Ensure search engines can discover and index the content correctly.*
 *Story: [US1] Search Engine Crawling & Indexing*
 
-- [ ] T012 [P] [US1] Create `apps/web/src/components/seo/SEOHead.tsx` component to render `<Helmet>` tags from `SEOConfig`
+- [x] T012 [P] [US1] Create `apps/web/src/components/seo/SEOHead.tsx` component to render `<Helmet>` tags from `SEOConfig`
 - [ ] T013 [P] [US1] Integrate `SEOHead` into `apps/web/src/components/TemplateLayout.tsx` (or App root) to read metadata from the current route match
 - [ ] T014 [P] [US1] Create `apps/web/scripts/sitemap-generator.ts` to generate `sitemap.xml` from `route-config.tsx`
 - [ ] T015 [US1] Update `apps/web/scripts/prerender.ts` to execute sitemap generation after HTML generation

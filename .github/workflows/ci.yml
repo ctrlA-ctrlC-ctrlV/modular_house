@@ -9,6 +9,7 @@ on:
       - '**-template-skeleton-integration'
       - '**-ssl-traefik'
       - '**-style-makeover'
+      - '**-seo-maximization'
   pull_request:
     branches:
       - main

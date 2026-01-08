@@ -1,0 +1,15 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Block access to Admin and System areas
+Disallow: /admin/
+Disallow: /system/
+
+# Block Internal Search Results (Prevents duplicate content issues)
+Disallow: /search/
+Disallow: /*?q=
+Disallow: /*?query=
+
+# Sitemap
+Sitemap: https://modular-house.com/sitemap.xml

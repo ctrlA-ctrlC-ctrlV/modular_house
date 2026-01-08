@@ -1,3 +1,4 @@
+import React from 'react';
 import Landing from './routes/Landing';
 import GardenRoom from './routes/GardenRoom';
 import HouseExtension from './routes/HouseExtension';

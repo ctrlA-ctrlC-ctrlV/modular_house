@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { HelmetProvider } from 'react-helmet-async';
 import { describe, it, expect, afterEach } from 'vitest';
@@ -81,8 +82,11 @@ describe('SEOHead Component', () => {
       
       const scriptContent = JSON.parse(scripts[0].innerHTML);
       expect(scriptContent['@context']).toBe('https://schema.org');
-      expect(scriptContent['@type']).toBe(mockConfig.schema![0].type);
-      expect(scriptContent['name']).toBe(mockConfig.schema![0].data.name);
+      
+      const firstSchema = mockConfig.schema?.[0];
+      expect(firstSchema).toBeDefined();
+      expect(scriptContent['@type']).toBe(firstSchema?.type);
+      expect(scriptContent['name']).toBe(firstSchema?.data.name);
     });
   });
 

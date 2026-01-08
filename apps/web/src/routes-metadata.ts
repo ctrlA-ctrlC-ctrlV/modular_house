@@ -16,11 +16,11 @@ export const routesMetadata: RouteMetadata[] = [
           type: 'Organization',
           data: {
             name: 'Modular House',
-            url: 'https://modular-house.com',
-            logo: 'https://modular-house.com/logo.png', // Placeholder
+            url: 'https://modularhouse.com',
+            logo: 'https://modularhouse.com/logo_black.png', // Placeholder
             sameAs: [
-              'https://www.facebook.com/modularhouse',
-              'https://www.instagram.com/modularhouse'
+              'https://www.facebook.com/p/Sdeal-Ltd-61574559341381/',
+              'https://www.tiktok.com/@sdeal.ie'
             ]
           }
         }
@@ -48,10 +48,10 @@ export const routesMetadata: RouteMetadata[] = [
             },
             offers: {
               '@type': 'AggregateOffer',
-              priceCurrency: 'USD',
-              lowPrice: '15000',
-              highPrice: '50000',
-              offerCount: '5'
+              priceCurrency: 'EUR',
+              availability: 'https://schema.org/InStock',
+              lowPrice: '35000',
+              highPrice: '110000'
             }
           }
         }
@@ -79,9 +79,10 @@ export const routesMetadata: RouteMetadata[] = [
             },
             offers: {
               '@type': 'Offer',
-              priceCurrency: 'USD',
+              priceCurrency: 'EUR',
               availability: 'https://schema.org/InStock',
-              price: '25000' // Starting price placeholder
+              lowPrice: '35000', // Starting price placeholder
+              highPrice: '75000'
             }
           }
         }
@@ -125,13 +126,13 @@ export const routesMetadata: RouteMetadata[] = [
           data: {
             name: 'Modular House',
             image: 'https://modular-house.com/logo.png',
-            telephone: '+1-555-012-3456', // Placeholder
-            email: 'info@modular-house.com',
+            telephone: '+3530830280000',
+            email: 'info@modularhouse.com',
             address: {
               '@type': 'PostalAddress',
-              streetAddress: '123 Innovation Drive',
-              addressLocality: 'Tech City',
-              addressCountry: 'US'
+              streetAddress: 'Unit 8, Finches Business Park',
+              addressLocality: 'Dublin 22',
+              addressCountry: 'Ireland'
             },
             openingHoursSpecification: [
               {

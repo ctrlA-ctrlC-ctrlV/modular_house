@@ -69,7 +69,7 @@
 ## Phase 7: Polish & Validation
 *Goal: Verify compliance with all success criteria.*
 
-- [ ] T035 Run local build and validation: Check `dist/` for all HTML files
+- [x] T035 Run local build and validation: Check `dist/` for all HTML files
 - [ ] T036 Validation: Verify `dist/sitemap.xml` contains all routes
 - [ ] T037 [P] Create validation script that verify `dist/sitemap.xml` contains all routes
 - [ ] T038 Install Lighthouse CI v1.13 and add as a dev dependency

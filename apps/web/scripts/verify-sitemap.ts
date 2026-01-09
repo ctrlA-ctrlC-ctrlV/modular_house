@@ -28,7 +28,7 @@ const resolve = (p: string) => path.resolve(__dirname, '..', p);
  * Configuration.
  * MUST match the hostname used in sitemap-generator.ts.
  */
-const EXPECTED_HOSTNAME = 'https://modular-house.com';
+const EXPECTED_HOSTNAME = 'https://modularhouse.ie';
 const SITEMAP_PATH = resolve('dist/client/sitemap.xml');
 
 /**

@@ -291,8 +291,8 @@
 
   /* Stack content on mobile with left alignment */
   .hero-main-area {
-    justify-content: flex-start;
-    margin-bottom: 60px;
+    padding: 0;
+    margin: 0;
   }
 
   .hero-text-block {
@@ -303,23 +303,21 @@
   }
 
   .hero-container .hero-subtitle {
-    font-size: clamp(0.85rem, 2vw, 1rem);
+    font-size: clamp(0.85rem, 1.8vw, 1rem);
     margin-left: .8%;
   }
 
   .hero-container .hero-title {
-    font-size: clamp(3rem, 8.5vw, 5rem); /*clamp(3rem, 8.5vw, 5rem)*/
+    font-size: clamp(3rem, 7.5vw, 5rem); /*clamp(3rem, 8.5vw, 5rem)*/
   }
 
   /* Reverse footer order and stack vertically on mobile */
   .hero-footer-area {
-    margin-top: 2vh;
     flex-direction: column;
     align-items: flex-start;
     gap: 6vh;
   }
   .hero-footer-right {
-    margin-top: 6vh;
     align-self: center;
   }
 }

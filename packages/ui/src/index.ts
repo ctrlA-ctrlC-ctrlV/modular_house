@@ -16,4 +16,5 @@ export * from './components/Seo/Seo'
 export * from './components/HeroBoldBottomText/HeroBoldBottomText'
 export * from './components/FullMassonryGallery/FullMassonryGallery'
 export * from './components/TextWithContactForm/TextWithContactForm'
+export * from './types';
 // Add your shared UI components here

@@ -19,6 +19,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -32,10 +33,29 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
+/**
+ * React Root Render
+ * Initializes the application within the strict mode and necessary context providers.
+ */
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
+    {/* 
+      HelmetProvider: 
+      Manages the document head (metadata, title, etc.) for the application.
+      It decouples head management from the render tree, allowing nested components
+      to declaratively update SEO tags. This is essential for SSG/SSR support
+      to prevent memory leaks on the server and ensure correct state on the client.
+    */}
     <HelmetProvider>
-      <App />
+      {/* 
+        BrowserRouter:
+        Provides the history object and routing context for the client-side application.
+        Must wrap the App component here (Client) but NOT in App.tsx, to allow 
+        server-side entry to use StaticRouter instead.
+      */}
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </HelmetProvider>
   </React.StrictMode>,
 )

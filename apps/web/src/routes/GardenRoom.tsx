@@ -1,8 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Seo,
   HeroBoldBottomText,
   FullMassonryGallery,
+  type LinkRenderer
  } from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
@@ -17,6 +19,19 @@ const GardenRoom: React.FC = () => {
       setHeaderConfig({ variant: 'dark', positionOver: true });
     };
   }, [setHeaderConfig]);
+
+  /** 
+   * Custom link renderer to inject React Router's Link component
+   * into shared UI components, replacing standard anchor tags.
+   */
+  const renderLink: LinkRenderer = (props) => {
+    const { href, children, className, onClick, ...rest } = props;
+    return (
+      <Link to={href} className={className} onClick={onClick} {...rest}>
+        {children}
+      </Link>
+    );
+  };
 
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -71,6 +86,7 @@ const GardenRoom: React.FC = () => {
           ctaLink = "/contact"
           backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
           bigText = "Garden Room"
+          renderLink={renderLink}
         />
       </div>
 

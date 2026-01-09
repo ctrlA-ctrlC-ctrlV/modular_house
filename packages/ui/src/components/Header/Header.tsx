@@ -5,6 +5,8 @@ import './Header.css';
 // Types & Interfaces
 // ==========================================
 
+import { LinkRenderer } from '../../types';
+
 export interface MenuItem {
   label: string;
   href: string;
@@ -67,6 +69,13 @@ export interface HeaderProps {
    * Required if `isMobileMenuOpen` is used, to update parent state.
    */
   onMobileMenuToggle?: (isOpen: boolean) => void;
+
+  /**
+   * Optional custom link renderer.
+   * Use this to integrate client-side routing (e.g., React Router).
+   * If not provided, standard <a> tags will be used.
+   */
+  renderLink?: LinkRenderer;
 }
 
 /**
@@ -88,6 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
   variant = 'dark',
   isMobileMenuOpen,
   onMobileMenuToggle,
+  renderLink,
 }) => {
   // ===========================================================================
   // State Management
@@ -151,6 +161,29 @@ export const Header: React.FC<HeaderProps> = ({
     variant === 'light' ? 'header--light' : 'header--dark',
   ].filter(Boolean).join(' ');
 
+  // ===========================================================================
+  // Sub-components / Helpers
+  // ===========================================================================
+
+  /**
+   * Helper component to render links using either standard <a> tags or the injected renderLink prop.
+   */
+  const LinkItem: React.FC<{
+    href: string;
+    className?: string;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+    children: React.ReactNode;
+  }> = ({ href, className, onClick, children }) => {
+    if (renderLink) {
+      return <>{renderLink({ href, className, onClick, children })}</>;
+    }
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  };
+
   return (
     <header className={headerClasses}>
       <div className="header__container">
@@ -159,14 +192,14 @@ export const Header: React.FC<HeaderProps> = ({
             Section 1: Logo (Left Aligned)
             ========================================== */}
         <div className="header__logo-wrapper">
-          <a href={logoHref} className="header__logo-link">
+          <LinkItem href={logoHref} className="header__logo-link">
             <img
               className="header__logo-image"
               src={logoSrc}
               srcSet={logoSrcRetina ? `${logoSrcRetina} 2x` : undefined}
               alt={logoAlt}
             />
-          </a>
+          </LinkItem>
         </div>
 
         {/* ==========================================
@@ -179,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
                 key={index}
                 className={`header__menu-item ${item.submenu ? 'header__menu-item--has-submenu' : ''}`}
               >
-                <a href={item.href} className="header__menu-link">
+                <LinkItem href={item.href} className="header__menu-link">
                   {item.label}
                   {/* Dropdown Chevron Icon */}
                   {item.submenu && (
@@ -187,16 +220,16 @@ export const Header: React.FC<HeaderProps> = ({
                       <path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path>
                     </svg>
                   )}
-                </a>
+                </LinkItem>
                 
                 {/* Desktop Submenu Dropdown */}
                 {item.submenu && (
                   <ul className="header__submenu">
                     {item.submenu.map((subItem, subIndex) => (
                       <li key={subIndex} className="header__submenu-item">
-                        <a href={subItem.href} className="header__submenu-link">
+                        <LinkItem href={subItem.href} className="header__submenu-link">
                           {subItem.label}
-                        </a>
+                        </LinkItem>
                       </li>
                     ))}
                   </ul>
@@ -212,9 +245,9 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="header__actions">
           {/* Primary CTA Button */}
           {ctaLabel && (
-            <a href={ctaHref || '#'} className="header__cta-btn">
+            <LinkItem href={ctaHref || '#'} className="header__cta-btn">
               {ctaLabel}
-            </a>
+            </LinkItem>
           )}
 
           {/* 
@@ -255,13 +288,13 @@ export const Header: React.FC<HeaderProps> = ({
                 <li key={index} className="header__mobile-item">
                   <div className="header__mobile-link-wrapper">
                     {/* Primary Link: Closes menu on click */}
-                    <a 
+                    <LinkItem 
                       href={item.href} 
                       className="header__mobile-link"
                       onClick={handleMobileLinkClick}
                     >
                       {item.label}
-                    </a>
+                    </LinkItem>
                     {item.submenu && (
                       <button
                         className={`header__submenu-toggle ${activeSubmenu === index ? 'is-active' : ''}`}
@@ -280,13 +313,13 @@ export const Header: React.FC<HeaderProps> = ({
                     <ul className="header__mobile-submenu">
                       {item.submenu.map((subItem, subIndex) => (
                         <li key={subIndex} className="header__mobile-submenu-item">
-                          <a 
+                          <LinkItem 
                             href={subItem.href} 
                             className="header__mobile-submenu-link"
                             onClick={handleMobileLinkClick}
                           >
                             {subItem.label}
-                          </a>
+                          </LinkItem>
                         </li>
                       ))}
                     </ul>
@@ -297,13 +330,13 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Mobile CTA (rendered as link inside menu) */}
               {ctaLabel && (
                 <li className="header__mobile-item header__mobile-item--cta">
-                  <a 
+                  <LinkItem 
                     href={ctaHref || '#'} 
                     className="header__mobile-cta-btn"
                     onClick={handleMobileLinkClick}
                   >
                     {ctaLabel}
-                  </a>
+                  </LinkItem>
                 </li>
               )}
             </ul>

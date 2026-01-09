@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { apiClient } from '../lib/apiClient';
 import { 
   FeatureSection, 
@@ -10,13 +10,13 @@ import {
   ContactFormWithImageBg,
   type ContactFormData,
   MasonryGallery,
-  Seo
+  Seo,
+  type LinkRenderer
 } from '@modular-house/ui'
 import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
 
 function Landing() {
-  const navigate = useNavigate();
   
   // Configure header for dark variant on hero pages
   const { setHeaderConfig } = useHeaderConfig();
@@ -27,6 +27,16 @@ function Landing() {
       setHeaderConfig({ variant: 'dark', positionOver: true });
     };
   }, [setHeaderConfig]);
+  
+  // Render Link helper
+  const renderLink: LinkRenderer = (props) => {
+    const { href, children, className, onClick, ...rest } = props;
+    return (
+      <Link to={href} className={className} onClick={onClick} {...rest}>
+        {children}
+      </Link>
+    );
+  };
   
   // SEO orgnization schema
   const organizationSchema = {
@@ -105,9 +115,9 @@ function Landing() {
           description="Expand your lifestyle with bespoke steel frame garden rooms and extensions."
           button1Text="Get a Free Quote"
           button1Link="/contact"
-          onButton1Click={() => navigate('/contact')}
           exploreText="Explore"
           exploreLink="#landing_features"
+          renderLink={renderLink}
         />
       </div>
 
@@ -183,13 +193,12 @@ function Landing() {
           description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
           button1Text = "Get a free quote today"
           button1Link = "/contact"
-          onButton1Click={() => navigate('/contact')}
           bottomText="We blend sleek architectural aesthetics with cutting-edge steel frame engineering to deliver garden rooms that are built to impress, and built to last. Every project is tailored to your needs, with minimal disruption and maximum impact.
 
           Our team handles everything from design to installation, ensuring a smooth, stress-free process. Whether you're after extra space for work, wellness, or weekend lounging, we're here to make it happen, beautifully and efficiently."
           button2Text = "Need more info?"
           button2Link = "/garden-room"
-          onButton2Click={() => navigate('/garden-room')}
+          renderLink={renderLink}
         />
       </div>
 
@@ -202,13 +211,12 @@ function Landing() {
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
             button1Text = "Get a free quote today"
             button1Link = "/contact"
-            onButton1Click={() => navigate('/contact')}
             bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
             
             From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."
             button2Text = "Need more info?"
             button2Link = "/house-extension"
-            onButton2Click={() => navigate('/house-extension')}
+            renderLink={renderLink}
           />   
       </div>
 
@@ -255,14 +263,46 @@ function Landing() {
       <div id='landing_gallary'>
         <MasonryGallery
           images={[
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg" },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg",
+              alt: "Modern modular home exterior with wood cladding and large windows" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg",
+              alt: "Spacious garden room interior with natural light" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg",
+              alt: "Steel frame construction detail showing structural integrity" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg",
+              alt: "Contemporary home extension blending with garden" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg",
+              alt: "Minimalist office pod design for remote work" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg",
+              alt: "High-quality insulation materials used in modular builds" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg",
+              alt: "Finished modular house front view at sunset" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg",
+              alt: "Custom designed garden studio interior" 
+            },
           ]}
           columns = {4}
         />

@@ -180,7 +180,7 @@
   background-color: var(--contact-form-bg-card-bg);
   padding: 3.125rem 2.5rem;
   width: 100%;
-  max-width: 530px;
+  max-width: 34rem;
   box-shadow: var(--contact-form-bg-card-shadow);
   border-radius: var(--contact-form-bg-card-radius);
 }

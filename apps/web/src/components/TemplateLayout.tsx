@@ -1,8 +1,10 @@
 ﻿import React, { useLayoutEffect, useRef } from 'react';
-import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
+import { Outlet, useLocation, useNavigationType, matchPath } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
+import { routes } from '../route-config';
+import { SEOHead } from './seo/SEOHead';
 
 // Import template styles to ensure theme-template variables are applied globally within this layout
 import '../styles/template.css';
@@ -56,10 +58,20 @@ const LayoutContent: React.FC = () => {
       scrollPositions.current[location.key] = scrollRef.current.scrollTop;
     }
   };
+
+  // Find the current route definition to retrieve SEO metadata
+  // We iterate through the central route config and look for a pattern match against the current pathname.
+  // The 'routes' array order ensures that specific paths are matched before the catch-all '*' route.
+  const currentRoute = routes.find(route => matchPath(route.path, location.pathname));
   
   return (
     // Outer container: Locks the viewport height and prevents default body scroll
     <div className="vh-100 w-100 overflow-hidden">
+      {/* Inject SEO metadata for the matched route if configuration exists */}
+      {currentRoute?.seo && (
+        <SEOHead config={currentRoute.seo} titleSuffix=" | Modular House" />
+      )}
+
       {/* 
         Scrollable Container:
         - Serves as the scrolling viewport for the application content.

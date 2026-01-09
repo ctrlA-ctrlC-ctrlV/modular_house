@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { TemplateLayout } from '../../components/TemplateLayout';
 
 // We use the real TemplateLayout and Header to verify the skip link presence.
@@ -13,9 +14,11 @@ describe('Focus Indicators & Accessibility', () => {
 
   it('main content region is programmatically focusable', () => {
     render(
-      <MemoryRouter>
-        <TemplateLayout />
-      </MemoryRouter>
+      <HelmetProvider>
+        <MemoryRouter>
+          <TemplateLayout />
+        </MemoryRouter>
+      </HelmetProvider>
     );
     
     const main = screen.getByRole('main');

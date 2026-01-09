@@ -1,7 +1,11 @@
 import React from 'react';
-import { Seo } from '@modular-house/ui';
-import { HeroBoldBottomText } from '@modular-house/ui';
-import { FullMassonryGallery } from '@modular-house/ui';
+import { Link } from 'react-router-dom';
+import { 
+  Seo, 
+  HeroBoldBottomText, 
+  FullMassonryGallery,
+  type LinkRenderer
+} from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
 
@@ -15,6 +19,19 @@ const HouseExtension: React.FC = () => {
       setHeaderConfig({ variant: 'dark', positionOver: true });
     };
   }, [setHeaderConfig]);
+
+  /** 
+   * Custom link renderer to inject React Router's Link component
+   * into shared UI components, replacing standard anchor tags.
+   */
+  const renderLink: LinkRenderer = (props) => {
+    const { href, children, className, onClick, ...rest } = props;
+    return (
+      <Link to={href} className={className} onClick={onClick} {...rest}>
+        {children}
+      </Link>
+    );
+  };
 
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -66,6 +83,7 @@ const HouseExtension: React.FC = () => {
           ctaLink = "/contact"
           backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
           bigText = "House Extension"
+          renderLink={renderLink}
         />
       </div>
 

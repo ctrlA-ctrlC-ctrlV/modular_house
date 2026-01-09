@@ -34,6 +34,7 @@
 
 import React from 'react';
 import './HeroBoldBottomText.css';
+import { LinkRenderer } from '../../types';
 
 /* =============================================================================
    SECTION 1: TYPE DEFINITIONS
@@ -94,6 +95,13 @@ export interface HeroBoldBottomTextProps {
    * Enables custom click behavior while maintaining anchor navigation.
    */
   onCtaClick?: React.MouseEventHandler<HTMLAnchorElement>;
+
+  /**
+   * Optional custom link renderer.
+   * Use this to integrate client-side routing (e.g., React Router).
+   * If not provided, standard <a> tags will be used.
+   */
+  renderLink?: LinkRenderer;
 }
 
 
@@ -121,7 +129,28 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
   backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg",
   bigText = "Remodeling",
   onCtaClick,
+  renderLink,
 }) => {
+
+  /**
+   * Helper component to render links using either standard <a> tags or the injected renderLink prop.
+   */
+  const LinkItem: React.FC<{
+    href: string;
+    className?: string;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+    children: React.ReactNode;
+  }> = ({ href, className, onClick, children }) => {
+    if (renderLink) {
+      return <>{renderLink({ href, className, onClick, children })}</>;
+    }
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  };
+
   return (
     <div 
       className="hero-bold-bottom-text" 
@@ -179,7 +208,7 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
               Uses native anchor for keyboard navigation and SEO benefits.
               The onClick handler enables custom behavior while preserving navigation.
             */}
-            <a 
+            <LinkItem 
               href={ctaLink} 
               className="hero-bold-bottom-text__cta"
               onClick={onCtaClick}
@@ -187,7 +216,7 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
               <span className="hero-bold-bottom-text__cta-text">
                 {ctaText}
               </span>
-            </a>
+            </LinkItem>
           </div>
         </div>
 

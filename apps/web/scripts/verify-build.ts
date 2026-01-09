@@ -33,7 +33,10 @@ const resolve = (p: string) => path.resolve(__dirname, '..', p);
 const minimalRoutesToVerify = [
   '/',
   '/about',
-  '/contact'
+  '/contact',
+  '/garden-room', // Added for JSON-LD check
+  '/house-extension',
+  '/gallery'
 ];
 
 /**
@@ -86,6 +89,33 @@ function verifyRoute(routePath: string): void {
       console.error(`[FAIL] Missing required content "${required}" in ${routePath}`);
       process.exit(1);
     }
+  }
+
+  // Check 3: JSON-LD for specific routes
+  if (routePath === '/garden-room' || routePath === '/house-extension') {
+    if (!content.includes('application/ld+json')) {
+       console.error(`[FAIL] Missing JSON-LD script in ${routePath}`);
+       process.exit(1);
+    }
+     // Check for Product type specifically as per spec
+    if (!content.includes('"@type":"Product"')) {
+       console.error(`[FAIL] JSON-LD does not contain "@type":"Product" in ${routePath}`);
+       process.exit(1);
+    }
+  }
+
+  if (routePath === '/contact') {
+      if (!content.includes('"@type":"LocalBusiness"')) {
+          console.error(`[FAIL] JSON-LD does not contain "@type":"LocalBusiness" in ${routePath}`);
+          process.exit(1);
+      }
+  }
+
+  if (routePath === '/') {
+      if (!content.includes('"@type":"Organization"')) {
+          console.error(`[FAIL] JSON-LD does not contain "@type":"Organization" in ${routePath}`);
+          process.exit(1);
+      }
   }
 
   // Check 3: Basic content check (ensure root is not empty key-value)

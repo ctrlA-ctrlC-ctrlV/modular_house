@@ -1,0 +1,7 @@
+{
+  "http://localhost:58330/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1767964635052-29706.report.html",
+  "http://localhost:58330/about/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1767964636552-75718.report.html",
+  "http://localhost:58330/contact/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1767964637627-15492.report.html",
+  "http://localhost:58330/garden-room/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1767964638851-86396.report.html",
+  "http://localhost:58330/house-extension/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1767964639860-66470.report.html"
+}

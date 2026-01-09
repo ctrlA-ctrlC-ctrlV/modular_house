@@ -58,14 +58,14 @@ describe('Sitemap Generator Logic', () => {
     const xml = generateSitemapXml();
     
     // Should include standard pages
-    expect(xml).toContain('<loc>https://modular-house.com/mock-page-1</loc>');
-    expect(xml).toContain('<loc>https://modular-house.com/mock-page-2</loc>');
+    expect(xml).toContain('<loc>https://modularhouse.ie/mock-page-1</loc>');
+    expect(xml).toContain('<loc>https://modularhouse.ie/mock-page-2</loc>');
     
     // Should exclude catch-all route '*'
-    expect(xml).not.toContain('<loc>https://modular-house.com/*</loc>');
+    expect(xml).not.toContain('<loc>https://modularhouse.ie/*</loc>');
     
     // Should exclude routes with priority 0
-    expect(xml).not.toContain('<loc>https://modular-house.com/ignored-page</loc>');
+    expect(xml).not.toContain('<loc>https://modularhouse.ie/ignored-page</loc>');
   });
 
   it('applies correct changefreq and priority', () => {
@@ -84,7 +84,7 @@ describe('Sitemap Generator Logic', () => {
     const xml = generateSitemapXml();
     
     // Check Default Page
-    expect(xml).toContain('<loc>https://modular-house.com/default-values</loc>');
+    expect(xml).toContain('<loc>https://modularhouse.ie/default-values</loc>');
     // Defaults from implementation: monthly, 0.5
     // Note: Since we have multiple pages, we need to be careful with string matching
     // But since the mocking is isolated, we know 'default-values' is the only one without explicit config

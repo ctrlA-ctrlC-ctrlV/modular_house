@@ -284,7 +284,9 @@
   }
 
   .hero-content-wrapper {
-    padding-top: 23vh;
+    max-height: 100%;
+    height: auto;
+    min-height: 100vh;
   }
 
   /* Stack content on mobile with left alignment */
@@ -294,6 +296,7 @@
   }
 
   .hero-text-block {
+    
     max-width: 100%;
     text-align: left;
     margin: 0;
@@ -310,7 +313,7 @@
 
   /* Reverse footer order and stack vertically on mobile */
   .hero-footer-area {
-    margin-top: 5vh;
+    margin-top: 2vh;
     flex-direction: column;
     align-items: flex-start;
     gap: 6vh;

@@ -26,7 +26,7 @@ const resolve = (p: string) => path.resolve(__dirname, '..', p);
 /**
  * Configuration for the sitemap generation.
  */
-const HOSTNAME = 'https://modular-house.com'; // TODO: Get this from env var or config
+const HOSTNAME = process.env.HOSTNAME || 'https://modularhouse.ie';
 const OUTPUT_FILE = resolve('dist/client/sitemap.xml');
 
 /**

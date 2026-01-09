@@ -141,7 +141,7 @@
  * Scoped to .hero-container for specificity over global h1 styles.
  */
 .hero-container .hero-title {
-  font-size: 4vw;/*clamp(2.5rem, 5vw, 6rem);*/
+  font-size: clamp(2.5rem, 4vw, 6rem);
   color: var(--hero-color-white);
   line-height: 1.1;
   font-weight: var(--weight-semibold, 600);
@@ -278,7 +278,7 @@
   }
 
   .hero-container {
-    height: auto;
+    height: 100%;
     min-height: 100vh;
   }
 

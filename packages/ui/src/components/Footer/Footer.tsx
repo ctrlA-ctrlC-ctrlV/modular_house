@@ -28,8 +28,8 @@
  */
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 import './Footer.css';
+import { LinkRenderer } from '../../types';
 
 
 /* =============================================================================
@@ -75,6 +75,12 @@ interface NavLink {
 export interface FooterProps {
   /** Optional additional CSS class names for styling overrides */
   className?: string;
+  /**
+   * Optional custom link renderer.
+   * Use this to integrate client-side routing (e.g., React Router).
+   * If not provided, standard <a> tags will be used.
+   */
+  renderLink?: LinkRenderer;
 }
 
 
@@ -98,24 +104,6 @@ export interface FooterProps {
     viewBox: '0 0 16 16',
     iconPath: (
       <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334" />
-    )
-  },
-  {
-    id: 'tiktok',
-    url: 'https://www.tiktok.com/@sdeal.ie',
-    ariaLabel: 'TikTok',
-    viewBox: '0 0 16 16',
-    iconPath: (
-      <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z" />
-    )
-  },
-  {
-    id: 'facebook',
-    url: 'https://www.facebook.com/',
-    ariaLabel: 'Facebook',
-    viewBox: '0 0 8 15',
-    iconPath: (
-      <path d="M4.40924 5.15357V3.27857C4.40946 3.15538 4.43254 3.03345 4.47714 2.91973C4.52174 2.80602 4.58699 2.70277 4.66917 2.61587C4.75135 2.52896 4.84884 2.46012 4.95607 2.41328C5.0633 2.36644 5.17818 2.34251 5.29412 2.34286H6.17563V1.41826e-07H4.41092C4.06345 -0.000117134 3.71938 0.0724976 3.39833 0.213697C3.07728 0.354896 2.78556 0.561913 2.53982 0.822924C2.29409 1.08393 2.09915 1.39382 1.96615 1.73489C1.83316 2.07596 1.76471 2.44153 1.76471 2.81071V5.15357H0V7.5H1.76471V15H4.41009V7.5H6.1748L7.05882 5.15357H4.40924Z" />
     )
   },
   {
@@ -180,12 +168,54 @@ const NAV_LINKS: NavLink[] = [
  * @param props - Component properties conforming to FooterProps interface
  * @returns JSX element representing the complete footer structure
  */
-export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
+export const Footer: React.FC<FooterProps> = ({ className = '', renderLink }) => {
   /**
    * Compute current year dynamically for copyright notice.
    * Ensures the copyright year remains accurate without manual updates.
    */
   const currentYear = new Date().getFullYear();
+
+  /**
+   * Helper component to render links using either standard <a> tags or the injected renderLink prop.
+   * Ensures consistent link rendering behavior across the footer.
+   */
+  const LinkItem: React.FC<{
+    href: string;
+    className?: string;
+    children: React.ReactNode;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+    target?: string;
+    rel?: string;
+    'aria-label'?: string;
+  }> = ({ href, className, children, onClick, target, rel, 'aria-label': ariaLabel }) => {
+    if (renderLink) {
+      return (
+        <>
+          {renderLink({ 
+            href, 
+            className, 
+            children, 
+            onClick, 
+            target, 
+            rel, 
+            'aria-label': ariaLabel 
+          })}
+        </>
+      );
+    }
+    return (
+      <a 
+        href={href} 
+        className={className} 
+        onClick={onClick}
+        target={target}
+        rel={rel}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </a>
+    );
+  };
 
   return (
     <footer className={`footer ${className}`}>
@@ -240,9 +270,9 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <ul className="footer__nav-list">
             {NAV_LINKS.map((link) => (
               <li key={link.id} className="footer__nav-item">
-                <Link to={link.url} className="footer__nav-link">
+                <LinkItem href={link.url} className="footer__nav-link">
                   {link.label}
-                </Link>
+                </LinkItem>
               </li>
             ))}
           </ul>

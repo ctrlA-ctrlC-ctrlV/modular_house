@@ -278,12 +278,13 @@
   }
 
   .hero-container {
-    height: 100%;
+    max-height: 100%;
+    height: auto;
     min-height: 100vh;
   }
 
   .hero-content-wrapper {
-    padding-top: 50%;
+    padding-top: 23vh;
   }
 
   /* Stack content on mobile with left alignment */
@@ -309,12 +310,13 @@
 
   /* Reverse footer order and stack vertically on mobile */
   .hero-footer-area {
-    margin-top: 20%;
+    margin-top: 5vh;
     flex-direction: column;
     align-items: flex-start;
     gap: 6vh;
   }
   .hero-footer-right {
+    margin-top: 6vh;
     align-self: center;
   }
 }

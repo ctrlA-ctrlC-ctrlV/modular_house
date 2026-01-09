@@ -134,7 +134,7 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
         {/* Main Content Area: Centered Vertically, Aligned Right */}
         <div className="hero-main-area">
           <div className="hero-text-block">
-            {subtitle && <h6 className="hero-subtitle">{subtitle}</h6>}
+            {subtitle && <a className="hero-subtitle">{subtitle}</a>}
             <h1 className="hero-title">{title}</h1>
             
             <div className="hero-cta-wrapper">

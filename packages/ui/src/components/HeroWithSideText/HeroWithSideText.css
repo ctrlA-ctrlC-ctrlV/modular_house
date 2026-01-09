@@ -43,7 +43,7 @@
   --hero-color-button-hover: var(--brand-link-hover, #9F4017);
   
   /* Overlay opacity for background image darkening */
-  --hero-overlay-opacity: 0.4;
+  --hero-overlay-opacity: 1;
   
   /* Typography using brand font stack */
   --hero-font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
@@ -79,7 +79,7 @@
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background-color: rgba(0, 0, 0, var(--hero-overlay-opacity));
+  background-color: rgba(0, 0, 0, .4);
   z-index: 1;
 }
 
@@ -141,7 +141,7 @@
  * Scoped to .hero-container for specificity over global h1 styles.
  */
 .hero-container .hero-title {
-  font-size: clamp(2.5rem, 5vw, 6rem);
+  font-size: 4vw;/*clamp(2.5rem, 5vw, 6rem);*/
   color: var(--hero-color-white);
   line-height: 1.1;
   font-weight: var(--weight-semibold, 600);
@@ -272,7 +272,7 @@
  * Mobile breakpoint adjustments for screens 768px and below.
  * Reduces padding, adjusts typography scale, and stacks layout vertically.
  */
-@media (max-width: 768px) {
+@media only screen and (max-width: 768px) {
   :root {
     --hero-padding: 30px;
   }
@@ -283,7 +283,7 @@
   }
 
   .hero-content-wrapper {
-    padding-top: 100px;
+    padding-top: 50%;
   }
 
   /* Stack content on mobile with left alignment */
@@ -294,17 +294,27 @@
 
   .hero-text-block {
     max-width: 100%;
+    text-align: left;
     margin: 0;
+  }
+
+  .hero-container .hero-subtitle {
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    margin-left: .8%;
+  }
+
+  .hero-container .hero-title {
+    font-size: clamp(3rem, 8.5vw, 5rem); /*clamp(3rem, 8.5vw, 5rem)*/
   }
 
   /* Reverse footer order and stack vertically on mobile */
   .hero-footer-area {
-    flex-direction: column-reverse;
+    margin-top: 20%;
+    flex-direction: column;
     align-items: flex-start;
-    gap: 30px;
+    gap: 6vh;
   }
-
-  .hero-title {
-    font-size: 2.5rem;
+  .hero-footer-right {
+    align-self: center;
   }
 }

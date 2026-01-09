@@ -110,7 +110,7 @@ function Landing() {
           subtitle="DISCOVER MODULAR LIVING"
           title={
             <>
-              Premium extensions built <br />
+              Premium extensions built 
               rapid, <span className="text-highlight">robust and refined</span>          
             </>
           }

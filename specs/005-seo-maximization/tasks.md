@@ -56,18 +56,24 @@
 *Story: [US3] Accessible Navigation for Bots*
 
 - [x] T025 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/components/Header.tsx`
-- [ ] T026 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/routes/Landing/Hero.tsx` (and other CTA buttons)
-- [ ] T027 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)
-- [ ] T028 [P] [US3] Verify that Footer links are semantic `<a>` tags in `apps/web/src/components/Footer.tsx`
+- [ ] T026 [P] [US3] Refactor `packages/ui/src/components/HeroBoldBottomText/HeroBoldBottomText.tsx` to support `Link` and remove imperative `onClick`
+- [ ] T027 [P] [US3] Refactor `packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx` to support `Link` and remove imperative `onClick`
+- [ ] T028 [P] [US3] Refactor `packages/ui/src/components/TwoColumnSplitLayout/TwoColumnSplitLayout.tsx` to support `Link` and remove imperative `onClick`
+- [ ] T029 [P] [US3] Update `apps/web/src/routes/Landing.tsx` to use declarative props for Hero navigation and remove `useNavigate`
+- [ ] T030 [P] [US3] Update `apps/web/src/routes/GardenRoom.tsx` to use declarative props for Hero navigation and remove `useNavigate`
+- [ ] T031 [P] [US3] Update `apps/web/src/routes/HouseExtension.tsx` to use declarative props for Hero navigation and remove `useNavigate`
+- [ ] T032 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)
+- [ ] T033 [P] [US3] Verify that Footer links are semantic `<a>` tags in `apps/web/src/components/Footer.tsx`
+- [ ] T034 [US3] Create `./.docs/link_guideline.md` to guide on how shoudl future component be created, using modern component based development principle
 
 ## Phase 7: Polish & Validation
 *Goal: Verify compliance with all success criteria.*
 
-- [ ] T029 Run local build and validation: Check `dist/` for all HTML files
-- [ ] T030 Validation: Verify `dist/sitemap.xml` contains all routes
-- [ ] T031 Install Lighthouse CI v1.13 and add as a dev dependency
-- [ ] T032 Add Lighthouse CI to the current CI pipeline SSG implementation meets the FCP target: Performance > 90, Accessibility 100, Best Practices 100, SEO 100
-- [ ] T033 Validation: Inspect `dist/garden-room/index.html` for existance of JSON-LD scripts
+- [ ] T035 Run local build and validation: Check `dist/` for all HTML files
+- [ ] T036 Validation: Verify `dist/sitemap.xml` contains all routes
+- [ ] T037 Install Lighthouse CI v1.13 and add as a dev dependency
+- [ ] T038 Add Lighthouse CI to the current CI pipeline SSG implementation meets the FCP target: Performance > 90, Accessibility 100, Best Practices 100, SEO 100
+- [ ] T039 Validation: Inspect `dist/garden-room/index.html` for existance of JSON-LD scripts
 
 ## Dependencies
 - Phase 2 depends on Phase 1

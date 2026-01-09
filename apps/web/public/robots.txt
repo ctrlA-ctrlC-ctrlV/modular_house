@@ -12,4 +12,4 @@ Disallow: /*?q=
 Disallow: /*?query=
 
 # Sitemap
-Sitemap: https://modular-house.com/sitemap.xml
+Sitemap: https://modularhouse.ie/sitemap.xml

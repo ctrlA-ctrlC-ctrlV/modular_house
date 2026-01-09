@@ -15,8 +15,7 @@ import { routesMetadata } from './routes-metadata';
  * Component mapping for routes.
  * Keys correspond to the 'path' in routesMetadata.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const componentMap: Record<string, React.ComponentType<any>> = {
+const componentMap: Record<string, React.ComponentType> = {
   '/': Landing,
   '/garden-room': GardenRoom,
   '/house-extension': HouseExtension,

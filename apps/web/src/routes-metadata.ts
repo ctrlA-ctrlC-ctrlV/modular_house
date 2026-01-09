@@ -16,8 +16,8 @@ export const routesMetadata: RouteMetadata[] = [
           type: 'Organization',
           data: {
             name: 'Modular House',
-            url: 'https://modularhouse.com',
-            logo: 'https://modularhouse.com/logo_black.png', // Placeholder
+            url: 'https://modularhouse.ie',
+            logo: 'https://modularhouse.ie/logo_black.png', // Placeholder
             sameAs: [
               'https://www.facebook.com/p/Sdeal-Ltd-61574559341381/',
               'https://www.tiktok.com/@sdeal.ie'
@@ -125,9 +125,9 @@ export const routesMetadata: RouteMetadata[] = [
           type: 'LocalBusiness',
           data: {
             name: 'Modular House',
-            image: 'https://modular-house.com/logo.png',
+            image: 'https://modularhouse.ie/logo.png',
             telephone: '+3530830280000',
-            email: 'info@modularhouse.com',
+            email: 'info@modularhouse.ie',
             address: {
               '@type': 'PostalAddress',
               streetAddress: 'Unit 8, Finches Business Park',

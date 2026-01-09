@@ -234,7 +234,6 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
     children: React.ReactNode;
   }> = ({ href, className, onClick, children }) => {
     if (renderLink) {
-      // @ts-ignore - types mismatch slightly between LinkRenderer and local onClick
       return <>{renderLink({ href, className, onClick, children })}</>;
     }
     return (

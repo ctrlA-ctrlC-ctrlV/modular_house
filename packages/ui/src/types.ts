@@ -8,7 +8,7 @@ export type LinkRenderer = (props: {
   href: string; 
   children: React.ReactNode; 
   className?: string; 
-  onClick?: (e?: React.MouseEvent) => void;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   target?: string;
   rel?: string;
   'aria-label'?: string;

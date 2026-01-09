@@ -10,7 +10,8 @@ import {
   ContactFormWithImageBg,
   type ContactFormData,
   MasonryGallery,
-  Seo
+  Seo,
+  type LinkRenderer
 } from '@modular-house/ui'
 import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
@@ -28,9 +29,7 @@ function Landing() {
   }, [setHeaderConfig]);
   
   // Render Link helper
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderLink = (props: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const renderLink: LinkRenderer = (props) => {
     const { href, children, className, onClick, ...rest } = props;
     return (
       <Link to={href} className={className} onClick={onClick} {...rest}>

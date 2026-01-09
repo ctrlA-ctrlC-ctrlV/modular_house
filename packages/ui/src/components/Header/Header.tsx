@@ -5,6 +5,8 @@ import './Header.css';
 // Types & Interfaces
 // ==========================================
 
+import { LinkRenderer } from '../../types';
+
 export interface MenuItem {
   label: string;
   href: string;
@@ -22,17 +24,6 @@ export interface SocialLink {
  * - 'light': Black text on light/white background (for standard pages)
  */
 export type HeaderVariant = 'dark' | 'light';
-
-/**
- * Interface for the renderLink prop.
- * Allows injection of custom link components (like react-router-dom's Link).
- */
-export type LinkRenderer = (props: { 
-  href: string; 
-  children: React.ReactNode; 
-  className?: string; 
-  onClick?: (e?: React.MouseEvent) => void;
-}) => React.ReactNode;
 
 export interface HeaderProps {
   /** Source URL for the brand logo image. */
@@ -180,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({
   const LinkItem: React.FC<{
     href: string;
     className?: string;
-    onClick?: (e?: React.MouseEvent) => void;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
     children: React.ReactNode;
   }> = ({ href, className, onClick, children }) => {
     if (renderLink) {

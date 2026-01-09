@@ -71,9 +71,10 @@
 
 - [ ] T035 Run local build and validation: Check `dist/` for all HTML files
 - [ ] T036 Validation: Verify `dist/sitemap.xml` contains all routes
-- [ ] T037 Install Lighthouse CI v1.13 and add as a dev dependency
-- [ ] T038 Add Lighthouse CI to the current CI pipeline SSG implementation meets the FCP target: Performance > 90, Accessibility 100, Best Practices 100, SEO 100
-- [ ] T039 Validation: Inspect `dist/garden-room/index.html` for existance of JSON-LD scripts
+- [ ] T037 [P] Create validation script that verify `dist/sitemap.xml` contains all routes
+- [ ] T038 Install Lighthouse CI v1.13 and add as a dev dependency
+- [ ] T039 [P] Add Lighthouse CI to the current CI pipeline SSG implementation meets the FCP target: Performance > 90, Accessibility 100, Best Practices 100, SEO 100
+- [ ] T040 Validation: Inspect `dist/garden-room/index.html` for existance of JSON-LD scripts
 
 ## Dependencies
 - Phase 2 depends on Phase 1

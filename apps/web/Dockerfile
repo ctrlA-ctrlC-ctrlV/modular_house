@@ -25,7 +25,7 @@ RUN pnpm build
 
 FROM nginx:alpine
 
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/web/dist/client /usr/share/nginx/html
 
 EXPOSE 80
 

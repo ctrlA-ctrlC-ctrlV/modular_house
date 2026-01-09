@@ -17,7 +17,7 @@
  * - Right Column: Image, description text, primary CTA button
  * 
  * ACCESSIBILITY:
- * - Uses semantic heading hierarchy (h1, h6)
+ * - Uses semantic heading hierarchy (h2, a)
  * - Buttons use native button elements for keyboard navigation
  * - Images include alt text for screen readers
  * 
@@ -261,14 +261,12 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               Uses semantic heading elements for proper document structure.
             */}
             <div className="two-col-layout__header">
-              <div id='two-col-layout__mini_heading'>
-                <h6 className="two-col-layout__subtitle">
-                  {subtitle}
-                </h6>
-              </div>
-              <h1 className="two-col-layout__title">
+              <a className="two-col-layout__subtitle">
+                {subtitle}
+              </a>
+              <h2 className="two-col-layout__title">
                 {title}
-              </h1>
+              </h2>
             </div>
             
             {/* 

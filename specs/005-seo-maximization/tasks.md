@@ -56,10 +56,10 @@
 *Story: [US3] Accessible Navigation for Bots*
 
 - [x] T025 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/components/Header.tsx`
-- [ ] T026 [P] [US3] Refactor `packages/ui/src/components/HeroBoldBottomText/HeroBoldBottomText.tsx` to support `Link` and remove imperative `onClick`
-- [ ] T027 [P] [US3] Refactor `packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx` to support `Link` and remove imperative `onClick`
-- [ ] T028 [P] [US3] Refactor `packages/ui/src/components/TwoColumnSplitLayout/TwoColumnSplitLayout.tsx` to support `Link` and remove imperative `onClick`
-- [ ] T029 [P] [US3] Update `apps/web/src/routes/Landing.tsx` to use declarative props for Hero navigation and remove `useNavigate`
+- [x] T026 [P] [US3] Refactor `packages/ui/src/components/HeroBoldBottomText/HeroBoldBottomText.tsx` to support `Link` and remove imperative `onClick`
+- [x] T027 [P] [US3] Refactor `packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx` to support `Link` and remove imperative `onClick`
+- [x] T028 [P] [US3] Refactor `packages/ui/src/components/TwoColumnSplitLayout/TwoColumnSplitLayout.tsx` to support `Link` and remove imperative `onClick`
+- [x] T029 [P] [US3] Update `apps/web/src/routes/Landing.tsx` to use declarative props for Hero navigation and remove `useNavigate`
 - [ ] T030 [P] [US3] Update `apps/web/src/routes/GardenRoom.tsx` to use declarative props for Hero navigation and remove `useNavigate`
 - [ ] T031 [P] [US3] Update `apps/web/src/routes/HouseExtension.tsx` to use declarative props for Hero navigation and remove `useNavigate`
 - [ ] T032 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)

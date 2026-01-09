@@ -1,5 +1,6 @@
 import React from 'react';
 import './HeroWithSideText.css';
+import { LinkRenderer } from '../../types';
 
 export interface HeroWithSideTextProps {
   /** Background image URL */
@@ -53,6 +54,13 @@ export interface HeroWithSideTextProps {
    * @default ''
   */
   className?: string;
+
+  /**
+   * Optional custom link renderer.
+   * Use this to integrate client-side routing (e.g., React Router).
+   * If not provided, standard <a> tags will be used.
+   */
+  renderLink?: LinkRenderer;
 }
 
 /**
@@ -77,6 +85,7 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
   exploreLink = '#section-anchor-02',
   onExploreClick,
   className = '',
+  renderLink,
 }) => {
   // Handler that enables SPA navigation when onClick is provided
   const handleButton1Click = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -91,6 +100,26 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
       e.preventDefault();
       onExploreClick(e);
     }
+  };
+
+  /**
+   * Helper component to render links using either standard <a> tags or the injected renderLink prop.
+   */
+  const LinkItem: React.FC<{
+    href: string;
+    className?: string;
+    onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+    children: React.ReactNode;
+  }> = ({ href, className, onClick, children }) => {
+    if (renderLink) {
+      // @ts-ignore - types mismatch slightly between LinkRenderer and local onClick
+      return <>{renderLink({ href, className, onClick, children })}</>;
+    }
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
   };
 
   return (
@@ -110,9 +139,9 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
             <h1 className="hero-title">{title}</h1>
             
             <div className="hero-cta-wrapper">
-              <a href={button1Link} className="hero-button" onClick={handleButton1Click}>
+              <LinkItem href={button1Link} className="hero-button" onClick={handleButton1Click}>
                 {button1Text}
-              </a>
+              </LinkItem>
             </div>
           </div>
         </div>
@@ -124,7 +153,7 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
           </div>
           
           <div className="hero-footer-right">
-            <a href={exploreLink} className="hero-explore-link" onClick={handleExploreClick}>
+            <LinkItem href={exploreLink} className="hero-explore-link" onClick={handleExploreClick}>
               <span className="hero-explore-text">{exploreText}</span>
               <span className="hero-explore-icon">
                 {/* Simple Down Arrow SVG */}
@@ -132,7 +161,7 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
                    <path d="M12 4V20M12 20L18 14M12 20L6 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </span>
-            </a>
+            </LinkItem>
           </div>
         </div>
 

@@ -43,6 +43,7 @@
 
 import React from 'react';
 import './TwoColumnSplitLayout.css';
+import { LinkRenderer } from '../../types';
 
 
 /* =============================================================================
@@ -165,6 +166,12 @@ export interface TwoColumnSplitLayoutProps {
    */
   backgroundColor?: BackgroundVariant;
   
+  /**
+   * Optional custom link renderer.
+   * Use this to integrate client-side routing (e.g., React Router).
+   * If not provided, standard <a> tags will be used.
+   */
+  renderLink?: LinkRenderer;
 }
 
 
@@ -200,6 +207,7 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
   button2Link= "#",
   onButton1Click,
   onButton2Click,
+  renderLink,
 }) => {
   // Handler that enables SPA navigation when onClick is provided
   const handleButton1Click = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -214,6 +222,26 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
       e.preventDefault();
       onButton2Click(e);
     }
+  };
+
+  /**
+   * Helper component to render links using either standard <a> tags or the injected renderLink prop.
+   */
+  const LinkItem: React.FC<{
+    href: string;
+    className?: string;
+    onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+    children: React.ReactNode;
+  }> = ({ href, className, onClick, children }) => {
+    if (renderLink) {
+      // @ts-ignore - types mismatch slightly between LinkRenderer and local onClick
+      return <>{renderLink({ href, className, onClick, children })}</>;
+    }
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
   };
 
   return (
@@ -252,9 +280,9 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               <p className="two-col-layout__description-highlight">
                 {description1}
               </p>
-              <a href={button1Link} className='two-col-layout__btn-text' onClick={handleButton1Click}>
+              <LinkItem href={button1Link} className='two-col-layout__btn-text' onClick={handleButton1Click}>
                 {button1Text}
-              </a>              
+              </LinkItem>              
             </div>
 
             {/* 
@@ -297,9 +325,9 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               <p className="two-col-layout__description-highlight">
                 {bottomText}
               </p>
-              <a href={button2Link} className='two-col-layout__btn-primary' onClick={handleButton2Click}>
+              <LinkItem href={button2Link} className='two-col-layout__btn-primary' onClick={handleButton2Click}>
                 {button2Text}
-              </a>   
+              </LinkItem>   
             </div>
           </div>
         </div>

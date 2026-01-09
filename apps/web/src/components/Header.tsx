@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-// Assuming 'Header' is the named export from your UI library based on the previous file
+import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Header as UIHeader, MenuItem, HeaderVariant } from '@modular-house/ui'
 
 // ===========================================================================
@@ -33,9 +32,7 @@ export interface HeaderProps {
  * and the application's routing logic (react-router-dom).
  */
 function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
-  const navigate = useNavigate();
   const location = useLocation();
-  const headerRef = useRef<HTMLDivElement>(null);
 
   // State for controlling the mobile menu
   // Lifted up from UI library to allow router-based closing
@@ -85,56 +82,11 @@ function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
   const logoSrcRetina = undefined;
 
   // ===========================================================================
-  // Event Handlers
-  // ===========================================================================
-
-  /**
-   * Router Interception Logic
-   * * The UI library renders standard HTML <a> tags for accessibility and SEO.
-   * This effect listens for clicks within the header, intercepts internal links,
-   * prevents the browser refresh, and pushes the route via React Router.
-   */
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      // Looks for the closest anchor tag (handles clicks on icons/spans inside links)
-      const anchor = target.closest('a')
-      
-      if (!anchor) return
-      
-      const href = anchor.getAttribute('href')
-      if (!href) return
-
-      // Logic to determine if navigation should be handled by Client Side Routing
-      const isInternalLink = href.startsWith('/') && !href.startsWith('//')
-      const isSpecialLink = href.startsWith('tel:') || href.startsWith('mailto:')
-      const isExternalTarget = anchor.target === '_blank' || anchor.rel?.includes('external')
-
-      if (isInternalLink && !isSpecialLink && !isExternalTarget) {
-        e.preventDefault()
-        navigate(href)
-      }
-    }
-
-    const headerElement = headerRef.current
-    if (headerElement) {
-      headerElement.addEventListener('click', handleClick)
-    }
-
-    // Cleanup listener on unmount
-    return () => {
-      if (headerElement) {
-        headerElement.removeEventListener('click', handleClick)
-      }
-    }
-  }, [navigate])
-
-  // ===========================================================================
   // Render
   // ===========================================================================
 
   return (
-    <div ref={headerRef}>
+    <div>
       <UIHeader
         logoSrc={logoSrc}
         logoSrcRetina={logoSrcRetina}
@@ -145,6 +97,12 @@ function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
         positionOver={positionOver}
         isMobileMenuOpen={isMobileMenuOpen}
         onMobileMenuToggle={setIsMobileMenuOpen}
+        // Inject React Router Link component to handle navigation without full page reload
+        renderLink={({ href, children, className, onClick }) => (
+          <Link to={href} className={className} onClick={onClick}>
+            {children}
+          </Link>
+        )}
       />
     </div>
   )

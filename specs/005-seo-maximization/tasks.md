@@ -55,7 +55,7 @@
 *Goal: Ensure all internal links are crawlable by bots.*
 *Story: [US3] Accessible Navigation for Bots*
 
-- [ ] T025 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/components/Header.tsx`
+- [x] T025 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/components/Header.tsx`
 - [ ] T026 [P] [US3] Scan and replace generic `onClick` navigation with `<Link>` in `apps/web/src/routes/Landing/Hero.tsx` (and other CTA buttons)
 - [ ] T027 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)
 - [ ] T028 [P] [US3] Verify that Footer links are semantic `<a>` tags in `apps/web/src/components/Footer.tsx`

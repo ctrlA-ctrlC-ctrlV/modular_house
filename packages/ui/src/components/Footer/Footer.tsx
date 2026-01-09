@@ -42,7 +42,7 @@ import { LinkRenderer } from '../../types';
  * Represents a social media platform link with associated icon.
  * The iconPath property accepts React nodes to support complex SVG structures.
  */
-interface SocialLink {
+export interface SocialLink {
   /** Unique identifier for the social platform */
   id: string;
   /** External URL to the social media profile */
@@ -59,7 +59,7 @@ interface SocialLink {
  * Represents an internal or external navigation link.
  * Used for building the site navigation section in the footer.
  */
-interface NavLink {
+export interface NavLink {
   /** Unique identifier for the navigation item */
   id: string;
   /** Display text for the link */
@@ -81,6 +81,18 @@ export interface FooterProps {
    * If not provided, standard <a> tags will be used.
    */
   renderLink?: LinkRenderer;
+  
+  /**
+   * Array of navigation links to display in the footer.
+   * Defaults to standard site navigation if not provided.
+   */
+  navLinks?: NavLink[];
+
+  /**
+   * Array of social media links to display in the footer.
+   * Defaults to standard social profiles if not provided.
+   */
+  socialLinks?: SocialLink[];
 }
 
 
@@ -168,7 +180,12 @@ const NAV_LINKS: NavLink[] = [
  * @param props - Component properties conforming to FooterProps interface
  * @returns JSX element representing the complete footer structure
  */
-export const Footer: React.FC<FooterProps> = ({ className = '', renderLink }) => {
+export const Footer: React.FC<FooterProps> = ({ 
+  className = '', 
+  renderLink,
+  navLinks = NAV_LINKS,
+  socialLinks = SOCIAL_LINKS
+}) => {
   /**
    * Compute current year dynamically for copyright notice.
    * Ensures the copyright year remains accurate without manual updates.
@@ -268,7 +285,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '', renderLink }) =>
         <div className="footer__column">
           <h3 className="footer__heading">Links</h3>
           <ul className="footer__nav-list">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <li key={link.id} className="footer__nav-item">
                 <LinkItem href={link.url} className="footer__nav-link">
                   {link.label}
@@ -286,7 +303,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '', renderLink }) =>
         <div className="footer__column">
           <h3 className="footer__heading">Get in Touch</h3>
           <div className="footer__social-list">
-            {SOCIAL_LINKS.map((social) => (
+            {socialLinks.map((social) => (
               <a
                 key={social.id}
                 href={social.url}

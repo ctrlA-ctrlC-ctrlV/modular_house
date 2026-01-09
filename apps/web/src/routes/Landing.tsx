@@ -67,17 +67,19 @@ function Landing() {
 
   return (
     <div>
-      {/* SEO Integration */}
+      {/** SEO Integration
+       * description="Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery."
+       */}
       <Seo 
         title="Steel Frame Garden Rooms & House Extensions" 
-        description="Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery."
+        description="Ireland’s specialist in steel frame garden rooms and house extensions. Experience the future of construction with bespoke, energy-efficient designs built in weeks, not months."
         canonicalUrl="https://modularhouse.ie/"
 
         // Open Graph for Facebook/LinkedIn sharing optimization
         openGraph={{
           type: 'website',
           title: 'Steel Frame Garden Rooms & House Extensions | Modular House',
-          description: 'Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery.',
+          description: 'Ireland’s specialist in steel frame garden rooms and house extensions. Experience the future of construction with bespoke, energy-efficient designs built in weeks, not months.',
           image: 'https://modularhouse.ie/resource/landing_hero.png',
           siteName: 'Modular House Construction',
         }}

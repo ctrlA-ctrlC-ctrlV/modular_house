@@ -263,14 +263,46 @@ function Landing() {
       <div id='landing_gallary'>
         <MasonryGallery
           images={[
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg" },
-            { src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg", fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg" },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg",
+              alt: "Modern modular home exterior with wood cladding and large windows" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg",
+              alt: "Spacious garden room interior with natural light" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg",
+              alt: "Steel frame construction detail showing structural integrity" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg",
+              alt: "Contemporary home extension blending with garden" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg",
+              alt: "Minimalist office pod design for remote work" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg",
+              alt: "High-quality insulation materials used in modular builds" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg",
+              alt: "Finished modular house front view at sunset" 
+            },
+            { 
+              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg", 
+              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg",
+              alt: "Custom designed garden studio interior" 
+            },
           ]}
           columns = {4}
         />

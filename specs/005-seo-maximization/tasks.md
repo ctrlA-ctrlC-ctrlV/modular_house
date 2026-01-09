@@ -62,7 +62,7 @@
 - [x] T029 [P] [US3] Update `apps/web/src/routes/Landing.tsx` to use declarative props for Hero navigation and remove `useNavigate`
 - [x] T030 [P] [US3] Update `apps/web/src/routes/GardenRoom.tsx` to use declarative props for Hero navigation and remove `useNavigate`
 - [x] T031 [P] [US3] Update `apps/web/src/routes/HouseExtension.tsx` to use declarative props for Hero navigation and remove `useNavigate`
-- [ ] T032 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)
+- [x] T032 [US3] Audit and update `alt` attributes in `Gallery` and `Hero` components (FR-006)
 - [ ] T033 [P] [US3] Verify that Footer links are semantic `<a>` tags in `apps/web/src/components/Footer.tsx`
 - [ ] T034 [US3] Create `./.docs/link_guideline.md` to guide on how shoudl future component be created, using modern component based development principle
 

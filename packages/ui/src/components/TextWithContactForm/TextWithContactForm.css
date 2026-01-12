@@ -151,24 +151,6 @@
   width: 100%;
 }
 
-/**
- * Responsive horizontal padding for larger screens.
- */
-@media (min-width: 768px) {
-  .text-contact {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .text-contact {
-    padding-left: 4rem;
-    padding-right: 4rem;
-  }
-}
-
-
 /* =============================================================================
    SECTION 3: CONTENT CONTAINER
    -----------------------------------------------------------------------------
@@ -202,13 +184,6 @@
   gap: var(--text-contact-gap);
 }
 
-@media (min-width: 1024px) {
-  .text-contact__row {
-    flex-direction: row;
-  }
-}
-
-
 /* =============================================================================
    SECTION 5: TEXT CONTENT COLUMN (LEFT)
    -----------------------------------------------------------------------------
@@ -222,13 +197,6 @@
  */
 .text-contact__content {
   flex: 1;
-}
-
-@media (min-width: 1024px) {
-  .text-contact__content {
-    flex: 0 0 41.666667%;
-    max-width: 41.666667%;
-  }
 }
 
 /**
@@ -373,14 +341,6 @@
   flex: 1;
 }
 
-@media (min-width: 1024px) {
-  .text-contact__form-column {
-    flex: 0 0 58.333333%;
-    max-width: 58.333333%;
-  }
-}
-
-
 /* =============================================================================
    SECTION 8: FORM GRID LAYOUT
    -----------------------------------------------------------------------------
@@ -392,16 +352,12 @@
  * Single column on mobile, two columns on tablet and up.
  */
 .text-contact__form-grid {
+  border-radius: 10px;
+  padding: 2px 2px 2px 2px;
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .text-contact__form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 
@@ -660,4 +616,31 @@
   left: -9999px;
   opacity: 0;
   pointer-events: none;
+}
+
+
+@media (min-width: 1024px) {
+  .text-contact__row {
+    flex-direction: row;
+  }
+
+  .text-contact__content {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
+
+  .text-contact__form-column {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
+}
+
+@media (min-width: 768px) {
+  .text-contact {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  .text-contact__form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

@@ -259,45 +259,17 @@
    ============================================================================= */
 
 /**
- * Mobile Devices (768px and below)
- * Converts to compact layout with reduced column widths.
- * Adjusts typography scale for smaller screens.
+ * Large Desktops (1200px and below)
+ * Reduces padding and adjusts grid column widths.
  */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .mini-faqs {
-    padding-top: 3rem;
-    padding-inline: 1rem;
-  }
-
-  .mini-faqs__header {
-    margin-bottom: 2rem;
-  }
-
-  .mini-faqs__list-container {
-    padding: 0;
-    max-width: 100%;
+    padding-inline: 5%;
   }
 
   .mini-faqs__item {
-    grid-template-columns: 1fr 2fr;
-    gap: 1rem;
-    padding: 2rem 0;
-  }
-
-  .mini-faqs__number {
-    font-size: var(--text-body, 1rem);
-  }
-
-  .mini-faqs__item-title {
-    font-size: var(--text-heading-s, 1.25rem);
-  }
-
-  .mini-faqs__content {
-    gap: rem;
-  }
-
-  .mini-faqs__description {
-    font-size: var(--text-caption, 0.875rem);
+    grid-template-columns: 140px 1px 1fr;
+    gap: 2rem;
   }
 }
 
@@ -317,17 +289,47 @@
 }
 
 /**
- * Large Desktops (1200px and below)
- * Reduces padding and adjusts grid column widths.
+ * Mobile Devices (768px and below)
+ * Converts to compact layout with reduced column widths.
+ * Adjusts typography scale for smaller screens.
  */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
   .mini-faqs {
-    padding-inline: 5%;
+    padding: 2rem 0 4rem 0;
+    padding-inline: 1rem;
+  }
+
+  .mini-faqs__header {
+    margin-bottom: 2rem;
+  }
+
+  .mini-faqs__list-container {
+    padding: 0;
+    max-width: 100%;
   }
 
   .mini-faqs__item {
-    grid-template-columns: 140px 1px 1fr;
-    gap: 2rem;
+    /* Adjusted to ~25/75 ratio (1fr 3fr) as requested */
+    grid-template-columns: 1fr 1px 9fr;
+    gap: 1rem;
+    padding: 2rem 0;
+  }
+
+  .mini-faqs__number {
+    font-size: var(--text-body, 1rem);
+  }
+
+  .mini-faqs__item-title {
+    font-size: var(--text-heading-s, 1.25rem);
+  }
+
+  .mini-faqs__content {
+    padding-left: 1rem;
+    gap: 1rem;
+  }
+
+  .mini-faqs__description {
+    font-size: var(--text-caption, 0.875rem);
   }
 }
 

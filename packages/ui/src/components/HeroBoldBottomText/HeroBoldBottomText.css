@@ -74,7 +74,7 @@
    * Overlay opacity level.
    * Controls background image darkening for text legibility.
    */
-  --hero-overlay-opacity: 0.15;
+  --hero-overlay-opacity: 0.4;
   
   /**
    * Horizontal padding for hero content.
@@ -248,7 +248,7 @@
   font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
   font-weight: var(--weight-medium, 500);
   font-size: var(--text-caption, 0.875rem);
-  letter-spacing: var(--tracking-wide, 0.12em);
+  letter-spacing: var(--tracking-default, 0em);
   border-radius: 9px;
   border: none;
   cursor: pointer;
@@ -337,19 +337,32 @@
  * Realigns info group to left and increases display text size
  * for visual impact on narrow screens.
  */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .hero-bold-bottom-text {
-    padding: 120px 20px 30px 20px;
+    height: 95vh;
+    padding: 120px 15px 30px 15px;
+  }
+
+  .hero-bold-bottom-text__title-wrapper {
+    margin-bottom: 5%;
+  }
+
+  .hero-bold-bottom-text__cta {
+    margin: 5px 0 5px 0;
   }
   
   .hero-bold-bottom-text__info-group {
     align-self: flex-start;
     max-width: 100%;
-    margin-bottom: 45px;
+    margin-bottom: 20%;
+  }
+
+  .hero-bold-bottom-text__title {
+    font-size: larger;
   }
   
   .hero-bold-bottom-text__big-text {
-    font-size: 18vw;
-    letter-spacing: var(--tracking-tight, -0.02em);
+    font-size: clamp(3rem, 13.3vw, 4.5rem);  /*clamp(3rem, 13.3vw, 4rem)*/
+    letter-spacing: var(--tracking-default, 0em);
   }
 }

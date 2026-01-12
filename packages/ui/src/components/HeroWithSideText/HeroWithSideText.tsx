@@ -95,10 +95,31 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
     }
   };
 
+  /**
+   * Click handler for the Explore button.
+   * If a custom click handler is provided (e.g., for client-side routing), it is executed first.
+   * Otherwise, if the link targets an internal anchor ID, smooth scrolling is triggered.
+   * 
+   * @param e - The mouse event from the anchor element
+   */
   const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Priority 1: Execute custom handler if provided (typically for SPA navigation)
     if (onExploreClick) {
       e.preventDefault();
       onExploreClick(e);
+      return;
+    }
+
+    // Priority 2: Improve detailed experience by enabling smooth scrolling for internal anchor links 
+    if (exploreLink && exploreLink.startsWith('#')) {
+      const targetId = exploreLink.substring(1);
+      const targetElement = document.getElementById(targetId);
+
+      // Only prevent default jump if the target element actually exists on the page
+      if (targetElement) {
+        e.preventDefault();
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 

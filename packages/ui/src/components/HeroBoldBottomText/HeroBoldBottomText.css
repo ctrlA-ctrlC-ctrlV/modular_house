@@ -343,7 +343,7 @@
  */
 @media (max-width: 767px) {
   .hero-bold-bottom-text {
-    height: 95vh;
+    height: 100vh;
     padding: 120px 15px 30px 15px;
   }
 

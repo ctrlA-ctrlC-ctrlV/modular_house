@@ -51,6 +51,7 @@ jobs:
           build-args: |
             # API is served through Traefik at /api path (see docker-compose.prod.yml)
             VITE_API_BASE_URL=https://${{ secrets.DOMAIN_NAME }}/api
+            VITE_GA_TRACKING_ID=${{ secrets.GA_TRACKING_ID }}
             GENERATE_SOURCEMAP=false
 
   deploy:

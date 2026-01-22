@@ -6,6 +6,7 @@ import '@testing-library/jest-dom';
 beforeAll(() => {
   // Mock environment variables for tests
   import.meta.env.VITE_API_BASE_URL = 'http://localhost:8080';
+  import.meta.env.VITE_GA_TRACKING_ID = '';
   import.meta.env.DEV = false;
   import.meta.env.PROD = false;
   import.meta.env.MODE = 'test';

@@ -97,6 +97,7 @@ jobs:
           ROBOTS_ALLOW: ${{ secrets.ROBOTS_ALLOW }}
           ADMIN_LOGIN_EMAIL: ${{ secrets.ADMIN_LOGIN_EMAIL }}
           ADMIN_LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
+          GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
           REPO_OWNER: ${{ env.REPO_OWNER }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
@@ -179,6 +180,11 @@ jobs:
           printf "# Admin login configuration\n" >> .env;
           if [ ! -z "$ADMIN_LOGIN_EMAIL" ]; then printf "ADMIN_LOGIN_EMAIL=%s\n" "$ADMIN_LOGIN_EMAIL" >> .env; fi
           if [ ! -z "$ADMIN_LOGIN_PASSWORD" ]; then printf "ADMIN_LOGIN_PASSWORD=%s\n" "$ADMIN_LOGIN_PASSWORD" >> .env; fi
+          printf "\n" >> .env;
+
+          # Google Analytics
+          printf "# Google Analytics\n" >> .env;
+          if [ ! -z "$GA_TRACKING_ID" ]; then printf "GA_TRACKING_ID=%s\n" "$GA_TRACKING_ID" >> .env; fi
           printf "\n" >> .env;
      
       - name: Create App Directory

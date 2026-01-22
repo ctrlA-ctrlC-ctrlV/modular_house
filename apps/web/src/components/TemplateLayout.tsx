@@ -5,6 +5,7 @@ import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
 import { routes } from '../route-config';
 import { SEOHead } from './seo/SEOHead';
+import { GoogleTag, GA_TRACKING_ID } from './GoogleTag';
 
 // Import template styles to ensure theme-template variables are applied globally within this layout
 import '../styles/template.css';
@@ -112,6 +113,13 @@ const LayoutContent: React.FC = () => {
 export const TemplateLayout: React.FC = () => {
   return (
     <HeaderProvider>
+      {/* 
+        Inject Google Analytics Tag.
+        This is placed here to ensure it only runs on public (non-admin) pages 
+        that utilize the TemplateLayout.
+        The tracking ID is sourced from environment variables for security and flexibility.
+      */}
+      <GoogleTag trackingId={GA_TRACKING_ID} />
       <LayoutContent />
     </HeaderProvider>
   );

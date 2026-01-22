@@ -123,13 +123,7 @@ As an admin, I want to view form submissions with filtering by date range and so
 
 ---
 
-### User Story 7 - Setting (Priority: P3)
-
-
-
----
-
-### User Story 8 - Role-Based Access Control (Priority: P3)
+### User Story 7 - Role-Based Access Control (Priority: P3)
 
 As a super admin, I want to assign roles (Admin, Editor, Viewer) to users with different permission levels, so I can control who can modify vs. only view content.
 
@@ -146,7 +140,7 @@ As a super admin, I want to assign roles (Admin, Editor, Viewer) to users with d
 
 ---
 
-### User Story 9 - Theme Switching (Light/Dark Mode) (Priority: P3)
+### User Story 8 - Theme Switching (Light/Dark Mode) (Priority: P3)
 
 As an admin user, I want to switch between light and dark themes, so I can use the interface comfortably in different lighting conditions.
 
@@ -161,7 +155,7 @@ As an admin user, I want to switch between light and dark themes, so I can use t
 
 ---
 
-### User Story 10 - Session Management and Security (Priority: P3)
+### User Story 9 - Session Management and Security (Priority: P3)
 
 As an admin, I want the system to warn me before my session expires and automatically log me out after inactivity, so my account remains secure.
 
@@ -177,7 +171,7 @@ As an admin, I want the system to warn me before my session expires and automati
 
 ---
 
-### User Story 11 - Accessible Keyboard Navigation (Priority: P3)
+### User Story 10 - Accessible Keyboard Navigation (Priority: P3)
 
 As an admin user who relies on keyboard navigation, I want all admin features to be accessible via keyboard, so I can use the interface without a mouse.
 
@@ -195,13 +189,50 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 ### Edge Cases
 
-- What happens when the dashboard stats API fails? → Show error state with retry button; display cached data if available.
-- What happens when auto-save fails during page editing? → Show error toast with manual save option; queue retry in background.
-- What happens when a user's role is changed while they're logged in? → On next API call, refresh permissions; redirect to login if access revoked.
-- What happens when network connection is lost? → Show offline indicator; queue changes for sync when connection restored.
-- What happens when uploading an image that exceeds size limits? → Show validation error before upload attempt; suggest compression.
-- What happens when deleting a page that's linked from navigation? → Show warning about dependent references; require confirmation.
-- What happens when two admins edit the same page simultaneously? → Last save wins; consider adding optimistic locking in future.
+- System-Wide & Architectural
+
+  - API Latency/Timeout: What happens if an API call takes >10 seconds? $\rightarrow$ UI must show a generic loading skeleton initially, then transition to a specific timeout error message with a "Retry" button; ensure no duplicate transactions occur if the user clicks retry while the previous request is hanging.
+  - **Concurrent Session Modification: What happens if an admin modifies a record (e.g., Page or Role) that another admin has just deleted? $\rightarrow$ The API returns a `404 Not Found`; the UI must catch this, display a "Resource no longer exists" toast, and refresh the current view/list.
+  - Token Expiry during Multi-step Action: What happens if the refresh token expires exactly while a user is performing a drag-and-drop sort? $\rightarrow$ The action fails; the system must store the intended state locally (if possible), force a login modal (overlay), and retry the action upon successful re-authentication.
+- US 1: Admin Dashboard Access
+  - Zero-Data State (Cold Start): What happens when the system is brand new with 0 submissions or pages? $\rightarrow$ Stat cards display "0" rather than null/undefined; Charts display a "No data available yet" empty state placeholder instead of broken axes.
+  - Partial API Failure: What happens if the Stats service is up but the Activity Feed service is down? $\rightarrow$ The dashboard loads successfully; the failed widget displays an individual error state ("Unable to load activity"), preventing the entire dashboard from crashing.
+
+- US 2: Unified Admin Layout Navigation
+  - Deep Linking/Breadcrumbs: What happens if a user navigates directly to a deep URL (e.g., /admin/pages/edit/123) without passing through the parent list? $\rightarrow$ The system must reconstruct the breadcrumb trail (Home > Pages > Edit) based on the route hierarchy, ensuring the "Pages" link is clickable and leads to the correct state.
+  - Mobile Menu Overlay: What happens on mobile when the menu is open and the user clicks the "Back" browser button? $\rightarrow$ The menu should close (treating the menu state as a history entry or utilizing an overlay trap) rather than navigating the user back to the login page.
+
+- US 3: Pages Management
+  - Stale Data Overwrite (Optimistic Locking): What happens if User A opens a page, User B edits and saves it, and then User A tries to save? $\rightarrow$ Backend rejects the save with a 409 Conflict. UI displays a "Content has changed externally" diff modal, allowing User A to choose "Overwrite" or "Save as Copy."
+  - Pagination Boundary: What happens if a user is on Page 5 of the list, and deletes the only item on that page? $\rightarrow$ The table should automatically navigate the user to Page 4.
+  - Rich Text Paste Formatting: What happens if a user pastes content from MS Word with complex inline styles? $\rightarrow$ The editor sanitizer must strip non-allowed styles (fonts, colors) while preserving semantic structure (H1, bold, lists) to prevent breaking the site layout.
+
+- US 4: Gallery Management
+  - Orphaned Records: What happens if an image upload completes but the metadata save fails? $\rightarrow$ The system should run a scheduled cron job to clean up temporary files in storage that do not have associated database records after 24 hours.
+
+- US 5: Data Tables
+  - Debounce Race Conditions: What happens if a user types "garden", clears it, and types "house" rapidly? $\rightarrow$ Ensure the API request for "garden" is cancelled (aborted) if "house" is typed, ensuring the results displayed always match the current input value, not the last response to arrive (out-of-order responses).
+  - Sorting Null Values: What happens when sorting a column with optional data (e.g., "Last Updated")? $\rightarrow$ Null/Empty values should always stay at the bottom of the list regardless of Ascending/Descending sort order to maintain readability.
+
+- US 6: Submissions
+  - Malicious Payload Display (XSS): What happens if a bot submits a form with `<script>` tags in the name field? $\rightarrow$ The Admin Submissions view must strictly escape all HTML entities when rendering the table and details view to prevent Cross-Site Scripting attacks against the administrator.
+  - Massive Export: What happens if a user tries to export 1,000,000 records? $\rightarrow$ The request should be offloaded to a background job; the user receives a notification/email with a download link when ready, rather than blocking the browser thread.
+
+- US 7: Role-Based Access Control (RBAC)
+  - Self-Lockout Prevention: What happens if a Super Admin tries to remove the "Admin" role from their own account or delete the last remaining Super Admin user? $\rightarrow$ The system must block this action with a validation error: "You cannot revoke your own administrative privileges or delete the last active Super Admin."
+  - Resource Permission Conflict: What happens if a Role has view: false for "Pages" but edit: true for "Pages"? $\rightarrow$ The logic should enforce hierarchy: verifying edit permission implies view permission. Alternatively, the UI should auto-check "View" if "Edit" is checked.
+
+- US 8: Theme Switching
+  - System vs. User Preference: What happens on the first visit? $\rightarrow$ The system detects the OS/Browser preference (prefers-color-scheme). If the user manually toggles the switch, that local preference overrides the OS setting and is persisted in localStorage.
+
+- US 9: Session Management
+  - Multi-Tab Consistency: What happens if the user logs out in Tab A? $\rightarrow$ Tab B should detect the local storage/cookie change (via storage event listener) and redirect to the login screen immediately to prevent the user from performing actions in a stale session.
+  - Clock Skew: What happens if the client's computer clock is significantly different from the server? $\rightarrow$ Token expiration validation should allow for a small clock skew window (leeway), or rely strictly on server-side validation responses rather than client-side token parsing alone.
+
+- US 10: Accessible Keyboard Navigation
+  - Focus Trapping: What happens when a modal opens? $\rightarrow$ Keyboard focus must be trapped inside the modal. Pressing Tab on the last element of the modal should cycle back to the first element of the modal, not the background page.
+  - Skip Navigation: What happens when a keyboard user lands on the page? $\rightarrow$ A "Skip to Main Content" link should appear on the first Tab press, allowing users to bypass the sidebar navigation.
+
 
 ---
 
@@ -209,25 +240,36 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 ### Functional Requirements
 
-#### Layout & Navigation
+#### Global Layout & Navigation (US-2, US-8, US-10)
 - **FR-001**: System MUST provide a unified admin layout with persistent sidebar navigation (256px expanded, 64px collapsed) and top bar (64px height).
-- **FR-002**: System MUST display breadcrumb navigation showing the current page hierarchy.
-- **FR-003**: Sidebar MUST collapse/expand with smooth animation (200ms ease) and persist user preference.
-- **FR-004**: System MUST be responsive, with sidebar converting to slide-out drawer on mobile/tablet viewports.
+- **FR-002**: System MUST implement breadcrumb navigation in the top bar that reflects the current route hierarchy and links back to parent views.
+- **FR-003**: Sidebar MUST support a collapsible state (icon-only) that persists to local storage; animation between states MUST complete within 200ms.
+- **FR-004**: System MUST be responsive; on viewports < 1024px, the sidebar MUST convert to a slide-out drawer pattern controlled by a hamburger menu.
+- **FR-005:** System MUST persist the user's Theme preference (Light/Dark) in `localStorage` and strictly adhere to the `prefers-color-scheme` media query on first load if no preference is saved.
+- **FR-006:** All navigation elements, including sidebar toggles and dropdowns, MUST be fully navigable via keyboard (Tab/Enter/Arrow keys) and display visible focus rings (WCAG 2.1 AA).
 
-#### Dashboard
-- **FR-005**: Dashboard MUST display stat cards showing counts for: Pages (with draft count), Gallery items (with draft count), Submissions (with today's count), and active Redirects.
-- **FR-006**: Dashboard MUST display a chart showing submissions over the last 7 days.
-- **FR-007**: Dashboard MUST display the 5 most recent activity entries with timestamps.
-- **FR-008**: Dashboard MUST provide quick action buttons for common tasks (New Page, Add Gallery Item, Export Submissions).
+#### Dashboard (US-1)
+- **FR-007:** Dashboard MUST initialize by fetching summary metrics in parallel; failure of one metric API call MUST NOT block the rendering of others (Partial Failure Handling).
+- **FR-008:** Dashboard MUST display "Stat Cards" for:
+  - **Pages:** Total count split by Published vs. Draft.
+  - **Gallery:** Total count split by Published vs. Draft.
+  - **Submissions:** Total count + Count received "Today".
+  - **Redirects:** Total count split by Active vs. Inactive.
 
-#### Data Tables
-- **FR-009**: Data tables MUST support column sorting (ascending/descending toggle on header click).
-- **FR-010**: Data tables MUST support text search/filtering with 300ms debounce.
-- **FR-011**: Data tables MUST support pagination with configurable page sizes (10, 20, 50, 100).
-- **FR-012**: Data tables MUST support multi-row selection with checkbox column and bulk actions toolbar.
-- **FR-013**: Data tables MUST display loading skeleton states during data fetches.
-- **FR-014**: Data tables MUST display empty state with illustration when no data matches filters.
+* **FR-009:** Dashboard MUST render a bar chart visualizing submission volume for the rolling 7-day window (Today + previous 6 days).
+* ==**FR-010:** Dashboard MUST render an "Activity Feed" showing the 5 most recent entries from the Audit Log, formatting timestamps relative to the user's current time (e.g., "2 hours ago"). And display in hours when less than 24 hours, else use "day"; display in "day" when less than 72 hours, else use "days"; display number of "years" + "month" when above 365 "days" and if "years" is less than 2 use "year".==
+
+#### Shared Data Table Components (US-3, US-5, US-6)
+- **FR-011:** All list views MUST implement server-side pagination. The UI MUST display "Page X of Y" and provide "Next/Previous" controls that are disabled when at the bounds of the dataset.
+- **FR-012:** Column headers MUST be clickable to toggle sort order: `None` -> `ASC` -> `DESC` -> `None`.
+
+* **FR-013:** Search inputs MUST implement a 300ms debounce before triggering an API request to prevent request flooding.
+* **FR-014**: Data tables MUST display loading skeleton states during data fetches.
+
+- **FR-015**: Data tables MUST support pagination with configurable page sizes (10, 20, 50, 100).
+- **FR-016**: Data tables MUST support multi-row selection with checkbox column and bulk actions toolbar.
+- **FR-017**: Data tables MUST display empty state with illustration when no data matches filters.
+- **FR-018**: Data table MUST display an illustration and "Clear Filters" button if filters are active.
 
 #### Page Editor
 - **FR-015**: Page editor MUST display two-column layout: content fields on left, SEO/settings sidebar on right.
@@ -265,6 +307,8 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 #### Error Handling
 - **FR-038**: System MUST implement error boundaries to prevent full-page crashes from component errors.
 - **FR-039**: System MUST display toast notifications for success, error, warning, and info messages.
+
+"Layout & Navigation", "Dashboard", "Data Tables", "Page Editor", "Gallery Management", "Submissions", "Authentication & Security", "Error Handling"
 
 ### Key Entities
 

@@ -582,7 +582,7 @@ toast.info('Auto-saved 2 minutes ago');
 │  │  General                                                ││
 │  │  ────────────────────────────────────────────────────   ││
 │  │  Site Name        [Modular House                     ]  ││
-│  │  Contact Email    [info@modularhouse.co.uk           ]  ││
+│  │  Contact Email    [info@modularhouse.ie           ]  ││
 │  │  Default SEO Title[Modular House | Premium Garden ...]  ││
 │  └─────────────────────────────────────────────────────────┘│
 │                                                             │

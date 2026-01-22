@@ -2,7 +2,7 @@
 
 **Feature Branch**: `006-admin-panel-redesign`  
 **Created**: January 21, 2026  
-**Status**: Draft  
+**Status**: Approved 
 **Input**: Approved design document: `.docs/admin_page_design.md`
 
 ---
@@ -25,9 +25,10 @@ As an administrator, I want to see a dashboard with key metrics and quick action
 
 **Acceptance Scenarios**:
 
-1. **Given** I am logged in as an admin, **When** I navigate to `/admin`, **Then** I see stat cards showing counts for Pages, Gallery items, Submissions (with today's count), and active Redirects.
-2. **Given** I am on the dashboard, **When** I view the activity feed, **Then** I see the 5 most recent system activities with timestamps.
-3. **Given** I am on the dashboard, **When** I click a quick action button, **Then** I am navigated to the corresponding feature (e.g., "New Page" → page editor).
+1. **Given** I am logged in as an admin, **When** I navigate to `/admin`, **Then** I see stat cards showing counts for Pages (published and draft), Gallery items (published and draft), Submissions (with today's count), and Redirects (active and inactive).
+2. **Given** I am on the dashboard, **When** I view the submission metric, **Then** I see a bar chart of the current  7 day submission (today and 6 day before.
+3. **Given** I am on the dashboard, **When** I view the activity feed, **Then** I see the 5 most recent system activities with timestamps.
+4. **Given** I am on the dashboard, **When** I click a quick action button, **Then** I am navigated to the corresponding feature (e.g., "New Page" → page editor).
 
 ---
 
@@ -43,7 +44,7 @@ As an admin user, I want a persistent sidebar navigation and top bar that remain
 
 1. **Given** I am on any admin page, **When** I view the interface, **Then** I see a persistent sidebar with navigation links and a top bar with breadcrumbs.
 2. **Given** the sidebar is expanded, **When** I click the collapse toggle, **Then** the sidebar collapses to icon-only mode (64px width) with smooth animation.
-3. **Given** I navigate to a nested page, **When** I view the breadcrumbs, **Then** they show the correct hierarchy path.
+3. **Given** I navigate to a nested page, **When** I view the breadcrumbs, **Then** they show the correct hierarchy path, **AND** each breadcrumb link to representative page.
 
 ---
 
@@ -57,10 +58,14 @@ As a content editor, I want to manage website pages with a rich editing interfac
 
 **Acceptance Scenarios**:
 
-1. **Given** I am on the pages list, **When** I click "New Page" or edit an existing page, **Then** I see a two-column editor with content fields on the left and SEO/settings on the right.
-2. **Given** I am editing a page with multiple sections, **When** I drag a section to a new position, **Then** the section order updates and the change is auto-saved.
-3. **Given** I have unsaved changes, **When** I try to navigate away, **Then** I see a warning dialog asking to confirm leaving.
-4. **Given** I am editing a page, **When** I click "Preview", **Then** a new tab opens showing the page as it will appear to visitors.
+1. **Given** I am on the page list that is **not** the last page, **When** I click on "Next" button, **Then** the table should render the next set of entries, **And** the page indicator should update to the next number.
+2. **Given** I am on the page list that is **not** the first page, **When** I click on "Previous" button, **Then** the table should render the previous set of entries, **And ** the page indicator should decrement by one.
+3. **Given** the table is populated with data, **When** I look ate the pagination footer, **Then** I should see the current page number versus the total number of pages.
+4. **Given** I am on the page list and type into the search field, **When** I entry search text, **Then** page table filters to show matching records after a brief debounce delay.
+5. **Given** I am on the pages list, **When** I click "New Page" or edit an existing page, **Then** I see a two-column editor with content fields on the left and SEO/settings on the right.
+6. **Given** I am editing a page with multiple sections, **When** I drag a section to a new position, **Then** the section order updates and the change is auto-saved.
+7. **Given** I have unsaved changes, **When** I try to navigate away, **Then** I see a warning dialog asking to confirm leaving.
+8. **Given** I am editing a page, **When** I click "Preview", **Then** a new tab opens showing the page as it will appear to visitors.
 
 ---
 
@@ -107,13 +112,24 @@ As an admin, I want to view form submissions with filtering by date range and so
 
 **Acceptance Scenarios**:
 
-1. **Given** I am on the submissions page, **When** I filter by date range "Last 30 days", **Then** only submissions within that range are shown.
-2. **Given** I click on a submission row, **When** the detail panel expands, **Then** I see all form data, consent status, and submission metadata.
-3. **Given** I click "Export CSV", **When** the export completes, **Then** a CSV file downloads with all visible submissions.
+1. **Given** I am on the submissions page, **When** I filter by date range (e.d. Last 30 days), **Then** only submissions within that range are shown.
+2. **Given** I am on the submissions page, **When** I filter by Source (e.g. "/contact"), **Then** only submissions from that source are shown.
+3. **Given** I am on the page list that is **not** the last page, **When** I click on "Next" button, **Then** the table should render the next set of entries, **And** the page indicator should update to the next number.
+4. **Given** I am on the page list that is **not** the first page, **When** I click on "Previous" button, **Then** the table should render the previous set of entries, **And ** the page indicator should decrement by one.
+5. **Given** the table is populated with data, **When** I look ate the pagination footer, **Then** I should see the current page number versus the total number of pages.
+6. **Given** I type into the search field, **When** I entry search text, **Then** page table filters to show matching records in "Form Data" after a brief debounce delay.
+7. **Given** I click on a submission row, **When** the detail panel expands, **Then** I see all form data, consent status, and submission metadata.
+8. **Given** I click "Export CSV", **When** the export completes, **Then** a CSV file downloads with all visible submissions.
 
 ---
 
-### User Story 7 - Role-Based Access Control (Priority: P3)
+### User Story 7 - Setting (Priority: P3)
+
+
+
+---
+
+### User Story 8 - Role-Based Access Control (Priority: P3)
 
 As a super admin, I want to assign roles (Admin, Editor, Viewer) to users with different permission levels, so I can control who can modify vs. only view content.
 
@@ -123,13 +139,14 @@ As a super admin, I want to assign roles (Admin, Editor, Viewer) to users with d
 
 **Acceptance Scenarios**:
 
-1. **Given** I am a super admin, **When** I create a new user, **Then** I can assign them a role of Admin, Editor, or Viewer.
-2. **Given** I am logged in as an Editor, **When** I navigate to Users or Settings, **Then** I see a "no access" message or the menu items are hidden.
-3. **Given** I am logged in as a Viewer, **When** I view Pages, **Then** I can see content but edit/delete buttons are disabled or hidden.
+1. **Given** I am logged in as a super admin, **When** I create or edit a Role definition, **Then** I should see a list of all system resources, **And** I should be able to toggle specific permissions for each resource
+2. **Given** I am logged in as a super admin, **When** I create a new user or edit an existing user profile, **Then** I I should see a "Role" selection input, **And** I should be able to assign one of the predefined roles to that user.
+3. **Given** I am **not** logged in as a super admin, **When** I view the global navigation, **Then** I should see menu items that is opened to my role, **but** I should **not** see items that is not open to my role.
+4. **Given** I am **not** logged in as a super admin, **When** I navigate to a menu item, **Then** I should **only** see tools or actionable buttons or table that is opened to my role.
 
 ---
 
-### User Story 8 - Theme Switching (Light/Dark Mode) (Priority: P3)
+### User Story 9 - Theme Switching (Light/Dark Mode) (Priority: P3)
 
 As an admin user, I want to switch between light and dark themes, so I can use the interface comfortably in different lighting conditions.
 
@@ -144,7 +161,7 @@ As an admin user, I want to switch between light and dark themes, so I can use t
 
 ---
 
-### User Story 9 - Session Management and Security (Priority: P3)
+### User Story 10 - Session Management and Security (Priority: P3)
 
 As an admin, I want the system to warn me before my session expires and automatically log me out after inactivity, so my account remains secure.
 
@@ -160,7 +177,7 @@ As an admin, I want the system to warn me before my session expires and automati
 
 ---
 
-### User Story 10 - Accessible Keyboard Navigation (Priority: P3)
+### User Story 11 - Accessible Keyboard Navigation (Priority: P3)
 
 As an admin user who relies on keyboard navigation, I want all admin features to be accessible via keyboard, so I can use the interface without a mouse.
 

@@ -125,7 +125,7 @@ function Landing() {
 
       <div id="landing_features">
         <FeatureSection
-          topHeading='Built in steetl, Finished for living'
+          topHeading='Built in steel, Finished for living'
           mainHeading='Reimagine your living space'
           introText={
             <>

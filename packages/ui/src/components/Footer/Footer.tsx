@@ -132,7 +132,7 @@ export interface FooterProps {
 const SOCIAL_LINKS: SocialLink[] = [
   {
     id: 'tiktok',
-    url: 'https://www.tiktok.com/@sdeal.ie',
+    url: 'https://www.tiktok.com/@modularhouse.ie',
     ariaLabel: 'TikTok',
     viewBox: '0 0 16 16',
     iconPath: (
@@ -263,7 +263,7 @@ export const Footer: React.FC<FooterProps> = ({
           <h3 className="footer__heading">Contact</h3>
           <address className="footer__contact-info">
             <p className="footer__contact-item">
-              <a href="mailto:info@sdeal.ie">info@sdeal.ie</a>
+              <a href="mailto:info@modularhouse.ie">info@modularhouse.ie</a>
             </p>
             <p className="footer__contact-item">
               (+353) 0830280000

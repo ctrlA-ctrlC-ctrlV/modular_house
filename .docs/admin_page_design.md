@@ -238,7 +238,7 @@ apps/web/src/
 │ Sidebar     │  Main Content Area                               │
 │             │  ┌────────────────────────────────────────────┐  │
 │ Dashboard	  │  │  Page Title              [Actions]         │  │
-│ Pages		  │  │                                            │  │
+│ Pages		    │  │                                            │  │
 │ Gallery     │  │  Content                                   │  │
 │ Submissions │  │                                            │  │
 │ Redirects   │  │                                            │  │
@@ -561,7 +561,7 @@ toast.info('Auto-saved 2 minutes ago');
 │  ── Form Data ────────────────────────────────────────────  │
 │  Name: John Doe                                             │
 │  Email: john@example.com                                    │
-│  Phone: +44 123 456 7890                                    │
+│  Phone: +353 123 456 7890                                    │
 │  Message: I'm interested in a 5m x 4m garden room for       │
 │           my home office. Could you provide a quote?        │
 │                                                             │

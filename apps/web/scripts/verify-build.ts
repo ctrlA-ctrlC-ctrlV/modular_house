@@ -9,6 +9,8 @@
  * =============================================================================
  */
 
+/// <reference types="node" />
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -136,6 +138,25 @@ function main() {
   if (!fs.existsSync(distClient)) {
     console.error(`[FAIL] dist/client directory not found. Has the build run?`);
     process.exit(1);
+  }
+
+  // ------------------------------------------------------------------
+  // Favicon asset verification
+  // Ensures that both SVG and PNG favicon files have been copied from
+  // the public directory into the build output. Missing favicons are a
+  // common deployment oversight that silently breaks the browser tab icon.
+  // ------------------------------------------------------------------
+  const requiredFaviconFiles = [
+    'modular_house_favicon.svg',
+    'modular_house_favicon.png'
+  ];
+  for (const faviconFile of requiredFaviconFiles) {
+    const faviconPath = path.join(distClient, faviconFile);
+    if (!fs.existsSync(faviconPath)) {
+      console.error(`[FAIL] Favicon file missing from build output: ${faviconPath}`);
+      process.exit(1);
+    }
+    console.log(`[PASS] Favicon present: ${faviconFile}`);
   }
 
   try {

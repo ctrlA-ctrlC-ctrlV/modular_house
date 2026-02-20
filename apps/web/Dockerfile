@@ -26,9 +26,16 @@ ENV GENERATE_SOURCEMAP=$GENERATE_SOURCEMAP
 
 RUN pnpm build
 
+# ---------------------------------------------------------------------------
+# Production stage
+# Uses the official nginx:alpine image to serve the pre-rendered static files.
+# A custom nginx.conf is provided to ensure correct MIME types, cache headers,
+# gzip compression, and SPA routing fallback via try_files.
+# ---------------------------------------------------------------------------
 FROM nginx:alpine
 
 COPY --from=builder /app/apps/web/dist/client /usr/share/nginx/html
+COPY --from=builder /app/apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

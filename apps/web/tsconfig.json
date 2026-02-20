@@ -1,5 +1,16 @@
 {
-  "extends": "@modular-house/config/tsconfig",
+  /**
+   * App-level TypeScript Configuration
+   * =========================================================================
+   * Governs the React / browser source code under "src/".
+   *
+   * Extends the shared base configuration via a relative path rather than a
+   * package specifier (e.g. @modular-house/config/tsconfig) because VS Code's
+   * TypeScript language service cannot reliably resolve package.json "exports"
+   * through pnpm's symlinked node_modules on Windows.
+   * =========================================================================
+   */
+  "extends": "../../packages/config/tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,

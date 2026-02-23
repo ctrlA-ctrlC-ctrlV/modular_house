@@ -19,7 +19,7 @@
 | RefreshToken | **New** | JWT refresh token tracking with family rotation |
 | Page | **Extended** | Add `publishStatus`, `version` fields for optimistic locking |
 | GalleryItem | Existing | No schema changes; new bulk API operations |
-| FAQ | Existing | No schema changes; new reorder API endpoint |
+| FAQ | **Extended** | Add `publishStatus` field; new reorder API endpoint |
 | Submission | Existing | No schema changes; new filtering/pagination API |
 | Redirect | Existing | No schema changes; new pagination API |
 
@@ -211,6 +211,17 @@ Join table linking roles to permissions (US-7).
 **Validation**:
 - `version` increments on every save
 - API rejects updates where provided `version` doesn't match current DB version (409 Conflict)
+
+### FAQ (Extended)
+
+| Field | Type | Constraints | Description |
+|---|---|---|---|
+| publishStatus | PublishStatus | default `DRAFT` | Draft/Published status; only PUBLISHED FAQs appear on public site (FR-037) |
+
+**Validation**:
+- `publishStatus` defaults to `DRAFT` on create
+- Toggling publish/unpublish does not affect `displayOrder`
+- Reuses the same `PublishStatus` enum as Page and GalleryItem
 
 ---
 
@@ -406,6 +417,22 @@ model Page {
   heroImage      GalleryItem?  @relation("PageHeroImage", fields: [heroImageId], references: [id])
 
   @@map("pages")
+}
+```
+
+### FAQ Model Changes
+
+```prisma
+model FAQ {
+  id            String        @id @default(uuid()) @db.Uuid
+  question      String
+  answer        String
+  displayOrder  Int           @default(0) @map("display_order")
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("faqs")
 }
 ```
 

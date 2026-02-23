@@ -134,8 +134,7 @@ apps/web/
 │   │   ├── useAuth.ts             # NEW: auth context with token refresh
 │   │   ├── useIdleTimeout.ts      # NEW: idle detection + warning
 │   │   ├── useDebounce.ts         # NEW: debounced search/auto-save
-│   │   ├── useTheme.ts            # NEW: theme persistence
-│   │   └── usePagination.ts       # NEW: pagination state management
+│   │   └── useTheme.ts            # NEW: theme persistence
 │   ├── lib/
 │   │   └── api.ts                 # Extended: Axios interceptors for refresh tokens
 │   ├── routes/
@@ -211,7 +210,3 @@ apps/web/
 - All documented in plan's Accessibility section.
 
 **All gates pass post-design. Plan is ready for Phase 2 task breakdown (/speckit.tasks).**
-
-### Note on Technical Context Correction
-
-The plan references `react-hot-toast` in the Technical Context dependencies but research selected **sonner** as the toast library. The implementation should use **sonner** per the research findings.

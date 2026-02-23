@@ -265,7 +265,7 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 
 - US 6: Submissions
   - Malicious Payload Display (XSS): What happens if a bot submits a form with `<script>` tags in the name field? $\rightarrow$ The Admin Submissions view must strictly escape all HTML entities when rendering the table and details view to prevent Cross-Site Scripting attacks against the administrator.
-  - Massive Export: What happens if a user tries to export 1,000,000 records? $\rightarrow$ The request should be offloaded to a background job; the user receives a notification/email with a download link when ready, rather than blocking the browser thread.
+  - Massive Export: What happens if a user tries to export more records than practical for synchronous download? $\rightarrow$ At the current scale (~1000 records max), CSV export uses server-side streaming. If scale exceeds 10,000 records in the future, the request should be offloaded to a background job with an email download link.
 
 - US 7: Role-Based Access Control (RBAC)
   - Self-Lockout Prevention: What happens if a Super Admin tries to remove the "Admin" role from their own account or delete the last remaining Super Admin user? $\rightarrow$ The system must block this action with a validation error: "You cannot revoke your own administrative privileges or delete the last active Super Admin."
@@ -294,7 +294,7 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 - **FR-002**: System MUST implement breadcrumb navigation in the top bar that reflects the current route hierarchy and links back to parent views.
 - **FR-003**: Sidebar MUST support a collapsible state (icon-only) that persists to local storage; animation between states MUST complete within 200ms.
 - **FR-004**: System MUST be responsive; on viewports < 1024px, the sidebar MUST convert to a slide-out drawer pattern controlled by a hamburger menu.
-- **FR-005:** System MUST persist the user's Theme preference (Light/Dark) in `localStorage` and strictly adhere to the `prefers-color-scheme` media query on first load if no preference is saved.
+- **FR-005:** System MUST persist the user's Theme preference (Light/Dark) in `localStorage` and strictly adhere to the `prefers-color-scheme` media query on first load if no preference is saved. *(See also FR-052 for theme mode support.)*
 - **FR-006:** All navigation elements, including sidebar toggles and dropdowns, MUST be fully navigable via keyboard (Tab/Enter/Arrow keys) and display visible focus rings (WCAG 2.1 AA).
 
 #### Dashboard (US-1)
@@ -317,8 +317,7 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 
 - **FR-015**: Data tables MUST support pagination with configurable page sizes (10, 20, 50, 100).
 - **FR-016**: Data tables MUST support multi-row selection with checkbox column and bulk actions toolbar.
-- **FR-017**: Data tables MUST display empty state with illustration when no data matches filters.
-- **FR-018**: Data table MUST display an illustration and "Clear Filters" button if filters are active.
+- **FR-017**: Data tables MUST display empty state with illustration when no data matches filters; when filters are active, the empty state MUST include a "Clear Filters" button.
 
 #### Page Editor (US-3)
 - **FR-019**: Page editor MUST display a two-column layout: content fields on the left, SEO/settings sidebar on the right.
@@ -364,11 +363,11 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 - **FR-047**: System MUST support refresh tokens with 7-day expiry stored in httpOnly cookies.
 - **FR-048**: System MUST implement idle timeout at 30 minutes with a visual warning modal at 25 minutes.
 - **FR-049**: System MUST implement account lockout after 5 consecutive failed login attempts.
-- **FR-050**: System MUST implement role-based access control with three roles: Admin (full access), Editor (content CRUD, read-only submissions/redirects), Viewer (read-only everywhere).
+- **FR-050**: System MUST implement role-based access control with four roles: Super Admin (full access including user/role management), Admin (full content access, read-only users/roles), Editor (content CRUD, read-only submissions/redirects), Viewer (read-only everywhere).
 - **FR-051**: System MUST log all admin actions to an audit log with user, action, entity, entity ID, timestamp, and IP address.
 
 #### Theme & Accessibility (US-8, US-10)
-- **FR-052**: System MUST support light and dark theme modes with user preference persistence across sessions.
+- **FR-052**: System MUST support light and dark theme modes with smooth transitions; user preference persistence is defined in FR-005.
 - **FR-053**: System MUST meet WCAG 2.1 AA accessibility standards including keyboard navigation, ARIA labels, and color contrast ratios.
 - **FR-054**: All interactive elements MUST be focusable and operable via keyboard with visible focus indicators.
 - **FR-055**: System MUST display loading states with ARIA live regions for screen reader announcements.
@@ -388,7 +387,7 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 - **GalleryItem**: Image assets with title, caption, category, URL, alt text, publish status. Can be referenced by Pages.
 - **Submission**: Form submissions with payload (JSON), source page, consent info, timestamps.
 - **Redirect**: URL redirects with source slug, destination URL, active status.
-- **FAQ**: Frequently asked question with question text, rich-text answer, and display order for controlling presentation sequence on the public site.
+- **FAQ**: Frequently asked question with question text, HTML answer (sanitized via DOMPurify), publish status, and display order for controlling presentation sequence on the public site.
 
 ---
 
@@ -398,7 +397,7 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 
 - **SC-001**: Admin users can navigate to any section from any page within 2 clicks using the sidebar.
 - **SC-002**: Dashboard page loads and displays all widgets within 2 seconds on standard broadband connection.
-- **SC-003**: Data tables with up to 1000 records sort and filter with perceived response time under 500ms.
+- **SC-003**: Data tables with up to 1000 records sort and filter with time from user action to first visible result update under 500ms.
 - **SC-004**: Page auto-save completes within 1 second of edit pause, with visual confirmation shown to user.
 - **SC-005**: 100% of interactive elements are keyboard-accessible (can be focused and activated without mouse).
 - **SC-006**: All text meets WCAG 2.1 AA contrast ratio requirements (4.5:1 for normal text, 3:1 for large text).
@@ -413,10 +412,10 @@ As a super admin, I want to create, edit, and deactivate admin user accounts, so
 
 - The existing API authentication (JWT-based) will be extended rather than replaced.
 - The existing Prisma schema will be extended with new models (AuditLog, Setting, RefreshToken) without breaking changes.
-- The `@modular-house/ui` package will be extended with admin-specific components.
+- Admin-specific UI components will be scoped under `apps/web/src/components/admin/` (application-specific, not reusable across projects via `packages/ui`).
 - Browser support targets: Latest 2 versions of Chrome, Firefox, Safari, Edge.
 - Mobile admin access is "responsive but not optimized" - full functionality available but complex tasks expected on desktop.
-- Initial RBAC implementation will have the three roles defined; granular permissions can be added later.
+- Initial RBAC implementation will have four roles defined (Super Admin, Admin, Editor, Viewer); granular permissions can be added later.
 
 ---
 

@@ -3,7 +3,7 @@
 **Input**: Design documents from `/specs/006-admin-panel-redesign/`
 **Prerequisites**: plan.md (required), spec.md (required), research.md, data-model.md, contracts/api-contracts.md, quickstart.md
 
-**Tests**: Not explicitly requested in the feature specification. Test tasks are omitted. Constitution requires ≥70% coverage overall and 100% branch coverage on auth/RBAC modules — these are enforcement-level concerns handled during development, not separate task items.
+**Tests**: Each implementation task includes writing its own unit tests (≥70% line coverage). Constitution III mandates 100% branch coverage on auth/RBAC critical modules — dedicated test tasks are included in Phase 16 for these.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -39,7 +39,7 @@
 
 ### Database Schema & Seed
 
-- [ ] T005 Extend Prisma schema: add `AuditLog`, `Setting`, `RefreshToken`, `Role`, `Permission`, `RolePermission` models; extend `User` (add `roleId`, `isActive`, `failedLoginAttempts`, `lockedUntil`; remove `roles`); extend `Page` (add `publishStatus`, `version`) in `apps/api/prisma/schema.prisma`
+- [ ] T005 Extend Prisma schema: add `AuditLog`, `Setting`, `RefreshToken`, `Role`, `Permission`, `RolePermission` models; extend `User` (add `roleId`, `isActive`, `failedLoginAttempts`, `lockedUntil`; remove `roles`); extend `Page` (add `publishStatus`, `version`); extend `FAQ` (add `publishStatus`) in `apps/api/prisma/schema.prisma`
 - [ ] T006 Create and run Prisma migration for all schema changes via `apps/api/prisma/migrations/`
 - [ ] T007 Update seed script to create default roles, permissions, role-permission mappings, default settings, and migrate existing admin user to `super_admin` role in `apps/api/prisma/seed.ts`
 
@@ -201,15 +201,16 @@
 
 ### Backend
 
-- [ ] T051 [US11] Extend `GET /admin/faqs` with pagination and search (question text) using pagination utility in `apps/api/src/routes/admin/faqs.ts`
+- [ ] T051 [US11] Extend `GET /admin/faqs` with pagination, search (question text), and publishStatus filter using pagination utility in `apps/api/src/routes/admin/faqs.ts`
+- [ ] T051b [P] [US11] Add `PATCH /admin/faqs/:id/publish` toggle endpoint (sets publishStatus to PUBLISHED or DRAFT) in `apps/api/src/routes/admin/faqs.ts`
 - [ ] T052 [P] [US11] Add `PUT /admin/faqs/reorder` endpoint (accepts `orderedIds` array, updates `displayOrder` for each FAQ in a transaction) in `apps/api/src/routes/admin/faqs.ts`
 
 ### Frontend
 
-- [ ] T053 [US11] Create FAQ management page: `DataTable` for list with search, inline create/edit form (question, rich-text answer, displayOrder), drag-drop reorder via @dnd-kit `SortableContext` + `verticalListSortingStrategy`, delete with ConfirmDialog in `apps/web/src/routes/admin/faqs.tsx`
+- [ ] T053 [US11] Create FAQ management page: `DataTable` for list with search and publishStatus filter, inline create/edit form (question, HTML answer with DOMPurify sanitization, displayOrder, publishStatus toggle), drag-drop reorder via @dnd-kit `SortableContext` + `verticalListSortingStrategy`, delete with ConfirmDialog in `apps/web/src/routes/admin/faqs.tsx`
 - [ ] T054 [US11] Register FAQ route (`/admin/faqs`) in `apps/web/src/App.tsx` and add sidebar nav entry
 
-**Checkpoint**: FAQ management with CRUD and drag-drop reordering.
+**Checkpoint**: FAQ management with CRUD, publish/unpublish, and drag-drop reordering.
 
 ---
 
@@ -334,6 +335,8 @@
 - [ ] T081 [P] Handle edge cases: pagination boundary (auto-navigate to previous page when last item deleted), concurrent session 404 handling (toast + refresh list), debounce race conditions (AbortController cancellation in DataTable search)
 - [ ] T082 Validate quickstart.md flow end-to-end: fresh clone → install → migrate → seed → dev servers → login → dashboard → all admin pages functional
 - [ ] T083 [P] Performance validation: verify API p95 <300ms on paginated endpoints, dashboard load <2s, sidebar animation ≤200ms, LCP <2.5s via Lighthouse CI
+- [ ] T084 [P] Increment API version (minor bump) for new schema models and endpoint additions per constitution semantic versioning requirement
+- [ ] T085 Critical module test coverage verification: ensure 100% branch coverage on auth service (`apps/api/src/services/auth.ts`), RBAC middleware (`apps/api/src/middleware/auth.ts`), refresh token rotation, and account lockout logic; add missing integration tests for auth flow (login → refresh → logout) and RBAC enforcement (role-based route access denial) in `apps/api/tests/integration/`
 
 ---
 
@@ -460,4 +463,4 @@ Developer D: Phase 12 (US7 RBAC) → Phase 13 (US13 Users)
 - Each user story is independently completable and testable after its phase
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
-- Total: **83 tasks** across 16 phases covering 13 user stories
+- Total: **86 tasks** across 16 phases covering 13 user stories

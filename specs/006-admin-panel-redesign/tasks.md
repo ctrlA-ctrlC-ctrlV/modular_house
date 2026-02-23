@@ -24,10 +24,10 @@
 
 **Purpose**: Install new dependencies, configure environment, and ensure project builds cleanly.
 
-- [ ] T001 Install frontend dependencies (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `recharts`, `sonner`, `react-dropzone`) in `apps/web/package.json`
-- [ ] T002 [P] Install backend dependencies (`cookie-parser`, `@types/cookie-parser`) in `apps/api/package.json`
-- [ ] T003 [P] Add new environment variables (`REFRESH_TOKEN_SECRET`, `REFRESH_TOKEN_EXPIRES_IN`, `COOKIE_DOMAIN`) to `apps/api/src/config/env.ts` and `.env.example`
-- [ ] T004 [P] Create admin theme CSS variables (light/dark tokens) in `apps/web/src/styles/admin.css`
+- [x] T001 Install frontend dependencies (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `recharts`, `sonner`, `react-dropzone`) in `apps/web/package.json`
+- [x] T002 [P] Install backend dependencies (`cookie-parser`, `@types/cookie-parser`) in `apps/api/package.json`
+- [x] T003 [P] Add new environment variables (`REFRESH_TOKEN_SECRET`, `REFRESH_TOKEN_EXPIRES_IN`, `COOKIE_DOMAIN`) to `apps/api/src/config/env.ts` and `.env.example`
+- [x] T004 [P] Create admin theme CSS variables (light/dark tokens) in `apps/web/src/styles/admin.css`
 
 ---
 

@@ -39,7 +39,7 @@
 
 ### Database Schema & Seed
 
-- [ ] T005 Extend Prisma schema: add `AuditLog`, `Setting`, `RefreshToken`, `Role`, `Permission`, `RolePermission` models; extend `User` (add `roleId`, `isActive`, `failedLoginAttempts`, `lockedUntil`; remove `roles`); extend `Page` (add `publishStatus`, `version`); extend `FAQ` (add `publishStatus`) in `apps/api/prisma/schema.prisma`
+- [x] T005 Extend Prisma schema: add `AuditLog`, `Setting`, `RefreshToken`, `Role`, `Permission`, `RolePermission` models; extend `User` (add `roleId`, `isActive`, `failedLoginAttempts`, `lockedUntil`; remove `roles`); extend `Page` (add `publishStatus`, `version`); extend `FAQ` (add `publishStatus`) in `apps/api/prisma/schema.prisma`
 - [ ] T006 Create and run Prisma migration for all schema changes via `apps/api/prisma/migrations/`
 - [ ] T007 Update seed script to create default roles, permissions, role-permission mappings, default settings, and migrate existing admin user to `super_admin` role in `apps/api/prisma/seed.ts`
 

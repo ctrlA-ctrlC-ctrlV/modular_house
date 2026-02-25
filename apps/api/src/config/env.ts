@@ -47,8 +47,11 @@ interface MailConfig {
 interface SecurityConfig {
   jwtSecret: string;
   jwtExpiresIn: string;
+  refreshTokenSecret: string;
+  refreshTokenExpiresIn: string;
   passwordSaltRounds: number;
   ipSalt: string;
+  cookieDomain: string;
 }
 
 interface AppConfig {
@@ -130,8 +133,11 @@ export const config: EnvConfig = {
   security: {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
     jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '24h'),
+    refreshTokenSecret: getRequiredEnvVar('REFRESH_TOKEN_SECRET'),
+    refreshTokenExpiresIn: getEnvVar('REFRESH_TOKEN_EXPIRES_IN', '7d'),
     passwordSaltRounds: getNumericEnvVar('PASSWORD_SALT_ROUNDS', 12),
     ipSalt: getRequiredEnvVar('IP_SALT'),
+    cookieDomain: getEnvVar('COOKIE_DOMAIN', 'localhost'),
   },  
   admin: {
     adminEmail: getEnvVar("ADMIN_LOGIN_EMAIL", "testadmin@modular.house"),
@@ -143,6 +149,9 @@ export const config: EnvConfig = {
 if (config.app.nodeEnv === 'production') {
   if (config.security.jwtSecret === 'your-jwt-secret-key-change-in-production') {
     throw new Error('JWT_SECRET must be changed from default value in production');
+  }
+  if (config.security.refreshTokenSecret === 'your-refresh-token-secret-change-in-production') {
+    throw new Error('REFRESH_TOKEN_SECRET must be changed from default value in production');
   }
   if (config.security.passwordSaltRounds < 10) {
     throw new Error('PASSWORD_SALT_ROUNDS must be at least 10 in production');

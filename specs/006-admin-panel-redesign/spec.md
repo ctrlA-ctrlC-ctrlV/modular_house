@@ -26,7 +26,7 @@ As an administrator, I want to see a dashboard with key metrics and quick action
 **Acceptance Scenarios**:
 
 1. **Given** I am logged in as an admin, **When** I navigate to `/admin`, **Then** I see stat cards showing counts for Pages (published and draft), Gallery items (published and draft), Submissions (with today's count), and Redirects (active and inactive).
-2. **Given** I am on the dashboard, **When** I view the submission metric, **Then** I see a bar chart of the current  7 day submission (today and 6 day before.
+2. **Given** I am on the dashboard, **When** I view the submission metric, **Then** I see a bar chart of the current  7 day submission (today and 6 day before).
 3. **Given** I am on the dashboard, **When** I view the activity feed, **Then** I see the 5 most recent system activities with timestamps.
 4. **Given** I am on the dashboard, **When** I click a quick action button, **Then** I am navigated to the corresponding feature (e.g., "New Page" → page editor).
 
@@ -59,9 +59,9 @@ As a content editor, I want to manage website pages with a rich editing interfac
 **Acceptance Scenarios**:
 
 1. **Given** I am on the page list that is **not** the last page, **When** I click on "Next" button, **Then** the table should render the next set of entries, **And** the page indicator should update to the next number.
-2. **Given** I am on the page list that is **not** the first page, **When** I click on "Previous" button, **Then** the table should render the previous set of entries, **And ** the page indicator should decrement by one.
-3. **Given** the table is populated with data, **When** I look ate the pagination footer, **Then** I should see the current page number versus the total number of pages.
-4. **Given** I am on the page list and type into the search field, **When** I entry search text, **Then** page table filters to show matching records after a brief debounce delay.
+2. **Given** I am on the page list that is **not** the first page, **When** I click on "Previous" button, **Then** the table should render the previous set of entries, **And** the page indicator should decrement by one.
+3. **Given** the table is populated with data, **When** I look at the pagination footer, **Then** I should see the current page number versus the total number of pages.
+4. **Given** I am on the page list and type into the search field, **When** I enter search text, **Then** the table filters to show matching records after a brief debounce delay.
 5. **Given** I am on the pages list, **When** I click "New Page" or edit an existing page, **Then** I see a two-column editor with content fields on the left and SEO/settings on the right.
 6. **Given** I am editing a page with multiple sections, **When** I drag a section to a new position, **Then** the section order updates and the change is auto-saved.
 7. **Given** I have unsaved changes, **When** I try to navigate away, **Then** I see a warning dialog asking to confirm leaving.
@@ -112,12 +112,12 @@ As an admin, I want to view form submissions with filtering by date range and so
 
 **Acceptance Scenarios**:
 
-1. **Given** I am on the submissions page, **When** I filter by date range (e.d. Last 30 days), **Then** only submissions within that range are shown.
-2. **Given** I am on the submissions page, **When** I filter by Source (e.g. "/contact"), **Then** only submissions from that source are shown.
-3. **Given** I am on the page list that is **not** the last page, **When** I click on "Next" button, **Then** the table should render the next set of entries, **And** the page indicator should update to the next number.
-4. **Given** I am on the page list that is **not** the first page, **When** I click on "Previous" button, **Then** the table should render the previous set of entries, **And ** the page indicator should decrement by one.
-5. **Given** the table is populated with data, **When** I look ate the pagination footer, **Then** I should see the current page number versus the total number of pages.
-6. **Given** I type into the search field, **When** I entry search text, **Then** page table filters to show matching records in "Form Data" after a brief debounce delay.
+1. **Given** I am on the submissions page, **When** I filter by date range (e.g., "Last 30 days"), **Then** only submissions within that range are shown.
+2. **Given** I am on the submissions page, **When** I filter by Source (e.g., "/contact"), **Then** only submissions from that source are shown.
+3. **Given** I am on the submissions list that is **not** the last page, **When** I click on "Next" button, **Then** the table should render the next set of entries, **And** the page indicator should update to the next number.
+4. **Given** I am on the submissions list that is **not** the first page, **When** I click on "Previous" button, **Then** the table should render the previous set of entries, **And** the page indicator should decrement by one.
+5. **Given** the table is populated with data, **When** I look at the pagination footer, **Then** I should see the current page number versus the total number of pages.
+6. **Given** I type into the search field, **When** I enter search text, **Then** the table filters to show matching records in "Form Data" after a brief debounce delay.
 7. **Given** I click on a submission row, **When** the detail panel expands, **Then** I see all form data, consent status, and submission metadata.
 8. **Given** I click "Export CSV", **When** the export completes, **Then** a CSV file downloads with all visible submissions.
 
@@ -187,6 +187,55 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 ---
 
+### User Story 11 - FAQ Management (Priority: P2)
+
+As a content editor, I want to manage Frequently Asked Questions through the admin panel, so I can keep FAQ content current and properly ordered for customers.
+
+**Why this priority**: FAQs are a key element of customer self-service and directly reduce support workload. The FAQ data model already exists in the database but has no admin management interface.
+
+**Independent Test**: Can be tested by creating, editing, reordering, and deleting FAQ entries, then verifying changes reflect on the public site.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am on the FAQ management page, **When** I click "Add FAQ", **Then** I see a form with question, rich-text answer, and display order fields.
+2. **Given** FAQs exist in the list, **When** I drag an FAQ to a new position, **Then** the display order updates to reflect the new sequence.
+3. **Given** an FAQ exists, **When** I click edit, update the answer, and save, **Then** the updated answer is persisted and visible on the public site.
+4. **Given** an FAQ exists, **When** I click delete and confirm, **Then** the FAQ is removed from both the admin list and the public site.
+
+---
+
+### User Story 12 - Site Settings Management (Priority: P3)
+
+As a site administrator, I want to manage site-wide settings (site name, contact email, SEO defaults, notification preferences) through a Settings page, so I can configure the site without developer involvement.
+
+**Why this priority**: Settings centralize configuration that currently requires code changes. Important for operational autonomy but not blocking core content workflows.
+
+**Independent Test**: Can be tested by changing a setting (e.g., Site Name) and verifying it takes effect where referenced.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am on the Settings page, **When** I update the Site Name field and click "Save Changes", **Then** the new site name is persisted and reflected across the admin interface.
+2. **Given** I am on the Settings page, **When** I toggle "Email on new submission" to enabled, **Then** new form submissions trigger email notifications.
+3. **Given** I am on my Profile page, **When** I change my password and save, **Then** I can log in with the new password on next session.
+
+---
+
+### User Story 13 - User Account Management (Priority: P3)
+
+As a super admin, I want to create, edit, and deactivate admin user accounts, so I can manage team access to the admin panel.
+
+**Why this priority**: User management enables delegation and team growth. The system currently has a single seeded admin user with no management interface.
+
+**Independent Test**: Can be tested by creating a new user with a specific role, logging in as that user, and verifying access matches the assigned role.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am a super admin on the Users page, **When** I click "Add User" and fill in email, password, and role, **Then** a new admin account is created and appears in the user list.
+2. **Given** a user exists, **When** I edit their role from "Viewer" to "Editor", **Then** their access permissions update on their next login.
+3. **Given** a user exists, **When** I deactivate their account, **Then** they can no longer log in and see an "Account deactivated" message.
+
+---
+
 ### Edge Cases
 
 - System-Wide & Architectural
@@ -216,7 +265,7 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 - US 6: Submissions
   - Malicious Payload Display (XSS): What happens if a bot submits a form with `<script>` tags in the name field? $\rightarrow$ The Admin Submissions view must strictly escape all HTML entities when rendering the table and details view to prevent Cross-Site Scripting attacks against the administrator.
-  - Massive Export: What happens if a user tries to export 1,000,000 records? $\rightarrow$ The request should be offloaded to a background job; the user receives a notification/email with a download link when ready, rather than blocking the browser thread.
+  - Massive Export: What happens if a user tries to export more records than practical for synchronous download? $\rightarrow$ At the current scale (~1000 records max), CSV export uses server-side streaming. If scale exceeds 10,000 records in the future, the request should be offloaded to a background job with an email download link.
 
 - US 7: Role-Based Access Control (RBAC)
   - Self-Lockout Prevention: What happens if a Super Admin tries to remove the "Admin" role from their own account or delete the last remaining Super Admin user? $\rightarrow$ The system must block this action with a validation error: "You cannot revoke your own administrative privileges or delete the last active Super Admin."
@@ -245,7 +294,7 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 - **FR-002**: System MUST implement breadcrumb navigation in the top bar that reflects the current route hierarchy and links back to parent views.
 - **FR-003**: Sidebar MUST support a collapsible state (icon-only) that persists to local storage; animation between states MUST complete within 200ms.
 - **FR-004**: System MUST be responsive; on viewports < 1024px, the sidebar MUST convert to a slide-out drawer pattern controlled by a hamburger menu.
-- **FR-005:** System MUST persist the user's Theme preference (Light/Dark) in `localStorage` and strictly adhere to the `prefers-color-scheme` media query on first load if no preference is saved.
+- **FR-005:** System MUST persist the user's Theme preference (Light/Dark) in `localStorage` and strictly adhere to the `prefers-color-scheme` media query on first load if no preference is saved. *(See also FR-052 for theme mode support.)*
 - **FR-006:** All navigation elements, including sidebar toggles and dropdowns, MUST be fully navigable via keyboard (Tab/Enter/Arrow keys) and display visible focus rings (WCAG 2.1 AA).
 
 #### Dashboard (US-1)
@@ -257,7 +306,7 @@ As an admin user who relies on keyboard navigation, I want all admin features to
   - **Redirects:** Total count split by Active vs. Inactive.
 
 * **FR-009:** Dashboard MUST render a bar chart visualizing submission volume for the rolling 7-day window (Today + previous 6 days).
-* ==**FR-010:** Dashboard MUST render an "Activity Feed" showing the 5 most recent entries from the Audit Log, formatting timestamps relative to the user's current time (e.g., "2 hours ago"). And display in hours when less than 24 hours, else use "day"; display in "day" when less than 72 hours, else use "days"; display number of "years" + "month" when above 365 "days" and if "years" is less than 2 use "year".==
+* **FR-010:** Dashboard MUST render an "Activity Feed" showing the 5 most recent entries from the Audit Log with human-readable relative timestamps (e.g., "2 hours ago", "1 day ago", "3 days ago", "1 year 2 months ago").
 
 #### Shared Data Table Components (US-3, US-5, US-6)
 - **FR-011:** All list views MUST implement server-side pagination. The UI MUST display "Page X of Y" and provide "Next/Previous" controls that are disabled when at the bounds of the dataset.
@@ -268,47 +317,65 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 - **FR-015**: Data tables MUST support pagination with configurable page sizes (10, 20, 50, 100).
 - **FR-016**: Data tables MUST support multi-row selection with checkbox column and bulk actions toolbar.
-- **FR-017**: Data tables MUST display empty state with illustration when no data matches filters.
-- **FR-018**: Data table MUST display an illustration and "Clear Filters" button if filters are active.
+- **FR-017**: Data tables MUST display empty state with illustration when no data matches filters; when filters are active, the empty state MUST include a "Clear Filters" button.
 
-#### Page Editor
-- **FR-015**: Page editor MUST display two-column layout: content fields on left, SEO/settings sidebar on right.
-- **FR-016**: Page editor MUST support drag-and-drop reordering of page sections.
-- **FR-017**: Page editor MUST auto-save changes with 3-second debounce and display save status indicator.
-- **FR-018**: Page editor MUST warn users before navigating away with unsaved changes.
-- **FR-019**: Page editor MUST provide preview functionality that opens current page state in new browser tab.
-- **FR-020**: Page editor MUST include an image manager for selecting/uploading hero images.
+#### Page Editor (US-3)
+- **FR-019**: Page editor MUST display a two-column layout: content fields on the left, SEO/settings sidebar on the right.
+- **FR-020**: Page editor MUST support drag-and-drop reordering of page sections.
+- **FR-021**: Page editor MUST auto-save changes with a 3-second debounce and display a save status indicator ("Saving…", "Saved", "Error").
+- **FR-022**: Page editor MUST warn users before navigating away with unsaved changes via a confirmation dialog.
+- **FR-023**: Page editor MUST provide preview functionality that opens the current page state in a new browser tab.
+- **FR-024**: Page editor MUST include an image manager modal for selecting existing gallery images or uploading new hero images, with alt text editing support.
+- **FR-025**: Page list MUST support a "Duplicate" row action that creates a copy of the selected page with a "-copy" suffix on the slug.
+- **FR-026**: Page editor MUST support Ctrl+S (Cmd+S on Mac) keyboard shortcut to trigger an immediate save.
 
-#### Gallery Management
-- **FR-021**: Gallery MUST support grid view (thumbnail cards) and list view (table) with toggle.
-- **FR-022**: Gallery MUST support filtering by category (Garden Room, House Extension) and status (Draft, Published).
-- **FR-023**: Gallery MUST support bulk operations: Publish, Delete, Change Category for selected items.
-- **FR-024**: Gallery MUST support drag-and-drop image upload with progress indication.
+#### Gallery Management (US-4)
+- **FR-027**: Gallery MUST support grid view (thumbnail cards) and list view (table) with a persistent toggle.
+- **FR-028**: Gallery MUST support filtering by category (Garden Room, House Extension) and status (Draft, Published).
+- **FR-029**: Gallery MUST support bulk operations: Publish, Delete, and Change Category for selected items.
+- **FR-030**: Gallery MUST support drag-and-drop image upload with progress indication.
 
-#### Submissions
-- **FR-025**: Submissions MUST support filtering by date range and source page.
-- **FR-026**: Submissions MUST display expandable row detail showing full form data and metadata.
-- **FR-027**: Submissions MUST support CSV export of filtered data.
+#### Submissions (US-6)
+- **FR-031**: Submissions MUST support filtering by date range and source page.
+- **FR-032**: Submissions MUST display expandable row detail showing full form data, consent status, and submission metadata.
+- **FR-033**: Submissions MUST support CSV export of filtered data.
+- **FR-034**: Submission detail view MUST provide a "Reply via Email" action that opens the user's default email client pre-addressed to the submitter's email.
 
-#### Authentication & Security
-- **FR-028**: System MUST support JWT access tokens (1 hour expiry) stored in memory.
-- **FR-029**: System MUST support refresh tokens (7 day expiry) stored in httpOnly cookie.
-- **FR-030**: System MUST implement idle timeout (30 minutes) with warning at 25 minutes.
-- **FR-031**: System MUST implement account lockout after 5 failed login attempts.
-- **FR-032**: System MUST implement role-based access control with three roles: Admin (full access), Editor (content only), Viewer (read-only).
-- **FR-033**: System MUST log all admin actions to an audit log with user, action, entity, timestamp, and IP.
+#### FAQ Management (US-11)
+- **FR-035**: System MUST provide a CRUD interface for managing Frequently Asked Questions with question, rich-text answer, and display order fields.
+- **FR-036**: FAQ list MUST support drag-and-drop reordering to set display order.
+- **FR-037**: FAQ entries MUST be independently publishable/unpublishable without affecting other entries.
 
-#### Theme & Accessibility
-- **FR-034**: System MUST support light and dark theme modes with user preference persistence.
-- **FR-035**: System MUST meet WCAG 2.1 AA accessibility standards including keyboard navigation, ARIA labels, and color contrast ratios.
-- **FR-036**: All interactive elements MUST be focusable and operable via keyboard.
-- **FR-037**: System MUST display loading states with ARIA live regions for screen reader announcements.
+#### Settings (US-12)
+- **FR-038**: System MUST provide a Settings page with grouped sections: General, Appearance, and Notifications.
+- **FR-039**: General settings MUST allow editing: Site Name, Contact Email, and Default SEO Title.
+- **FR-040**: Appearance settings MUST allow configuring: Admin Theme (Light/Dark) and Sidebar default state (Expanded/Collapsed).
+- **FR-041**: Notification settings MUST allow toggling: "Email on new submission" and "Daily digest" preferences.
+- **FR-042**: System MUST provide a Profile page where the logged-in admin can update their own email and password.
+
+#### User Management (US-13)
+- **FR-043**: System MUST provide a user list view showing all admin users with email, assigned role, and last login timestamp.
+- **FR-044**: Super Admins MUST be able to create, edit, and deactivate admin user accounts.
+- **FR-045**: User creation/edit form MUST include: email, role assignment, and password (required on create, optional on edit).
+
+#### Authentication & Security (US-7, US-9)
+- **FR-046**: System MUST support JWT access tokens with 1-hour expiry stored in memory (not localStorage).
+- **FR-047**: System MUST support refresh tokens with 7-day expiry stored in httpOnly cookies.
+- **FR-048**: System MUST implement idle timeout at 30 minutes with a visual warning modal at 25 minutes.
+- **FR-049**: System MUST implement account lockout after 5 consecutive failed login attempts.
+- **FR-050**: System MUST implement role-based access control with four roles: Super Admin (full access including user/role management), Admin (full content access, read-only users/roles), Editor (content CRUD, read-only submissions/redirects), Viewer (read-only everywhere).
+- **FR-051**: System MUST log all admin actions to an audit log with user, action, entity, entity ID, timestamp, and IP address.
+
+#### Theme & Accessibility (US-8, US-10)
+- **FR-052**: System MUST support light and dark theme modes with smooth transitions; user preference persistence is defined in FR-005.
+- **FR-053**: System MUST meet WCAG 2.1 AA accessibility standards including keyboard navigation, ARIA labels, and color contrast ratios.
+- **FR-054**: All interactive elements MUST be focusable and operable via keyboard with visible focus indicators.
+- **FR-055**: System MUST display loading states with ARIA live regions for screen reader announcements.
+- **FR-056**: A "Skip to Main Content" link MUST appear as the first focusable element for keyboard users.
 
 #### Error Handling
-- **FR-038**: System MUST implement error boundaries to prevent full-page crashes from component errors.
-- **FR-039**: System MUST display toast notifications for success, error, warning, and info messages.
-
-"Layout & Navigation", "Dashboard", "Data Tables", "Page Editor", "Gallery Management", "Submissions", "Authentication & Security", "Error Handling"
+- **FR-057**: System MUST implement error boundaries to prevent full-page crashes from component errors, showing a fallback UI with a recovery option.
+- **FR-058**: System MUST display toast notifications for success, error, warning, and info messages with a maximum of 3 visible simultaneously.
 
 ### Key Entities
 
@@ -320,6 +387,7 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 - **GalleryItem**: Image assets with title, caption, category, URL, alt text, publish status. Can be referenced by Pages.
 - **Submission**: Form submissions with payload (JSON), source page, consent info, timestamps.
 - **Redirect**: URL redirects with source slug, destination URL, active status.
+- **FAQ**: Frequently asked question with question text, HTML answer (sanitized via DOMPurify), publish status, and display order for controlling presentation sequence on the public site.
 
 ---
 
@@ -329,7 +397,7 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 - **SC-001**: Admin users can navigate to any section from any page within 2 clicks using the sidebar.
 - **SC-002**: Dashboard page loads and displays all widgets within 2 seconds on standard broadband connection.
-- **SC-003**: Data tables with up to 1000 records sort and filter with perceived response time under 500ms.
+- **SC-003**: Data tables with up to 1000 records sort and filter with time from user action to first visible result update under 500ms.
 - **SC-004**: Page auto-save completes within 1 second of edit pause, with visual confirmation shown to user.
 - **SC-005**: 100% of interactive elements are keyboard-accessible (can be focused and activated without mouse).
 - **SC-006**: All text meets WCAG 2.1 AA contrast ratio requirements (4.5:1 for normal text, 3:1 for large text).
@@ -344,10 +412,10 @@ As an admin user who relies on keyboard navigation, I want all admin features to
 
 - The existing API authentication (JWT-based) will be extended rather than replaced.
 - The existing Prisma schema will be extended with new models (AuditLog, Setting, RefreshToken) without breaking changes.
-- The `@modular-house/ui` package will be extended with admin-specific components.
+- Admin-specific UI components will be scoped under `apps/web/src/components/admin/` (application-specific, not reusable across projects via `packages/ui`).
 - Browser support targets: Latest 2 versions of Chrome, Firefox, Safari, Edge.
 - Mobile admin access is "responsive but not optimized" - full functionality available but complex tasks expected on desktop.
-- Initial RBAC implementation will have the three roles defined; granular permissions can be added later.
+- Initial RBAC implementation will have four roles defined (Super Admin, Admin, Editor, Viewer); granular permissions can be added later.
 
 ---
 

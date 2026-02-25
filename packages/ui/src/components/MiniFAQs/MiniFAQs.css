@@ -295,7 +295,7 @@
  */
 @media (max-width: 768px) {
   .mini-faqs {
-    padding: 3rem 1rem;
+    padding: 2rem 0 4rem 0;
     padding-inline: 1rem;
   }
 
@@ -303,8 +303,14 @@
     margin-bottom: 2rem;
   }
 
+  .mini-faqs__list-container {
+    padding: 0;
+    max-width: 100%;
+  }
+
   .mini-faqs__item {
-    grid-template-columns: 50px 1px 1fr;
+    /* Adjusted to ~25/75 ratio (1fr 3fr) as requested */
+    grid-template-columns: 1fr 1px 9fr;
     gap: 1rem;
     padding: 2rem 0;
   }
@@ -318,6 +324,7 @@
   }
 
   .mini-faqs__content {
+    padding-left: 1rem;
     gap: 1rem;
   }
 

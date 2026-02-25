@@ -19,7 +19,7 @@
  * - Feature Grid: 4 columns (desktop) -> 2 columns (tablet) -> 1 column (mobile)
  * 
  * ACCESSIBILITY:
- * - Uses semantic heading hierarchy (h1, h5, h6)
+ * - Uses semantic heading hierarchy (h2, h5, h6)
  * - Supports custom icon elements via ReactNode for accessible SVG handling
  * 
  * USAGE:
@@ -86,7 +86,7 @@ export interface FeatureSectionProps {
   topHeading?: string;
   
   /**
-   * The primary H1 heading for the section.
+   * The primary H2 heading for the section.
    * Should be compelling and summarize the section's purpose.
    * @default "Elevate spaces with expertise"
    */
@@ -180,9 +180,9 @@ export const FeatureSection: React.FC<FeatureSectionProps> = ({
         */}
         <div className="feature-section__split">
           <div className="feature-section__split-left">
-            <h1 className="feature-section__main-heading">
+            <h2 className="feature-section__main-heading">
               {mainHeading}
-            </h1>
+            </h2>
           </div>
           <div className="feature-section__split-right">
             <div className="feature-section__intro-text">

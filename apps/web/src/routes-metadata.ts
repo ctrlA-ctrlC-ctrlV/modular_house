@@ -20,7 +20,7 @@ export const routesMetadata: RouteMetadata[] = [
             logo: 'https://modularhouse.ie/logo_black.png', // Placeholder
             sameAs: [
               'https://www.facebook.com/p/Sdeal-Ltd-61574559341381/',
-              'https://www.tiktok.com/@sdeal.ie'
+              'https://www.tiktok.com/@modularhouse.ie'
             ]
           }
         }

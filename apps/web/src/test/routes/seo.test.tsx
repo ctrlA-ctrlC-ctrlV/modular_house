@@ -56,7 +56,7 @@ describe('SEO Integration', () => {
     await waitFor(() => {
       const metaDescription = document.querySelector('meta[name="description"]');
       expect(metaDescription).toBeInTheDocument();
-      expect(metaDescription).toHaveAttribute('content', 'Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery.');
+      expect(metaDescription).toHaveAttribute('content', 'Ireland’s specialist in steel frame garden rooms and house extensions. Experience the future of construction with bespoke, energy-efficient designs built in weeks, not months.');
     });
   });
 });

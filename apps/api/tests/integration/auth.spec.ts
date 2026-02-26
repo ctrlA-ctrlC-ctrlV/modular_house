@@ -3,13 +3,11 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app.js';
 import { AuthService } from '../../src/services/auth.js';
-import { isDatabaseAvailable } from '../helpers/db-check.js';
 
-const dbAvailable = await isDatabaseAvailable();
 const prisma = new PrismaClient();
 const authService = new AuthService();
 
-describe.skipIf(!dbAvailable)('Admin Auth Endpoints', () => {
+describe('Admin Auth Endpoints', () => {
   const testUser = {
     email: 'admin@test.com',
     password: 'testPassword123!',
@@ -22,7 +20,7 @@ describe.skipIf(!dbAvailable)('Admin Auth Endpoints', () => {
     });
 
     // Create a test admin user
-    await authService.createUser(testUser.email, testUser.password, 'admin');
+    await authService.createUser(testUser.email, testUser.password, ['admin']);
   });
 
   afterAll(async () => {
@@ -143,7 +141,7 @@ describe.skipIf(!dbAvailable)('Admin Auth Endpoints', () => {
   });
 });
 
-describe.skipIf(!dbAvailable)('AuthService', () => {
+describe('AuthService', () => {
   const testEmail = 'service-test@test.com';
   const testPassword = 'testPassword123!';
 

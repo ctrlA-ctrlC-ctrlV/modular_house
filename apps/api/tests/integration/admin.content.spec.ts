@@ -3,10 +3,12 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app.js';
+import { isDatabaseAvailable } from '../helpers/db-check.js';
 
+const dbAvailable = await isDatabaseAvailable();
 const prisma = new PrismaClient();
 
-describe('Admin Content Integration', () => {
+describe.skipIf(!dbAvailable)('Admin Content Integration', () => {
   const JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret';
   let adminToken: string;
 

@@ -15,6 +15,7 @@ if (!process.env.NODE_ENV) {
 
 // Set other test defaults
 process.env.JWT_SECRET = 'test-jwt-secret';
+process.env.REFRESH_TOKEN_SECRET = 'test-refresh-token-secret';
 process.env.IP_SALT = 'test-ip-salt-for-testing-only';
 process.env.MAIL_HOST = 'localhost';
 process.env.MAIL_PORT = '1025';

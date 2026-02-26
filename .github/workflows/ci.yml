@@ -10,6 +10,8 @@ on:
       - '**-ssl-traefik'
       - '**-style-makeover'
       - '**-seo-maximization'
+      - '**-admin-panel-redesign'
+      - '**-seo-improvement'
   pull_request:
     branches:
       - main

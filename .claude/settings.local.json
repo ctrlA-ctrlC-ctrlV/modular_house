@@ -3,7 +3,9 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(cd:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(npm run:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

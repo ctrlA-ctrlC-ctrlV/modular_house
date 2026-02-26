@@ -28,7 +28,7 @@
 
 **⚠️ CRITICAL**: Phases 3–7 all depend on these changes. TypeScript compilation must pass with zero errors after this phase before proceeding.
 
-- [ ] T002 [P] [US1] In `packages/ui/src/components/Seo/Seo.tsx`, add five optional fields to the `OpenGraph` interface: `imageWidth?: number`, `imageHeight?: number`, `imageType?: string`, `locale?: string`, `article_modified_time?: string`. (The `locale` field is needed so that `openGraph?.locale` compiles without a TypeScript error; `article_modified_time` is needed for FR-016.) Then in the component's JSX render block, add conditional meta tag emissions immediately after the existing `og:image` tag:
+- [x] T002 [P] [US1] In `packages/ui/src/components/Seo/Seo.tsx`, add five optional fields to the `OpenGraph` interface: `imageWidth?: number`, `imageHeight?: number`, `imageType?: string`, `locale?: string`, `article_modified_time?: string`. (The `locale` field is needed so that `openGraph?.locale` compiles without a TypeScript error; `article_modified_time` is needed for FR-016.) Then in the component's JSX render block, add conditional meta tag emissions immediately after the existing `og:image` tag:
   - `{openGraph?.imageWidth && <meta property="og:image:width" content={String(openGraph.imageWidth)} />}`
   - `{openGraph?.imageHeight && <meta property="og:image:height" content={String(openGraph.imageHeight)} />}`
   - `{openGraph?.imageType && <meta property="og:image:type" content={openGraph.imageType} />}`
@@ -36,7 +36,7 @@
 
   Also add `og:locale` emission: `<meta property="og:locale" content={openGraph?.locale ?? 'en_IE'} />` (default `en_IE` for regional search signal).
 
-- [ ] T003 [P] [US1] In `apps/web/src/types/seo.ts`, extend the `SEOConfig` interface by importing `OpenGraph` and `TwitterCard` types from `@modular-house/ui` (to avoid duplicating type definitions) and adding four new optional fields: `canonicalUrl?: string`, `robots?: string`, `openGraph?: OpenGraph`, `twitter?: TwitterCard`. Also add `lastmod?: string` as an optional field to the `SitemapConfig` interface in the same file (this will be used by Phase 7 / US3). All new fields are optional — existing route entries remain valid without changes.
+- [x] T003 [P] [US1] In `apps/web/src/types/seo.ts`, extend the `SEOConfig` interface by importing `OpenGraph` and `TwitterCard` types from `@modular-house/ui` (to avoid duplicating type definitions) and adding four new optional fields: `canonicalUrl?: string`, `robots?: string`, `openGraph?: OpenGraph`, `twitter?: TwitterCard`. Also add `lastmod?: string` as an optional field to the `SitemapConfig` interface in the same file (this will be used by Phase 7 / US3). All new fields are optional — existing route entries remain valid without changes.
 
 **Checkpoint**: Run `pnpm tsc --noEmit` from monorepo root. Must report zero TypeScript errors before proceeding to Phase 3.
 
@@ -46,7 +46,7 @@
 
 **Purpose**: Create the reusable pure-function utility that generates `WebPage` + `BreadcrumbList` + `WebSite` schemas. Must be complete before Phase 4 (route metadata) can use it.
 
-- [ ] T004 [US2] Create `apps/web/src/utils/schema-generators.ts` as a new file with two exported functions:
+- [x] T004 [US2] Create `apps/web/src/utils/schema-generators.ts` as a new file with two exported functions:
 
   **`generatePageSchema(path, title, description, buildTimestamp)`** — returns `SchemaDef[]` with exactly 2 items:
   - Item 0: `WebPage` schema with `@id` = `https://modularhouse.ie${path}#webpage`, `url` = `https://modularhouse.ie${path}` (or `https://modularhouse.ie/` for `/`), `name` = title, `description` = description, `datePublished` = buildTimestamp, `dateModified` = buildTimestamp, `breadcrumb.@id` = `https://modularhouse.ie${path}#breadcrumb`.
@@ -56,7 +56,7 @@
 
   At the top of the file, declare `const BASE_URL = 'https://modularhouse.ie'` as a module-level constant. Import `SchemaDef` from the app's types. The functions must have no React or DOM dependencies so they can be called from Node.js build scripts.
 
-- [ ] T005 [US2] Create `apps/web/src/utils/__tests__/schema-generators.test.ts` with the following four test cases to achieve 100% branch coverage:
+- [x] T005 [US2] Create `apps/web/src/utils/__tests__/schema-generators.test.ts` with the following four test cases to achieve 100% branch coverage:
   1. `generatePageSchema('/', 'Home Title', 'Home Desc', '2026-02-25T10:00:00.000Z')` — assert the return value is an array of length 2; assert item[0].type === `'WebPage'`; assert item[0].data['@id'] ends with `#webpage`; assert item[1].data.itemListElement has length 1 (homepage variant).
   2. `generatePageSchema('/garden-room', 'Garden Rooms', 'Desc', '2026-02-25T10:00:00.000Z')` — assert item[1].data.itemListElement has length 2; assert itemListElement[0].item === `'https://modularhouse.ie'`; assert itemListElement[1].name === `'Garden Rooms'`.
   3. `generatePageSchema('/about', 'About', 'Desc', '2026-02-25T10:00:00.000Z')` — assert item[0].data.datePublished === `'2026-02-25T10:00:00.000Z'`; assert item[0].data.dateModified === `'2026-02-25T10:00:00.000Z'` (timestamp is embedded correctly in both fields).

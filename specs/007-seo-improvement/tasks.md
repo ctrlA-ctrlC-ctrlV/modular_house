@@ -18,7 +18,7 @@
 
 **Purpose**: Verify the build environment works before making any changes, so you have a clean baseline to compare against.
 
-- [ ] T001 Run `pnpm --filter web build` from monorepo root and confirm it completes with zero TypeScript errors. Save the baseline count of `<title>` tags in `dist/client/index.html` (run `grep -c "<title>" dist/client/index.html`) for later comparison.
+- [x] T001 Run `pnpm --filter web build` from monorepo root and confirm it completes with zero TypeScript errors. Save the baseline count of `<title>` tags in `dist/client/index.html` (run `grep -c "<title>" dist/client/index.html`) for later comparison.
 
 ---
 
@@ -177,7 +177,7 @@
        />
      )}
      ```
-  Do not touch any other part of `TemplateLayout.tsx`. The `StructuredData` component (if present in the file) should be left in place — it is not removed by this task.
+     Do not touch any other part of `TemplateLayout.tsx`. The `StructuredData` component (if present in the file) should be left in place — it is not removed by this task.
 
 **Checkpoint**: Run `pnpm tsc --noEmit`. Must report zero TypeScript errors. Run `pnpm --filter web dev` and open `http://localhost:3000/garden-room` in a browser, inspect `<head>` in DevTools — confirm `og:title`, `link[rel=canonical]`, and `meta[name=robots]` are all present.
 

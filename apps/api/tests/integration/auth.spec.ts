@@ -10,6 +10,18 @@ const dbAvailable = await isDatabaseAvailable();
 const prisma = new PrismaClient();
 const authService = new AuthService();
 
+/**
+ * Ensure the 'admin' role exists in the database.
+ * In CI the DB is migrated but not seeded, so the Role table may be empty.
+ */
+async function ensureAdminRole() {
+  await prisma.role.upsert({
+    where: { name: 'admin' },
+    update: {},
+    create: { name: 'admin', description: 'Full content management access', isSystem: true },
+  });
+}
+
 describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
   const testUser = {
     email: 'admin@test.com',
@@ -17,6 +29,8 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
   };
 
   beforeAll(async () => {
+    await ensureAdminRole();
+
     // Clean up any existing test user
     await prisma.user.deleteMany({
       where: { email: testUser.email },
@@ -165,6 +179,7 @@ describe.runIf(dbAvailable)('AuthService', () => {
   };
 
   beforeAll(async () => {
+    await ensureAdminRole();
     await cleanUpUsers();
   });
 

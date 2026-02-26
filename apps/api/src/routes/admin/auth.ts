@@ -38,7 +38,7 @@ router.post('/login', validate({ body: loginSchema }), async (req: Request, res:
       user: {
         id: result.user?.id,
         email: result.user?.email,
-        roles: result.user?.roles,
+        role: result.user?.role,
       },
     });
   } catch (error) {

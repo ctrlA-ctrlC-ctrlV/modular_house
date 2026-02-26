@@ -10,7 +10,7 @@ declare global {
       user?: {
         userId: string;
         email: string;
-        roles: string[];
+        role: string;
       };
     }
   }
@@ -46,13 +46,13 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
 
 export const requireRole = (role: string) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (req.user && req.user.roles.includes(role)) {
+    if (req.user && req.user.role === role) {
       next();
     } else {
       logger.warn({ 
         userId: req.user?.userId, 
         requiredRole: role, 
-        userRoles: req.user?.roles 
+        userRole: req.user?.role 
       }, 'Insufficient permissions');
       
       res.status(403).json({

@@ -12,7 +12,7 @@ interface AuthResult {
   user?: {
     id: string;
     email: string;
-    roles: string[];
+    role: string;
   };
   error?: string;
 }
@@ -20,7 +20,7 @@ interface AuthResult {
 interface TokenPayload {
   userId: string;
   email: string;
-  roles: string[];
+  role: string;
   iat?: number;
   exp?: number;
 }
@@ -49,7 +49,7 @@ export class AuthService {
           id: true,
           email: true,
           passwordHash: true,
-          roles: true,
+          role: { select: { name: true } },
         },
       });
 
@@ -76,7 +76,7 @@ export class AuthService {
       const tokenPayload: TokenPayload = {
         userId: user.id,
         email: user.email,
-        roles: user.roles,
+        role: user.role.name,
       };
 
       const token = jwt.sign(tokenPayload, this.jwtSecret, { 
@@ -91,7 +91,7 @@ export class AuthService {
         user: {
           id: user.id,
           email: user.email,
-          roles: user.roles,
+          role: user.role.name,
         },
       };
     } catch (error) {
@@ -125,7 +125,7 @@ export class AuthService {
     }
   }
 
-  async createUser(email: string, password: string, roles: string[] = ['admin']): Promise<{ success: boolean; user?: { id: string; email: string }; error?: string }> {
+  async createUser(email: string, password: string, roleName: string = 'admin'): Promise<{ success: boolean; user?: { id: string; email: string }; error?: string }> {
     try {
       const normalizedEmail = email.toLowerCase().trim();
       
@@ -139,12 +139,18 @@ export class AuthService {
       }
 
       const passwordHash = await this.hashPassword(password);
+
+      // Look up the role by name
+      const role = await prisma.role.findUnique({ where: { name: roleName } });
+      if (!role) {
+        return { success: false, error: `Role '${roleName}' not found` };
+      }
       
       const user = await prisma.user.create({
         data: {
           email: normalizedEmail,
           passwordHash,
-          roles,
+          roleId: role.id,
         },
         select: {
           id: true,

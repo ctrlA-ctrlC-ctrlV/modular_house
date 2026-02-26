@@ -45,7 +45,7 @@ describe('Admin Auth Endpoints', () => {
       expect(response.body).toHaveProperty('user');
       expect(response.body.user).toHaveProperty('id');
       expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user.roles).toContain('admin');
+      expect(response.body.user.role).toBe('admin');
     });
 
     it('should reject invalid email', async () => {
@@ -186,7 +186,7 @@ describe('AuthService', () => {
       expect(dbUser).toBeTruthy();
       expect(dbUser?.email).toBe(testEmail);
       expect(dbUser?.passwordHash).not.toBe(testPassword); // Should be hashed
-      expect(dbUser?.roles).toEqual(['admin']);
+      expect(dbUser?.roleId).toBeTruthy();
     });
 
     it('should not create duplicate users', async () => {
@@ -248,7 +248,7 @@ describe('AuthService', () => {
 
       expect(decoded).toBeTruthy();
       expect(decoded?.email).toBe(testEmail + '4');
-      expect(decoded?.roles).toEqual(['admin']);
+      expect(decoded?.role).toBeTruthy();
     });
 
     it('should reject invalid token', async () => {

@@ -1,15 +1,44 @@
 import { ComponentType } from 'react';
 
 /**
- * Re-import OpenGraph and TwitterCard from the shared UI package to avoid
- * duplicating type definitions across the monorepo. SEOConfig references these
- * types directly so that route-metadata authors work with the same interfaces
- * that the Seo component accepts — a single source of truth for the contract.
+ * Open Graph protocol metadata — local mirror of the canonical definition in
+ * @modular-house/ui (packages/ui/src/components/Seo/Seo.tsx).
  *
- * The @modular-house/ui package re-exports both types from
- * packages/ui/src/components/Seo/Seo.tsx via packages/ui/src/index.ts.
+ * Defined here rather than re-exported from the UI package so that
+ * tsconfig.node.json (used by Node-only scripts such as sitemap-generator and
+ * prerender) can type-check this file without importing the full React-based
+ * UI library.  Any additions to the UI-package OpenGraph interface should be
+ * mirrored here.
  */
-import type { OpenGraph, TwitterCard } from '@modular-house/ui';
+export interface OpenGraph {
+  title?: string;
+  description?: string;
+  image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageType?: string;
+  locale?: string;
+  article_modified_time?: string;
+  type?: 'website' | 'article' | 'profile' | 'book' | 'music.song' | 'video.movie';
+  url?: string;
+  siteName?: string;
+}
+
+/**
+ * Twitter Card metadata — local mirror of the canonical definition in
+ * @modular-house/ui (packages/ui/src/components/Seo/Seo.tsx).
+ *
+ * See the OpenGraph comment above for the rationale behind the duplication.
+ */
+export interface TwitterCard {
+  cardType?: 'summary' | 'summary_large_image' | 'app' | 'player';
+  creator?: string;
+  site?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+}
 
 /**
  * Defines a JSON-LD schema object structure.

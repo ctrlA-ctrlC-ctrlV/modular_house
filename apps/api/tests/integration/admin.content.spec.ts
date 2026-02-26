@@ -15,7 +15,7 @@ describe('Admin Content Integration', () => {
       { 
         userId: 'test-admin-id', 
         email: 'admin@example.com', 
-        roles: ['admin'] 
+        role: 'admin' 
       },
       JWT_SECRET,
       { expiresIn: '1h' }

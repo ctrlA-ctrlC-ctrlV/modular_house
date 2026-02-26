@@ -5,7 +5,9 @@
       "Bash(cd:*)",
       "Bash(pnpm:*)",
       "Bash(npm run:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git check-attr:*)"
     ]
   }
 }

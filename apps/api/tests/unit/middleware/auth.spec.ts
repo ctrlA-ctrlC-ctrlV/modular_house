@@ -40,7 +40,7 @@ describe('Auth Middleware', () => {
   describe('authenticateJWT', () => {
     it('should call next() if token is valid', () => {
       const token = 'valid.token';
-      const decoded = { userId: '1', email: 'test@test.com', roles: ['admin'] };
+      const decoded = { userId: '1', email: 'test@test.com', role: 'admin' };
       
       mockRequest.headers = { authorization: `Bearer ${token}` };
       verifyTokenMock.mockReturnValue(decoded);
@@ -92,7 +92,7 @@ describe('Auth Middleware', () => {
   describe('requireRole', () => {
     it('should call next() if user has required role', () => {
       (mockRequest as Request).user = { 
-        roles: ['admin', 'editor'],
+        role: 'admin',
         userId: 'test-user',
         email: 'test@example.com'
       };
@@ -105,7 +105,7 @@ describe('Auth Middleware', () => {
 
     it('should return 403 if user does not have required role', () => {
       (mockRequest as Request).user = { 
-        roles: ['editor'],
+        role: 'editor',
         userId: 'test-user',
         email: 'test@example.com'
       };

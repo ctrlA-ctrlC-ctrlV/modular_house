@@ -14,7 +14,7 @@ describe('Admin Auth Integration', () => {
       { 
         userId: 'test-admin-id', 
         email: 'admin@example.com', 
-        roles: ['admin'] 
+        role: 'admin' 
       },
       JWT_SECRET,
       { expiresIn: '1h' }
@@ -25,7 +25,7 @@ describe('Admin Auth Integration', () => {
       { 
         userId: 'test-admin-id', 
         email: 'admin@example.com', 
-        roles: ['admin'] 
+        role: 'admin' 
       },
       JWT_SECRET,
       { expiresIn: '-1h' }
@@ -97,7 +97,7 @@ describe('Admin Auth Integration', () => {
         { 
           userId: 'test-user-id', 
           email: 'user@example.com', 
-          roles: ['user'] // Not admin
+          role: 'user' // Not admin
         },
         JWT_SECRET,
         { expiresIn: '1h' }

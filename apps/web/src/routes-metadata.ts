@@ -149,7 +149,13 @@ export const routesMetadata: RouteMetadata[] = [
                 name: 'Do I need planning permission?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Most of our projects are \u201cExempted Developments\u201d and do not require planning permission. This typically applies to Garden Rooms under 25m\u00b2 and single-story rear extensions under 40m\u00b2, provided the roof height does not exceed 2.5m. We will confirm your specific compliance during our initial site survey.',
+                  // The quote characters and superscript-2 glyphs below are
+                  // intentionally copied verbatim from the Landing.tsx MiniFAQs
+                  // description prop. Google's FAQPage validator compares the
+                  // schema text against the visible rendered text byte-for-byte;
+                  // substituting typographic curly quotes or Unicode escapes for
+                  // the source characters would fail that validation check.
+                  text: 'Most of our projects are "Exempted Developments" and do not require planning permission. This typically applies to Garden Rooms under 25m² and single-story rear extensions under 40m², provided the roof height does not exceed 2.5m. We will confirm your specific compliance during our initial site survey.',
                 },
               },
               {

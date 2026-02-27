@@ -88,47 +88,47 @@
 
 - [x] T007 [US2] Read `apps/web/src/routes/Landing.tsx` to extract the exact question and answer text from the `MiniFAQs` component props (the three FAQ items: "Why choose Steel Frame over timber or block?", "Do I need planning permission?", "Is my build guaranteed?"). Copy the exact answer text verbatim into the `FAQPage` schema `acceptedAnswer.text` values in `routes-metadata.ts` (homepage entry). The text in the schema MUST be identical to the text rendered on the page — do not paraphrase or summarize.
 
-- [ ] T008 [P] [US1] Update the **`/garden-room`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T008 [P] [US1] Update the **`/garden-room`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/garden-room'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'Garden Rooms & Studios | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/garden-room-hero.jpg', imageWidth: 1200, imageHeight: 630, imageType: 'image/jpeg', url: 'https://modularhouse.ie/garden-room', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Garden Rooms & Studios | Modular House', image: 'https://modularhouse.ie/resource/garden-room-hero.jpg', imageAlt: 'Steel frame garden room exterior' }`
   - In the `schema` array, keep the existing `Product` schema and append `...generatePageSchema('/garden-room', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T009 [P] [US1] Update the **`/house-extension`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T009 [P] [US1] Update the **`/house-extension`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/house-extension'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'House Extensions | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/house-extension-hero.jpg', imageWidth: 1200, imageHeight: 630, imageType: 'image/jpeg', url: 'https://modularhouse.ie/house-extension', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'House Extensions | Modular House', image: 'https://modularhouse.ie/resource/house-extension-hero.jpg', imageAlt: 'Steel frame house extension exterior' }`
   - In the `schema` array, keep the existing `Product` schema and append `...generatePageSchema('/house-extension', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T010 [P] [US1] Update the **`/gallery`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T010 [P] [US1] Update the **`/gallery`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/gallery'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'Project Gallery | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/landing_hero.png', imageWidth: 1200, imageHeight: 630, imageType: 'image/png', url: 'https://modularhouse.ie/gallery', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Project Gallery | Modular House', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Modular house construction gallery' }`
   - In the `schema` array (create if not present), add `...generatePageSchema('/gallery', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T011 [P] [US1] Update the **`/about`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T011 [P] [US1] Update the **`/about`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/about'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'About Us | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/landing_hero.png', imageWidth: 1200, imageHeight: 630, imageType: 'image/png', url: 'https://modularhouse.ie/about', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'About Us | Modular House', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Modular House team and office' }`
   - In the `schema` array (create if not present), add `...generatePageSchema('/about', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T012 [P] [US1] Update the **`/contact`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T012 [P] [US1] Update the **`/contact`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/contact'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'Contact Us | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/landing_hero.png', imageWidth: 1200, imageHeight: 630, imageType: 'image/png', url: 'https://modularhouse.ie/contact', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Contact Us | Modular House', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Contact Modular House' }`
   - In the `schema` array, keep the existing `LocalBusiness` schema and append `...generatePageSchema('/contact', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T013 [P] [US1] Update the **`/privacy`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T013 [P] [US1] Update the **`/privacy`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/privacy'`
   - `robots: 'index, follow'`
   - No `openGraph`, no `twitter`, no new schemas — legal pages receive only canonical and robots.
 
-- [ ] T014 [P] [US1] Update the **`/terms`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T014 [P] [US1] Update the **`/terms`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/terms'`
   - `robots: 'index, follow'`
   - No `openGraph`, no `twitter`, no new schemas — legal pages receive only canonical and robots.

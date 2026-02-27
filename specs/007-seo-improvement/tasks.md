@@ -143,7 +143,7 @@
 
 **Prerequisite**: T002 (OpenGraph type extended), T003 (SEOConfig extended), T006–T014 (route metadata populated).
 
-- [ ] T015 [US1] Update `apps/web/src/components/TemplateLayout.tsx`:
+- [x] T015 [US1] Update `apps/web/src/components/TemplateLayout.tsx`:
   1. Remove the import line `import { SEOHead } from './seo/SEOHead';`.
   2. Add the import line `import { Seo } from '@modular-house/ui';`.
   3. Replace the `SEOHead` JSX block:

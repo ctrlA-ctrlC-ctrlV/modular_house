@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DOMPurify from 'dompurify'
 import { contentClient, Page } from '../lib/contentClient'
-import { Seo } from '@modular-house/ui'
 
 function About() {
   const [page, setPage] = useState<Page | null>(null)
@@ -13,11 +12,6 @@ function About() {
 
   return (
     <div className="bg-white">
-      <Seo 
-        title={page?.title || 'About Us'} 
-        description={page?.heroSubhead || 'Learn more about our mission and values.'}
-        canonicalUrl="https://modularhouse.ie/about"
-      />
       <div className="l-container py-16 sm:py-24">
         <div className="text-center">
           <h1 className="u-text-h1 text-4xl font-extrabold text-gray-900">

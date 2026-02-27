@@ -195,20 +195,20 @@
 
 **Prerequisite**: T015 (TemplateLayout consolidated) and T006 (Organization schema moved to routes-metadata.ts homepage entry) must be complete before removing Landing.tsx's Seo call.
 
-- [ ] T016 [US1] Update `apps/web/src/routes/Landing.tsx`:
+- [x] T016 [US1] Update `apps/web/src/routes/Landing.tsx`:
   1. Read the file to confirm the location of the `organizationSchema` variable and `<Seo>` JSX call.
   2. Remove the entire `organizationSchema` variable definition (this data was moved to `routes-metadata.ts` in T006).
   3. Remove the `import { Seo } from '@modular-house/ui';` line.
   4. Remove the `<Seo ... />` JSX element from the render output.
   5. Verify the component still renders correctly — it should now contain no SEO-related code at all.
 
-- [ ] T017 [P] [US1] Update `apps/web/src/routes/GardenRoom.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
+- [x] T017 [P] [US1] Update `apps/web/src/routes/GardenRoom.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
 
-- [ ] T018 [P] [US1] Update `apps/web/src/routes/HouseExtension.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
+- [x] T018 [P] [US1] Update `apps/web/src/routes/HouseExtension.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
 
-- [ ] T019 [P] [US1] Update `apps/web/src/routes/Contact.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
+- [x] T019 [P] [US1] Update `apps/web/src/routes/Contact.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
 
-- [ ] T020 [P] [US1] Update `apps/web/src/routes/About.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element (including any dynamic content-API title/description fallback logic — SEO is now fully static in `routes-metadata.ts`). The component should contain no SEO-related code after this change.
+- [x] T020 [P] [US1] Update `apps/web/src/routes/About.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element (including any dynamic content-API title/description fallback logic — SEO is now fully static in `routes-metadata.ts`). The component should contain no SEO-related code after this change.
 
 **Checkpoint**: Run `pnpm --filter web build`. Must succeed with zero TypeScript errors. Then run: `grep -c "<title>" dist/client/index.html` — must output `1`. Run the same check for `dist/client/garden-room/index.html` — must also output `1`. Any result greater than 1 means a duplicate `<Seo>` call was not removed.
 

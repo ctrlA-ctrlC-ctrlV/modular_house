@@ -106,7 +106,7 @@ function Landing() {
       {/* Hero Section */}
       <div id='landing_hero'>
         <HeroWithSideText 
-          backgroundImage="/resource/landing_hero_1.png"
+          backgroundImage="/resource/landing_hero2.png"
           //"https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
           subtitle="DISCOVER MODULAR LIVING"
           title={

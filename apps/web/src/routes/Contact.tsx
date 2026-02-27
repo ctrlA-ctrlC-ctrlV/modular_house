@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Seo } from '@modular-house/ui';
 import { TextWithContactForm, type TextContactFormData } from '@modular-house/ui';
 import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
@@ -50,12 +49,6 @@ function Contact() {
 
   return (
     <div className="bg-white">
-      <Seo 
-        title="Contact Us" 
-        description="Get in touch with us for your modular house needs."
-        canonicalUrl="https://modularhouse.ie/contact"
-      />
-      
       <TextWithContactForm 
         topLabel="GET IN TOUCH"
         heading="We'd love to hear from you"

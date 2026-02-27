@@ -4,7 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
 import { routes } from '../route-config';
-import { SEOHead } from './seo/SEOHead';
+import { Seo } from '@modular-house/ui';
 import { GoogleTag, GA_TRACKING_ID } from './GoogleTag';
 
 // Import template styles to ensure theme-template variables are applied globally within this layout
@@ -60,17 +60,58 @@ const LayoutContent: React.FC = () => {
     }
   };
 
-  // Find the current route definition to retrieve SEO metadata
-  // We iterate through the central route config and look for a pattern match against the current pathname.
-  // The 'routes' array order ensures that specific paths are matched before the catch-all '*' route.
+  // Find the current route definition to retrieve SEO metadata.
+  // The routes array is iterated in declaration order; specific paths are listed
+  // before the catch-all '*' route to ensure the most precise match wins.
   const currentRoute = routes.find(route => matchPath(route.path, location.pathname));
-  
+
+  // Assemble a single JSON-LD @graph block from the route's schema array.
+  // The @graph pattern mirrors the structure used by Yoast SEO and is the
+  // recommended approach for emitting multiple schema nodes in one <script>
+  // block, avoiding duplicate <script type="application/ld+json"> tags that
+  // can confuse structured-data validators.
+  //
+  // This value is undefined when no schema is defined for the current route,
+  // which causes the Seo component to omit the <script> element entirely.
+  const jsonLd: Record<string, unknown> | undefined =
+    currentRoute?.seo?.schema && currentRoute.seo.schema.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@graph': currentRoute.seo.schema.map(schemaDef => ({
+            '@type': schemaDef.type,
+            ...schemaDef.data,
+          })),
+        }
+      : undefined;
+
   return (
-    // Outer container: Locks the viewport height and prevents default body scroll
+    // Outer container: locks the viewport height and prevents default body scroll,
+    // delegating scrolling to the inner scrollable container.
     <div className="vh-100 w-100 overflow-hidden">
-      {/* Inject SEO metadata for the matched route if configuration exists */}
+      {/*
+        SEO head tag injection for the matched route.
+        The full Seo component from @modular-house/ui replaces the former
+        minimal SEOHead component. It emits all standard meta tags (title,
+        description, robots, canonical), Open Graph tags (og:title, og:image,
+        og:locale, og:image:width/height/type, article:modified_time),
+        Twitter Card tags, and the consolidated JSON-LD @graph block.
+
+        All fields except title are forwarded conditionally: the Seo component
+        renders each tag group only when the corresponding prop is defined.
+        This ensures legal pages (which have no openGraph or schema) emit only
+        the minimal canonical + robots tags they require.
+      */}
       {currentRoute?.seo && (
-        <SEOHead config={currentRoute.seo} titleSuffix=" | Modular House" />
+        <Seo
+          title={currentRoute.seo.title}
+          description={currentRoute.seo.description}
+          canonicalUrl={currentRoute.seo.canonicalUrl}
+          robots={currentRoute.seo.robots}
+          openGraph={currentRoute.seo.openGraph}
+          twitter={currentRoute.seo.twitter}
+          jsonLd={jsonLd}
+          siteTitleSuffix=" | Modular House"
+        />
       )}
 
       {/* 

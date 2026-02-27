@@ -7,7 +7,9 @@
       "Bash(npm run:*)",
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
-      "Bash(git check-attr:*)"
+      "Bash(git check-attr:*)",
+      "Bash(npx tsc:*)",
+      "Bash(powershell:*)"
     ]
   }
 }

@@ -1,16 +1,15 @@
 import { Link } from 'react-router-dom';
 import { apiClient } from '../lib/apiClient';
-import { 
-  FeatureSection, 
-  HeroWithSideText, 
-  CustomIcons, 
-  TwoColumnSplitLayout, 
-  TestimonialGrid, 
+import {
+  FeatureSection,
+  HeroWithSideText,
+  CustomIcons,
+  TwoColumnSplitLayout,
+  TestimonialGrid,
   MiniFAQs,
   ContactFormWithImageBg,
   type ContactFormData,
   MasonryGallery,
-  Seo,
   type LinkRenderer
 } from '@modular-house/ui'
 import { useHeaderConfig } from '../components/HeaderContext';
@@ -38,20 +37,6 @@ function Landing() {
     );
   };
   
-  // SEO orgnization schema
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Modular House Construction',
-    url: 'https://www.modularhouse.ie',
-    logo: 'https://www.modularhouse.ie/logo_black.png',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+3530830280000',
-      contactType: 'Customer Service'
-    }
-  };
-
   const handleContactSubmit = async (data: ContactFormData) => {
     await apiClient.submitEnquiry({
       firstName: data.firstName,
@@ -67,35 +52,6 @@ function Landing() {
 
   return (
     <div>
-      {/** SEO Integration
-       * description="Transform your home with precision steel frame garden rooms and extensions. Built in weeks, not months. Superior energy efficiency & turnkey delivery."
-       */}
-      <Seo 
-        title="Steel Frame Garden Rooms & House Extensions" 
-        description="Ireland’s specialist in steel frame garden rooms and house extensions. Experience the future of construction with bespoke, energy-efficient designs built in weeks, not months."
-        canonicalUrl="https://modularhouse.ie/"
-
-        // Open Graph for Facebook/LinkedIn sharing optimization
-        openGraph={{
-          type: 'website',
-          title: 'Steel Frame Garden Rooms & House Extensions | Modular House',
-          description: 'Ireland’s specialist in steel frame garden rooms and house extensions. Experience the future of construction with bespoke, energy-efficient designs built in weeks, not months.',
-          image: 'https://modularhouse.ie/resource/landing_hero.png',
-          siteName: 'Modular House Construction',
-        }}
-
-        // Twitter Card optimization
-        twitter={{
-          cardType: 'summary_large_image',
-          site: '@ModularHouse',
-          title: 'Fast, Durable Steel Frame Garden Rooms & Extensions',
-          image: 'https://modularhouse.ie/resource/landing_hero.png',
-        }}
-
-        // Rich Snippets data
-        jsonLd={organizationSchema}
-      />
-
       {/* Smooth scrolling behavior */}
       <style>{`
         html {
@@ -106,7 +62,7 @@ function Landing() {
       {/* Hero Section */}
       <div id='landing_hero'>
         <HeroWithSideText 
-          backgroundImage="/resource/landing_hero_1.png"
+          backgroundImage="/resource/landing_hero2.png"
           //"https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
           subtitle="DISCOVER MODULAR LIVING"
           title={
@@ -196,6 +152,10 @@ function Landing() {
           description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
           button1Text = "Get a free quote today"
           button1Link = "/contact"
+          image1Src = '/resource/garden-room/garden-room2.png'
+          image1Alt = 'Garden Room 1'
+          image2Src='/resource/garden-room/garden-room5.png'
+          image2Alt='Garden Room 2'
           bottomText="We blend sleek architectural aesthetics with cutting-edge steel frame engineering to deliver garden rooms that are built to impress, and built to last. Every project is tailored to your needs, with minimal disruption and maximum impact.
 
           Our team handles everything from design to installation, ensuring a smooth, stress-free process. Whether you're after extra space for work, wellness, or weekend lounging, we're here to make it happen, beautifully and efficiently."
@@ -214,6 +174,8 @@ function Landing() {
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
             button1Text = "Get a free quote today"
             button1Link = "/contact"
+            image1Src = '/resource/garden-room/hosue-extension1.png'
+            image1Alt = 'House Extension 1'
             bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
             
             From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."

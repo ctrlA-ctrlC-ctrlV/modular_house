@@ -9,6 +9,20 @@
  * =============================================================================
  */
 
+/**
+ * Re-export the build timestamp from the shared source-of-truth module.
+ *
+ * BUILD_TIMESTAMP is declared in src/build-timestamp.ts so that both the
+ * browser bundle (which imports routes-metadata.ts) and Node.js build scripts
+ * (prerender.ts, sitemap-generator.ts) can import it from a single location
+ * without creating a cross-tsconfig boundary violation.
+ *
+ * This re-export satisfies T022 (prerender.ts must export BUILD_TIMESTAMP) and
+ * preserves backward compatibility for any future scripts that import it from
+ * this module directly.
+ */
+export { BUILD_TIMESTAMP } from '../src/build-timestamp';
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';

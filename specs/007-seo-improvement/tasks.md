@@ -72,7 +72,7 @@
 
 **Prerequisite**: T004 (schema generators) must be complete. T002 and T003 (extended types) must be complete.
 
-- [ ] T006 [US1] [US2] [US3] Update `apps/web/src/routes-metadata.ts`. At the top of the file, import `BUILD_TIMESTAMP` **from `prerender.ts`** (T022 must be done first) and import the two schema generators:
+- [x] T006 [US1] [US2] [US3] Update `apps/web/src/routes-metadata.ts`. At the top of the file, import `BUILD_TIMESTAMP` **from `prerender.ts`** (T022 must be done first) and import the two schema generators:
   ```typescript
   import { BUILD_TIMESTAMP } from '../scripts/prerender';
   import { generatePageSchema, generateWebSiteSchema } from './utils/schema-generators';
@@ -86,49 +86,49 @@
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Steel Frame Garden Rooms & House Extensions', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Steel frame modular house garden room exterior' }`
   - In the `schema` array: move the existing `Organization` schema data from `Landing.tsx` into this entry, then append `generateWebSiteSchema()` and `...generatePageSchema('/', '<title>', '<description>', BUILD_TIMESTAMP)`. Also add the `FAQPage` schema as a `SchemaDef` with `type: 'FAQPage'` and `data.mainEntity` containing the three FAQ question/answer objects (see T007 for exact FAQ text extraction step).
 
-- [ ] T007 [US2] Read `apps/web/src/routes/Landing.tsx` to extract the exact question and answer text from the `MiniFAQs` component props (the three FAQ items: "Why choose Steel Frame over timber or block?", "Do I need planning permission?", "Is my build guaranteed?"). Copy the exact answer text verbatim into the `FAQPage` schema `acceptedAnswer.text` values in `routes-metadata.ts` (homepage entry). The text in the schema MUST be identical to the text rendered on the page — do not paraphrase or summarize.
+- [x] T007 [US2] Read `apps/web/src/routes/Landing.tsx` to extract the exact question and answer text from the `MiniFAQs` component props (the three FAQ items: "Why choose Steel Frame over timber or block?", "Do I need planning permission?", "Is my build guaranteed?"). Copy the exact answer text verbatim into the `FAQPage` schema `acceptedAnswer.text` values in `routes-metadata.ts` (homepage entry). The text in the schema MUST be identical to the text rendered on the page — do not paraphrase or summarize.
 
-- [ ] T008 [P] [US1] Update the **`/garden-room`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T008 [P] [US1] Update the **`/garden-room`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/garden-room'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'Garden Rooms & Studios | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/garden-room-hero.jpg', imageWidth: 1200, imageHeight: 630, imageType: 'image/jpeg', url: 'https://modularhouse.ie/garden-room', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Garden Rooms & Studios | Modular House', image: 'https://modularhouse.ie/resource/garden-room-hero.jpg', imageAlt: 'Steel frame garden room exterior' }`
   - In the `schema` array, keep the existing `Product` schema and append `...generatePageSchema('/garden-room', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T009 [P] [US1] Update the **`/house-extension`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T009 [P] [US1] Update the **`/house-extension`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/house-extension'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'House Extensions | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/house-extension-hero.jpg', imageWidth: 1200, imageHeight: 630, imageType: 'image/jpeg', url: 'https://modularhouse.ie/house-extension', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'House Extensions | Modular House', image: 'https://modularhouse.ie/resource/house-extension-hero.jpg', imageAlt: 'Steel frame house extension exterior' }`
   - In the `schema` array, keep the existing `Product` schema and append `...generatePageSchema('/house-extension', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T010 [P] [US1] Update the **`/gallery`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T010 [P] [US1] Update the **`/gallery`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/gallery'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'Project Gallery | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/landing_hero.png', imageWidth: 1200, imageHeight: 630, imageType: 'image/png', url: 'https://modularhouse.ie/gallery', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Project Gallery | Modular House', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Modular house construction gallery' }`
   - In the `schema` array (create if not present), add `...generatePageSchema('/gallery', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T011 [P] [US1] Update the **`/about`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T011 [P] [US1] Update the **`/about`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/about'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'About Us | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/landing_hero.png', imageWidth: 1200, imageHeight: 630, imageType: 'image/png', url: 'https://modularhouse.ie/about', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'About Us | Modular House', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Modular House team and office' }`
   - In the `schema` array (create if not present), add `...generatePageSchema('/about', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T012 [P] [US1] Update the **`/contact`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T012 [P] [US1] Update the **`/contact`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/contact'`
   - `robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'`
   - `openGraph: { type: 'website', title: 'Contact Us | Modular House', description: '<existing description>', image: 'https://modularhouse.ie/resource/landing_hero.png', imageWidth: 1200, imageHeight: 630, imageType: 'image/png', url: 'https://modularhouse.ie/contact', siteName: 'Modular House Construction', article_modified_time: BUILD_TIMESTAMP }`
   - `twitter: { cardType: 'summary_large_image', site: '@ModularHouse', title: 'Contact Us | Modular House', image: 'https://modularhouse.ie/resource/landing_hero.png', imageAlt: 'Contact Modular House' }`
   - In the `schema` array, keep the existing `LocalBusiness` schema and append `...generatePageSchema('/contact', '<title>', '<description>', BUILD_TIMESTAMP)`.
 
-- [ ] T013 [P] [US1] Update the **`/privacy`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T013 [P] [US1] Update the **`/privacy`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/privacy'`
   - `robots: 'index, follow'`
   - No `openGraph`, no `twitter`, no new schemas — legal pages receive only canonical and robots.
 
-- [ ] T014 [P] [US1] Update the **`/terms`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
+- [x] T014 [P] [US1] Update the **`/terms`** route entry in `apps/web/src/routes-metadata.ts` to add to its `seo` object:
   - `canonicalUrl: 'https://modularhouse.ie/terms'`
   - `robots: 'index, follow'`
   - No `openGraph`, no `twitter`, no new schemas — legal pages receive only canonical and robots.
@@ -143,7 +143,7 @@
 
 **Prerequisite**: T002 (OpenGraph type extended), T003 (SEOConfig extended), T006–T014 (route metadata populated).
 
-- [ ] T015 [US1] Update `apps/web/src/components/TemplateLayout.tsx`:
+- [x] T015 [US1] Update `apps/web/src/components/TemplateLayout.tsx`:
   1. Remove the import line `import { SEOHead } from './seo/SEOHead';`.
   2. Add the import line `import { Seo } from '@modular-house/ui';`.
   3. Replace the `SEOHead` JSX block:
@@ -181,7 +181,7 @@
 
 **Checkpoint**: Run `pnpm tsc --noEmit`. Must report zero TypeScript errors. Run `pnpm --filter web dev` and open `http://localhost:3000/garden-room` in a browser, inspect `<head>` in DevTools — confirm `og:title`, `link[rel=canonical]`, and `meta[name=robots]` are all present.
 
-- [ ] T015a [US1] Update the existing TemplateLayout render test file. First locate it by running `grep -r "TemplateLayout" apps/web/src --include="*.test.*" -l` — use whichever file is returned. Add two new test cases:
+- [x] T015a [US1] Update the existing TemplateLayout render test file. First locate it by running `grep -r "TemplateLayout" apps/web/src --include="*.test.*" -l` — use whichever file is returned. Add two new test cases:
   1. **OG tags present**: Render `<TemplateLayout>` with a `currentRoute.seo` object that includes `openGraph: { title: 'Test OG Title', image: 'https://example.com/img.png' }`. Assert the rendered `document.head` (or `container`) contains `<meta property="og:title" content="Test OG Title" />`. Use `@testing-library/react` with `document.querySelector('meta[property="og:title"]')` or equivalent.
   2. **OG tags absent**: Render with a `currentRoute.seo` object that has **no** `openGraph` field. Assert that `document.querySelector('meta[property="og:title"]')` returns `null` — guarding against unconditional rendering.
 
@@ -195,20 +195,20 @@
 
 **Prerequisite**: T015 (TemplateLayout consolidated) and T006 (Organization schema moved to routes-metadata.ts homepage entry) must be complete before removing Landing.tsx's Seo call.
 
-- [ ] T016 [US1] Update `apps/web/src/routes/Landing.tsx`:
+- [x] T016 [US1] Update `apps/web/src/routes/Landing.tsx`:
   1. Read the file to confirm the location of the `organizationSchema` variable and `<Seo>` JSX call.
   2. Remove the entire `organizationSchema` variable definition (this data was moved to `routes-metadata.ts` in T006).
   3. Remove the `import { Seo } from '@modular-house/ui';` line.
   4. Remove the `<Seo ... />` JSX element from the render output.
   5. Verify the component still renders correctly — it should now contain no SEO-related code at all.
 
-- [ ] T017 [P] [US1] Update `apps/web/src/routes/GardenRoom.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
+- [x] T017 [P] [US1] Update `apps/web/src/routes/GardenRoom.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
 
-- [ ] T018 [P] [US1] Update `apps/web/src/routes/HouseExtension.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
+- [x] T018 [P] [US1] Update `apps/web/src/routes/HouseExtension.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions (e.g. `productSchema`), and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
 
-- [ ] T019 [P] [US1] Update `apps/web/src/routes/Contact.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
+- [x] T019 [P] [US1] Update `apps/web/src/routes/Contact.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element. The component should contain no SEO-related code after this change.
 
-- [ ] T020 [P] [US1] Update `apps/web/src/routes/About.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element (including any dynamic content-API title/description fallback logic — SEO is now fully static in `routes-metadata.ts`). The component should contain no SEO-related code after this change.
+- [x] T020 [P] [US1] Update `apps/web/src/routes/About.tsx`: remove the `import { Seo } from '@modular-house/ui';` line, remove any local schema variable definitions, and remove the `<Seo ... />` JSX element (including any dynamic content-API title/description fallback logic — SEO is now fully static in `routes-metadata.ts`). The component should contain no SEO-related code after this change.
 
 **Checkpoint**: Run `pnpm --filter web build`. Must succeed with zero TypeScript errors. Then run: `grep -c "<title>" dist/client/index.html` — must output `1`. Run the same check for `dist/client/garden-room/index.html` — must also output `1`. Any result greater than 1 means a duplicate `<Seo>` call was not removed.
 
@@ -230,7 +230,7 @@
 
 **Prerequisite**: T003 (SitemapConfig extended with `lastmod?` field) must be complete.
 
-- [ ] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
+- [x] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
 
 - [ ] T023 [US3] Update `apps/web/scripts/sitemap-generator.ts`:
   1. Add an optional `buildTimestamp?: string` parameter to the `generateSitemapXml` function signature.

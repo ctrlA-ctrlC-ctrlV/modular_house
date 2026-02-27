@@ -60,7 +60,7 @@ const GardenRoom: React.FC = () => {
             type: 'website',
             title: 'Bespoke Steel Frame Garden Rooms | Luxury Garden Studios',
             description: 'Escape to your private garden sanctuary. Our precision-engineered steel rooms offer superior comfort and durability with turnkey delivery.',
-            image: 'https://modularhouse.ie/resource/landing_hero.png',
+            image: 'https://modularhouse.ie/resource/garden_room_hero.png',
             siteName: 'Modular House Construction',
           }}
 
@@ -69,7 +69,7 @@ const GardenRoom: React.FC = () => {
             cardType: 'summary_large_image',
             site: '@ModularHouse',
             title: 'Garden Rooms Built to Last: Precision Steel Engineering',
-            image: 'https://modularhouse.ie/resource/landing_hero.png',
+            image: 'https://modularhouse.ie/resource/garden_room_hero.png',
           }}
 
           // Rich Snippets data
@@ -84,7 +84,7 @@ const GardenRoom: React.FC = () => {
           titleLine2 = "Precision steel engineering meets architectural elegance."
           ctaText = "Get a Free Quote"
           ctaLink = "/contact"
-          backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
+          backgroundImage = "/resource/garden_room_hero.png"//"https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
           bigText = "Garden Room"
           renderLink={renderLink}
         />

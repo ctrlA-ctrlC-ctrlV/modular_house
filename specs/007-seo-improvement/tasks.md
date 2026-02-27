@@ -72,7 +72,7 @@
 
 **Prerequisite**: T004 (schema generators) must be complete. T002 and T003 (extended types) must be complete.
 
-- [ ] T006 [US1] [US2] [US3] Update `apps/web/src/routes-metadata.ts`. At the top of the file, import `BUILD_TIMESTAMP` **from `prerender.ts`** (T022 must be done first) and import the two schema generators:
+- [x] T006 [US1] [US2] [US3] Update `apps/web/src/routes-metadata.ts`. At the top of the file, import `BUILD_TIMESTAMP` **from `prerender.ts`** (T022 must be done first) and import the two schema generators:
   ```typescript
   import { BUILD_TIMESTAMP } from '../scripts/prerender';
   import { generatePageSchema, generateWebSiteSchema } from './utils/schema-generators';
@@ -230,7 +230,7 @@
 
 **Prerequisite**: T003 (SitemapConfig extended with `lastmod?` field) must be complete.
 
-- [ ] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
+- [x] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
 
 - [ ] T023 [US3] Update `apps/web/scripts/sitemap-generator.ts`:
   1. Add an optional `buildTimestamp?: string` parameter to the `generateSitemapXml` function signature.

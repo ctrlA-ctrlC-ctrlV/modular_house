@@ -24,6 +24,8 @@
     "vite.config.ts",
     "scripts",
     "src/routes-metadata.ts",
-    "src/types/seo.ts"
+    "src/types/seo.ts",
+    "src/utils/schema-generators.ts",
+    "src/build-timestamp.ts"
   ]
 }

@@ -31,12 +31,10 @@ export default defineConfig({
           branches: 100,
         },
         'src/middleware/validate.ts': {
-          branches: 10,
+          branches: 30,
         },
         'src/services/auth.ts': {
-          // Full branch coverage requires DB-dependent integration tests;
-          // threshold reflects what unit/contract tests alone can achieve.
-          branches: 25,
+          branches: 70,
         },
         'src/config/env.ts': {
           branches: 40,

@@ -152,6 +152,10 @@ function Landing() {
           description1="Whether you need a home office, a creative studio, or a peaceful retreat, our steel frame garden rooms are designed to bring comfort and functionality to your outdoor space. Built with precision and finished with care, they offer a fast, stylish, and durable solution to modern living needs."
           button1Text = "Get a free quote today"
           button1Link = "/contact"
+          image1Src = '/resource/garden-room/garden-room2.png'
+          image1Alt = 'Garden Room 1'
+          image2Src='/resource/garden-room/garden-room5.png'
+          image2Alt='Garden Room 2'
           bottomText="We blend sleek architectural aesthetics with cutting-edge steel frame engineering to deliver garden rooms that are built to impress, and built to last. Every project is tailored to your needs, with minimal disruption and maximum impact.
 
           Our team handles everything from design to installation, ensuring a smooth, stress-free process. Whether you're after extra space for work, wellness, or weekend lounging, we're here to make it happen, beautifully and efficiently."
@@ -170,6 +174,8 @@ function Landing() {
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
             button1Text = "Get a free quote today"
             button1Link = "/contact"
+            image1Src = '/resource/garden-room/hosue-extension1.png'
+            image1Alt = 'House Extension 1'
             bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
             
             From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."

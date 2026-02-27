@@ -101,6 +101,9 @@ jobs:
           GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
           REPO_OWNER: ${{ env.REPO_OWNER }}
           GITHUB_SHA: ${{ github.sha }}
+          REFRESH_TOKEN_SECRET: ${{secrets.REFRESH_TOKEN_SECRET}}
+          REFRESH_TOKEN_EXPIRES_IN: ${{secrets.REFRESH_TOKEN_EXPIRES_IN}}
+          COOKIE_DOMAIN: ${{secrets.COOKIE_DOMAIN}}
         run: |
           # Create local .env
           touch .env
@@ -170,6 +173,9 @@ jobs:
           if [ ! -z "$JWT_EXPIRES_IN" ]; then printf "JWT_EXPIRES_IN=%s\n" "$JWT_EXPIRES_IN" >> .env; fi
           if [ ! -z "$PASSWORD_SALT_ROUNDS" ]; then printf "PASSWORD_SALT_ROUNDS=%s\n" "$PASSWORD_SALT_ROUNDS" >> .env; fi
           if [ ! -z "$IP_SALT" ]; then printf "IP_SALT=%s\n" "$IP_SALT" >> .env; fi
+          if [ ! -z "$REFRESH_TOKEN_SECRET" ]; then printf "REFRESH_TOKEN_SECRET=%s\n" "$REFRESH_TOKEN_SECRET" >> .env; fi
+          if [ ! -z "$REFRESH_TOKEN_EXPIRES_IN" ]; then printf "REFRESH_TOKEN_EXPIRES_IN=%s\n" "$REFRESH_TOKEN_EXPIRES_IN" >> .env; fi
+          if [ ! -z "$COOKIE_DOMAIN" ]; then printf "COOKIE_DOMAIN=%s\n" "$COOKIE_DOMAIN" >> .env; fi
           printf "\n" >> .env;
 
           # SEO & Robots
@@ -187,7 +193,7 @@ jobs:
           printf "# Google Analytics\n" >> .env;
           if [ ! -z "$GA_TRACKING_ID" ]; then printf "GA_TRACKING_ID=%s\n" "$GA_TRACKING_ID" >> .env; fi
           printf "\n" >> .env;
-     
+
       - name: Create App Directory
         uses: appleboy/ssh-action@v1.2.0
         with:

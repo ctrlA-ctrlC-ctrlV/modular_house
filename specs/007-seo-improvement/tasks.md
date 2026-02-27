@@ -181,7 +181,7 @@
 
 **Checkpoint**: Run `pnpm tsc --noEmit`. Must report zero TypeScript errors. Run `pnpm --filter web dev` and open `http://localhost:3000/garden-room` in a browser, inspect `<head>` in DevTools — confirm `og:title`, `link[rel=canonical]`, and `meta[name=robots]` are all present.
 
-- [ ] T015a [US1] Update the existing TemplateLayout render test file. First locate it by running `grep -r "TemplateLayout" apps/web/src --include="*.test.*" -l` — use whichever file is returned. Add two new test cases:
+- [x] T015a [US1] Update the existing TemplateLayout render test file. First locate it by running `grep -r "TemplateLayout" apps/web/src --include="*.test.*" -l` — use whichever file is returned. Add two new test cases:
   1. **OG tags present**: Render `<TemplateLayout>` with a `currentRoute.seo` object that includes `openGraph: { title: 'Test OG Title', image: 'https://example.com/img.png' }`. Assert the rendered `document.head` (or `container`) contains `<meta property="og:title" content="Test OG Title" />`. Use `@testing-library/react` with `document.querySelector('meta[property="og:title"]')` or equivalent.
   2. **OG tags absent**: Render with a `currentRoute.seo` object that has **no** `openGraph` field. Assert that `document.querySelector('meta[property="og:title"]')` returns `null` — guarding against unconditional rendering.
 

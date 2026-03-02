@@ -21,6 +21,11 @@
  * preserves backward compatibility for any future scripts that import it from
  * this module directly.
  */
+/**
+ * Re-export the build timestamp for consumers that import it from this module.
+ * The local binding is created via the import statement below; this re-export
+ * line simply makes the same value available to external callers (T022 contract).
+ */
 export { BUILD_TIMESTAMP } from '../src/build-timestamp';
 
 import fs from 'node:fs';
@@ -28,6 +33,15 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { generateSitemap } from './sitemap-generator';
 import { routesMetadata } from '../src/routes-metadata';
+
+/**
+ * The single authoritative build timestamp for this run.
+ * Imported from build-timestamp.ts, which captures new Date().toISOString() once
+ * at module-init time. Passed to generateSitemap so that sitemap.xml <lastmod>
+ * dates are identical to the WebPage.dateModified values in every pre-rendered
+ * HTML file, satisfying the single-source freshness requirement (T022 / T023).
+ */
+import { BUILD_TIMESTAMP } from '../src/build-timestamp';
 
 /**
  * Resolve the directory path of the current module to interpret relative paths correctly.
@@ -119,8 +133,16 @@ async function prerender() {
     }
   }
 
-  // After all pages are rendered, generate the sitemap
-  await generateSitemap();
+  /**
+   * Generate the sitemap after all static HTML pages have been written.
+   *
+   * BUILD_TIMESTAMP is passed explicitly so that every <lastmod> element in
+   * sitemap.xml carries the same date as the WebPage.dateModified and
+   * og:article:modified_time values embedded in the pre-rendered HTML files.
+   * This ensures complete timestamp consistency across all build artifacts
+   * as required by T023 (single-source freshness signals).
+   */
+  await generateSitemap(BUILD_TIMESTAMP);
 
   console.log('Prerender complete.');
 }

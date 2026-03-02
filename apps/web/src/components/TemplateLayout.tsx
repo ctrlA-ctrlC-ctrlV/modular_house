@@ -90,16 +90,19 @@ const LayoutContent: React.FC = () => {
     <div className="vh-100 w-100 overflow-hidden">
       {/*
         SEO head tag injection for the matched route.
-        The full Seo component from @modular-house/ui replaces the former
-        minimal SEOHead component. It emits all standard meta tags (title,
-        description, robots, canonical), Open Graph tags (og:title, og:image,
-        og:locale, og:image:width/height/type, article:modified_time),
-        Twitter Card tags, and the consolidated JSON-LD @graph block.
 
-        All fields except title are forwarded conditionally: the Seo component
+        The Seo component from @modular-house/ui is the single authoritative
+        point for all document-head meta tags across every public route.
+        It emits: title, description, robots, canonical link, Open Graph tags
+        (og:title, og:image, og:locale, og:image:width/height/type,
+        article:modified_time), Twitter Card tags, and the consolidated
+        JSON-LD @graph block.
+
+        All fields except title are forwarded conditionally — the Seo component
         renders each tag group only when the corresponding prop is defined.
-        This ensures legal pages (which have no openGraph or schema) emit only
-        the minimal canonical + robots tags they require.
+        This ensures legal pages (which carry no openGraph or schema data)
+        emit only the minimal canonical + robots tags they require, while
+        content pages receive the full enriched tag set.
       */}
       {currentRoute?.seo && (
         <Seo

@@ -10,7 +10,8 @@
       "Bash(git check-attr:*)",
       "Bash(npx tsc:*)",
       "Bash(powershell:*)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Bash(do echo:*)"
     ]
   }
 }

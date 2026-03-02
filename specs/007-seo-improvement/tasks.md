@@ -230,15 +230,16 @@
 
 **Prerequisite**: T003 (SitemapConfig extended with `lastmod?` field) must be complete.
 
-- [ ] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
+- [x] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
+  > **Implementation note**: `BUILD_TIMESTAMP` is declared in `apps/web/src/build-timestamp.ts` (single source of truth shared by both the browser bundle and Node.js scripts) and re-exported from `prerender.ts` via `export { BUILD_TIMESTAMP } from '../src/build-timestamp'`. `routes-metadata.ts` imports directly from `build-timestamp.ts` to avoid a circular dependency. This satisfies the T022 contract while resolving the cross-tsconfig boundary issue identified in research.
 
-- [ ] T023 [US3] Update `apps/web/scripts/sitemap-generator.ts`:
+- [x] T023 [US3] Update `apps/web/scripts/sitemap-generator.ts`:
   1. Add an optional `buildTimestamp?: string` parameter to the `generateSitemapXml` function signature.
   2. Derive a `lastmod` value: `const lastmod = (buildTimestamp ?? new Date().toISOString()).split('T')[0];` — this produces a `YYYY-MM-DD` string.
   3. In the URL elements template string for each `<url>` block, add a `<lastmod>${lastmod}</lastmod>` line immediately after `<loc>`.
   4. Update the call site in `prerender.ts` (or wherever `generateSitemapXml` is called) to pass `BUILD_TIMESTAMP` as the argument.
 
-- [ ] T024 [US3] Update the existing sitemap test at `apps/web/scripts/__tests__/sitemap.test.ts`: add one new assertion that the generated XML string contains `<lastmod>` and that the value matches the regex `/^\d{4}-\d{2}-\d{2}$/` (YYYY-MM-DD format). Run `pnpm --filter web test -- --testPathPattern="sitemap"` to confirm the new assertion passes.
+- [x] T024 [US3] Update the existing sitemap test at `apps/web/scripts/__tests__/sitemap.test.ts`: add one new assertion that the generated XML string contains `<lastmod>` and that the value matches the regex `/^\d{4}-\d{2}-\d{2}$/` (YYYY-MM-DD format). Run `pnpm --filter web test -- --testPathPattern="sitemap"` to confirm the new assertion passes.
 
 **Checkpoint**: Run `pnpm --filter web build` and then run `grep "<lastmod>" dist/client/sitemap.xml | wc -l`. The output must equal the total number of indexable routes (expected: 7).
 
@@ -250,17 +251,17 @@
 
 **Prerequisite**: All prior phases must be complete.
 
-- [ ] T025 Run `pnpm --filter web build` from the monorepo root and confirm zero TypeScript errors and zero build failures.
+- [x] T025 Run `pnpm --filter web build` from the monorepo root and confirm zero TypeScript errors and zero build failures.
 
-- [ ] T026 [P] Validate meta tag presence on all 6 public pages by running this check for each: `grep -E "(og:title|og:image|canonical|robots|twitter:card)" dist/client/{index.html,garden-room/index.html,house-extension/index.html,gallery/index.html,about/index.html,contact/index.html}`. Each file must contain at least 5 matching lines (SC-001, SC-002, SC-003, SC-007).
+- [x] T026 [P] Validate meta tag presence on all 6 public pages by running this check for each: `grep -E "(og:title|og:image|canonical|robots|twitter:card)" dist/client/{index.html,garden-room/index.html,house-extension/index.html,gallery/index.html,about/index.html,contact/index.html}`. Each file must contain at least 5 matching lines (SC-001, SC-002, SC-003, SC-007).
 
-- [ ] T027 [P] Validate no duplicate `<title>` tags by running `grep -c "<title>" dist/client/index.html dist/client/garden-room/index.html dist/client/house-extension/index.html dist/client/gallery/index.html dist/client/about/index.html dist/client/contact/index.html`. Every file must output `1` (SC-007).
+- [x] T027 [P] Validate no duplicate `<title>` tags by running `grep -c "<title>" dist/client/index.html dist/client/garden-room/index.html dist/client/house-extension/index.html dist/client/gallery/index.html dist/client/about/index.html dist/client/contact/index.html`. Every file must output `1` (SC-007).
 
-- [ ] T028 [P] Validate sitemap `<lastmod>` by running `grep -c "<lastmod>" dist/client/sitemap.xml`. Must equal the number of indexable routes (SC-005).
+- [x] T028 [P] Validate sitemap `<lastmod>` by running `grep -c "<lastmod>" dist/client/sitemap.xml`. Must equal the number of indexable routes (SC-005).
 
-- [ ] T029 [P] Validate JSON-LD schema count on the landing page by running `grep -c "application/ld+json" dist/client/index.html`. Must be at least `1` (single `@graph` block containing all schemas). Optionally pretty-print the JSON-LD to verify it contains `FAQPage`, `WebSite`, `WebPage`, `BreadcrumbList`, and `Organization` entries.
+- [x] T029 [P] Validate JSON-LD schema count on the landing page by running `grep -c "application/ld+json" dist/client/index.html`. Must be at least `1` (single `@graph` block containing all schemas). Optionally pretty-print the JSON-LD to verify it contains `FAQPage`, `WebSite`, `WebPage`, `BreadcrumbList`, and `Organization` entries.
 
-- [ ] T030 Run the full test suite: `pnpm --filter web test`. All tests must pass with zero failures — this covers: schema generator unit tests (T005), updated sitemap test (T024), new TemplateLayout OG render tests (T015a), and all pre-existing tests. Zero failures is a hard gate; do not proceed to merge if any test is red.
+- [x] T030 Run the full test suite: `pnpm --filter web test`. All tests must pass with zero failures — this covers: schema generator unit tests (T005), updated sitemap test (T024), new TemplateLayout OG render tests (T015a), and all pre-existing tests. Zero failures is a hard gate; do not proceed to merge if any test is red.
 
 - [ ] T031 **Post-deploy manual validation** (SC-004, SC-006): After deploying to staging or production, verify social preview rendering and structured data validity using the tools listed in `specs/007-seo-improvement/quickstart.md §External Validation Tools`:
   1. Open LinkedIn Post Inspector and paste each public URL (`/`, `/garden-room`, `/house-extension`, `/about`, `/contact`, `/gallery`). Confirm title, description, and image preview all render correctly — not blank (SC-006).

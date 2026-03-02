@@ -44,6 +44,7 @@
 import React from 'react';
 import './TwoColumnSplitLayout.css';
 import { LinkRenderer } from '../../types';
+import { OptimizedImage } from '../OptimizedImage/OptimizedImage';
 
 
 /* =============================================================================
@@ -100,29 +101,76 @@ export interface TwoColumnSplitLayoutProps {
   
   
   /**
-   * Source URL for the left column image.
-   * Should be an optimized image for web display.
+   * Source URL for the left column image (fallback format — PNG or JPEG).
+   * Should point to the original file; the WebP/AVIF alternatives are provided
+   * via the companion props below.
    * @default "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-39.jpg"
    */
   image1Src?: string;
-  
+
+  /**
+   * WebP source URL for the left column image.
+   * Served to browsers that support WebP (all modern browsers).
+   * Typically 30 % smaller than the PNG/JPEG equivalent.
+   */
+  image1WebP?: string;
+
+  /**
+   * AVIF source URL for the left column image.
+   * Served to browsers that support AVIF (Chrome 85+, Firefox 93+, Safari 16.4+).
+   * Typically 50+ % smaller than JPEG.
+   */
+  image1Avif?: string;
+
+  /**
+   * Intrinsic pixel width of image 1.
+   * Prevents Cumulative Layout Shift (CLS) by reserving layout space before
+   * the image has downloaded.
+   */
+  image1Width?: number;
+
+  /**
+   * Intrinsic pixel height of image 1.
+   * Used alongside image1Width for CLS prevention.
+   */
+  image1Height?: number;
+
   /**
    * Alt text for the left column image.
-   * Provides accessibility description.
+   * Provides accessibility description for screen readers.
    * @default "Construction worker"
    */
   image1Alt?: string;
-  
+
   /**
-   * Source URL for the right column image.
-   * Should be an optimized image for web display.
+   * Source URL for the right column image (fallback format — PNG or JPEG).
    * @default "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-38.jpg"
    */
   image2Src?: string;
-  
+
+  /**
+   * WebP source URL for the right column image.
+   */
+  image2WebP?: string;
+
+  /**
+   * AVIF source URL for the right column image.
+   */
+  image2Avif?: string;
+
+  /**
+   * Intrinsic pixel width of image 2 for CLS prevention.
+   */
+  image2Width?: number;
+
+  /**
+   * Intrinsic pixel height of image 2 for CLS prevention.
+   */
+  image2Height?: number;
+
   /**
    * Alt text for the right column image.
-   * Provides accessibility description.
+   * Provides accessibility description for screen readers.
    * @default "Construction site"
    */
   image2Alt?: string;
@@ -197,8 +245,16 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
   description1 = "Rebar is a top construction firm dedicated to delivering high-quality building and renovation solutions for every client.",
   button1Text = "Get a free quote today",
   image1Src = "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-39.jpg",
+  image1WebP,
+  image1Avif,
+  image1Width,
+  image1Height,
   image1Alt = "Construction worker",
   image2Src = "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-38.jpg",
+  image2WebP,
+  image2Avif,
+  image2Width,
+  image2Height,
   image2Alt = "Construction site",
   bottomText = "We value quality, safety, and teamwork, making sure each project meets our high standards and client needs. Since 2012, we have become a trusted name for those seeking reliable and efficient building solutions.",
   button2Text = "Need more info?",
@@ -282,16 +338,25 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
               </LinkItem>              
             </div>
 
-            {/* 
+            {/*
               Left image with push-down modifier.
               Modifier class aligns image bottom with right column content.
+
+              OptimizedImage is used here to enable:
+              - Modern format delivery (AVIF → WebP → fallback)
+              - CLS prevention via explicit width / height dimensions
+              - Native lazy loading (loading="lazy") for below-the-fold content
             */}
             <div className="two-col-layout__image-wrapper two-col-layout__image-wrapper--push-down">
-              <img 
-                src={image1Src} 
+              <OptimizedImage
+                src={image1Src}
                 alt={image1Alt}
-                className="two-col-layout__image--left"
-                loading="lazy"
+                srcSetAvif={image1Avif}
+                srcSetWebP={image1WebP}
+                width={image1Width}
+                height={image1Height}
+                imgClassName="two-col-layout__image--left"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
           </div>
@@ -301,16 +366,21 @@ export const TwoColumnSplitLayout: React.FC<TwoColumnSplitLayoutProps> = ({
             Contains: image, description text, primary CTA button
           */}
           <div className="two-col-layout__column two-col-layout__column--right">
-            {/* 
+            {/*
               Right image positioned at top of column.
-              Uses lazy loading for performance optimization.
+              OptimizedImage delivers the most efficient format the browser
+              supports, with CLS prevention via explicit dimensions.
             */}
             <div>
-              <img 
-                src={image2Src} 
+              <OptimizedImage
+                src={image2Src}
                 alt={image2Alt}
-                className="two-col-layout__image--right"
-                loading="lazy"
+                srcSetAvif={image2Avif}
+                srcSetWebP={image2WebP}
+                width={image2Width}
+                height={image2Height}
+                imgClassName="two-col-layout__image--right"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
             

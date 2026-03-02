@@ -1,10 +1,30 @@
 import React from 'react';
 import './HeroWithSideText.css';
 import { LinkRenderer } from '../../types';
+import { OptimizedImage } from '../OptimizedImage/OptimizedImage';
 
 export interface HeroWithSideTextProps {
-  /** Background image URL */
+  /**
+   * Background image URL (fallback format — PNG or JPEG).
+   * This image is the page's Largest Contentful Paint (LCP) element.
+   * It is rendered as an actual <img> (not CSS background-image) so the
+   * browser can discover, prioritise, and measure it for Core Web Vitals.
+   */
   backgroundImage?: string;
+
+  /**
+   * WebP version of the background image for modern browsers.
+   * Typically 30–50 % smaller than the PNG/JPEG equivalent.
+   * When provided, a <source type="image/webp"> is added ahead of the fallback.
+   */
+  backgroundImageWebP?: string;
+
+  /**
+   * AVIF version of the background image for cutting-edge browsers.
+   * Typically 50+ % smaller than JPEG.
+   * When provided, a <source type="image/avif"> is added as the first choice.
+   */
+  backgroundImageAvif?: string;
   /** Small uppercase text above the main title 
    * @default "subtitleText"
   */
@@ -70,6 +90,8 @@ export interface HeroWithSideTextProps {
  */
 export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
   backgroundImage = 'https://rebar.themerex.net/wp-content/uploads/2024/05/image-copyright-66.jpg',
+  backgroundImageWebP,
+  backgroundImageAvif,
   subtitle = 'The creative edge',
   title = (
     <>
@@ -143,10 +165,44 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
   };
 
   return (
-    <div 
-      className={`hero-container ${className}`} 
-      style={{ backgroundImage: `url(${backgroundImage})` }}
-    >
+    /*
+     * The container no longer carries a CSS background-image.
+     * Instead, a real <img> element is positioned absolutely behind the
+     * content layers.  This is the recommended approach for LCP images
+     * because it allows the browser to:
+     *   - Discover the image in the initial HTML parse (no CSSOM dependency)
+     *   - Apply resource prioritisation (fetchpriority="high")
+     *   - Measure the element for Core Web Vitals LCP reporting
+     *   - Benefit from format negotiation via <picture> / <source>
+     */
+    <div className={`hero-container ${className}`}>
+
+      {/*
+       * Hero background image rendered as a real <img> element.
+       *
+       * Positioning: absolute, full-bleed (inset: 0), z-index 0.
+       * object-fit: cover replicates the old background-size: cover behaviour.
+       *
+       * priority=true → loading="eager" + fetchpriority="high"
+       * This is correct because this image is the LCP element on every page
+       * that mounts HeroWithSideText.
+       *
+       * srcSetAvif / srcSetWebP → single-image srcset pointing to the modern
+       * format alternatives.  No responsive width variants are needed here
+       * because the hero always fills 100 vw; the browser will always fetch
+       * the single candidate provided.
+       */}
+      <OptimizedImage
+        src={backgroundImage}
+        alt=""
+        srcSetAvif={backgroundImageAvif}
+        srcSetWebP={backgroundImageWebP}
+        priority
+        className="hero-bg-picture"
+        imgClassName="hero-bg-image"
+        ariaLabel="Hero background image"
+      />
+
       {/* Dark overlay to ensure text readability against image */}
       <div className="hero-overlay"></div>
 

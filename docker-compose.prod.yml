@@ -7,6 +7,13 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      # Redirect all plain-HTTP requests to HTTPS at the entrypoint level.
+      # This fires before any router rule is evaluated, so every HTTP request
+      # (including crawlers following a link to http://modularhouse.ie/garden-room)
+      # receives a 301 to the HTTPS equivalent rather than a 404.
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
@@ -25,9 +32,26 @@ services:
     restart: always
     labels:
       - "traefik.enable=true"
+
+      # ------------------------------------------------------------------
+      # HTTPS router — handles all production traffic on port 443.
+      # Matches both the apex domain and the www subdomain so that either
+      # form reaches the nginx container.
+      # ------------------------------------------------------------------
       - "traefik.http.routers.web.rule=Host(`${DOMAIN_NAME}`) || Host(`www.${DOMAIN_NAME}`)"
       - "traefik.http.routers.web.entrypoints=websecure"
       - "traefik.http.routers.web.tls.certresolver=myresolver"
+
+      # ------------------------------------------------------------------
+      # HTTP router — catches plain-HTTP requests on port 80 so they are
+      # subject to the global HTTP-to-HTTPS redirect configured on the
+      # entrypoint above. Without this router, Traefik has no rule for
+      # port-80 traffic and returns a 404 before the redirect can fire,
+      # which is what caused Google and LinkedIn crawlers to receive 404
+      # responses when following http:// links to inner pages.
+      # ------------------------------------------------------------------
+      - "traefik.http.routers.web-http.rule=Host(`${DOMAIN_NAME}`) || Host(`www.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.web-http.entrypoints=web"
     depends_on:
       - api
 

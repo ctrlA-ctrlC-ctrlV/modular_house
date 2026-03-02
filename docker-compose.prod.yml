@@ -34,13 +34,24 @@ services:
       - "traefik.enable=true"
 
       # ------------------------------------------------------------------
+      # www → apex redirect middleware (301 permanent).
+      # Strips the "www." prefix so that https://www.modularhouse.ie/...
+      # becomes https://modularhouse.ie/... — prevents duplicate-content
+      # indexing while keeping the canonical tags consistent.
+      # ------------------------------------------------------------------
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.(.+)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+
+      # ------------------------------------------------------------------
       # HTTPS router — handles all production traffic on port 443.
-      # Matches both the apex domain and the www subdomain so that either
-      # form reaches the nginx container.
+      # Matches both the apex domain and the www subdomain; the
+      # www-redirect middleware then normalises www requests to apex.
       # ------------------------------------------------------------------
       - "traefik.http.routers.web.rule=Host(`${DOMAIN_NAME}`) || Host(`www.${DOMAIN_NAME}`)"
       - "traefik.http.routers.web.entrypoints=websecure"
       - "traefik.http.routers.web.tls.certresolver=myresolver"
+      - "traefik.http.routers.web.middlewares=www-redirect"
 
       # ------------------------------------------------------------------
       # HTTP router — catches plain-HTTP requests on port 80 so they are

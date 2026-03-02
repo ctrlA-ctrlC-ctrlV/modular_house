@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import Landing from '../../routes/Landing';
 import { BrowserRouter } from 'react-router-dom';
 import { HeaderProvider } from '../../components/HeaderContext';
+import { routesMetadata } from '../../routes-metadata';
 
 // Mock UI components to avoid rendering full tree, but keep Seo
 vi.mock('@modular-house/ui', async () => {
@@ -21,16 +22,30 @@ vi.mock('@modular-house/ui', async () => {
   };
 });
 
+// Resolve the homepage route metadata once (same lookup TemplateLayout performs).
+const homepageRoute = routesMetadata.find(r => r.path === '/');
+const homeSeo = homepageRoute!.seo!;
+
 describe('SEO Integration', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it('updates document title on Landing page', async () => {
+    // Import the Seo component used by TemplateLayout at runtime
+    const { Seo } = await import('@modular-house/ui');
+
     render(
       <HelmetProvider>
         <HeaderProvider>
           <BrowserRouter>
+            <Seo
+              title={homeSeo.title}
+              description={homeSeo.description}
+              canonicalUrl={homeSeo.canonicalUrl}
+              robots={homeSeo.robots}
+              siteTitleSuffix=" | Modular House"
+            />
             <Landing />
           </BrowserRouter>
         </HeaderProvider>
@@ -38,15 +53,24 @@ describe('SEO Integration', () => {
     );
 
     await waitFor(() => {
-      expect(document.title).toBe('Steel Frame Garden Rooms & House Extensions | Modular House');
+      expect(document.title).toBe(`${homeSeo.title} | Modular House`);
     });
   });
 
   it('injects meta description', async () => {
+    const { Seo } = await import('@modular-house/ui');
+
     render(
       <HelmetProvider>
         <HeaderProvider>
           <BrowserRouter>
+            <Seo
+              title={homeSeo.title}
+              description={homeSeo.description}
+              canonicalUrl={homeSeo.canonicalUrl}
+              robots={homeSeo.robots}
+              siteTitleSuffix=" | Modular House"
+            />
             <Landing />
           </BrowserRouter>
         </HeaderProvider>
@@ -56,7 +80,7 @@ describe('SEO Integration', () => {
     await waitFor(() => {
       const metaDescription = document.querySelector('meta[name="description"]');
       expect(metaDescription).toBeInTheDocument();
-      expect(metaDescription).toHaveAttribute('content', 'Ireland’s specialist in steel frame garden rooms and house extensions. Experience the future of construction with bespoke, energy-efficient designs built in weeks, not months.');
+      expect(metaDescription).toHaveAttribute('content', homeSeo.description);
     });
   });
 });

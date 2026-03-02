@@ -61,10 +61,13 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'Steel Frame Garden Rooms & House Extensions | Modular House',
         description: 'Transform your home into modular home. With premium modular house extensions and garden rooms. Modern design, sustainable materials, and fast installation.',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        // landing_hero.jpg is the deployed JPEG; the .png variant does not
+        // exist in public/resource. Social crawlers (LinkedIn, Twitter/X)
+        // fetch this URL directly, so it must resolve to a real file.
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageWidth: 1200,
         imageHeight: 630,
-        imageType: 'image/png',
+        imageType: 'image/jpeg',
         url: 'https://modularhouse.ie/',
         siteName: 'Modular House Construction',
         // article:modified_time freshness signal — identical to the build
@@ -76,7 +79,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'Steel Frame Garden Rooms & House Extensions',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageAlt: 'Steel frame modular house garden room exterior',
       },
 
@@ -192,10 +195,13 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'Garden Rooms & Studios | Modular House',
         description: 'Bespoke garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
-        image: 'https://modularhouse.ie/resource/garden-room-hero.jpg',
+        // garden_room_hero.png is the deployed file (underscore separator, .png
+        // extension). The hyphenated .jpg variant referenced in the original
+        // spec does not exist in public/resource.
+        image: 'https://modularhouse.ie/resource/garden_room_hero.png',
         imageWidth: 1200,
         imageHeight: 630,
-        imageType: 'image/jpeg',
+        imageType: 'image/png',
         url: 'https://modularhouse.ie/garden-room',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
@@ -205,7 +211,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'Garden Rooms & Studios | Modular House',
-        image: 'https://modularhouse.ie/resource/garden-room-hero.jpg',
+        image: 'https://modularhouse.ie/resource/garden_room_hero.png',
         imageAlt: 'Steel frame garden room exterior',
       },
 
@@ -260,10 +266,14 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'House Extensions | Modular House',
         description: 'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
-        image: 'https://modularhouse.ie/resource/house-extension-hero.jpg',
+        // hosue-extension1.png is the only available house-extension image in
+        // public/resource/house-extension/. Note the filename contains a typo
+        // ("hosue") — the reference below matches the actual deployed filename
+        // exactly. Rename the source file to correct the typo when convenient.
+        image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
         imageWidth: 1200,
         imageHeight: 630,
-        imageType: 'image/jpeg',
+        imageType: 'image/png',
         url: 'https://modularhouse.ie/house-extension',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
@@ -273,7 +283,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'House Extensions | Modular House',
-        image: 'https://modularhouse.ie/resource/house-extension-hero.jpg',
+        image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
         imageAlt: 'Steel frame house extension exterior',
       },
 
@@ -328,13 +338,15 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'Project Gallery | Modular House',
         description: 'Explore our portfolio of completed garden rooms and house extensions. See our modern designs and quality craftsmanship in action.',
-        // The landing hero image is used as a fallback OG image for pages that
-        // do not have a dedicated hero asset. It meets the 1200x630 minimum
+        // landing_hero.jpg is used as the fallback OG image for pages that do
+        // not have a dedicated hero asset. It meets the 1200x630 minimum size
         // recommended by Facebook and LinkedIn for summary_large_image cards.
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        // Note: landing_hero.png does not exist in public/resource; .jpg is the
+        // deployed format.
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageWidth: 1200,
         imageHeight: 630,
-        imageType: 'image/png',
+        imageType: 'image/jpeg',
         url: 'https://modularhouse.ie/gallery',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
@@ -344,7 +356,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'Project Gallery | Modular House',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageAlt: 'Modular house construction gallery',
       },
 
@@ -379,10 +391,12 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'Contact Us | Modular House',
         description: 'Don\'t be a stranger! Get in touch for a free consultation. Discuss your garden room or extension project with our expert team today.',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        // landing_hero.jpg is the deployed JPEG; landing_hero.png does not
+        // exist in public/resource.
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageWidth: 1200,
         imageHeight: 630,
-        imageType: 'image/png',
+        imageType: 'image/jpeg',
         url: 'https://modularhouse.ie/contact',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
@@ -392,7 +406,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'Contact Us | Modular House',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageAlt: 'Contact Modular House',
       },
 
@@ -458,10 +472,12 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'About Us | Modular House',
         description: 'Learn about our mission to revolutionize home expansion with sustainable, modular construction technology.',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        // landing_hero.jpg is the deployed JPEG; landing_hero.png does not
+        // exist in public/resource.
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageWidth: 1200,
         imageHeight: 630,
-        imageType: 'image/png',
+        imageType: 'image/jpeg',
         url: 'https://modularhouse.ie/about',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
@@ -471,7 +487,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'About Us | Modular House',
-        image: 'https://modularhouse.ie/resource/landing_hero.png',
+        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
         imageAlt: 'Modular House team and office',
       },
 

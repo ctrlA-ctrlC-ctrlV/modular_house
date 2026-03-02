@@ -220,7 +220,7 @@
 
 **Prerequisite**: T015 and T016–T020 must be complete. Verify no remaining imports reference `SEOHead` before deleting.
 
-- [ ] T021 [US1] Run `grep -r "SEOHead" apps/web/src/ --include="*.tsx" --include="*.ts"` and confirm the output is empty (zero matches). If any matches are found, fix them before proceeding. Then delete the file `apps/web/src/components/seo/SEOHead.tsx`. Then delete the file `apps/web/src/components/seo/__tests__/SEOHead.test.tsx`. Run `pnpm tsc --noEmit` to confirm no TypeScript errors after deletion.
+- [x] T021 [US1] Run `grep -r "SEOHead" apps/web/src/ --include="*.tsx" --include="*.ts"` and confirm the output is empty (zero matches). If any matches are found, fix them before proceeding. Then delete the file `apps/web/src/components/seo/SEOHead.tsx`. Then delete the file `apps/web/src/components/seo/__tests__/SEOHead.test.tsx`. Run `pnpm tsc --noEmit` to confirm no TypeScript errors after deletion.
 
 ---
 
@@ -230,7 +230,7 @@
 
 **Prerequisite**: T003 (SitemapConfig extended with `lastmod?` field) must be complete.
 
-- [x] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
+- [ ] T022 [US3] Update `apps/web/scripts/prerender.ts`: add `export const BUILD_TIMESTAMP = new Date().toISOString();` as a module-level constant at the **very top of the file** (first executable line, before any imports that might trigger `new Date()` elsewhere). This is the **single authoritative timestamp** for the entire build — it is imported by `routes-metadata.ts` (T006) and passed to `sitemap-generator.ts` (T023). Capturing it once here ensures `<lastmod>`, `article:modified_time`, `WebPage.dateModified`, and `WebPage.datePublished` are identical across every artifact. **T022 must be completed before T006**, since T006 imports this export. Do not change any other logic in `prerender.ts`.
 
 - [ ] T023 [US3] Update `apps/web/scripts/sitemap-generator.ts`:
   1. Add an optional `buildTimestamp?: string` parameter to the `generateSitemapXml` function signature.

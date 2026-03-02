@@ -283,7 +283,6 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         height={height}
         loading={loadingStrategy}
         decoding="async"
-        // eslint-disable-next-line react/no-unknown-property
         fetchPriority={fetchPriority as 'high' | 'low' | 'auto'}
         className={imgClassName}
         style={style}

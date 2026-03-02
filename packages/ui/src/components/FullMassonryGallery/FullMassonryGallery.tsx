@@ -1,12 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import './FullMassonryGallery.css';
+import { OptimizedImage } from '../OptimizedImage/OptimizedImage';
 
 /**
  * Defines the structure for an individual gallery project.
  */
 export interface GalleryItem {
-  /** The source URL for the preview image. */
+  /** The source URL for the preview image (PNG/JPEG fallback). */
   imageUrl: string;
+  /** WebP version of the preview image for modern browsers. */
+  imageWebP?: string;
+  /** AVIF version of the preview image for cutting-edge browsers. */
+  imageAvif?: string;
   /** The primary title of the project. */
   title: string;
   /** The classification or industry tag for the project. */
@@ -134,11 +139,12 @@ export const FullMassonryGallery: React.FC<FullMassonryGalleryProps> = ({
               onClick={() => openLightbox(index)}
             >
               <figure className="gallery-figure">
-                <img 
-                  className="gallery-image" 
-                  src={item.imageUrl} 
-                  alt={item.title} 
-                  loading="lazy"
+                <OptimizedImage
+                  src={item.imageUrl}
+                  srcSetWebP={item.imageWebP}
+                  srcSetAvif={item.imageAvif}
+                  alt={item.title}
+                  imgClassName="gallery-image"
                 />
                 {/*<div className="gallery-overlay">
                   <span className="gallery-item-title">{item.title}</span>

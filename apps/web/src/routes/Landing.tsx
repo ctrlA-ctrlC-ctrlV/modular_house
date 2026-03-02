@@ -61,9 +61,10 @@ function Landing() {
 
       {/* Hero Section */}
       <div id='landing_hero'>
-        <HeroWithSideText 
+        <HeroWithSideText
           backgroundImage="/resource/landing_hero2.png"
-          //"https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+          backgroundImageWebP="/resource/landing_hero2.webp"
+          backgroundImageAvif="/resource/landing_hero2.avif"
           subtitle="DISCOVER MODULAR LIVING"
           title={
             <>
@@ -153,8 +154,12 @@ function Landing() {
           button1Text = "Get a free quote today"
           button1Link = "/contact"
           image1Src = '/resource/garden-room/garden-room2.png'
+          image1WebP='/resource/garden-room/garden-room2.webp'
+          image1Avif='/resource/garden-room/garden-room2.avif'
           image1Alt = 'Garden Room 1'
           image2Src='/resource/garden-room/garden-room5.png'
+          image2WebP='/resource/garden-room/garden-room5.webp'
+          image2Avif='/resource/garden-room/garden-room5.avif'
           image2Alt='Garden Room 2'
           bottomText="We blend sleek architectural aesthetics with cutting-edge steel frame engineering to deliver garden rooms that are built to impress, and built to last. Every project is tailored to your needs, with minimal disruption and maximum impact.
 
@@ -175,6 +180,8 @@ function Landing() {
             button1Text = "Get a free quote today"
             button1Link = "/contact"
             image1Src = '/resource/garden-room/hosue-extension1.png'
+            image1WebP='/resource/garden-room/hosue-extension1.webp'
+            image1Avif='/resource/garden-room/hosue-extension1.avif'
             image1Alt = 'House Extension 1'
             bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
             

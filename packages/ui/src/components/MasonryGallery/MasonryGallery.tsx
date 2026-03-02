@@ -1,12 +1,53 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './MasonryGallery.css';
+import { OptimizedImage } from '../OptimizedImage/OptimizedImage';
 
+/**
+ * GalleryImage
+ *
+ * Represents a single image entry in the masonry gallery.
+ * Optional modern-format source fields (srcWebP / srcAvif) enable the
+ * OptimizedImage component to serve the most efficient format the browser
+ * supports, while falling back to the original `src` for legacy browsers.
+ */
 export interface GalleryImage {
+  /** Fallback image URL (PNG or JPEG). Always required. */
   src: string;
+
+  /** Descriptive alt text for screen readers. */
   alt?: string;
+
+  /**
+   * Intrinsic pixel width.
+   * Prevents Cumulative Layout Shift (CLS) by reserving layout space before
+   * the thumbnail has downloaded.
+   */
   width?: number;
+
+  /**
+   * Intrinsic pixel height.
+   * Used alongside width for CLS prevention.
+   */
   height?: number;
+
+  /**
+   * URL of the full-size image opened in the lightbox.
+   * Intentionally separate from `src` so the gallery can display compressed
+   * thumbnails while the lightbox shows the full-resolution original.
+   */
   fullSizeSrc?: string;
+
+  /**
+   * WebP version of the thumbnail for modern browsers.
+   * Typically 30 % smaller than the JPEG/PNG equivalent.
+   */
+  srcWebP?: string;
+
+  /**
+   * AVIF version of the thumbnail for cutting-edge browsers.
+   * Typically 50+ % smaller than JPEG.
+   */
+  srcAvif?: string;
 }
 
 export interface MasonryGalleryProps {
@@ -75,13 +116,24 @@ export const MasonryGallery: React.FC<MasonryGalleryProps> = ({
                 onClick={(e) => openLightbox(index, e)}
                 className="masonry-gallery-link"
               >
-                <img
-                  loading="lazy"
-                  decoding="async"
+                {/*
+                 * Thumbnail image rendered via OptimizedImage to benefit from:
+                 * - AVIF / WebP format negotiation via <picture> + <source>
+                 * - Native lazy loading — defers off-screen thumbnail fetches
+                 * - CLS prevention via explicit width / height when provided
+                 *
+                 * sizes="(max-width: 1024px) 50vw, 25vw" maps to the CSS grid:
+                 * 2 columns below 1024 px → each image is ~50 vw wide.
+                 * 4 columns above 1024 px → each image is ~25 vw wide.
+                 */}
+                <OptimizedImage
                   src={image.src}
-                  alt={image.alt || ""}
+                  alt={image.alt ?? ""}
+                  srcSetAvif={image.srcAvif}
+                  srcSetWebP={image.srcWebP}
                   width={image.width}
                   height={image.height}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
               </a>
             </div>

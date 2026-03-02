@@ -64,12 +64,50 @@
   width: 100%;
   height: 100vh;
   min-height: 600px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  /*
+   * background-size / background-position / background-repeat are no longer
+   * needed here because the background image is now rendered via a real <img>
+   * element (hero-bg-image / hero-bg-picture) positioned absolutely within
+   * this container.  Keeping overflow: hidden ensures the image does not bleed
+   * outside the container boundary.
+   */
   color: var(--hero-color-white);
   font-family: var(--hero-font-family);
   overflow: hidden;
+}
+
+/*
+ * hero-bg-picture / hero-bg-image
+ *
+ * These classes style the <picture> wrapper and <img> child that replace the
+ * former CSS background-image technique.  Using a real <img> element makes the
+ * hero image discoverable by the browser's preload scanner, which is critical
+ * for achieving a fast Largest Contentful Paint (LCP) score.
+ *
+ * Layout:
+ * - Both elements are absolutely positioned with inset:0 to cover the container.
+ * - z-index: 0 places them beneath the overlay (z-index: 1) and content (z-index: 2).
+ * - object-fit: cover on the <img> replicates background-size: cover behaviour.
+ * - object-position: center replicates background-position: center.
+ * - pointer-events: none prevents the image from intercepting clicks intended
+ *   for content elements layered above it.
+ */
+.hero-bg-picture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hero-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 /*

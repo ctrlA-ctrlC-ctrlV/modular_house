@@ -35,6 +35,7 @@
 import React from 'react';
 import './HeroBoldBottomText.css';
 import { LinkRenderer } from '../../types';
+import { OptimizedImage } from '../OptimizedImage/OptimizedImage';
 
 /* =============================================================================
    SECTION 1: TYPE DEFINITIONS
@@ -77,12 +78,26 @@ export interface HeroBoldBottomTextProps {
   ctaLink?: string;
   
   /**
-   * URL for the hero background image.
+   * URL for the hero background image (PNG/JPEG fallback).
    * Supports both local assets and external URLs.
+   * This image is the page's LCP element and is rendered as a real <img>
+   * so the browser can discover and prioritise it.
    * @default "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg"
    */
   backgroundImage?: string;
-  
+
+  /**
+   * WebP version of the background image for modern browsers.
+   * When provided, a <source type="image/webp"> is added ahead of the fallback.
+   */
+  backgroundImageWebP?: string;
+
+  /**
+   * AVIF version of the background image for cutting-edge browsers.
+   * When provided, a <source type="image/avif"> is added as the first choice.
+   */
+  backgroundImageAvif?: string;
+
   /**
    * Large stylized text displayed at the bottom of the hero.
    * Typically a single word representing the page theme or service.
@@ -127,6 +142,8 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
   ctaText = "Get Started",
   ctaLink = "#",
   backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-06.jpg",
+  backgroundImageWebP,
+  backgroundImageAvif,
   bigText = "Remodeling",
   onCtaClick,
   renderLink,
@@ -152,18 +169,33 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
   };
 
   return (
-    <div 
-      className="hero-bold-bottom-text" 
-      style={{ backgroundImage: `url(${backgroundImage})` }}
+    <div
+      className="hero-bold-bottom-text"
       role="banner"
       aria-label="Hero section"
     >
-      {/* 
+      {/*
+       * Hero background image rendered as a real <img> element (LCP fix).
+       * Using OptimizedImage with priority=true sets loading="eager" and
+       * fetchpriority="high", making it discoverable by the browser preload
+       * scanner and allowing Core Web Vitals to measure it as the LCP element.
+       */}
+      <OptimizedImage
+        src={backgroundImage}
+        alt=""
+        srcSetAvif={backgroundImageAvif}
+        srcSetWebP={backgroundImageWebP}
+        priority
+        className="hero-bold-bg-picture"
+        imgClassName="hero-bold-bg-image"
+      />
+
+      {/*
         Overlay element for background darkening.
         Improves text legibility against varied background images.
         The overlay uses CSS opacity rather than rgba for easier customization.
       */}
-      <div 
+      <div
         className="hero-bold-bottom-text__overlay"
         aria-hidden="true"
       />

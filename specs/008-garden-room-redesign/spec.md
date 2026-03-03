@@ -112,6 +112,19 @@ A search engine crawls the `/garden-room` page and finds comprehensive structure
 - What happens if the 35m²/45m² legislation passes and these sizes become available? The product cards can be updated by changing the `available` flag, badge text, and CTA text without structural changes.
 - What happens when the page is shared on social media? Open Graph and Twitter card meta tags ensure a proper preview image, title, and description appear.
 - What happens when a visitor navigates directly to an anchor link (e.g., from an internal link to the FAQ section)? The page scrolls smoothly to the target section.
+- What happens when a visitor is on a slow mobile connection (3G)? Images lazy-load with placeholder skeletons; product cards render text content before images arrive; the page is interactive within 3 seconds.
+- What happens if the JSON-LD structured data fails to render during a build? A CI validation step catches missing or invalid schema markup before deployment.
+- What happens when a visitor navigates the page using only a keyboard? All interactive elements (CTAs, FAQ toggles, gallery lightbox) are focusable and operable via Tab, Enter, and Space keys with visible focus indicators.
+- What happens when a screen reader encounters the FAQ section? Accordion items use proper `aria-expanded` and `aria-controls` attributes so the open/closed state is announced correctly.
+- What happens if a visitor lands on `/contact` with malformed, missing, or manually edited product query parameters? The contact form defaults to a general enquiry state with no errors shown.
+- What happens if a visitor navigates to `/Garden-Room`, `/garden-room/`, or other URL variations? All variants either 301 redirect to the canonical `/garden-room` URL or resolve correctly.
+- What happens if only one of the two larger sizes (35m² or 45m²) becomes available after legislation passes? Each product's `available` flag operates independently, allowing any combination of available and coming-soon states.
+- What happens if a fifth product size is added in the future? The product card grid adjusts gracefully to handle 3, 4, or 5 cards without layout breakage.
+- What happens when the page is viewed on a very large screen (ultra-wide, 2560px+)? Content remains within a max-width container and is centered; it does not stretch edge to edge.
+- What happens on older iOS Safari versions? The page includes appropriate fallbacks.
+- What happens when a visitor opens one FAQ item and then clicks another? Define the intended behaviour —  independent toggle (multiple items can remain open).
+- What happens when the gallery has fewer images than expected (e.g., only 2 instead of 6-8)? The gallery grid adjusts without empty gaps.
+- What happens when a visitor taps the phone number in the bottom CTA on a mobile device? The number is a clickable `tel:` link with the +353 country code and initiates a call.
 
 ## Requirements *(mandatory)*
 

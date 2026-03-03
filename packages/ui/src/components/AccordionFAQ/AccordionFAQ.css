@@ -1,0 +1,327 @@
+/**
+ * AccordionFAQ Stylesheet
+ * =============================================================================
+ *
+ * PURPOSE:
+ * BEM-styled CSS for the AccordionFAQ component. Renders a vertically stacked
+ * list of expandable FAQ items with smooth open/close transitions. Each item
+ * consists of a clickable trigger row and a collapsible answer panel.
+ *
+ * ARCHITECTURE:
+ * All colour and typography values reference design-system custom properties
+ * with hardcoded fallbacks. This ensures the component renders correctly in
+ * isolation (e.g., Storybook, tests) while automatically adopting the host
+ * application's theme tokens when available.
+ *
+ * Component-level tokens are defined in :root so consumers can override
+ * appearance at the theme level without modifying this file.
+ *
+ * BEM NAMING:
+ * Block:     .accordion-faq          — Section wrapper
+ * Block:     .accordion-faq-item     — Individual item
+ * Modifier:  .accordion-faq-item--open
+ * Elements:  __header, __title, __list, __trigger, __number, __question,
+ *            __chevron, __panel, __answer
+ *
+ * ANIMATION:
+ * Panel expand/collapse is driven by CSS max-height transition (300ms ease).
+ * The collapsed state uses max-height: 0 with overflow: hidden. The expanded
+ * state sets max-height to a value large enough to accommodate the content
+ * (500px). This approach avoids JavaScript height calculations while providing
+ * smooth visual transitions.
+ *
+ * RESPONSIVE BREAKPOINTS:
+ * Desktop (>= 768px):  Standard padding, 48px number column
+ * Mobile  (< 768px):   Reduced padding, narrower number column
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   These :root-scoped tokens provide a single override point for theming.
+   Each token falls back to a global design-system variable, then to a
+   hardcoded value for environments where no theme is loaded.
+   ============================================================================= */
+
+:root {
+  /* --- Typography --- */
+  --afq-font-serif: var(--font-serif, Georgia, 'Times New Roman', serif);
+  --afq-font-sans: var(--font-sans, system-ui, -apple-system, sans-serif);
+
+  /* --- Colours --- */
+  --afq-color-brand: var(--brand-link, #B55329);
+  --afq-color-meta: var(--theme-color-meta, #888);
+  --afq-color-body: var(--theme-color-body, #333);
+  --afq-color-heading: var(--theme-color-heading, #1a1a1a);
+  --afq-color-border: var(--theme-color-border, #E5E7DE);
+
+  /* --- Spacing --- */
+  --afq-section-padding: 80px;
+  --afq-list-max-width: 900px;
+  --afq-trigger-padding: 20px 0;
+  --afq-number-min-width: 48px;
+  --afq-answer-indent: 64px;
+
+  /* --- Animation --- */
+  --afq-transition-duration: 300ms;
+  --afq-transition-easing: ease;
+}
+
+
+/* =============================================================================
+   SECTION 2: SECTION WRAPPER
+   -----------------------------------------------------------------------------
+   The outermost <section> element. Provides vertical padding and horizontal
+   centering. Padding is applied to the block (vertical) axis; horizontal
+   padding is handled by the list container's max-width and auto margins.
+   ============================================================================= */
+
+.accordion-faq {
+  padding: var(--afq-section-padding) 24px;
+  box-sizing: border-box;
+}
+
+
+/* =============================================================================
+   SECTION 3: HEADER BLOCK
+   -----------------------------------------------------------------------------
+   Contains the section heading. Text is centred to match the visual rhythm
+   of other page sections (ProductRangeGrid, FeatureSection, etc.).
+   ============================================================================= */
+
+.accordion-faq__header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+/**
+ * Section heading — serif font at the large heading scale. Serves as the
+ * accessible name for the section via the aria-labelledby relationship.
+ */
+.accordion-faq__title {
+  font-family: var(--afq-font-serif);
+  font-size: var(--text-heading-l, 2rem);
+  font-weight: 600;
+  color: var(--afq-color-heading);
+  margin: 0;
+}
+
+
+/* =============================================================================
+   SECTION 4: LIST CONTAINER
+   -----------------------------------------------------------------------------
+   Constrains the FAQ items to a comfortable reading width (900px) and
+   centres them horizontally. This prevents excessively long answer lines
+   on wide screens.
+   ============================================================================= */
+
+.accordion-faq__list {
+  max-width: var(--afq-list-max-width);
+  margin: 0 auto;
+}
+
+
+/* =============================================================================
+   SECTION 5: FAQ ITEM — BASE STYLES
+   -----------------------------------------------------------------------------
+   Each item is a vertical block containing a trigger button and a
+   collapsible panel. Items are separated by a subtle bottom border.
+   ============================================================================= */
+
+.accordion-faq-item {
+  border-bottom: 1px solid var(--afq-color-border);
+}
+
+
+/* =============================================================================
+   SECTION 6: TRIGGER BUTTON
+   -----------------------------------------------------------------------------
+   The clickable header row for each FAQ item. Implemented as a native
+   <button> for built-in keyboard accessibility (focusable, Enter/Space
+   activation). The flex layout distributes the number, question text,
+   and chevron across the row.
+   ============================================================================= */
+
+/**
+ * Full-width trigger button with flex layout.
+ * Background and border are reset to remove default button styling,
+ * allowing the FAQ items to appear as a clean list of rows.
+ */
+.accordion-faq-item__trigger {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: var(--afq-trigger-padding);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--afq-font-sans);
+  transition: background-color 150ms ease;
+}
+
+/**
+ * Subtle hover feedback — a near-invisible background tint that signals
+ * interactivity without distracting from the content.
+ */
+.accordion-faq-item__trigger:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/**
+ * Focus-visible outline for keyboard navigation accessibility.
+ * Uses a 2px offset ring in the brand colour, visible only during
+ * keyboard interaction (not mouse clicks) per :focus-visible behaviour.
+ */
+.accordion-faq-item__trigger:focus-visible {
+  outline: 2px solid var(--afq-color-brand);
+  outline-offset: 2px;
+}
+
+
+/* =============================================================================
+   SECTION 7: TRIGGER CHILD ELEMENTS
+   -----------------------------------------------------------------------------
+   Three inline elements within the trigger button: number, question, chevron.
+   ============================================================================= */
+
+/**
+ * Number label — displayed to the left as a visual anchor for each item.
+ * The brand colour draws the eye and creates a vertical rhythm. The
+ * min-width ensures consistent left-alignment of the question text
+ * regardless of number width (01 vs 10).
+ */
+.accordion-faq-item__number {
+  font-family: var(--afq-font-sans);
+  font-size: var(--text-heading-m, 1.5rem);
+  font-weight: 600;
+  color: var(--afq-color-brand);
+  min-width: var(--afq-number-min-width);
+  flex-shrink: 0;
+}
+
+/**
+ * Question text — fills the remaining horizontal space between the
+ * number and chevron. Serif font provides visual distinction from
+ * the sans-serif answer text below.
+ */
+.accordion-faq-item__question {
+  font-family: var(--afq-font-serif);
+  font-size: var(--text-heading-s, 1.125rem);
+  font-weight: 600;
+  color: var(--afq-color-heading);
+  flex: 1;
+  line-height: 1.4;
+}
+
+/**
+ * Chevron indicator — a small downward-pointing arrow that rotates
+ * 180 degrees when the item is expanded. The rotation is animated
+ * via the transition property for a smooth visual cue.
+ */
+.accordion-faq-item__chevron {
+  font-size: 16px;
+  color: var(--afq-color-meta);
+  flex-shrink: 0;
+  transition: transform var(--afq-transition-duration) var(--afq-transition-easing);
+  line-height: 1;
+}
+
+/**
+ * Chevron rotation when the item is open.
+ * The 180-degree rotation flips the downward arrow to point upward,
+ * providing a visual signal that clicking will collapse the item.
+ */
+.accordion-faq-item--open .accordion-faq-item__chevron {
+  transform: rotate(180deg);
+}
+
+
+/* =============================================================================
+   SECTION 8: CONTENT PANEL
+   -----------------------------------------------------------------------------
+   The collapsible region containing the answer text. The expand/collapse
+   animation is driven by the max-height transition. When collapsed,
+   max-height is 0 and overflow is hidden, producing a smooth slide effect.
+   ============================================================================= */
+
+/**
+ * Collapsed panel state (default).
+ * max-height: 0 combined with overflow: hidden ensures no content
+ * is visible or takes up layout space when collapsed.
+ */
+.accordion-faq-item__panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--afq-transition-duration) var(--afq-transition-easing);
+}
+
+/**
+ * Expanded panel state.
+ * max-height is set to a value large enough to accommodate the longest
+ * expected answer. 500px provides generous headroom; the actual visible
+ * height is determined by the content. The browser transitions smoothly
+ * from 0 to this value.
+ */
+.accordion-faq-item--open .accordion-faq-item__panel {
+  max-height: 500px;
+}
+
+/**
+ * Answer paragraph — indented to align with the question text
+ * (past the number column). The left padding matches the number
+ * min-width (48px) plus the trigger gap (16px) = 64px.
+ */
+.accordion-faq-item__answer {
+  padding: 0 0 20px var(--afq-answer-indent);
+  font-family: var(--afq-font-sans);
+  font-size: var(--text-body, 1rem);
+  color: var(--afq-color-body);
+  line-height: 1.6;
+  margin: 0;
+}
+
+
+/* =============================================================================
+   SECTION 9: RESPONSIVE BREAKPOINTS
+   ============================================================================= */
+
+/**
+ * Mobile breakpoint (below 768px).
+ * Reduces section padding, trigger gap, number width, and answer indent
+ * to preserve content space on narrow screens.
+ */
+@media (max-width: 767px) {
+  .accordion-faq {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .accordion-faq-item__trigger {
+    gap: 12px;
+    padding: 16px 0;
+  }
+
+  .accordion-faq-item__number {
+    min-width: 36px;
+    font-size: var(--text-heading-s, 1.125rem);
+  }
+
+  .accordion-faq-item__question {
+    font-size: var(--text-body, 1rem);
+  }
+
+  .accordion-faq-item__answer {
+    padding-left: 48px;
+  }
+
+  .accordion-faq__title {
+    font-size: var(--text-heading-m, 1.5rem);
+  }
+}

@@ -19,7 +19,7 @@
 
 **Purpose**: Ensure the development environment is ready and dependencies are installed.
 
-- [ ] T001 Checkout the `008-garden-room-redesign` branch and run `pnpm install` to ensure all dependencies are up to date. Verify the dev server starts with `pnpm --filter @modular-house/web dev` and confirm the current `/garden-room` page loads at `http://localhost:5173/garden-room`.
+- [x] T001 Checkout the `008-garden-room-redesign` branch and run `pnpm install` to ensure all dependencies are up to date. Verify the dev server starts with `pnpm --filter @modular-house/web dev` and confirm the current `/garden-room` page loads at `http://localhost:5173/garden-room`.
 
 ---
 

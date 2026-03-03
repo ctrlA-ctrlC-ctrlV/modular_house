@@ -240,48 +240,76 @@ function Landing() {
         <MasonryGallery
           images={[
             {
-              src: "/resource/garden-room/garden-room-sauna3.jpg",
-              srcWebP: "/resource/garden-room/garden-room-sauna3.webp",
-              srcAvif: "/resource/garden-room/garden-room-sauna3.avif",
-              fullSizeSrc: "/resource/garden-room/garden-room-sauna3.jpg",
+              src: "/resource/masonry-gallery/crop-garden-room-sauna1.jpg",
+              srcWebP: "/resource/masonry-gallery/crop-garden-room-sauna1.webp",
+              srcAvif: "/resource/masonry-gallery/crop-garden-room-sauna1.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room-sauna1.jpg", // or a larger version
               alt: "Steel frame house extension with modern design",
-              width: 1080,  // actual image width in pixels
-              height: 1400  // actual image height in pixels
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg",
-              alt: "Spacious garden room interior with natural light" 
+              src: "/resource/masonry-gallery/crop-garden-room-sauna3.jpg",
+              srcWebP: "/resource/masonry-gallery/crop-garden-room-sauna3.webp",
+              srcAvif: "/resource/masonry-gallery/crop-garden-room-sauna3.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room-sauna3.jpg", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-289.jpg",
-              alt: "Steel frame construction detail showing structural integrity" 
+              src: "/resource/masonry-gallery/crop-garden-room1.png",
+              srcWebP: "/resource/masonry-gallery/crop-garden-room1.webp",
+              srcAvif: "/resource/masonry-gallery/crop-garden-room1.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room1.webp", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-295.jpg",
-              alt: "Contemporary home extension blending with garden" 
+              src: "/resource/masonry-gallery/crop-garden-room3.png",
+              srcWebP: "/resource/masonry-gallery/crop-garden-room3.webp",
+              srcAvif: "/resource/masonry-gallery/crop-garden-room3.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room3.webp", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-292.jpg",
-              alt: "Minimalist office pod design for remote work" 
+              src: "/resource/masonry-gallery/crop-garden-room4.png",
+              srcWebP: "/resource/masonry-gallery/crop-garden-room4.webp",
+              srcAvif: "/resource/masonry-gallery/crop-garden-room4.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room4.webp", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-290.jpg",
-              alt: "High-quality insulation materials used in modular builds" 
+              src: "/resource/masonry-gallery/crop-garden-room5.png",
+              srcWebP: "/resource/masonry-gallery/crop-garden-room5.webp",
+              srcAvif: "/resource/masonry-gallery/crop-garden-room5.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room5.webp", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-288.jpg",
-              alt: "Finished modular house front view at sunset" 
+              src: "/resource/masonry-gallery/crop-house-extension1.png",
+              srcWebP: "/resource/masonry-gallery/crop-house-extension1.webp",
+              srcAvif: "/resource/masonry-gallery/crop-house-extension1.avif",
+              fullSizeSrc: "/resource/house-extension/house-extension1.webp", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
             { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-294.jpg",
-              alt: "Custom designed garden studio interior" 
+              src: "/resource/masonry-gallery/crop-house-extension2.png",
+              srcWebP: "/resource/masonry-gallery/crop-house-extension2.webp",
+              srcAvif: "/resource/masonry-gallery/crop-house-extension2.avif",
+              fullSizeSrc: "/resource/house-extension/house-extension2.webp", // or a larger version
+              alt: "Steel frame house extension with modern design",
+              width: 833,  // actual image width in pixels
+              height: 763  // actual image height in pixels
             },
           ]}
           columns = {4}

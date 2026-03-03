@@ -17,5 +17,7 @@ export * from './components/HeroBoldBottomText/HeroBoldBottomText'
 export * from './components/FullMassonryGallery/FullMassonryGallery'
 export * from './components/TextWithContactForm/TextWithContactForm'
 export * from './components/OptimizedImage/OptimizedImage'
+export { ProductRangeGrid, type ProductCard, type ProductRangeGridProps } from './components/ProductRangeGrid/ProductRangeGrid';
+export { AccordionFAQ, type AccordionFAQItem, type AccordionFAQProps } from './components/AccordionFAQ/AccordionFAQ';
 export * from './types';
 // Add your shared UI components here

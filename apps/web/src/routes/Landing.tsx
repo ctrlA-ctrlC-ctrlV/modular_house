@@ -177,12 +177,16 @@ function Landing() {
             subtitle="House Extension"
             title={"Inspired by vision,\nbuild for you"}
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
-            button1Text = "Get a free quote today"
-            button1Link = "/contact"
-            image1Src = '/resource/garden-room/hosue-extension1.png'
+            button1Text="Get a free quote today"
+            button1Link="/contact"
+            image1Src='/resource/garden-room/hosue-extension1.png'
             image1WebP='/resource/garden-room/hosue-extension1.webp'
             image1Avif='/resource/garden-room/hosue-extension1.avif'
-            image1Alt = 'House Extension 1'
+            image1Alt='House Extension 1'
+            image2Src='/resource/house-extension/house-extension2.png'
+            image2WebP='/resource/house-extension/house-extension2.webp'
+            image2Avif='/resource/house-extension/house-extension2.avif'
+            image2Alt='House Extension 2'
             bottomText="We use precision engineered light gauge steel to build extensions that are faster, cleaner, and stronger than traditional methods. This means less time onsite, more design flexibility, and long-term structural integrity all while meeting Ireland’s planning and building regulations.
             
             From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."
@@ -235,10 +239,14 @@ function Landing() {
       <div id='landing_gallary'>
         <MasonryGallery
           images={[
-            { 
-              src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg", 
-              fullSizeSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-293.jpg",
-              alt: "Modern modular home exterior with wood cladding and large windows" 
+            {
+              src: "/resource/garden-room/garden-room-sauna3.jpg",
+              srcWebP: "/resource/garden-room/garden-room-sauna3.webp",
+              srcAvif: "/resource/garden-room/garden-room-sauna3.avif",
+              fullSizeSrc: "/resource/garden-room/garden-room-sauna3.jpg",
+              alt: "Steel frame house extension with modern design",
+              width: 1080,  // actual image width in pixels
+              height: 1400  // actual image height in pixels
             },
             { 
               src: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-291.jpg", 

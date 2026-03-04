@@ -19,5 +19,6 @@ export * from './components/TextWithContactForm/TextWithContactForm'
 export * from './components/OptimizedImage/OptimizedImage'
 export { ProductRangeGrid, type ProductCard, type ProductRangeGridProps } from './components/ProductRangeGrid/ProductRangeGrid';
 export { AccordionFAQ, type AccordionFAQItem, type AccordionFAQProps } from './components/AccordionFAQ/AccordionFAQ';
+export { ProductShowcase, type ProductShowcaseProps, type ProductShowcaseProduct, type ProductShowcaseFeature, type ProductShowcaseWarranty } from './components/ProductShowcase/ProductShowcase';
 export * from './types';
 // Add your shared UI components here

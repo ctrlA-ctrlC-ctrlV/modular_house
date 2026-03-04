@@ -1,0 +1,70 @@
+/* =============================================================================
+   GardenRoom Route — Page-Level Styles
+   =============================================================================
+
+   Styles specific to the /garden-room route layout. Component-level styles
+   (e.g. ProductRangeGrid, HeroBoldBottomText) live in the @modular-house/ui
+   package. This file handles only page composition and elements unique to
+   the route, such as the "Explore Our Ranges" anchor link.
+
+   BEM naming: block = "garden-room", elements use double underscores.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Garden Room Hero Section
+   ---------------------------------------------------------------------------
+   The hero wrapper uses relative positioning so that the "Explore Our Ranges"
+   anchor link can be absolutely positioned at the bottom of the hero area,
+   visually overlapping the hero image.
+   --------------------------------------------------------------------------- */
+
+.garden-room__hero {
+  position: relative;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Explore Our Ranges — Anchor Link
+   ---------------------------------------------------------------------------
+   A floating text link positioned at the bottom-centre of the hero section.
+   On click it smooth-scrolls to the #product-range section. The down arrow
+   character (Unicode \2193) is appended via CSS to reinforce the scroll
+   affordance without adding a presentational element to the DOM.
+   --------------------------------------------------------------------------- */
+
+.garden-room__explore-link {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+
+  /* Reset native button styles */
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+
+  /* Typography */
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.garden-room__explore-link:hover,
+.garden-room__explore-link:focus-visible {
+  opacity: 0.75;
+}
+
+/* Down arrow indicator appended after the link text */
+.garden-room__explore-link::after {
+  content: ' \2193';
+  display: inline-block;
+  margin-left: 0.25rem;
+}

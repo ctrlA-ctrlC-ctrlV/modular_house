@@ -1,28 +1,66 @@
-import React from 'react';
+/**
+ * GardenRoom Route Component
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Top-level page component for the /garden-room route. Renders the garden room
+ * product landing page using shared UI components from @modular-house/ui and
+ * centralised data constants from ../data/garden-room-data.
+ *
+ * LAYOUT (8-section design):
+ * Section 1 — Hero (HeroBoldBottomText + "Explore Our Ranges" anchor link)
+ * Section 2 — Product Range (ProductRangeGrid)
+ * Sections 3-8 — TODO: Why Steel Frame, Planning, Gallery, Testimonials, FAQ, CTA
+ *
+ * ARCHITECTURE:
+ * - Header is configured for dark variant with position overlay so it sits
+ *   transparently over the hero background image.
+ * - A custom LinkRenderer bridges React Router's Link component into the
+ *   shared UI library, which is router-agnostic by design.
+ * - Product data is imported from a centralised data file so this component
+ *   remains purely presentational.
+ *
+ * =============================================================================
+ */
+
+import React, { useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   HeroBoldBottomText,
-  FullMassonryGallery,
-  type LinkRenderer
+  ProductRangeGrid,
+  type LinkRenderer,
 } from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
-import { useEffect } from 'react';
+import { GARDEN_ROOM_PRODUCTS } from '../data/garden-room-data';
+import './GardenRoom.css';
+
 
 const GardenRoom: React.FC = () => {
-  // Configure header for dark variant on hero pages
+  /* ---------------------------------------------------------------------------
+     Header Configuration
+     ---------------------------------------------------------------------------
+     Sets the site header to dark variant with absolute positioning so it
+     overlays the hero image. The cleanup function resets to the same config
+     to prevent flash-of-unstyled-header during route transitions.
+     --------------------------------------------------------------------------- */
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
     setHeaderConfig({ variant: 'dark', positionOver: true });
-    
+
     return () => {
       setHeaderConfig({ variant: 'dark', positionOver: true });
     };
   }, [setHeaderConfig]);
 
-  /** 
-   * Custom link renderer to inject React Router's Link component
-   * into shared UI components, replacing standard anchor tags.
-   */
+
+  /* ---------------------------------------------------------------------------
+     Link Renderer
+     ---------------------------------------------------------------------------
+     Adapter function that injects React Router's <Link> into shared UI
+     components. The @modular-house/ui package is router-agnostic; it accepts
+     a renderLink prop conforming to the LinkRenderer interface, allowing the
+     consuming app to control navigation behaviour.
+     --------------------------------------------------------------------------- */
   const renderLink: LinkRenderer = (props) => {
     const { href, children, className, onClick, ...rest } = props;
     return (
@@ -32,37 +70,90 @@ const GardenRoom: React.FC = () => {
     );
   };
 
+
+  /* ---------------------------------------------------------------------------
+     Smooth Scroll Handler
+     ---------------------------------------------------------------------------
+     Scrolls the viewport to the #product-range section when the user clicks
+     the "Explore Our Ranges" anchor link. Uses the native scrollIntoView API
+     with smooth behaviour for a polished transition.
+     --------------------------------------------------------------------------- */
+  const handleExploreClick = useCallback((): void => {
+    document
+      .getElementById('product-range')
+      ?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+
   return (
     <div className="l-container py-16">
-      {/** /garden-room hero Section */}
-      <div id='garden_room_hero'>
+
+      {/* ===================================================================
+          Section 1 — Hero
+          ===================================================================
+          Full-width hero banner with bold bottom-aligned text, a primary CTA
+          button, and a floating "Explore Our Ranges" anchor link that smooth-
+          scrolls to the product range grid below.
+          =================================================================== */}
+      <div id="garden_room_hero" className="garden-room__hero">
         <HeroBoldBottomText
-          titleLine1 = "Reclaim your quiet comfort in a bespoke outdoor studio."
-          titleLine2 = "Precision steel engineering meets architectural elegance."
-          ctaText = "Get a Free Quote"
-          ctaLink = "/contact"
-          backgroundImage = "/resource/garden_room_hero.png"
+          titleLine1="Steel Frame Garden Rooms"
+          titleLine2="Built to Last. Designed for Living."
+          ctaText="Get a Free Quote"
+          ctaLink="/contact"
+          backgroundImage="/resource/garden_room_hero.png"
           backgroundImageWebP="/resource/garden_room_hero.webp"
           backgroundImageAvif="/resource/garden_room_hero.avif"
-          bigText = "Garden Room"
+          bigText="Garden Room"
+          renderLink={renderLink}
+        />
+
+        {/* "Explore Our Ranges" anchor — positioned at the bottom of the hero
+            via absolute positioning (see GardenRoom.css). Uses a <button>
+            element for accessibility since it triggers an in-page scroll
+            action rather than navigating to a new URL. */}
+        <button
+          type="button"
+          className="garden-room__explore-link"
+          onClick={handleExploreClick}
+          aria-label="Scroll down to explore our garden room range"
+        >
+          Explore Our Ranges
+        </button>
+      </div>
+
+
+      {/* ===================================================================
+          Section 2 — Product Range
+          ===================================================================
+          Displays four garden room product cards (15, 25, 35, 45 square
+          metres) in a responsive grid. Product data is sourced from the
+          centralised GARDEN_ROOM_PRODUCTS constant in garden-room-data.ts.
+          =================================================================== */}
+      <div id="product-range">
+        <ProductRangeGrid
+          eyebrow="OUR RANGE"
+          title="Choose Your Perfect Size"
+          description="Every garden room is precision-built with CNC-cut steel framing, superior insulation, and architectural-grade finishes."
+          products={GARDEN_ROOM_PRODUCTS}
           renderLink={renderLink}
         />
       </div>
 
-      <div id='garden_room_gallery'>
-        <FullMassonryGallery
-          itemCount = {5}
-          items = {[
-            { imageUrl: '/resource/garden-room/garden-room1.png', imageWebP: '/resource/garden-room/garden-room1.webp', imageAvif: '/resource/garden-room/garden-room1.avif', title: 'Modular House Garden Room 1', category: 'Garden Room' },
-            { imageUrl: '/resource/garden-room/garden-room4.png', imageWebP: '/resource/garden-room/garden-room4.webp', imageAvif: '/resource/garden-room/garden-room4.avif', title: 'Modular House Garden Room 2', category: 'Garden Room' },
-            { imageUrl: '/resource/garden-room/garden-room2.png', imageWebP: '/resource/garden-room/garden-room2.webp', imageAvif: '/resource/garden-room/garden-room2.avif', title: 'Modular House Garden Room 3', category: 'Garden Room' },
-            { imageUrl: '/resource/garden-room/garden-room3.png', imageWebP: '/resource/garden-room/garden-room3.webp', imageAvif: '/resource/garden-room/garden-room3.avif', title: 'Modular House Garden Room 4', category: 'Garden Room' },
-            { imageUrl: '/resource/garden-room/garden-room5.png', imageWebP: '/resource/garden-room/garden-room5.webp', imageAvif: '/resource/garden-room/garden-room5.avif', title: 'Modular House Garden Room 5', category: 'Garden Room' },
-          ]}
-          title = "Garden Room Projects"
-          description = "Explore our portfolio of bespoke garden sanctuaries. See how Modular House combines steel-frame precision with architectural design to create high-performance spaces you can enjoy year-round."
-        />
-      </div>
+
+      {/* ===================================================================
+          Sections 3-8 — TODO
+          ===================================================================
+          The remaining six sections will be implemented in subsequent user
+          stories:
+            Section 3 — Why Steel Frame (US2)
+            Section 4 — Planning Permission (US3)
+            Section 5 — Gallery (US3)
+            Section 6 — Testimonials (US4)
+            Section 7 — FAQ (US4)
+            Section 8 — Bottom CTA (US5)
+          =================================================================== */}
+
     </div>
   );
 };

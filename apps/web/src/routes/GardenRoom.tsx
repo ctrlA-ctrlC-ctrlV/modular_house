@@ -15,7 +15,7 @@
  * Section 5 — Gallery (FullMassonryGallery)
  * Section 6 — Testimonials (TestimonialGrid)
  * Section 7 — FAQ (AccordionFAQ)
- * Section 8 — TODO: CTA
+ * Section 8 — CTA (ContactFormWithImageBg)
  *
  * ARCHITECTURE:
  * - Header is configured for dark variant with position overlay so it sits
@@ -38,8 +38,11 @@ import {
   FullMassonryGallery,
   TestimonialGrid,
   AccordionFAQ,
+  ContactFormWithImageBg,
+  type ContactFormData,
   type LinkRenderer,
 } from '@modular-house/ui';
+import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
 import {
   GARDEN_ROOM_PRODUCTS,
@@ -98,6 +101,31 @@ const GardenRoom: React.FC = () => {
     document
       .getElementById('product-range')
       ?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+
+  /* ---------------------------------------------------------------------------
+     Contact Form Submission Handler
+     ---------------------------------------------------------------------------
+     Delegates form data from the ContactFormWithImageBg component to the
+     apiClient.submitEnquiry() method. Maps the component's ContactFormData
+     interface to the API payload shape expected by the backend. The honeypot
+     field ("address") is forwarded as "website" for server-side spam detection.
+
+     This follows the same submission pattern used in Landing.tsx to maintain
+     consistency across all contact form instances in the application.
+     --------------------------------------------------------------------------- */
+  const handleContactSubmit = useCallback(async (data: ContactFormData): Promise<void> => {
+    await apiClient.submitEnquiry({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      preferredProduct: data.productType,
+      message: data.message,
+      consent: data.consent,
+      website: data.address,
+    });
   }, []);
 
 
@@ -301,12 +329,30 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 8 — TODO
+          Section 8 — CTA (Call to Action)
           ===================================================================
-          The remaining section will be implemented in a subsequent user
-          story:
-            Section 8 — Bottom CTA (US5)
+          Full-width contact form section with a background image, positioned
+          as the final page section to capture visitor intent after they have
+          reviewed the product range, features, gallery, testimonials, and FAQ.
+
+          The ContactFormWithImageBg component renders a right-aligned form
+          card overlaid on the background image. Form submission is delegated
+          to apiClient.submitEnquiry() via the handleContactSubmit callback.
+
+          The title uses a newline character to create a two-line heading:
+            Line 1: "Ready to Start Your"
+            Line 2: "Garden Room Project?"
+
+          The background image reuses the landing page hero asset for visual
+          consistency across the site's CTA sections.
           =================================================================== */}
+      <div id="contact-cta">
+        <ContactFormWithImageBg
+          backgroundImage="/resource/landing_hero2.png"
+          title={"Ready to Start Your\nGarden Room Project?"}
+          onSubmit={handleContactSubmit}
+        />
+      </div>
 
     </div>
   );

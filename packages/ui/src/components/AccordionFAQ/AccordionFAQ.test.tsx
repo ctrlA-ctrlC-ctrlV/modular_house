@@ -135,8 +135,8 @@ describe('AccordionFAQ', () => {
 
     /** The panel should be visible (hidden attribute removed) */
     const panel = document.getElementById('panel-faq-1');
-    expect(panel).toBeDefined();
-    expect(panel!.hasAttribute('hidden')).toBe(false);
+    expect(panel).not.toBeNull();
+    expect(panel?.hasAttribute('hidden')).toBe(false);
   });
 
   /* -------------------------------------------------------------------------
@@ -158,7 +158,8 @@ describe('AccordionFAQ', () => {
     expect(firstButton.getAttribute('aria-expanded')).toBe('false');
 
     const panel = document.getElementById('panel-faq-1');
-    expect(panel!.hasAttribute('hidden')).toBe(true);
+    expect(panel).not.toBeNull();
+    expect(panel?.hasAttribute('hidden')).toBe(true);
   });
 
   /* -------------------------------------------------------------------------
@@ -197,9 +198,9 @@ describe('AccordionFAQ', () => {
       const trigger = document.getElementById(`trigger-${faq.id}`);
       const panel = document.getElementById(`panel-${faq.id}`);
 
-      expect(trigger).toBeDefined();
-      expect(panel).toBeDefined();
-      expect(trigger!.getAttribute('aria-controls')).toBe(`panel-${faq.id}`);
+      expect(trigger).not.toBeNull();
+      expect(panel).not.toBeNull();
+      expect(trigger?.getAttribute('aria-controls')).toBe(`panel-${faq.id}`);
     });
   });
 
@@ -214,9 +215,9 @@ describe('AccordionFAQ', () => {
     MOCK_FAQS.forEach((faq) => {
       const panel = document.getElementById(`panel-${faq.id}`);
 
-      expect(panel).toBeDefined();
-      expect(panel!.getAttribute('role')).toBe('region');
-      expect(panel!.getAttribute('aria-labelledby')).toBe(`trigger-${faq.id}`);
+      expect(panel).not.toBeNull();
+      expect(panel?.getAttribute('role')).toBe('region');
+      expect(panel?.getAttribute('aria-labelledby')).toBe(`trigger-${faq.id}`);
     });
   });
 
@@ -311,8 +312,8 @@ describe('AccordionFAQ', () => {
 
     MOCK_FAQS.forEach((faq) => {
       const panel = document.getElementById(`panel-${faq.id}`);
-      expect(panel).toBeDefined();
-      expect(panel!.hasAttribute('hidden')).toBe(true);
+      expect(panel).not.toBeNull();
+      expect(panel?.hasAttribute('hidden')).toBe(true);
     });
   });
 });

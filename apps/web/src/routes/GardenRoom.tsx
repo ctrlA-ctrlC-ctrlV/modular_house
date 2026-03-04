@@ -12,7 +12,9 @@
  * Section 2 — Product Range (ProductRangeGrid)
  * Section 3 — Why Steel Frame (FeatureSection)
  * Section 4 — Planning Permission (TwoColumnSplitLayout)
- * Sections 5-8 — TODO: Gallery, Testimonials, FAQ, CTA
+ * Section 5 — Gallery (TODO — T012)
+ * Section 6 — Testimonials (TestimonialGrid)
+ * Sections 7-8 — TODO: FAQ, CTA
  *
  * ARCHITECTURE:
  * - Header is configured for dark variant with position overlay so it sits
@@ -32,10 +34,15 @@ import {
   ProductRangeGrid,
   FeatureSection,
   TwoColumnSplitLayout,
+  TestimonialGrid,
   type LinkRenderer,
 } from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
-import { GARDEN_ROOM_PRODUCTS, GARDEN_ROOM_FEATURES } from '../data/garden-room-data';
+import {
+  GARDEN_ROOM_PRODUCTS,
+  GARDEN_ROOM_FEATURES,
+  GARDEN_ROOM_TESTIMONIALS,
+} from '../data/garden-room-data';
 import './GardenRoom.css';
 
 
@@ -219,12 +226,39 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Sections 5-8 — TODO
+          Section 5 — Gallery (TODO)
+          ===================================================================
+          Will be implemented in T012 (US3). Renders a FullMassonryGallery
+          component with 6-8 images and a lightbox viewer, sourced from
+          GARDEN_ROOM_GALLERY in garden-room-data.ts.
+          =================================================================== */}
+
+
+      {/* ===================================================================
+          Section 6 — Testimonials
+          ===================================================================
+          Displays customer testimonials in a responsive grid layout. Each
+          card includes a quote, the customer's name and location, and a
+          star rating. The testimonial data is sourced from the centralised
+          GARDEN_ROOM_TESTIMONIALS constant in garden-room-data.ts.
+
+          This section uses the default white background to contrast with
+          the beige gallery section above it.
+          =================================================================== */}
+      <div id="testimonials">
+        <TestimonialGrid
+          subTitle="WHAT OUR CLIENTS SAY"
+          title="Trusted by Homeowners Across Ireland"
+          testimonials={GARDEN_ROOM_TESTIMONIALS}
+        />
+      </div>
+
+
+      {/* ===================================================================
+          Sections 7-8 — TODO
           ===================================================================
           The remaining sections will be implemented in subsequent user
           stories:
-            Section 5 — Gallery (US3)
-            Section 6 — Testimonials (US4)
             Section 7 — FAQ (US4)
             Section 8 — Bottom CTA (US5)
           =================================================================== */}

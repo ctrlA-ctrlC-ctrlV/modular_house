@@ -10,7 +10,9 @@
  * LAYOUT (8-section design):
  * Section 1 — Hero (HeroBoldBottomText + "Explore Our Ranges" anchor link)
  * Section 2 — Product Range (ProductRangeGrid)
- * Sections 3-8 — TODO: Why Steel Frame, Planning, Gallery, Testimonials, FAQ, CTA
+ * Section 3 — Why Steel Frame (TODO — US3)
+ * Section 4 — Planning Permission (TwoColumnSplitLayout)
+ * Sections 5-8 — TODO: Gallery, Testimonials, FAQ, CTA
  *
  * ARCHITECTURE:
  * - Header is configured for dark variant with position overlay so it sits
@@ -28,6 +30,7 @@ import { Link } from 'react-router-dom';
 import {
   HeroBoldBottomText,
   ProductRangeGrid,
+  TwoColumnSplitLayout,
   type LinkRenderer,
 } from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
@@ -142,12 +145,59 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Sections 3-8 — TODO
+          Section 3 — Why Steel Frame (TODO)
           ===================================================================
-          The remaining six sections will be implemented in subsequent user
+          Will be implemented in US3 (Phase 6). Renders a FeatureSection
+          component with four icon + text cards highlighting steel frame
+          benefits (precision, rapid build, energy efficiency, durability).
+          =================================================================== */}
+
+
+      {/* ===================================================================
+          Section 4 — Planning Permission
+          ===================================================================
+          Two-column layout presenting planning permission guidance for
+          prospective garden room buyers in Ireland. The left column contains
+          the informational copy with a checklist of exemption thresholds,
+          and an external link to the government planning resource. The
+          right column displays a compliant garden room photograph.
+
+          The content covers three key points:
+          1. Current exemption: up to 25m² requires no planning permission.
+          2. Pending legislation: 35m² and 45m² sizes may become exempt.
+          3. Service value: Modular House handles all planning paperwork.
+          =================================================================== */}
+      <div id="planning-permission">
+        <TwoColumnSplitLayout
+          backgroundColor="white"
+          subtitle="PLANNING MADE SIMPLE"
+          title="Do You Need Planning Permission?"
+          description1={
+            'Under current Irish law, garden rooms up to 25m\u00B2 are exempt from planning permission '
+            + 'when they meet certain conditions. New legislation is being prepared to increase this '
+            + 'threshold, which would allow garden rooms up to 45m\u00B2 without planning permission.\n\n'
+            + '\u2713 Up to 25m\u00B2 \u2014 No planning permission needed\n'
+            + '\u2713 35m\u00B2 & 45m\u00B2 \u2014 Legislation pending\n'
+            + '\u2713 We handle all paperwork for you'
+          }
+          image1Src="/resource/garden-room/garden-room5.png"
+          image1WebP="/resource/garden-room/garden-room5.webp"
+          image1Avif="/resource/garden-room/garden-room5.avif"
+          image1Alt="Garden room with planning permission compliant design"
+          image1Width={2400}
+          image1Height={1578}
+          button1Text="Learn More About Planning"
+          button1Link="https://www.gov.ie/en/publication/planning-exemptions/"
+          renderLink={renderLink}
+        />
+      </div>
+
+
+      {/* ===================================================================
+          Sections 5-8 — TODO
+          ===================================================================
+          The remaining sections will be implemented in subsequent user
           stories:
-            Section 3 — Why Steel Frame (US2)
-            Section 4 — Planning Permission (US3)
             Section 5 — Gallery (US3)
             Section 6 — Testimonials (US4)
             Section 7 — FAQ (US4)

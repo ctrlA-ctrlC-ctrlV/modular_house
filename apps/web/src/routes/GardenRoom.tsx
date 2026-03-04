@@ -12,7 +12,7 @@
  * Section 2 — Product Range (ProductRangeGrid)
  * Section 3 — Why Steel Frame (FeatureSection)
  * Section 4 — Planning Permission (TwoColumnSplitLayout)
- * Section 5 — Gallery (TODO — T012)
+ * Section 5 — Gallery (FullMassonryGallery)
  * Section 6 — Testimonials (TestimonialGrid)
  * Sections 7-8 — TODO: FAQ, CTA
  *
@@ -34,6 +34,7 @@ import {
   ProductRangeGrid,
   FeatureSection,
   TwoColumnSplitLayout,
+  FullMassonryGallery,
   TestimonialGrid,
   type LinkRenderer,
 } from '@modular-house/ui';
@@ -41,6 +42,7 @@ import { useHeaderConfig } from '../components/HeaderContext';
 import {
   GARDEN_ROOM_PRODUCTS,
   GARDEN_ROOM_FEATURES,
+  GARDEN_ROOM_GALLERY,
   GARDEN_ROOM_TESTIMONIALS,
 } from '../data/garden-room-data';
 import './GardenRoom.css';
@@ -226,12 +228,28 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 5 — Gallery (TODO)
+          Section 5 — Gallery
           ===================================================================
-          Will be implemented in T012 (US3). Renders a FullMassonryGallery
-          component with 6-8 images and a lightbox viewer, sourced from
-          GARDEN_ROOM_GALLERY in garden-room-data.ts.
+          Masonry-style image gallery showcasing completed garden room and
+          sauna projects. Each thumbnail supports WebP and AVIF optimised
+          variants via the OptimizedImage component used internally by
+          FullMassonryGallery. Clicking a thumbnail opens a full-screen
+          lightbox viewer for detailed inspection.
+
+          The gallery data is sourced from GARDEN_ROOM_GALLERY in
+          garden-room-data.ts (8 items covering garden rooms and saunas).
+          The beige background (#F6F5F0) provides visual separation from
+          the white Planning Permission section above and the white
+          Testimonials section below.
           =================================================================== */}
+      <div id="garden_room_gallery" style={{ backgroundColor: '#F6F5F0' }}>
+        <FullMassonryGallery
+          itemCount={GARDEN_ROOM_GALLERY.length}
+          items={GARDEN_ROOM_GALLERY}
+          title="Garden Room Projects"
+          description="Explore our portfolio of precision-built garden sanctuaries. See how Modular House combines steel-frame engineering with architectural design to create high-performance spaces you can enjoy year-round."
+        />
+      </div>
 
 
       {/* ===================================================================

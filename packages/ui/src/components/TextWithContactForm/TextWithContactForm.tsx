@@ -90,6 +90,23 @@ export interface TextWithContactFormProps {
   submissionSuccess?: boolean;
   /** Optional additional CSS class names for styling overrides */
   className?: string;
+
+  /**
+   * Pre-selects the "Preferred Product" dropdown when the form mounts.
+   * Accepts a value matching the schema enum: 'Garden Room' or 'House Extension'.
+   * When omitted, the dropdown defaults to the unselected placeholder state.
+   * Typical use case: linking from a product page with a query parameter that
+   * the consuming route maps to one of the enum values before passing it here.
+   */
+  defaultProduct?: 'Garden Room' | 'House Extension';
+
+  /**
+   * Pre-populates the message textarea when the form mounts.
+   * Useful for pre-filling contextual information such as an interest
+   * registration tag derived from URL query parameters.
+   * When omitted, the textarea starts empty.
+   */
+  defaultMessage?: string;
 }
 
 
@@ -192,11 +209,18 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
   isSubmitting: externalIsSubmitting = false,
   submissionError,
   submissionSuccess,
-  className = ''
+  className = '',
+  defaultProduct,
+  defaultMessage,
 }) => {
   /**
    * Initialize react-hook-form with Zod validation resolver.
    * Provides form state, validation, and submission handling.
+   *
+   * The defaultValues object seeds the form fields on mount. The
+   * `defaultProduct` and `defaultMessage` props allow parent routes to
+   * pre-populate the product dropdown and message textarea, typically
+   * derived from URL query parameters (e.g. /contact?product=garden-room-25).
    */
   const {
     register,
@@ -207,7 +231,9 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
     resolver: zodResolver(textContactFormSchema),
     defaultValues: {
       gdprConsent: false,
-      website: ''
+      website: '',
+      preferredProduct: defaultProduct,
+      message: defaultMessage,
     }
   });
 

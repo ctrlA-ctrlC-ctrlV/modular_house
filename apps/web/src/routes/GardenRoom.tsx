@@ -14,7 +14,8 @@
  * Section 4 — Planning Permission (TwoColumnSplitLayout)
  * Section 5 — Gallery (FullMassonryGallery)
  * Section 6 — Testimonials (TestimonialGrid)
- * Sections 7-8 — TODO: FAQ, CTA
+ * Section 7 — FAQ (AccordionFAQ)
+ * Section 8 — TODO: CTA
  *
  * ARCHITECTURE:
  * - Header is configured for dark variant with position overlay so it sits
@@ -36,6 +37,7 @@ import {
   TwoColumnSplitLayout,
   FullMassonryGallery,
   TestimonialGrid,
+  AccordionFAQ,
   type LinkRenderer,
 } from '@modular-house/ui';
 import { useHeaderConfig } from '../components/HeaderContext';
@@ -44,6 +46,7 @@ import {
   GARDEN_ROOM_FEATURES,
   GARDEN_ROOM_GALLERY,
   GARDEN_ROOM_TESTIMONIALS,
+  GARDEN_ROOM_FAQS,
 } from '../data/garden-room-data';
 import './GardenRoom.css';
 
@@ -273,11 +276,35 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Sections 7-8 — TODO
+          Section 7 — FAQ
           ===================================================================
-          The remaining sections will be implemented in subsequent user
-          stories:
-            Section 7 — FAQ (US4)
+          Frequently asked questions presented in an accordion layout with
+          expand/collapse behaviour. Renders 6 FAQ items covering common
+          queries about planning permission, build timelines, sizes,
+          insulation, year-round use, and pricing inclusions.
+
+          The AccordionFAQ component manages its own toggle state internally,
+          supports independent expansion of multiple items, and provides
+          full ARIA accessibility (aria-expanded, aria-controls, role="region").
+
+          The GARDEN_ROOM_FAQS data array serves double duty: it populates
+          this visual accordion and also feeds the FAQPage JSON-LD schema
+          defined in routes-metadata.ts, keeping content and structured
+          data in sync automatically.
+
+          The beige background (#F6F5F0) provides visual separation from
+          the white Testimonials section above and the upcoming CTA section.
+          =================================================================== */}
+      <div id="faq" style={{ backgroundColor: '#F6F5F0' }}>
+        <AccordionFAQ title="FAQ" faqs={GARDEN_ROOM_FAQS} />
+      </div>
+
+
+      {/* ===================================================================
+          Section 8 — TODO
+          ===================================================================
+          The remaining section will be implemented in a subsequent user
+          story:
             Section 8 — Bottom CTA (US5)
           =================================================================== */}
 

@@ -29,7 +29,7 @@
  * =============================================================================
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   HeroBoldBottomText,
@@ -41,8 +41,11 @@ import {
   TestimonialGrid,
   AccordionFAQ,
   ContactFormWithImageBg,
+  QuickViewModal,
   type ContactFormData,
   type LinkRenderer,
+  type ProductCard,
+  type QuickViewProduct,
 } from '@modular-house/ui';
 import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
@@ -55,6 +58,7 @@ import {
   GARDEN_ROOM_GALLERY,
   GARDEN_ROOM_TESTIMONIALS,
   GARDEN_ROOM_FAQS,
+  GARDEN_ROOM_QUICK_VIEW,
 } from '../data/garden-room-data';
 import './GardenRoom.css';
 
@@ -67,6 +71,14 @@ const GardenRoom: React.FC = () => {
      overlays the hero image. The cleanup function resets to the same config
      to prevent flash-of-unstyled-header during route transitions.
      --------------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------------
+     Quick View Modal State
+     ---------------------------------------------------------------------------
+     Tracks which product (if any) is currently displayed in the QuickViewModal
+     overlay. `null` means the modal is closed.
+     --------------------------------------------------------------------------- */
+  const [quickViewProduct, setQuickViewProduct] = useState<QuickViewProduct | null>(null);
+
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
     setHeaderConfig({ variant: 'dark', positionOver: true });
@@ -120,6 +132,22 @@ const GardenRoom: React.FC = () => {
      This follows the same submission pattern used in Landing.tsx to maintain
      consistency across all contact form instances in the application.
      --------------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------------
+     Quick View Handler
+     ---------------------------------------------------------------------------
+     Called when the user clicks "Quick View" on a ProductRangeGrid card.
+     Maps the card index to the corresponding entry in the
+     GARDEN_ROOM_QUICK_VIEW array so the modal can display extended data
+     (description, specs, lead time) for that product.
+     --------------------------------------------------------------------------- */
+  const handleQuickView = useCallback((_product: ProductCard, index: number): void => {
+    const quickViewData = GARDEN_ROOM_QUICK_VIEW[index];
+    if (quickViewData) {
+      setQuickViewProduct(quickViewData);
+    }
+  }, []);
+
+
   const handleContactSubmit = useCallback(async (data: ContactFormData): Promise<void> => {
     await apiClient.submitEnquiry({
       firstName: data.firstName,
@@ -215,6 +243,16 @@ const GardenRoom: React.FC = () => {
           title="Choose Your Perfect Size"
           description="Every garden room is precision-built with CNC-cut steel framing, superior insulation, and architectural-grade finishes."
           products={GARDEN_ROOM_PRODUCTS}
+          renderLink={renderLink}
+          onQuickView={handleQuickView}
+        />
+
+        {/* Quick View Modal — renders as a full-screen overlay when a user
+            clicks "Quick View" on any product card. Closed via backdrop click,
+            Escape key, or the close button inside the modal. */}
+        <QuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
           renderLink={renderLink}
         />
       </div>

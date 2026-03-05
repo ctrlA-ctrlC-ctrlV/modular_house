@@ -53,20 +53,28 @@ import './ProductRangeGrid.css';
  * border, full vs reduced image opacity) and the CTA style (filled vs outline).
  */
 export interface ProductCard {
-  /** Display size label, e.g., "15m2" */
+  /** Display size label, e.g., "15m²" */
   size: string;
   /** Product name, e.g., "Compact Studio" */
   name: string;
+  /** Short tagline displayed below the name in the hero area */
+  tagline?: string;
   /** Primary image path (PNG/JPEG fallback) */
   image: string;
   /** WebP optimised image variant for modern browsers */
   imageWebP?: string;
   /** AVIF optimised image variant for maximum compression */
   imageAvif?: string;
-  /** List of typical use cases displayed as a bulleted list */
+  /** List of typical use cases displayed as tag pills */
   useCases: string[];
-  /** Planning permission status note displayed below use cases */
-  planningNote: string;
+  /** Formatted price string, e.g., "€26,000" */
+  price?: string;
+  /** Whether planning permission is required (true) or exempt (false) */
+  planningPermission?: boolean;
+  /** Planning permission status note (legacy — used when planningPermission is undefined) */
+  planningNote?: string;
+  /** Whether the product is currently in stock */
+  inStock?: boolean;
   /** Optional badge text ("Most Popular", "Coming Soon") overlaid on the image */
   badge?: string;
   /** CTA button label text */
@@ -94,6 +102,8 @@ export interface ProductRangeGridProps {
   products: ProductCard[];
   /** Custom link renderer for SPA navigation (e.g., react-router-dom Link) */
   renderLink?: LinkRenderer;
+  /** Callback invoked when the "Quick View" button is clicked. When provided, each card renders a secondary Quick View button alongside the primary CTA. */
+  onQuickView?: (product: ProductCard, index: number) => void;
 }
 
 /* =============================================================================
@@ -138,6 +148,7 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
   description,
   products,
   renderLink,
+  onQuickView,
 }) => {
   /**
    * Stable identifier for the heading element, used by aria-labelledby
@@ -167,15 +178,17 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
 
       {/* ---------------------------------------------------------------
           GRID CONTAINER
-          CSS Grid handles the responsive column layout (4 -> 2 -> 1
-          columns at desktop -> tablet -> mobile breakpoints).
+          CSS Grid handles the responsive column layout (2 -> 1
+          columns at desktop -> mobile breakpoints).
           --------------------------------------------------------------- */}
       <div className="product-range-grid__grid">
         {products.map((product, index) => (
           <ProductRangeCard
             key={`${product.size}-${index}`}
             product={product}
+            index={index}
             renderLink={renderLink}
+            onQuickView={onQuickView}
           />
         ))}
       </div>
@@ -196,33 +209,43 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
 interface ProductRangeCardInternalProps {
   /** The product data to render */
   product: ProductCard;
+  /** Index of this card in the grid (passed to onQuickView) */
+  index: number;
   /** Custom link renderer inherited from the parent grid */
   renderLink?: LinkRenderer;
+  /** Quick View callback inherited from the parent grid */
+  onQuickView?: (product: ProductCard, index: number) => void;
 }
 
 /**
  * ProductRangeCard (internal)
  *
- * Renders a single product card as a semantic <article> element.
- * The card variant (available vs coming-soon) is determined by the
- * `product.available` flag, which controls CSS modifiers on the card,
- * image opacity, badge colour, and CTA button style.
+ * Renders a single product card as a semantic <article> element with a
+ * hero image section (gradient overlay, stock pill, size badge, name,
+ * tagline) and a body section (use-case tags, price + permission meta
+ * row, action buttons).
  *
  * @param props - Card-level configuration
  * @returns JSX element representing one product card
  */
 const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
   product,
+  index,
   renderLink,
+  onQuickView,
 }) => {
   const {
     size,
     name,
+    tagline,
     image,
     imageWebP,
     imageAvif,
     useCases,
+    price,
+    planningPermission,
     planningNote,
+    inStock,
     badge,
     ctaText,
     ctaLink,
@@ -237,18 +260,19 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
   const cardClassName = `product-range-card${!available ? ' product-range-card--coming-soon' : ''}`;
 
   /**
-   * Assemble the CTA class name.
-   * The --outline modifier switches from a filled button (brand colour
-   * background) to an outline-style button (transparent background with
-   * brand colour border and text).
-   */
-  const ctaClassName = `product-range-card__cta${!available ? ' product-range-card__cta--outline' : ''}`;
-
-  /**
    * Descriptive alt text for the card image.
    * Includes the product size and name for screen reader context.
    */
   const imageAlt = `${size} ${name} garden room`;
+
+  /**
+   * CTA class name depends on whether Quick View button is present.
+   * With Quick View: primary-style button (shares row).
+   * Without Quick View: full-width button.
+   */
+  const ctaClassName = onQuickView
+    ? 'product-range-card__btn product-range-card__btn--primary'
+    : `product-range-card__cta${!available ? ' product-range-card__cta--outline' : ''}`;
 
   /**
    * Render the CTA link.
@@ -270,12 +294,11 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
   return (
     <article className={cardClassName}>
       {/* ---------------------------------------------------------------
-          IMAGE WRAPPER
-          Contains the OptimizedImage (with AVIF/WebP/fallback sources)
-          and an optional overlay badge. The wrapper has position:relative
-          so the badge can be absolutely positioned in the top-right corner.
+          HERO IMAGE SECTION
+          Contains the product image with a gradient overlay, stock pill
+          badge, and overlaid text content (size badge, name, tagline).
           --------------------------------------------------------------- */}
-      <div className="product-range-card__image-wrapper">
+      <div className="product-range-card__top">
         <OptimizedImage
           src={image}
           alt={imageAlt}
@@ -285,37 +308,84 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
           width={600}
           height={400}
         />
+        <div className="product-range-card__overlay" />
 
-        {/* Badge overlay — only rendered when badge text is provided */}
+        {/* Stock pill — absolute positioned top-right of the image */}
+        {inStock !== undefined && (
+          <span
+            className={`product-range-card__stock-pill product-range-card__stock-pill--${inStock ? 'in-stock' : 'pre-order'}`}
+          >
+            {inStock ? 'In Stock' : 'Pre-Order'}
+          </span>
+        )}
+
+        {/* Badge overlay — rendered when badge text is provided */}
         {badge && (
           <span className={`product-range-card__badge${getBadgeModifier(badge)}`}>
             {badge}
           </span>
         )}
+
+        {/* Content overlaid on the hero image */}
+        <div className="product-range-card__top-content">
+          <div className="product-range-card__size-badge">{size}</div>
+          <h3 className="product-range-card__name">{name}</h3>
+          {tagline && (
+            <p className="product-range-card__tagline">{tagline}</p>
+          )}
+        </div>
       </div>
 
       {/* ---------------------------------------------------------------
           CARD BODY
-          Contains the product details: size, name, use cases list,
-          planning permission note, and the call-to-action link.
-          The body has flex-grow so the CTA is pushed to the card bottom
-          via margin-top:auto on the CTA element.
+          Contains use-case tag pills, price + permission meta row,
+          and the call-to-action button(s). The body uses flex layout
+          so the actions are pushed to the card bottom.
           --------------------------------------------------------------- */}
       <div className="product-range-card__body">
-        <p className="product-range-card__size">{size}</p>
-        <h3 className="product-range-card__name">{name}</h3>
-
-        {/* Use cases rendered as an unordered list for semantic correctness */}
+        {/* Use cases rendered as tag pills */}
         <ul className="product-range-card__use-cases">
           {useCases.map((useCase, i) => (
-            <li key={i}>{useCase}</li>
+            <li key={i} className="product-range-card__use-tag">{useCase}</li>
           ))}
         </ul>
 
-        <p className="product-range-card__planning-note">{planningNote}</p>
+        {/* Meta row — price and planning permission badge */}
+        {(price || planningPermission !== undefined || planningNote) && (
+          <div className="product-range-card__meta">
+            <div className="product-range-card__meta-row">
+              {price && (
+                <div className="product-range-card__price-block">
+                  <span className="product-range-card__price-from">Starting from</span>
+                  <span className="product-range-card__price">{price}</span>
+                </div>
+              )}
+              {planningPermission !== undefined ? (
+                <span
+                  className={`product-range-card__permission product-range-card__permission--${planningPermission ? 'required' : 'exempt'}`}
+                >
+                  {planningPermission ? 'Planning Required' : 'Exempt'}
+                </span>
+              ) : planningNote ? (
+                <p className="product-range-card__planning-note">{planningNote}</p>
+              ) : null}
+            </div>
+          </div>
+        )}
 
-        {/* CTA link — pushed to the bottom of the card by flex layout */}
-        {ctaElement}
+        {/* Action buttons — pushed to the bottom of the card by flex layout */}
+        <div className="product-range-card__actions">
+          {onQuickView && (
+            <button
+              type="button"
+              className="product-range-card__btn product-range-card__btn--secondary"
+              onClick={() => onQuickView(product, index)}
+            >
+              Quick View
+            </button>
+          )}
+          {ctaElement}
+        </div>
       </div>
     </article>
   );

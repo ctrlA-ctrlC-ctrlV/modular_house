@@ -30,7 +30,7 @@
  */
 
 import React from 'react';
-import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty } from '@modular-house/ui';
+import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct } from '@modular-house/ui';
 import { CustomIcons } from '@modular-house/ui';
 
 /**
@@ -172,11 +172,14 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
   {
     size: '15m\u00B2',
     name: 'Compact Studio',
+    tagline: 'Your private creative sanctuary',
     image: '/resource/garden-room/garden-room4.png',
     imageWebP: '/resource/garden-room/garden-room4.webp',
     imageAvif: '/resource/garden-room/garden-room4.avif',
     useCases: ['Home office', 'Art studio', 'Yoga room'],
-    planningNote: 'No planning permission required',
+    price: '\u20AC26,000',
+    planningPermission: false,
+    inStock: true,
     ctaText: 'Get a Quote',
     ctaLink: '/contact?product=garden-room-15',
     available: true,
@@ -184,11 +187,14 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
   {
     size: '25m\u00B2',
     name: 'Garden Suite',
+    tagline: 'Where work meets living',
     image: '/resource/garden-room/garden-room1.png',
     imageWebP: '/resource/garden-room/garden-room1.webp',
     imageAvif: '/resource/garden-room/garden-room1.avif',
     useCases: ['Home office + meeting space', 'Home gym', 'Music studio', '1 bed room en suite'],
-    planningNote: 'No planning permission required',
+    price: '\u20AC37,000',
+    planningPermission: false,
+    inStock: true,
     badge: 'Most Popular',
     ctaText: 'Get a Quote',
     ctaLink: '/contact?product=garden-room-25',
@@ -197,11 +203,14 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
   {
     size: '35m\u00B2',
     name: 'Garden Living',
+    tagline: 'Space to grow into',
     image: '/resource/garden-room/garden-room2.png',
     imageWebP: '/resource/garden-room/garden-room2.webp',
     imageAvif: '/resource/garden-room/garden-room2.avif',
     useCases: ['Guest suite', 'Teen retreat', 'Rental unit'],
-    planningNote: 'Legislation pending',
+    price: '\u20AC65,000',
+    planningPermission: true,
+    inStock: false,
     badge: 'Coming Soon',
     ctaText: 'Register Interest',
     ctaLink: '/contact?product=garden-room-35&interest=true',
@@ -210,15 +219,141 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
   {
     size: '45m\u00B2',
     name: 'Grand Studio',
+    tagline: 'A building, not just a room',
     image: '/resource/garden-room/garden-room3.png',
     imageWebP: '/resource/garden-room/garden-room3.webp',
     imageAvif: '/resource/garden-room/garden-room3.avif',
     useCases: ['Self-contained apartment', 'Multi-room workspace'],
-    planningNote: 'Legislation pending',
+    price: '\u20AC76,000',
+    planningPermission: true,
+    inStock: false,
     badge: 'Coming Soon',
     ctaText: 'Register Interest',
     ctaLink: '/contact?product=garden-room-45&interest=true',
     available: false,
+  },
+];
+
+
+/* =============================================================================
+   SECTION 1B: QUICK VIEW MODAL DATA
+   -----------------------------------------------------------------------------
+   Extended product data used by the QuickViewModal component. Each entry
+   corresponds to a product in GARDEN_ROOM_PRODUCTS (same index order) and
+   adds description, specs, and lead time fields for the expanded modal view.
+   ============================================================================= */
+
+export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
+  {
+    size: '15m\u00B2',
+    name: 'Compact Studio',
+    tagline: 'Your private creative sanctuary',
+    image: '/resource/garden-room/garden-room4.png',
+    imageWebP: '/resource/garden-room/garden-room4.webp',
+    imageAvif: '/resource/garden-room/garden-room4.avif',
+    useCases: ['Home Office', 'Art Studio', 'Yoga & Wellness Room', 'Music Practice'],
+    price: '\u20AC26,000',
+    planningPermission: false,
+    inStock: true,
+    available: true,
+    description:
+      'Compact yet generous, the Compact Studio is precision-engineered for focused work and creative pursuits. Floor-to-ceiling glazing floods the space with natural light, while our thermally broken steel frame ensures year-round comfort. Perfect for those who need a dedicated space without the footprint.',
+    specs: {
+      footprint: '5.0m \u00D7 3.0m',
+      height: '2.7m internal',
+      frame: 'Galvanised steel SHS',
+      insulation: '120mm PIR (U-value 0.15)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump',
+      electrics: 'Full consumer unit, Cat6 ready',
+    },
+    leadTime: '6\u20138 weeks',
+    ctaLink: '/contact?product=garden-room-15',
+    ctaText: 'Get a Quote',
+  },
+  {
+    size: '25m\u00B2',
+    name: 'Garden Suite',
+    tagline: 'Where work meets living',
+    image: '/resource/garden-room/garden-room1.png',
+    imageWebP: '/resource/garden-room/garden-room1.webp',
+    imageAvif: '/resource/garden-room/garden-room1.avif',
+    useCases: ['Office + Meeting Room', 'Guest Suite', 'Therapy Room', 'Design Studio'],
+    price: '\u20AC37,000',
+    planningPermission: false,
+    inStock: true,
+    available: true,
+    description:
+      'The Garden Suite offers the flexibility of a dual-zone layout \u2014 partition your space for a private office and client-facing meeting area, or configure an open-plan studio that breathes. At 25m\u00B2, it sits at the maximum size for exempted development, giving you the most space without the paperwork.',
+    specs: {
+      footprint: '6.25m \u00D7 4.0m',
+      height: '2.7m internal',
+      frame: 'Galvanised steel SHS',
+      insulation: '120mm PIR (U-value 0.15)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump',
+      electrics: 'Full consumer unit, Cat6 ready',
+      plumbing: 'Optional kitchenette prep',
+    },
+    leadTime: '8\u201310 weeks',
+    ctaLink: '/contact?product=garden-room-25',
+    ctaText: 'Get a Quote',
+  },
+  {
+    size: '35m\u00B2',
+    name: 'Garden Living',
+    tagline: 'Space to grow into',
+    image: '/resource/garden-room/garden-room2.png',
+    imageWebP: '/resource/garden-room/garden-room2.webp',
+    imageAvif: '/resource/garden-room/garden-room2.avif',
+    useCases: ['Multi-Desk Workspace', 'Home Gym + Office', 'Family Room', 'Content Studio'],
+    price: '\u20AC65,000',
+    planningPermission: true,
+    inStock: false,
+    available: false,
+    description:
+      'Garden Living is built for those who need room to move. Whether it\u2019s a two-person workspace with a breakout area, a home gym with an office nook, or a family media room \u2014 35m\u00B2 gives you genuine flexibility. Our portal steel frame means zero internal columns, so the space is entirely yours to define.',
+    specs: {
+      footprint: '7.0m \u00D7 5.0m',
+      height: '2.7m internal',
+      frame: 'Galvanised steel portal frame',
+      insulation: '150mm PIR (U-value 0.12)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump',
+      electrics: 'Full consumer unit, Cat6 ready',
+      plumbing: 'Optional kitchenette & WC',
+    },
+    leadTime: '10\u201312 weeks',
+    ctaLink: '/contact?product=garden-room-35&interest=true',
+    ctaText: 'Register Interest',
+  },
+  {
+    size: '45m\u00B2',
+    name: 'Grand Studio',
+    tagline: 'A building, not just a room',
+    image: '/resource/garden-room/garden-room3.png',
+    imageWebP: '/resource/garden-room/garden-room3.webp',
+    imageAvif: '/resource/garden-room/garden-room3.avif',
+    useCases: ['Full Living Annex', 'Large Studio / Workshop', 'Commercial Suite', 'Granny Flat'],
+    price: '\u20AC76,000',
+    planningPermission: true,
+    inStock: false,
+    available: false,
+    description:
+      'The Grand Studio blurs the line between garden room and architecture. At 45m\u00B2, this is a genuine self-contained building \u2014 large enough for an open-plan living and working space, a commercial therapy or consulting suite, or an independent annex for family. Designed to the same exacting standards as our smaller models, but with the presence and capability of a permanent structure.',
+    specs: {
+      footprint: '9.0m \u00D7 5.0m',
+      height: '2.8m internal',
+      frame: 'Galvanised steel portal frame',
+      insulation: '150mm PIR (U-value 0.12)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump (dual zone)',
+      electrics: 'Full consumer unit, Cat6, EV-ready',
+      plumbing: 'Optional full kitchen & WC',
+    },
+    leadTime: '12\u201316 weeks',
+    ctaLink: '/contact?product=garden-room-45&interest=true',
+    ctaText: 'Register Interest',
   },
 ];
 

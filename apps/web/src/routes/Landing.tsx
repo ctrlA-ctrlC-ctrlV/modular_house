@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom';
 import { apiClient } from '../lib/apiClient';
 import {
-  FeatureSection,
+  PRODUCT_SHOWCASE_PRODUCTS,
+  PRODUCT_SHOWCASE_FEATURES,
+  PRODUCT_SHOWCASE_WARRANTIES,
+  GARDEN_ROOM_PRODUCTS,
+  GARDEN_ROOM_FEATURES,
+  GARDEN_ROOM_GALLERY,
+  GARDEN_ROOM_TESTIMONIALS,
+  GARDEN_ROOM_FAQS,
+} from '../data/garden-room-data';
+import {
   HeroWithSideText,
+  ProductShowcase,
+  FeatureSection,
   CustomIcons,
   TwoColumnSplitLayout,
   TestimonialGrid,
@@ -78,6 +89,34 @@ function Landing() {
           exploreText="Explore"
           exploreLink="#landing_features"
           renderLink={renderLink}
+        />
+      </div>
+
+      {/* ===================================================================
+          Section 2 — Product Showcase (50/50 Split)
+          ===================================================================
+          A 50/50 split section introducing the standardised product line.
+          Left: 1×4 product grid with background images, dimensions, and
+          prices. Each row smooth-scrolls to the Product Range section on
+          click. Right: standard features and warranty coverage.
+          =================================================================== */}
+      <div id="product-showcase">
+        <ProductShowcase
+          productEyebrow="PRODUCT RANGE"
+          products={PRODUCT_SHOWCASE_PRODUCTS}
+          scrollTargetId="product-range"
+          legislationNote={
+            <p>
+              <strong>Legislation Update:</strong>{' '}
+              Rooms up to 25m² currently exempt from planning permission.
+              Pending legislation will raise this to 45m² — making our full
+              range permit-free.
+            </p>
+          }
+          featuresEyebrow="INCLUDED AS STANDARD"
+          features={PRODUCT_SHOWCASE_FEATURES}
+          warrantyEyebrow="WARRANTY COVERAGE"
+          warranties={PRODUCT_SHOWCASE_WARRANTIES}
         />
       </div>
 

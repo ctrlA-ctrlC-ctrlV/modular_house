@@ -54,12 +54,12 @@
 }
 
 .product-showcase__eyebrow {
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
+  font-family: var(--font-serif);/*var(--font-sans);*/
+  font-size: var(--text-heading-m);/*var(--text-caption);*/
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
-  color: var(--brand-stone);
+  color: var(--brand-title);
   display: block;
   margin-bottom: 12px;
 }

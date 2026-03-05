@@ -122,7 +122,7 @@ export function ProductShowcase({
       <div className="product-showcase__grid">
         {/* ─── LEFT: Product Grid ──────────────────────────────────────── */}
         <div className="product-showcase__left">
-          <span className="product-showcase__eyebrow">{productEyebrow}</span>
+          <h3 className="product-showcase__eyebrow">{productEyebrow}</h3>
 
           {products.map((p) => (
             <button

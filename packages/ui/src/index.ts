@@ -21,5 +21,6 @@ export { ProductRangeGrid, type ProductCard, type ProductRangeGridProps } from '
 export { QuickViewModal, type QuickViewProduct, type QuickViewModalProps } from './components/QuickViewModal/QuickViewModal';
 export { AccordionFAQ, type AccordionFAQItem, type AccordionFAQProps } from './components/AccordionFAQ/AccordionFAQ';
 export { ProductShowcase, type ProductShowcaseProps, type ProductShowcaseProduct, type ProductShowcaseFeature, type ProductShowcaseWarranty } from './components/ProductShowcase/ProductShowcase';
+export { InfiniteMasonryGallery, type InfiniteMasonryGalleryProps, type InfiniteGalleryImage } from './components/InfiniteMasonryGallery/InfiniteMasonryGallery';
 export * from './types';
 // Add your shared UI components here

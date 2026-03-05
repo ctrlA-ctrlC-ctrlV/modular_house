@@ -195,10 +195,13 @@ function Lightbox({
       </button>
 
       <div className="img-lightbox-content" onClick={(e) => e.stopPropagation()}>
-        <img
+        <OptimizedImage
           src={image.fullSizeSrc ?? image.src}
           alt={image.alt ?? ''}
+          srcSetWebP={image.srcWebP}
+          srcSetAvif={image.srcAvif}
           className="img-lightbox-image"
+          priority
         />
       </div>
 

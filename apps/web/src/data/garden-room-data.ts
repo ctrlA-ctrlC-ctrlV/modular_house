@@ -19,6 +19,7 @@
  * 3. GARDEN_ROOM_FEATURES   — Why Steel Frame section (FeatureSection)
  * 4. GARDEN_ROOM_TESTIMONIALS — Testimonials section (TestimonialGrid)
  * 5. GARDEN_ROOM_GALLERY    — Gallery section (FullMassonryGallery)
+ * 6. INFINITE_GALLERY_IMAGES — Infinite scrolling gallery (InfiniteMasonryGallery)
  *
  * DUAL USE:
  * The GARDEN_ROOM_FAQS array feeds both the AccordionFAQ component props
@@ -30,7 +31,7 @@
  */
 
 import React from 'react';
-import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct } from '@modular-house/ui';
+import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct, InfiniteGalleryImage } from '@modular-house/ui';
 import { CustomIcons } from '@modular-house/ui';
 
 /**
@@ -566,5 +567,107 @@ export const GARDEN_ROOM_GALLERY: GalleryItem[] = [
     imageAvif: '/resource/garden-room/garden-room-sauna2.avif',
     title: 'Outdoor sauna room interior',
     category: 'Garden Room',
+  },
+];
+
+
+/* =============================================================================
+   SECTION 6: INFINITE MASONRY GALLERY DATA
+   -----------------------------------------------------------------------------
+   Image data for the InfiniteMasonryGallery component — a horizontally-
+   scrolling infinite strip placed directly below the Product Showcase section.
+   Each image specifies its orientation so the masonry layout algorithm can
+   pair landscape images vertically and give portrait images a full-height column.
+   All images include AVIF and WebP variants for optimal delivery.
+   ============================================================================= */
+
+export const INFINITE_GALLERY_IMAGES: InfiniteGalleryImage[] = [
+  {
+    id: 'gr-1',
+    src: '/resource/garden-room/garden-room1.png',
+    srcWebP: '/resource/garden-room/garden-room1.webp',
+    srcAvif: '/resource/garden-room/garden-room1.avif',
+    alt: 'Garden suite with panoramic glazing',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-sauna-1',
+    src: '/resource/garden-room/garden-room-sauna1.jpg',
+    srcWebP: '/resource/garden-room/garden-room-sauna1.webp',
+    srcAvif: '/resource/garden-room/garden-room-sauna1.avif',
+    alt: 'Garden sauna with steel frame construction',
+    orientation: 'portrait',
+  },
+  {
+    id: 'gr-2',
+    src: '/resource/garden-room/garden-room2.png',
+    srcWebP: '/resource/garden-room/garden-room2.webp',
+    srcAvif: '/resource/garden-room/garden-room2.avif',
+    alt: 'Contemporary garden room exterior',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-3',
+    src: '/resource/garden-room/garden-room3.png',
+    srcWebP: '/resource/garden-room/garden-room3.webp',
+    srcAvif: '/resource/garden-room/garden-room3.avif',
+    alt: 'Grand studio with cedar cladding',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-sauna-2',
+    src: '/resource/garden-room/garden-room-sauna2.jpg',
+    srcWebP: '/resource/garden-room/garden-room-sauna2.webp',
+    srcAvif: '/resource/garden-room/garden-room-sauna2.avif',
+    alt: 'Outdoor sauna room interior',
+    orientation: 'portrait',
+  },
+  {
+    id: 'gr-4',
+    src: '/resource/garden-room/garden-room4.png',
+    srcWebP: '/resource/garden-room/garden-room4.webp',
+    srcAvif: '/resource/garden-room/garden-room4.avif',
+    alt: 'Compact studio home office setup',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-5',
+    src: '/resource/garden-room/garden-room5.png',
+    srcWebP: '/resource/garden-room/garden-room5.webp',
+    srcAvif: '/resource/garden-room/garden-room5.avif',
+    alt: 'Garden room interior with natural light',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-sauna-3',
+    src: '/resource/garden-room/garden-room-sauna3.jpg',
+    srcWebP: '/resource/garden-room/garden-room-sauna3.webp',
+    srcAvif: '/resource/garden-room/garden-room-sauna3.avif',
+    alt: 'Sauna room with timber interior',
+    orientation: 'portrait',
+  },
+  {
+    id: 'gr-6',
+    src: '/resource/garden-room/garden-room6.jpg',
+    srcWebP: '/resource/garden-room/garden-room6.webp',
+    srcAvif: '/resource/garden-room/garden-room6.avif',
+    alt: 'Modern garden room at dusk',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-7',
+    src: '/resource/garden-room/garden-room7.jpg',
+    srcWebP: '/resource/garden-room/garden-room7.webp',
+    srcAvif: '/resource/garden-room/garden-room7.avif',
+    alt: 'Garden room with landscaped surroundings',
+    orientation: 'landscape',
+  },
+  {
+    id: 'gr-ext-1',
+    src: '/resource/garden-room/hosue-extension1.png',
+    srcWebP: '/resource/garden-room/hosue-extension1.webp',
+    srcAvif: '/resource/garden-room/hosue-extension1.avif',
+    alt: 'House extension with steel frame construction',
+    orientation: 'landscape',
   },
 ];

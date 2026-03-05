@@ -35,6 +35,7 @@ import {
   HeroBoldBottomText,
   ProductRangeGrid,
   ProductShowcase,
+  InfiniteMasonryGallery,
   FeatureSection,
   TwoColumnSplitLayout,
   FullMassonryGallery,
@@ -59,6 +60,7 @@ import {
   GARDEN_ROOM_TESTIMONIALS,
   GARDEN_ROOM_FAQS,
   GARDEN_ROOM_QUICK_VIEW,
+  INFINITE_GALLERY_IMAGES,
 } from '../data/garden-room-data';
 import './GardenRoom.css';
 
@@ -225,6 +227,24 @@ const GardenRoom: React.FC = () => {
           features={PRODUCT_SHOWCASE_FEATURES}
           warrantyEyebrow="WARRANTY COVERAGE"
           warranties={PRODUCT_SHOWCASE_WARRANTIES}
+        />
+      </div>
+
+
+      {/* ===================================================================
+          Section 2b — Infinite Gallery
+          ===================================================================
+          Horizontally-scrolling infinite masonry gallery placed directly
+          below the Product Showcase. Uses all available garden room and
+          sauna images from /public/resource/garden-room/ with AVIF and
+          WebP optimised variants. Supports drag, mouse-wheel scrolling,
+          momentum, and a full-screen lightbox on click.
+          =================================================================== */}
+      <div id="infinite-gallery">
+        <InfiniteMasonryGallery
+          images={INFINITE_GALLERY_IMAGES}
+          title=""//"Our Projects"
+          eyebrow=""//"GALLERY"
         />
       </div>
 

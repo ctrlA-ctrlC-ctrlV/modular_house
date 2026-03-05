@@ -254,9 +254,9 @@ function Landing() {
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
             button1Text="Get a free quote today"
             button1Link="/contact"
-            image1Src='/resource/garden-room/hosue-extension1.png'
-            image1WebP='/resource/garden-room/hosue-extension1.webp'
-            image1Avif='/resource/garden-room/hosue-extension1.avif'
+            image1Src='/resource/house-extension/house-extension1.png'
+            image1WebP='/resource/house-extension/house-extension1.webp'
+            image1Avif='/resource/house-extension/house-extension1.avif'
             image1Alt='House Extension 1'
             image2Src='/resource/house-extension/house-extension2.png'
             image2WebP='/resource/house-extension/house-extension2.webp'

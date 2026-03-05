@@ -77,7 +77,7 @@ export interface ProductShowcaseProps {
   productEyebrow?: string;
   /** Array of products to display in the 1×4 grid */
   products: ProductShowcaseProduct[];
-  /** ID of the element to scroll to when a product row is clicked */
+  /** ID of the element to scroll to when a product row is clicked (scroll mode) */
   scrollTargetId?: string;
   /** Legislation notice text (supports JSX) */
   legislationNote?: React.ReactNode;
@@ -89,6 +89,12 @@ export interface ProductShowcaseProps {
   warrantyEyebrow?: string;
   /** Array of warranties */
   warranties: ProductShowcaseWarranty[];
+  /**
+   * Callback invoked when a product row is clicked (modal mode).
+   * When provided, clicking a row calls this callback instead of
+   * smooth-scrolling to the scrollTargetId element.
+   */
+  onProductClick?: (product: ProductShowcaseProduct, index: number) => void;
 }
 
 /* =============================================================================
@@ -104,18 +110,34 @@ export function ProductShowcase({
   features,
   warrantyEyebrow = 'Warranty Coverage',
   warranties,
+  onProductClick,
 }: ProductShowcaseProps): JSX.Element {
   const scrollToTarget = (): void => {
     const el = document.getElementById(scrollTargetId);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>): void => {
-    if (e.key === ' ') {
-      e.preventDefault();
+  /**
+   * Handles a click on a product row.
+   * - Modal mode (onProductClick provided): invokes the callback with the
+   *   product data and its index so the parent can open a QuickViewModal.
+   * - Scroll mode (default): smooth-scrolls to the scrollTargetId element.
+   */
+  const handleRowClick = (product: ProductShowcaseProduct, index: number): void => {
+    if (onProductClick) {
+      onProductClick(product, index);
+    } else {
       scrollToTarget();
     }
   };
+
+  const handleKeyDown = (product: ProductShowcaseProduct, index: number) =>
+    (e: React.KeyboardEvent<HTMLButtonElement>): void => {
+      if (e.key === ' ') {
+        e.preventDefault();
+        handleRowClick(product, index);
+      }
+    };
 
   return (
     <section className="product-showcase">
@@ -124,14 +146,18 @@ export function ProductShowcase({
         <div className="product-showcase__left">
           <h3 className="product-showcase__eyebrow">{productEyebrow}</h3>
 
-          {products.map((p) => (
+          {products.map((p, index) => (
             <button
               key={p.id}
               type="button"
               className="product-showcase__row"
-              onClick={scrollToTarget}
-              onKeyDown={handleKeyDown}
-              aria-label={`${p.label} — ${p.size}${p.unit}, ${p.price}. Click to view product range.`}
+              onClick={() => handleRowClick(p, index)}
+              onKeyDown={handleKeyDown(p, index)}
+              aria-label={
+                onProductClick
+                  ? `${p.label} — ${p.size}${p.unit}, ${p.price}. Click to quick view.`
+                  : `${p.label} — ${p.size}${p.unit}, ${p.price}. Click to view product range.`
+              }
             >
               {/* Background image */}
               <div className="product-showcase__row-bg">

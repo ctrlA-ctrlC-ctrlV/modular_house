@@ -4,6 +4,7 @@ import {
   PRODUCT_SHOWCASE_PRODUCTS,
   PRODUCT_SHOWCASE_FEATURES,
   PRODUCT_SHOWCASE_WARRANTIES,
+  GARDEN_ROOM_QUICK_VIEW,
 } from '../data/garden-room-data';
 import {
   HeroWithSideText,
@@ -16,14 +17,25 @@ import {
   ContactFormWithImageBg,
   type ContactFormData,
   MasonryGallery,
-  type LinkRenderer
+  QuickViewModal,
+  type LinkRenderer,
+  type QuickViewProduct,
+  type ProductShowcaseProduct,
 } from '@modular-house/ui'
 import { useHeaderConfig } from '../components/HeaderContext';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import '../styles/landing-hero.css';
 
 function Landing() {
   
+  /* ---------------------------------------------------------------------------
+     Quick View Modal State
+     ---------------------------------------------------------------------------
+     Tracks which product (if any) is currently displayed in the QuickViewModal
+     overlay. `null` means the modal is closed.
+     --------------------------------------------------------------------------- */
+  const [quickViewProduct, setQuickViewProduct] = useState<QuickViewProduct | null>(null);
+
   // Configure header for dark variant on hero pages
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
@@ -44,6 +56,24 @@ function Landing() {
     );
   };
   
+  /* ---------------------------------------------------------------------------
+     Product Showcase Quick View Handler
+     ---------------------------------------------------------------------------
+     Called when the user clicks a product row in the ProductShowcase component
+     (modal mode). Maps the row index to the corresponding entry in the
+     GARDEN_ROOM_QUICK_VIEW array so the QuickViewModal can display extended
+     data (description, specs, lead time) for that product.
+     --------------------------------------------------------------------------- */
+  const handleShowcaseProductClick = useCallback(
+    (_product: ProductShowcaseProduct, index: number): void => {
+      const quickViewData = GARDEN_ROOM_QUICK_VIEW[index];
+      if (quickViewData) {
+        setQuickViewProduct(quickViewData);
+      }
+    },
+    [],
+  );
+
   const handleContactSubmit = async (data: ContactFormData) => {
     await apiClient.submitEnquiry({
       firstName: data.firstName,
@@ -101,7 +131,7 @@ function Landing() {
         <ProductShowcase
           productEyebrow="PRODUCT RANGE"
           products={PRODUCT_SHOWCASE_PRODUCTS}
-          scrollTargetId="product-range"
+          onProductClick={handleShowcaseProductClick}
           legislationNote={
             <p>
               <strong>Legislation Update:</strong>{' '}
@@ -114,6 +144,15 @@ function Landing() {
           features={PRODUCT_SHOWCASE_FEATURES}
           warrantyEyebrow="WARRANTY COVERAGE"
           warranties={PRODUCT_SHOWCASE_WARRANTIES}
+        />
+
+        {/* Quick View Modal — renders as a full-screen overlay when a user
+            clicks a product row in the showcase. Closed via backdrop click,
+            Escape key, or the close button inside the modal. */}
+        <QuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+          renderLink={renderLink}
         />
       </div>
 

@@ -20,6 +20,7 @@ import {
 } from '@modular-house/ui'
 import { useHeaderConfig } from '../components/HeaderContext';
 import { useEffect } from 'react';
+import '../styles/landing-hero.css';
 
 function Landing() {
   
@@ -68,6 +69,7 @@ function Landing() {
       {/* Hero Section */}
       <div id='landing_hero'>
         <HeroWithSideText
+          className="landing-hero"
           backgroundImage="/resource/landing_hero2.png"
           backgroundImageWebP="/resource/landing_hero2.webp"
           backgroundImageAvif="/resource/landing_hero2.avif"

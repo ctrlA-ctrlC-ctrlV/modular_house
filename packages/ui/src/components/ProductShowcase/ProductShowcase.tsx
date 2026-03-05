@@ -111,7 +111,7 @@ export function ProductShowcase({
   warrantyEyebrow = 'Warranty Coverage',
   warranties,
   onProductClick,
-}: ProductShowcaseProps): JSX.Element {
+}: ProductShowcaseProps): React.ReactElement {
   const scrollToTarget = (): void => {
     const el = document.getElementById(scrollTargetId);
     if (el) el.scrollIntoView({ behavior: 'smooth' });

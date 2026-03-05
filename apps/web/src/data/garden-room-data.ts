@@ -30,7 +30,7 @@
  */
 
 import React from 'react';
-import type { ProductCard, AccordionFAQItem, GalleryItem } from '@modular-house/ui';
+import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty } from '@modular-house/ui';
 import { CustomIcons } from '@modular-house/ui';
 
 /**
@@ -54,6 +54,106 @@ interface TestimonialItem {
   authorImageSrc: string;
   rating?: number;
 }
+
+
+/* =============================================================================
+   SECTION 0: PRODUCT SHOWCASE DATA
+   -----------------------------------------------------------------------------
+   Data for the ProductShowcase component — the 50/50 split section placed
+   between the Hero and the Product Range grid. Left side shows four product
+   rows with background images; right side lists standard features and
+   warranty coverage.
+   ============================================================================= */
+
+export const PRODUCT_SHOWCASE_PRODUCTS: ProductShowcaseProduct[] = [
+  {
+    id: 'compact-15',
+    size: '15',
+    unit: 'm²',
+    dimensions: '5.0m × 3.0m',
+    price: 'From €26,000',
+    label: 'The Compact',
+    permitFree: true,
+    imageSrc: '/resource/garden-room/garden-room4.png',
+    imageWebP: '/resource/garden-room/garden-room4.webp',
+    imageAvif: '/resource/garden-room/garden-room4.avif',
+    imageAlt: 'The Compact 15m² steel frame garden room',
+  },
+  {
+    id: 'studio-25',
+    size: '25',
+    unit: 'm²',
+    dimensions: '6.25m × 4.0m',
+    price: 'From €37,000',
+    label: 'The Studio',
+    permitFree: true,
+    imageSrc: '/resource/garden-room/garden-room1.png',
+    imageWebP: '/resource/garden-room/garden-room1.webp',
+    imageAvif: '/resource/garden-room/garden-room1.avif',
+    imageAlt: 'The Studio 25m² steel frame garden room',
+  },
+  {
+    id: 'living-35',
+    size: '35',
+    unit: 'm²',
+    dimensions: '7.0m × 5.0m',
+    price: 'From €65,000',
+    label: 'The Living',
+    permitFree: false,
+    imageSrc: '/resource/garden-room/garden-room2.png',
+    imageWebP: '/resource/garden-room/garden-room2.webp',
+    imageAvif: '/resource/garden-room/garden-room2.avif',
+    imageAlt: 'The Living 35m² steel frame garden room',
+  },
+  {
+    id: 'grand-45',
+    size: '45',
+    unit: 'm²',
+    dimensions: '9.0m × 5.0m',
+    price: 'From €76,000',
+    label: 'The Grand',
+    permitFree: false,
+    imageSrc: '/resource/garden-room/garden-room3.png',
+    imageWebP: '/resource/garden-room/garden-room3.webp',
+    imageAvif: '/resource/garden-room/garden-room3.avif',
+    imageAlt: 'The Grand 45m² steel frame garden room',
+  },
+];
+
+export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
+  {
+    icon: '◆',
+    title: 'Steel Frame Construction',
+    desc: 'Galvanised structural steel for unmatched durability and longevity.',
+  },
+  {
+    icon: '◆',
+    title: 'Full Insulation Package',
+    desc: 'High-performance PIR insulation exceeding Part L building regulations.',
+  },
+  {
+    icon: '◆',
+    title: 'Electrical Fit-Out',
+    desc: 'Certified RECI electrical installation with consumer unit included.',
+  },
+  {
+    icon: '◆',
+    title: 'Aluminium Windows & Doors',
+    desc: 'Thermally broken, double-glazed aluminium frames in anthracite grey.',
+  },
+  {
+    icon: '◆',
+    title: 'Composite Cladding',
+    desc: 'Low maintenance external cladding with a 25-year colour guarantee.',
+  },
+];
+
+export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
+  { years: '20', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
+  { years: '25', label: 'Cladding Guarantee', sub: 'Colour & weather resistance' },
+  { years: '10', label: 'Roof Membrane', sub: 'Watertight assurance' },
+  { years: '10', label: 'Windows & Doors', sub: 'Thermal & mechanical' },
+];
 
 
 /* =============================================================================

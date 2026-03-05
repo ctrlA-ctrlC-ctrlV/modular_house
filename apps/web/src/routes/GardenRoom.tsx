@@ -7,15 +7,16 @@
  * product landing page using shared UI components from @modular-house/ui and
  * centralised data constants from ../data/garden-room-data.
  *
- * LAYOUT (8-section design):
+ * LAYOUT (9-section design):
  * Section 1 — Hero (HeroBoldBottomText + "Explore Our Ranges" anchor link)
- * Section 2 — Product Range (ProductRangeGrid)
- * Section 3 — Why Steel Frame (FeatureSection)
- * Section 4 — Planning Permission (TwoColumnSplitLayout)
- * Section 5 — Gallery (FullMassonryGallery)
- * Section 6 — Testimonials (TestimonialGrid)
- * Section 7 — FAQ (AccordionFAQ)
- * Section 8 — CTA (ContactFormWithImageBg)
+ * Section 2 — Product Showcase (ProductShowcase — 50/50 split: product grid + features/warranties)
+ * Section 3 — Product Range (ProductRangeGrid — detail cards)
+ * Section 4 — Why Steel Frame (FeatureSection)
+ * Section 5 — Planning Permission (TwoColumnSplitLayout)
+ * Section 6 — Gallery (FullMassonryGallery)
+ * Section 7 — Testimonials (TestimonialGrid)
+ * Section 8 — FAQ (AccordionFAQ)
+ * Section 9 — CTA (ContactFormWithImageBg)
  *
  * ARCHITECTURE:
  * - Header is configured for dark variant with position overlay so it sits
@@ -33,6 +34,7 @@ import { Link } from 'react-router-dom';
 import {
   HeroBoldBottomText,
   ProductRangeGrid,
+  ProductShowcase,
   FeatureSection,
   TwoColumnSplitLayout,
   FullMassonryGallery,
@@ -45,6 +47,9 @@ import {
 import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
 import {
+  PRODUCT_SHOWCASE_PRODUCTS,
+  PRODUCT_SHOWCASE_FEATURES,
+  PRODUCT_SHOWCASE_WARRANTIES,
   GARDEN_ROOM_PRODUCTS,
   GARDEN_ROOM_FEATURES,
   GARDEN_ROOM_GALLERY,
@@ -168,11 +173,41 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 2 — Product Range
+          Section 2 — Product Showcase (50/50 Split)
+          ===================================================================
+          A 50/50 split section introducing the standardised product line.
+          Left: 1×4 product grid with background images, dimensions, and
+          prices. Each row smooth-scrolls to the Product Range section on
+          click. Right: standard features and warranty coverage.
+          =================================================================== */}
+      <div id="product-showcase">
+        <ProductShowcase
+          productEyebrow="PRODUCT RANGE"
+          products={PRODUCT_SHOWCASE_PRODUCTS}
+          scrollTargetId="product-range"
+          legislationNote={
+            <p>
+              <strong>Legislation Update:</strong>{' '}
+              Rooms up to 25m² currently exempt from planning permission.
+              Pending legislation will raise this to 45m² — making our full
+              range permit-free.
+            </p>
+          }
+          featuresEyebrow="INCLUDED AS STANDARD"
+          features={PRODUCT_SHOWCASE_FEATURES}
+          warrantyEyebrow="WARRANTY COVERAGE"
+          warranties={PRODUCT_SHOWCASE_WARRANTIES}
+        />
+      </div>
+
+
+      {/* ===================================================================
+          Section 3 — Product Range (Detail Cards)
           ===================================================================
           Displays four garden room product cards (15, 25, 35, 45 square
           metres) in a responsive grid. Product data is sourced from the
           centralised GARDEN_ROOM_PRODUCTS constant in garden-room-data.ts.
+          This is the scroll target for the ProductShowcase rows above.
           =================================================================== */}
       <div id="product-range">
         <ProductRangeGrid
@@ -186,7 +221,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 3 — Why Steel Frame
+          Section 4 — Why Steel Frame
           ===================================================================
           A four-column feature grid presenting the key advantages of steel
           frame construction. Each card includes an icon (from CustomIcons),
@@ -219,7 +254,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 4 — Planning Permission
+          Section 5 — Planning Permission
           ===================================================================
           Two-column layout presenting planning permission guidance for
           prospective garden room buyers in Ireland. The left column contains
@@ -259,7 +294,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 5 — Gallery
+          Section 6 — Gallery
           ===================================================================
           Masonry-style image gallery showcasing completed garden room and
           sauna projects. Each thumbnail supports WebP and AVIF optimised
@@ -284,7 +319,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 6 — Testimonials
+          Section 7 — Testimonials
           ===================================================================
           Displays customer testimonials in a responsive grid layout. Each
           card includes a quote, the customer's name and location, and a
@@ -304,7 +339,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 7 — FAQ
+          Section 8 — FAQ
           ===================================================================
           Frequently asked questions presented in an accordion layout with
           expand/collapse behaviour. Renders 6 FAQ items covering common
@@ -329,7 +364,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 8 — CTA (Call to Action)
+          Section 9 — CTA (Call to Action)
           ===================================================================
           Full-width contact form section with a background image, positioned
           as the final page section to capture visitor intent after they have

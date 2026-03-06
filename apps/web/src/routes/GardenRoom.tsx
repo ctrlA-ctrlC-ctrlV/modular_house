@@ -42,6 +42,7 @@ import {
   AccordionFAQ,
   ContactFormWithImageBg,
   QuickViewModal,
+  ComparisonSection,
   type ContactFormData,
   type LinkRenderer,
   type ProductCard,
@@ -59,6 +60,7 @@ import {
   GARDEN_ROOM_FAQS,
   GARDEN_ROOM_QUICK_VIEW,
   INFINITE_GALLERY_IMAGES,
+  GARDEN_ROOM_COMPARISON_CATEGORIES,
 } from '../data/garden-room-data';
 import './GardenRoom.css';
 
@@ -357,7 +359,24 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 6 — Testimonials
+          Section 6 — Construction Comparison
+          ===================================================================
+          Side-by-side comparison of three construction methods (LGS Steel
+          Frame, Timber Frame, Traditional Brick) across eight performance
+          categories. Supports two viewing modes: a data table ("Side by
+          Side") and a per-material card view ("Deep Dive"). The CTA links
+          to the contact page to capture conversion intent.
+          =================================================================== */}
+      <div id="construction-comparison" style={{ backgroundColor: '#F6F5F0' }}>
+        <ComparisonSection
+          categories={GARDEN_ROOM_COMPARISON_CATEGORIES}
+          ctaHref="/contact?ref=comparison"
+        />
+      </div>
+
+
+      {/* ===================================================================
+          Section 7 — Testimonials
           ===================================================================
           Displays customer testimonials in a responsive grid layout. Each
           card includes a quote, the customer's name and location, and a

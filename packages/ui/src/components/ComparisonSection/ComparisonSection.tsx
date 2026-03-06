@@ -240,15 +240,33 @@ export function ComparisonSection({
   ctaHref,
   disclaimer = 'Scores based on industry data, Irish building regulations, and 15+ years of construction experience.',
 }: ComparisonSectionProps) {
+  /**
+   * State: tracks which category row is currently expanded to show detailed notes.
+   * Only one row may be expanded at a time (accordion pattern).
+   */
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+  /** State: toggles between "table" (side-by-side) and "cards" (deep-dive) view modes. */
   const [activeView, setActiveView] = useState<'table' | 'cards'>('table');
+
+  /**
+   * State: tracks which material card is displayed in the card view.
+   * Defaults to the featured material (typically LGS Steel Frame) or the first material.
+   */
   const [activeCard, setActiveCard] = useState<string>(
     materials.find((m) => m.featured)?.key ?? materials[0].key,
   );
 
+  /** Unique identifier for the section heading, used by aria-labelledby for accessibility. */
   const headingId = useId();
+
+  /** Maximum possible score: number of categories multiplied by max score per category (5). */
   const maxScore = categories.length * 5;
 
+  /**
+   * Computes aggregate scores per material by summing individual category scores.
+   * Used to display overall percentage scores in the CircleScore visualizations.
+   */
   const totals: Record<string, number> = {};
   for (const m of materials) {
     totals[m.key] = categories.reduce((sum, cat) => sum + cat[m.key].score, 0);
@@ -256,6 +274,12 @@ export function ComparisonSection({
 
   /** Column order: wood, lgs, brick (matches materials array). */
   const columnKeys = materials.map((m) => m.key);
+
+  /**
+   * Pre-computed lookup map for O(1) material retrieval by key.
+   * Eliminates the need for repeated find() calls and non-null assertions.
+   */
+  const materialsByKey = new Map(materials.map((m) => [m.key, m]));
 
   return (
     <section
@@ -352,7 +376,8 @@ export function ComparisonSection({
                     </div>
                     {columnKeys.map((mk) => {
                       const data = cat[mk];
-                      const mat = materials.find((m) => m.key === mk)!;
+                      const mat = materialsByKey.get(mk);
+                      if (!mat) return null;
                       return (
                         <div
                           key={mk}
@@ -498,6 +523,13 @@ export function ComparisonSection({
         {/* ── Bottom CTA ─────────────────────────────────────────── */}
         <div className="comparison-section__cta">
           <span className="comparison-section__cta-eyebrow">{ctaEyebrow}</span>
+          {/*
+            SECURITY NOTE: dangerouslySetInnerHTML is used here to render
+            rich text formatting (e.g., <em> tags) in the CTA heading.
+            This is safe because ctaHeading content is controlled by developers
+            via props, not user-submitted input. Do not use this pattern for
+            user-generated content without proper sanitization.
+          */}
           <h3
             className="comparison-section__cta-heading"
             dangerouslySetInnerHTML={{ __html: ctaHeading }}

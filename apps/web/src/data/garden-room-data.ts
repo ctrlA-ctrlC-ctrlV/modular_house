@@ -31,7 +31,7 @@
  */
 
 import React from 'react';
-import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct, InfiniteGalleryImage } from '@modular-house/ui';
+import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct, InfiniteGalleryImage, ComparisonCategory } from '@modular-house/ui';
 import { CustomIcons } from '@modular-house/ui';
 
 /**
@@ -580,6 +580,58 @@ export const GARDEN_ROOM_GALLERY: GalleryItem[] = [
    pair landscape images vertically and give portrait images a full-height column.
    All images include AVIF and WebP variants for optimal delivery.
    ============================================================================= */
+
+export const GARDEN_ROOM_COMPARISON_CATEGORIES: ComparisonCategory[] = [
+  {
+    label: 'Lifespan',
+    lgs: { value: '100+ years', score: 5, note: 'Steel does not degrade, warp, or rot over time' },
+    wood: { value: '30\u201350 years', score: 3, note: 'Susceptible to rot, insects, and moisture damage' },
+    brick: { value: '80\u2013100 years', score: 4, note: 'Durable but mortar joints need ongoing repointing' },
+  },
+  {
+    label: 'Build Time',
+    lgs: { value: '6\u201310 weeks', score: 4, note: 'Precision-manufactured in our Dublin factory, rapid on-site assembly' },
+    wood: { value: '10\u201312 weeks', score: 2, note: 'Weather-dependent, prone to delays on site' },
+    brick: { value: '12\u201320 weeks', score: 2, note: 'Slow, labour-intensive, highly weather-dependent' },
+  },
+  {
+    label: 'Thermal Efficiency',
+    lgs: { value: 'A1\u2013A2 BER', score: 5, note: 'Integrated insulation cavities achieve near-passive-house performance' },
+    wood: { value: 'B1\u2013B3 BER', score: 3, note: 'Good if well-insulated, but thermal bridging at joints is common' },
+    brick: { value: 'B2\u2013C1 BER', score: 2, note: 'Poor thermal mass-to-insulation ratio without costly retrofitting' },
+  },
+  {
+    label: 'Maintenance',
+    lgs: { value: 'Near zero', score: 5, note: 'No painting, no treating, no rot \u2014 just the occasional clean' },
+    wood: { value: 'Regular', score: 2, note: 'Requires staining, painting, pest treatment every 3\u20135 years' },
+    brick: { value: 'Low\u2013Moderate', score: 3, note: 'Mortar repointing and damp-proofing needed periodically' },
+  },
+  {
+    label: 'Sustainability',
+    lgs: { value: '100% recyclable', score: 5, note: 'Steel is the world\u2019s most recycled material \u2014 zero landfill waste' },
+    wood: { value: 'Renewable', score: 4, note: 'Renewable source, but treatment chemicals limit recyclability' },
+    brick: { value: 'Limited', score: 2, note: 'Energy-intensive production, difficult to recycle at end of life' },
+  },
+  {
+    label: 'Long-term Cost',
+    lgs: { value: 'Lowest', score: 5, note: 'Lower maintenance + energy bills = significant savings over 20 years' },
+    wood: { value: 'Moderate', score: 3, note: 'Cheaper upfront but ongoing maintenance adds up substantially' },
+    brick: { value: 'Highest', score: 2, note: 'High build cost, slow ROI, expensive energy bills without upgrades' },
+  },
+  {
+    label: 'Fire Resistance',
+    lgs: { value: 'Non-combustible', score: 5, note: 'Steel doesn\u2019t burn \u2014 inherently fire-safe structure' },
+    wood: { value: 'Combustible', score: 1, note: 'Requires fire-retardant treatments that wear off over time' },
+    brick: { value: 'Non-combustible', score: 5, note: 'Excellent fire resistance \u2014 a genuine strength of masonry' },
+  },
+  {
+    label: 'Structural Precision',
+    lgs: { value: '\u00B11mm tolerance', score: 5, note: 'CNC-cut in factory \u2014 no guesswork, no human error on site' },
+    wood: { value: '\u00B15\u201310mm', score: 3, note: 'Varies with moisture content and carpenter skill level' },
+    brick: { value: '\u00B13\u20135mm', score: 3, note: 'Depends heavily on the skill of the bricklayer' },
+  },
+];
+
 
 export const INFINITE_GALLERY_IMAGES: InfiniteGalleryImage[] = [
   {

@@ -262,7 +262,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 2b — Infinite Gallery
+          Section 3 — Infinite Gallery
           ===================================================================
           Horizontally-scrolling infinite masonry gallery placed directly
           below the Product Showcase. Uses all available garden room and
@@ -280,7 +280,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 3 — Product Range (Detail Cards)
+          Section 4 — Product Range (Detail Cards)
           ===================================================================
           Displays four garden room product cards (15, 25, 35, 45 square
           metres) in a responsive grid. Product data is sourced from the
@@ -304,39 +304,6 @@ const GardenRoom: React.FC = () => {
           product={quickViewProduct}
           onClose={() => setQuickViewProduct(null)}
           renderLink={renderLink}
-        />
-      </div>
-
-
-      {/* ===================================================================
-          Section 4 — Why Steel Frame
-          ===================================================================
-          A four-column feature grid presenting the key advantages of steel
-          frame construction. Each card includes an icon (from CustomIcons),
-          a title, and a descriptive paragraph. The feature data is sourced
-          from GARDEN_ROOM_FEATURES in garden-room-data.ts, which uses:
-            - measureTape  -> Precision Steel Frame
-            - tiles        -> Rapid Build
-            - bioEnergy    -> Energy Efficient
-            - keyCircle    -> Built to Last
-
-          The section sits on a beige background (#F6F5F0) to provide
-          visual separation between the Product Range and Planning
-          Permission sections.
-          =================================================================== */}
-      <div id="why-steel-frame" style={{ backgroundColor: '#F6F5F0' }}>
-        <FeatureSection
-          topHeading="WHY MODULAR HOUSE"
-          mainHeading="Engineered for Performance"
-          introText={
-            <p>
-              Our garden rooms are built with CNC-cut steel framing — the same
-              structural technology used in commercial construction. The result
-              is a building that is stronger, faster to assemble, and more
-              thermally efficient than traditional timber or block alternatives.
-            </p>
-          }
-          features={GARDEN_ROOM_FEATURES}
         />
       </div>
 

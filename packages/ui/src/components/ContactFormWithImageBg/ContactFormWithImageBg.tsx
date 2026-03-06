@@ -125,7 +125,7 @@ export interface ContactFormWithImageBgProps {
  * @returns JSX element representing the contact form section
  */
 export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
-  backgroundImage = "https://rebar.themerex.net/wp-content/uploads/2025/08/background-04.jpg",
+  backgroundImage = "/resource/background-1.jpg",
   title = "Have questions?\nGet in touch!",
   onSubmit
 }) => {

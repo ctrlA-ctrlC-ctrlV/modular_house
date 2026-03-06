@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { apiClient } from '../lib/apiClient';
 import {
-  FeatureSection,
+  PRODUCT_SHOWCASE_PRODUCTS,
+  PRODUCT_SHOWCASE_FEATURES,
+  PRODUCT_SHOWCASE_WARRANTIES,
+  GARDEN_ROOM_QUICK_VIEW,
+} from '../data/garden-room-data';
+import {
   HeroWithSideText,
+  ProductShowcase,
+  FeatureSection,
   CustomIcons,
   TwoColumnSplitLayout,
   TestimonialGrid,
@@ -10,13 +17,25 @@ import {
   ContactFormWithImageBg,
   type ContactFormData,
   MasonryGallery,
-  type LinkRenderer
+  QuickViewModal,
+  type LinkRenderer,
+  type QuickViewProduct,
+  type ProductShowcaseProduct,
 } from '@modular-house/ui'
 import { useHeaderConfig } from '../components/HeaderContext';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import '../styles/landing-hero.css';
 
 function Landing() {
   
+  /* ---------------------------------------------------------------------------
+     Quick View Modal State
+     ---------------------------------------------------------------------------
+     Tracks which product (if any) is currently displayed in the QuickViewModal
+     overlay. `null` means the modal is closed.
+     --------------------------------------------------------------------------- */
+  const [quickViewProduct, setQuickViewProduct] = useState<QuickViewProduct | null>(null);
+
   // Configure header for dark variant on hero pages
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
@@ -37,6 +56,24 @@ function Landing() {
     );
   };
   
+  /* ---------------------------------------------------------------------------
+     Product Showcase Quick View Handler
+     ---------------------------------------------------------------------------
+     Called when the user clicks a product row in the ProductShowcase component
+     (modal mode). Maps the row index to the corresponding entry in the
+     GARDEN_ROOM_QUICK_VIEW array so the QuickViewModal can display extended
+     data (description, specs, lead time) for that product.
+     --------------------------------------------------------------------------- */
+  const handleShowcaseProductClick = useCallback(
+    (_product: ProductShowcaseProduct, index: number): void => {
+      const quickViewData = GARDEN_ROOM_QUICK_VIEW[index];
+      if (quickViewData) {
+        setQuickViewProduct(quickViewData);
+      }
+    },
+    [],
+  );
+
   const handleContactSubmit = async (data: ContactFormData) => {
     await apiClient.submitEnquiry({
       firstName: data.firstName,
@@ -62,6 +99,7 @@ function Landing() {
       {/* Hero Section */}
       <div id='landing_hero'>
         <HeroWithSideText
+          className="landing-hero"
           backgroundImage="/resource/landing_hero2.png"
           backgroundImageWebP="/resource/landing_hero2.webp"
           backgroundImageAvif="/resource/landing_hero2.avif"
@@ -77,6 +115,43 @@ function Landing() {
           button1Link="/contact"
           exploreText="Explore"
           exploreLink="#landing_features"
+          renderLink={renderLink}
+        />
+      </div>
+
+      {/* ===================================================================
+          Section 2 — Product Showcase (50/50 Split)
+          ===================================================================
+          A 50/50 split section introducing the standardised product line.
+          Left: 1×4 product grid with background images, dimensions, and
+          prices. Each row smooth-scrolls to the Product Range section on
+          click. Right: standard features and warranty coverage.
+          =================================================================== */}
+      <div id="product-showcase">
+        <ProductShowcase
+          productEyebrow="PRODUCT RANGE"
+          products={PRODUCT_SHOWCASE_PRODUCTS}
+          onProductClick={handleShowcaseProductClick}
+          legislationNote={
+            <p>
+              <strong>Legislation Update:</strong>{' '}
+              Rooms up to 25m² currently exempt from planning permission.
+              Pending legislation will raise this to 45m² — making our full
+              range permit-free.
+            </p>
+          }
+          featuresEyebrow="INCLUDED AS STANDARD"
+          features={PRODUCT_SHOWCASE_FEATURES}
+          warrantyEyebrow="WARRANTY COVERAGE"
+          warranties={PRODUCT_SHOWCASE_WARRANTIES}
+        />
+
+        {/* Quick View Modal — renders as a full-screen overlay when a user
+            clicks a product row in the showcase. Closed via backdrop click,
+            Escape key, or the close button inside the modal. */}
+        <QuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
           renderLink={renderLink}
         />
       </div>
@@ -179,9 +254,9 @@ function Landing() {
             description1="Our steel frame house extensions are designed to give your home the room it needs, without the long build times or messy construction. Whether you're expanding your kitchen, adding a new bedroom, or creating an open-plan living area, we deliver smart, efficient extensions that seamlessly blend with your existing home."
             button1Text="Get a free quote today"
             button1Link="/contact"
-            image1Src='/resource/garden-room/hosue-extension1.png'
-            image1WebP='/resource/garden-room/hosue-extension1.webp'
-            image1Avif='/resource/garden-room/hosue-extension1.avif'
+            image1Src='/resource/house-extension/house-extension1.png'
+            image1WebP='/resource/house-extension/house-extension1.webp'
+            image1Avif='/resource/house-extension/house-extension1.avif'
             image1Alt='House Extension 1'
             image2Src='/resource/house-extension/house-extension2.png'
             image2WebP='/resource/house-extension/house-extension2.webp'

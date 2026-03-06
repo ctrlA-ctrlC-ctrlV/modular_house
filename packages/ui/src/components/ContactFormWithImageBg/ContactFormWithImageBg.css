@@ -607,3 +607,54 @@
     gap: 0.3125rem;
   }
 }
+
+
+/* =============================================================================
+   SECTION 14: ULTRA-WIDE AND NARROW VIEWPORT ADJUSTMENTS
+   =============================================================================
+   These rules complement the main mobile breakpoint above. The ultra-wide
+   rule constrains horizontal padding so the form card does not drift too far
+   from center on displays wider than 2560px. The narrow mobile rule ensures
+   the form card content does not overflow on 320px screens.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Ultra-wide breakpoint (min-width: 2560px)
+   ---------------------------------------------------------------------------
+   Caps the horizontal padding at an absolute pixel value so the form card
+   remains within a comfortable visual range on very wide monitors. Without
+   this cap, the 20% horizontal padding pushes the card to an extreme right
+   position on screens exceeding 2560px.
+   --------------------------------------------------------------------------- */
+
+@media (min-width: 2560px) {
+  .contact-form-bg {
+    max-width: 2560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Reduces overall section and card padding to preserve content width on
+   320px viewports. The form heading scales down slightly and the submit
+   button maintains full-width for reliable touch-target sizing.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .contact-form-bg {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .contact-form-bg__card {
+    padding: 1.5rem 1rem;
+  }
+
+  .contact-form-bg__heading {
+    font-size: var(--text-heading-m, 1.5rem);
+  }
+}

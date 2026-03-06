@@ -130,7 +130,7 @@ describe('TemplateLayout — Open Graph meta tag injection (T015a)', () => {
 
       // Assert the content matches the value declared in routes-metadata.ts for
       // the /garden-room entry, confirming end-to-end data propagation.
-      expect(ogTitleTag).toHaveAttribute('content', 'Garden Rooms & Studios | Modular House');
+      expect(ogTitleTag).toHaveAttribute('content', 'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2');
     });
   });
 

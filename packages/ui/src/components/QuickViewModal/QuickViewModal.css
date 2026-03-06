@@ -1,0 +1,615 @@
+/**
+ * QuickViewModal Stylesheet
+ * =============================================================================
+ *
+ * PURPOSE:
+ * BEM-styled CSS for the QuickViewModal component. Renders a full-screen
+ * overlay with a centred modal dialog containing a hero image, product
+ * details, specs grid, and CTA footer.
+ *
+ * ARCHITECTURE:
+ * All colour and typography values reference design-system custom properties
+ * with hardcoded fallbacks. This ensures the component renders correctly in
+ * isolation (e.g., Storybook, tests) while automatically adopting the host
+ * application's theme tokens when available.
+ *
+ * BEM NAMING:
+ * Block:    .quick-view-modal          — Overlay backdrop
+ * Elements: __dialog, __close, __hero, __hero-image, __hero-overlay,
+ *           __hero-content, __size, __size-unit, __name, __tagline,
+ *           __badges, __stock-pill, __permission, __body, __stock-notice,
+ *           __dot, __desc, __section-title, __use-cases, __use-tag,
+ *           __specs, __spec-item, __spec-label, __spec-value,
+ *           __footer, __price-block, __price-from, __price,
+ *           __lead-time, __cta
+ *
+ * ANIMATIONS:
+ * - Overlay fades in (fadeIn keyframes)
+ * - Dialog slides up with scale (slideUp keyframes)
+ *
+ * RESPONSIVE BREAKPOINTS:
+ * Mobile (< 540px): Reduced padding, single-column specs, stacked footer
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   ============================================================================= */
+
+:root {
+  /* --- Typography --- */
+  --qvm-font-display: var(--font-display, 'Instrument Serif', Georgia, serif);
+  --qvm-font-body: var(--font-body, 'DM Sans', system-ui, sans-serif);
+
+  /* --- Colours --- */
+  --qvm-color-card: var(--theme-color-card, #FFFFFF);
+  --qvm-color-charcoal: var(--theme-color-charcoal, #1A1A1A);
+  --qvm-color-slate: var(--theme-color-slate, #3A3A3A);
+  --qvm-color-mid: var(--theme-color-mid, #6B6B6B);
+  --qvm-color-muted: var(--theme-color-muted, #999999);
+  --qvm-color-border: var(--theme-color-border, #E2DED6);
+  --qvm-color-accent: var(--theme-color-accent, #2D5A3D);
+  --qvm-color-accent-light: var(--theme-color-accent-light, #E8F0EB);
+  --qvm-color-amber: var(--theme-color-amber, #B8860B);
+  --qvm-color-amber-light: var(--theme-color-amber-light, #FFF8E7);
+  --qvm-color-steel: var(--theme-color-steel, #4A5568);
+  --qvm-color-steel-light: var(--theme-color-steel-light, #EDF0F4);
+  --qvm-color-white: #FFFFFF;
+}
+
+
+/* =============================================================================
+   SECTION 2: OVERLAY BACKDROP
+   ============================================================================= */
+
+.quick-view-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  animation: qvm-fadeIn 0.25s ease forwards;
+}
+
+@keyframes qvm-fadeIn {
+  to { opacity: 1; }
+}
+
+
+/* =============================================================================
+   SECTION 3: DIALOG CONTAINER
+   ============================================================================= */
+
+.quick-view-modal__dialog {
+  background: var(--qvm-color-card);
+  border-radius: 20px;
+  max-width: 620px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  transform: translateY(16px) scale(0.97);
+  animation: qvm-slideUp 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+}
+
+@keyframes qvm-slideUp {
+  to { transform: translateY(0) scale(1); }
+}
+
+/* Custom scrollbar */
+.quick-view-modal__dialog::-webkit-scrollbar {
+  width: 6px;
+}
+
+.quick-view-modal__dialog::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.quick-view-modal__dialog::-webkit-scrollbar-thumb {
+  background: var(--qvm-color-border);
+  border-radius: 3px;
+}
+
+
+/* =============================================================================
+   SECTION 4: CLOSE BUTTON
+   ============================================================================= */
+
+.quick-view-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--qvm-color-slate);
+  z-index: 20;
+  transition: background 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.quick-view-modal__close:hover {
+  background: var(--qvm-color-white);
+  color: var(--qvm-color-charcoal);
+}
+
+.quick-view-modal__close:focus-visible {
+  outline: 2px solid var(--qvm-color-accent);
+  outline-offset: 2px;
+}
+
+
+/* =============================================================================
+   SECTION 5: HERO IMAGE SECTION
+   ============================================================================= */
+
+.quick-view-modal__hero {
+  position: relative;
+  padding: 44px 36px 36px;
+  overflow: hidden;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.quick-view-modal__hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.quick-view-modal__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(8, 8, 8, 0.92) 0%,
+    rgba(8, 8, 8, 0.6) 50%,
+    rgba(8, 8, 8, 0.25) 100%
+  );
+  z-index: 1;
+}
+
+.quick-view-modal__hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Bottom border on the hero */
+.quick-view-modal__hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--qvm-color-border);
+  z-index: 3;
+}
+
+
+/* =============================================================================
+   SECTION 6: HERO TEXT — SIZE, NAME, TAGLINE
+   ============================================================================= */
+
+.quick-view-modal__size {
+  font-family: var(--qvm-font-display);
+  font-size: 64px;
+  color: var(--qvm-color-white);
+  line-height: 1;
+  font-style: italic;
+}
+
+.quick-view-modal__name {
+  font-family: var(--qvm-font-display);
+  font-size: 28px;
+  color: var(--qvm-color-white);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.quick-view-modal__tagline {
+  font-family: var(--qvm-font-body);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+
+/* =============================================================================
+   SECTION 7: HERO BADGES — STOCK PILL + PERMISSION
+   ============================================================================= */
+
+.quick-view-modal__badges {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.quick-view-modal__stock-pill {
+  font-family: var(--qvm-font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+.quick-view-modal__stock-pill--in-stock {
+  background: rgba(45, 90, 61, 0.35);
+  color: #8FCFA0;
+  border: 1px solid rgba(45, 90, 61, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.quick-view-modal__stock-pill--pre-order {
+  background: rgba(184, 134, 11, 0.3);
+  color: #E8C55A;
+  border: 1px solid rgba(184, 134, 11, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.quick-view-modal__permission {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--qvm-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.quick-view-modal__permission--exempt {
+  color: var(--qvm-color-accent);
+  background: var(--qvm-color-accent-light);
+}
+
+.quick-view-modal__permission--required {
+  color: var(--qvm-color-amber);
+  background: var(--qvm-color-amber-light);
+}
+
+
+/* =============================================================================
+   SECTION 8: MODAL BODY
+   ============================================================================= */
+
+.quick-view-modal__body {
+  padding: 32px 36px 36px;
+}
+
+
+/* =============================================================================
+   SECTION 9: STOCK AVAILABILITY NOTICE
+   ============================================================================= */
+
+.quick-view-modal__stock-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-family: var(--qvm-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.quick-view-modal__stock-notice--in-stock {
+  background: var(--qvm-color-accent-light);
+  color: var(--qvm-color-accent);
+}
+
+.quick-view-modal__stock-notice--pre-order {
+  background: var(--qvm-color-amber-light);
+  color: var(--qvm-color-amber);
+}
+
+.quick-view-modal__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.quick-view-modal__dot--green {
+  background: var(--qvm-color-accent);
+}
+
+.quick-view-modal__dot--amber {
+  background: var(--qvm-color-amber);
+  animation: qvm-pulse 2s infinite;
+}
+
+@keyframes qvm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+
+/* =============================================================================
+   SECTION 10: DESCRIPTION
+   ============================================================================= */
+
+.quick-view-modal__desc {
+  font-family: var(--qvm-font-body);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--qvm-color-mid);
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+
+/* =============================================================================
+   SECTION 11: SECTION TITLE (IDEAL FOR / TECHNICAL SPECIFICATION)
+   ============================================================================= */
+
+.quick-view-modal__section-title {
+  font-family: var(--qvm-font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--qvm-color-muted);
+  margin-bottom: 14px;
+}
+
+
+/* =============================================================================
+   SECTION 12: USE CASES TAG PILLS
+   ============================================================================= */
+
+.quick-view-modal__use-cases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.quick-view-modal__use-tag {
+  font-family: var(--qvm-font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--qvm-color-steel);
+  background: var(--qvm-color-steel-light);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+
+/* =============================================================================
+   SECTION 13: TECHNICAL SPECIFICATIONS GRID
+   ============================================================================= */
+
+.quick-view-modal__specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-bottom: 28px;
+  border: 1px solid var(--qvm-color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.quick-view-modal__spec-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--qvm-color-border);
+  border-right: 1px solid var(--qvm-color-border);
+}
+
+.quick-view-modal__spec-item:nth-child(even) {
+  border-right: none;
+}
+
+.quick-view-modal__spec-item:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.quick-view-modal__spec-label {
+  font-family: var(--qvm-font-body);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--qvm-color-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.quick-view-modal__spec-value {
+  font-family: var(--qvm-font-body);
+  font-size: 13px;
+  color: var(--qvm-color-charcoal);
+  font-weight: 500;
+}
+
+
+/* =============================================================================
+   SECTION 14: FOOTER — PRICE BLOCK + CTA
+   ============================================================================= */
+
+.quick-view-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 24px;
+  border-top: 1px solid var(--qvm-color-border);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.quick-view-modal__price-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-view-modal__price-from {
+  font-family: var(--qvm-font-body);
+  font-size: 11px;
+  color: var(--qvm-color-muted);
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+.quick-view-modal__price {
+  font-family: var(--qvm-font-display);
+  font-size: 32px;
+  color: var(--qvm-color-charcoal);
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.quick-view-modal__lead-time {
+  font-family: var(--qvm-font-body);
+  font-size: 12px;
+  color: var(--qvm-color-muted);
+  margin-top: 4px;
+}
+
+.quick-view-modal__cta {
+  padding: 14px 28px;
+  border-radius: 12px;
+  background: var(--qvm-color-accent);
+  border: none;
+  color: var(--qvm-color-white);
+  font-family: var(--qvm-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.quick-view-modal__cta:hover {
+  background: #245A33;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(45, 90, 61, 0.25);
+}
+
+.quick-view-modal__cta:focus-visible {
+  outline: 2px solid var(--qvm-color-accent);
+  outline-offset: 2px;
+}
+
+
+/* =============================================================================
+   SECTION 15: RESPONSIVE — MOBILE
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   Mobile breakpoint (max-width: 540px)
+   ---------------------------------------------------------------------------
+   Stacks the footer vertically so price and CTA button fill the available
+   width. Switches the specs grid to single-column for readability.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 540px) {
+  .quick-view-modal {
+    padding: 16px;
+  }
+
+  .quick-view-modal__hero {
+    padding: 36px 24px 28px;
+    min-height: 200px;
+  }
+
+  .quick-view-modal__size {
+    font-size: 48px;
+  }
+
+  .quick-view-modal__name {
+    font-size: 22px;
+  }
+
+  .quick-view-modal__body {
+    padding: 24px 24px 28px;
+  }
+
+  .quick-view-modal__specs {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-view-modal__spec-item {
+    border-right: none !important;
+  }
+
+  .quick-view-modal__spec-item:last-child {
+    border-bottom: none;
+  }
+
+  .quick-view-modal__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quick-view-modal__cta {
+    justify-content: center;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Further reduces hero text sizing and modal padding for 320px viewports.
+   The overlay padding is minimised to maximise usable dialog width on
+   screens narrower than 375px.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .quick-view-modal {
+    padding: 8px;
+  }
+
+  .quick-view-modal__dialog {
+    border-radius: 14px;
+  }
+
+  .quick-view-modal__hero {
+    padding: 28px 18px 22px;
+    min-height: 180px;
+  }
+
+  .quick-view-modal__size {
+    font-size: 38px;
+  }
+
+  .quick-view-modal__name {
+    font-size: 18px;
+  }
+
+  .quick-view-modal__body {
+    padding: 20px 18px 24px;
+  }
+
+  .quick-view-modal__price {
+    font-size: 26px;
+  }
+}

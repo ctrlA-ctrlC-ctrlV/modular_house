@@ -183,18 +183,21 @@ export const routesMetadata: RouteMetadata[] = [
   // ---------------------------------------------------------------------------
   // Garden Room — primary product page; full social + structured data coverage
   // ---------------------------------------------------------------------------
+  // SEO-optimised title (under 70 chars) and description (under 160 chars)
+  // targeting "garden rooms Ireland" and size-specific long-tail queries.
+  // ---------------------------------------------------------------------------
   {
     path: '/garden-room',
     seo: {
-      title: 'Garden Rooms & Studios',
-      description: 'Bespoke garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
+      title: 'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2',
+      description: 'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin. Free quote.',
       canonicalUrl: 'https://modularhouse.ie/garden-room',
       robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 
       openGraph: {
         type: 'website',
-        title: 'Garden Rooms & Studios | Modular House',
-        description: 'Bespoke garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
+        title: 'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2',
+        description: 'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin. Free quote.',
         // garden_room_hero.png is the deployed file (underscore separator, .png
         // extension). The hyphenated .jpg variant referenced in the original
         // spec does not exist in public/resource.
@@ -210,37 +213,142 @@ export const routesMetadata: RouteMetadata[] = [
       twitter: {
         cardType: 'summary_large_image',
         site: '@ModularHouse',
-        title: 'Garden Rooms & Studios | Modular House',
+        title: 'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2',
+        description: 'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin. Free quote.',
         image: 'https://modularhouse.ie/resource/garden_room_hero.png',
         imageAlt: 'Steel frame garden room exterior',
       },
 
       schema: [
-        // Existing Product schema — retained from the prior routes-metadata.ts entry.
+        // ------------------------------------------------------------------
+        // Product schema with individual Offer entries
+        // ------------------------------------------------------------------
+        // Each offer corresponds to one of the four garden room sizes. The
+        // availability value follows Schema.org's ItemAvailability enumeration:
+        //   - InStock    — 15m² and 25m² models (available for order)
+        //   - PreOrder   — 35m² and 45m² models (pending legislation)
+        // The url for each offer points to the contact page with the product
+        // query parameter, matching the CTA links on the ProductRangeGrid.
+        // ------------------------------------------------------------------
         {
           type: 'Product',
           data: {
             name: 'Garden Room',
-            description: 'Bespoke garden rooms, offices, studios, and home gym.',
+            description: 'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin.',
             brand: {
               '@type': 'Brand',
               name: 'Modular House',
             },
-            offers: {
-              '@type': 'AggregateOffer',
-              priceCurrency: 'EUR',
-              availability: 'https://schema.org/InStock',
-              lowPrice: '35000',
-              highPrice: '110000',
-            },
+            offers: [
+              {
+                '@type': 'Offer',
+                name: '15m\u00B2 Compact Studio',
+                priceCurrency: 'EUR',
+                availability: 'https://schema.org/InStock',
+                url: 'https://modularhouse.ie/contact?product=garden-room-15',
+              },
+              {
+                '@type': 'Offer',
+                name: '25m\u00B2 Garden Suite',
+                priceCurrency: 'EUR',
+                availability: 'https://schema.org/InStock',
+                url: 'https://modularhouse.ie/contact?product=garden-room-25',
+              },
+              {
+                '@type': 'Offer',
+                name: '35m\u00B2 Garden Living',
+                priceCurrency: 'EUR',
+                availability: 'https://schema.org/PreOrder',
+                url: 'https://modularhouse.ie/contact?product=garden-room-35&interest=true',
+              },
+              {
+                '@type': 'Offer',
+                name: '45m\u00B2 Grand Studio',
+                priceCurrency: 'EUR',
+                availability: 'https://schema.org/PreOrder',
+                url: 'https://modularhouse.ie/contact?product=garden-room-45&interest=true',
+              },
+            ],
+          },
+        },
+
+        // ------------------------------------------------------------------
+        // FAQPage schema
+        // ------------------------------------------------------------------
+        // The question and answer text below is copied verbatim from the
+        // GARDEN_ROOM_FAQS constant in data/garden-room-data.ts. The data
+        // is inlined here (rather than imported) because this file is shared
+        // across both the browser bundle and Node.js build scripts via
+        // tsconfig.node.json, which cannot resolve React-dependent modules.
+        //
+        // IMPORTANT: The schema text MUST remain byte-identical to the
+        // visible page content rendered by the AccordionFAQ component.
+        // Google's FAQPage Rich Results validator compares structured data
+        // against the on-page text; any divergence invalidates eligibility.
+        // When updating FAQ content, change both garden-room-data.ts AND
+        // this inlined copy simultaneously.
+        // ------------------------------------------------------------------
+        {
+          type: 'FAQPage',
+          data: {
+            mainEntity: [
+              {
+                '@type': 'Question',
+                name: 'Do I need planning permission for a garden room?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Under current Irish planning legislation, garden rooms up to 25 square metres are generally exempt from planning permission, provided they comply with conditions such as maximum height (4 m for a pitched roof, 3 m for a flat roof), boundary setbacks, and aggregate floor area limits for exempted structures. Our 15 and 25 square metre models fall within these thresholds. The 35 and 45 square metre sizes are subject to pending legislation that may extend the exemption limit. We handle all planning paperwork on your behalf.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How long does it take to build a garden room?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'From order confirmation to handover, a typical Modular House garden room takes 6 to 8 weeks. This includes 1 to 2 weeks of off-site steel frame fabrication, 1 week of foundation preparation, and 4 to 5 weeks of on-site assembly, insulation, and interior finishing. Actual timelines may vary based on site conditions and chosen specification.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'What sizes of garden rooms do you offer?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'We currently offer four standard sizes: 15 square metres (Compact Studio), 25 square metres (Garden Suite), 35 square metres (Garden Living), and 45 square metres (Grand Studio). Each model can be customised with different layouts, window configurations, and interior finishes to suit your specific needs.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How is the garden room insulated and heated?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Every garden room features high-performance PIR insulation panels in the walls, floor, and roof, achieving an A-rated BER (Building Energy Rating). Triple-glazed, thermally broken windows and doors minimise heat loss. Heating options include electric underfloor heating, wall-mounted panel heaters, or connection to your home heating system via an insulated supply pipe.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'Can I use the garden room as a home office year-round?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Yes. Our steel-frame construction combined with A-rated insulation, triple glazing, and integrated heating maintains a comfortable working temperature throughout all four seasons. The structures are designed to the same thermal performance standards as a permanent dwelling, ensuring year-round comfort whether used as a home office, studio, or living space.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'What is included in the price?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'The quoted price includes the precision-cut steel frame, full PIR insulation, external cladding, internal plasterboard lining, laminate or tile flooring, electrical wiring with LED lighting and sockets, triple-glazed windows and doors, and a 10-year structural warranty. Foundation works, plumbing, and bespoke upgrades (such as underfloor heating or additional power circuits) are quoted separately based on site requirements.',
+                },
+              },
+            ],
           },
         },
 
         // WebPage + BreadcrumbList schemas for this route.
         ...generatePageSchema(
           '/garden-room',
-          'Garden Rooms & Studios',
-          'Bespoke garden rooms, offices, studios, and home gym. Create your perfect outdoor living space with our insulated and durable modular designs.',
+          'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2',
+          'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin. Free quote.',
           BUILD_TIMESTAMP
         ),
       ],

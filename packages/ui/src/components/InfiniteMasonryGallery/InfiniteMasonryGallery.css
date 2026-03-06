@@ -1,0 +1,352 @@
+/* =============================================================================
+   InfiniteMasonryGallery — Stylesheet
+   =============================================================================
+   BEM-style classes scoped under `.img-gallery`.
+   Uses brand design tokens defined in the project's style.css.
+   ============================================================================= */
+
+/* ── Root ── */
+.img-gallery {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  background-color: var(--brand-bg-primary, #fefefe);
+}
+
+/* ── Header ── */
+.img-gallery__header {
+  padding: 44px 48px 24px;
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  animation: imgGalleryFadeUp 0.6s ease both;
+}
+
+.img-gallery__eyebrow {
+  display: block;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide, 0.12em);
+  color: var(--brand-stone, #888);
+  margin-bottom: 0.75rem;
+  line-height: 1;
+}
+
+.img-gallery__title {
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-size: var(--text-heading-l, clamp(1.75rem, 4vw, 2.5rem));
+  font-weight: var(--weight-regular, 400);
+  color: var(--brand-title, #121414);
+  letter-spacing: var(--tracking-tight, -0.02em);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.img-gallery__divider {
+  width: 32px;
+  height: 1px;
+  background: var(--brand-border, #e0e0e0);
+  margin-top: 16px;
+}
+
+/* ── Track wrapper (holds the edge fades + scrollable area) ── */
+.img-gallery__track-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 0;
+}
+
+/* ── Edge fade overlays ── */
+.img-gallery__edge-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.img-gallery__edge-fade--left {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    var(--brand-bg-primary, #fefefe) 0%,
+    transparent 100%
+  );
+}
+
+.img-gallery__edge-fade--right {
+  right: 0;
+  background: linear-gradient(
+    -90deg,
+    var(--brand-bg-primary, #fefefe) 0%,
+    transparent 100%
+  );
+}
+
+/* ── Scrollable track ── */
+.img-gallery__track {
+  position: relative;
+  width: 100%;
+  user-select: none;
+  touch-action: none;
+  overflow: hidden;
+}
+
+/* ── Individual gallery item (handles both portrait + landscape cells) ── */
+.img-gallery-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.img-gallery-item img,
+.img-gallery-item picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.img-gallery-item img {
+  object-fit: cover;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s ease;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.img-gallery-item:hover img {
+  transform: scale(1.06);
+  filter: brightness(1.08);
+}
+
+.img-gallery-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 50%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.img-gallery-item:hover::after {
+  opacity: 1;
+}
+
+/* ── Footer hint ── */
+.img-gallery__footer {
+  padding: 16px 48px 28px;
+  color: var(--brand-stone, #888);
+  font-size: var(--text-tiny, 0.75rem);
+  letter-spacing: var(--tracking-wide, 0.12em);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: imgGalleryFadeUp 0.7s ease 0.3s both;
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   LIGHTBOX
+   ============================================================================= */
+
+.img-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: imgLightboxIn 0.3s ease;
+  cursor: zoom-out;
+}
+
+.img-lightbox-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.img-lightbox-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 6px;
+  object-fit: contain;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+  animation: imgLightboxScale 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img-lightbox-prev,
+.img-lightbox-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  padding: 15px 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 10;
+  border-radius: 4px;
+}
+
+.img-lightbox-prev:hover,
+.img-lightbox-next:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.img-lightbox-prev {
+  left: 24px;
+}
+
+.img-lightbox-next {
+  right: 24px;
+}
+
+.img-lightbox-hint {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  color: var(--brand-stone, #aaa);
+  font-size: 14px;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  letter-spacing: 1px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   ANIMATIONS
+   ============================================================================= */
+
+@keyframes imgGalleryFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes imgLightboxIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes imgLightboxScale {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .img-gallery__header {
+    padding: 24px 20px 16px;
+  }
+
+  .img-gallery__footer {
+    padding: 12px 20px 20px;
+  }
+
+  .img-gallery__edge-fade {
+    width: 40px;
+  }
+
+  /* Lightbox navigation buttons — increase touch target size on mobile
+     to meet the recommended 44x44px minimum for touch interfaces.
+     The buttons are repositioned closer to the viewport edges. */
+  .img-lightbox-prev,
+  .img-lightbox-next {
+    padding: 18px 14px;
+    font-size: 20px;
+  }
+
+  .img-lightbox-prev {
+    left: 10px;
+  }
+
+  .img-lightbox-next {
+    right: 10px;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Focus-visible styles for lightbox navigation buttons.
+   These are defined outside the media query so they apply at all viewports.
+   The outline provides keyboard users with a clear visual indicator when
+   tabbing through the lightbox controls.
+   --------------------------------------------------------------------------- */
+
+.img-lightbox-prev:focus-visible,
+.img-lightbox-next:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Reduces gallery header padding and edge fades for the narrowest supported
+   viewports. The lightbox image constraints are tightened to prevent
+   overflow at 320px screen widths.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .img-gallery__header {
+    padding: 20px 16px 12px;
+  }
+
+  .img-gallery__footer {
+    padding: 10px 16px 16px;
+  }
+
+  .img-gallery__edge-fade {
+    width: 24px;
+  }
+
+  .img-lightbox-prev {
+    left: 6px;
+  }
+
+  .img-lightbox-next {
+    right: 6px;
+  }
+}

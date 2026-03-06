@@ -1,0 +1,494 @@
+/* =============================================================================
+   ProductShowcase Component Styles
+   =============================================================================
+
+   PURPOSE:
+   Styles for the 50/50 split section featuring a 1×4 product grid (left)
+   and features/warranties list (right). Each product row has a background
+   image that fades out on left and right behind the dimension and price.
+
+   ARCHITECTURE:
+   - BEM methodology: .product-showcase__[element]--[modifier]
+   - Uses CSS custom properties from the brand design token system
+   - Responsive: stacks vertically on mobile, 50/50 grid on desktop
+
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. SECTION CONTAINER
+   ----------------------------------------------------------------------------- */
+
+.product-showcase {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.product-showcase__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: auto;
+}
+
+@media (min-width: 992px) {
+  .product-showcase__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   2. LEFT COLUMN — PRODUCT GRID
+   ----------------------------------------------------------------------------- */
+
+.product-showcase__left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 48px 0;
+}
+
+@media (min-width: 992px) {
+  .product-showcase__left {
+    padding: 48px 24px 48px 0;
+  }
+}
+
+.product-showcase__eyebrow {
+  font-family: var(--font-serif);/*var(--font-sans);*/
+  font-size: var(--text-heading-m);/*var(--text-caption);*/
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--brand-title);
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* -----------------------------------------------------------------------------
+   2.1 PRODUCT ROW — Clickable card with background image
+   ----------------------------------------------------------------------------- */
+
+.product-showcase__row {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+}
+
+.product-showcase__row:hover {
+  transform: scale(1.015);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.product-showcase__row:focus-visible {
+  outline: 2px solid var(--brand-link);
+  outline-offset: 2px;
+}
+
+/* Background image layer */
+.product-showcase__row-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.product-showcase__row-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Left fade overlay */
+.product-showcase__fade-left {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(
+    to right,
+    rgba(254, 254, 254, 0.95) 0%,
+    rgba(254, 254, 254, 0.75) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Right fade overlay */
+.product-showcase__fade-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(
+    to left,
+    rgba(254, 254, 254, 0.95) 0%,
+    rgba(254, 254, 254, 0.75) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Left content: dimension info */
+.product-showcase__dimension {
+  position: relative;
+  z-index: 2;
+  padding-left: 28px;
+}
+
+.product-showcase__size-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.product-showcase__size {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: var(--weight-regular);
+  color: var(--brand-title);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+}
+
+.product-showcase__unit {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-medium);
+  color: var(--brand-stone);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.product-showcase__dimensions {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-light);
+  color: var(--brand-slate);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Permit badges */
+.product-showcase__badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.product-showcase__badge--permit-free {
+  color: #3d6b35;
+  background: rgba(123, 220, 181, 0.25);
+  border: 1px solid rgba(123, 220, 181, 0.4);
+}
+
+.product-showcase__badge--permit-soon {
+  color: var(--brand-link);
+  background: rgba(181, 83, 41, 0.08);
+  border: 1px solid rgba(181, 83, 41, 0.15);
+}
+
+/* Right content: price */
+.product-showcase__price-block {
+  position: relative;
+  z-index: 2;
+  padding-right: 28px;
+  text-align: right;
+}
+
+.product-showcase__price {
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-s);
+  font-weight: var(--weight-regular);
+  color: var(--brand-title);
+  letter-spacing: var(--tracking-tight);
+  transition: color 0.3s ease;
+}
+
+.product-showcase__row:hover .product-showcase__price {
+  color: var(--brand-link);
+}
+
+.product-showcase__label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  color: var(--brand-stone);
+  font-weight: var(--weight-light);
+  margin-top: 2px;
+}
+
+/* Bottom accent line */
+.product-showcase__row-accent {
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--brand-bd-color),
+    transparent
+  );
+  z-index: 2;
+}
+
+/* Legislation note */
+.product-showcase__legislation {
+  margin-top: 16px;
+  padding: 14px 20px;
+  background: var(--brand-bg-secondary);
+  border-radius: 4px;
+  border-left: 3px solid var(--brand-link);
+}
+
+.product-showcase__legislation p {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-regular);
+  color: var(--brand-slate);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.product-showcase__legislation strong {
+  color: var(--brand-title);
+  font-weight: var(--weight-medium);
+}
+
+/* -----------------------------------------------------------------------------
+   3. RIGHT COLUMN — FEATURES & WARRANTIES
+   ----------------------------------------------------------------------------- */
+
+.product-showcase__right {
+  padding: 48px 0;
+  border-top: 1px solid var(--brand-bd-color);
+}
+
+@media (min-width: 992px) {
+  .product-showcase__right {
+    padding: 48px 0 48px 40px;
+    border-top: none;
+    border-left: 1px solid var(--brand-bd-color);
+  }
+}
+
+/* Feature rows */
+.product-showcase__feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.product-showcase__feature {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--brand-bd-color);
+  transition: all 0.25s ease;
+}
+
+.product-showcase__feature:last-child {
+  border-bottom: none;
+}
+
+.product-showcase__feature:hover {
+  transform: translateX(6px);
+}
+
+.product-showcase__feature-icon {
+  font-family: var(--font-sans);
+  font-size: 0.5rem;
+  color: var(--brand-meta);
+  margin-top: 7px;
+  transition: color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.product-showcase__feature:hover .product-showcase__feature-icon {
+  color: var(--brand-link);
+}
+
+.product-showcase__feature-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--brand-title);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.product-showcase__feature-desc {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-light);
+  color: var(--brand-slate);
+  line-height: 1.5;
+}
+
+/* Warranty section */
+.product-showcase__warranty-section {
+  margin-top: 36px;
+}
+
+.product-showcase__warranty-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.product-showcase__warranty {
+  padding: 18px 16px;
+  background: var(--brand-bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--brand-bd-color);
+  transition: all 0.3s ease;
+}
+
+.product-showcase__warranty:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.product-showcase__warranty-years-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.product-showcase__warranty-years {
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-m);
+  font-weight: var(--weight-regular);
+  color: var(--brand-link);
+  line-height: 1;
+}
+
+.product-showcase__warranty-years-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--brand-stone);
+}
+
+.product-showcase__warranty-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--brand-title);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.product-showcase__warranty-sub {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-light);
+  color: var(--brand-stone);
+}
+
+
+/* =============================================================================
+   SECTION 4: RESPONSIVE BREAKPOINTS
+   =============================================================================
+   Adjustments for tablet, mobile, and narrow mobile viewports. The 50/50 grid
+   stacks vertically at 992px (handled above). These rules address typography,
+   spacing, and touch-target sizing below that threshold.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Tablet breakpoint (max-width: 768px)
+   ---------------------------------------------------------------------------
+   Reduces product row height and dimension typography for tablet screens.
+   The warranty grid switches to single-column to prevent cramped cells.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .product-showcase {
+    padding: 0 16px;
+  }
+
+  .product-showcase__left {
+    padding: 32px 0;
+  }
+
+  .product-showcase__row {
+    height: 90px;
+  }
+
+  .product-showcase__size {
+    font-size: 1.5rem;
+  }
+
+  .product-showcase__dimension {
+    padding-left: 20px;
+  }
+
+  .product-showcase__price-block {
+    padding-right: 20px;
+  }
+
+  .product-showcase__right {
+    padding: 32px 0;
+  }
+
+  .product-showcase__warranty-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Further reduces product row height and typography for the narrowest
+   supported viewports (e.g., 320px). Ensures dimension text and price
+   do not overlap inside each product row.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .product-showcase__row {
+    height: 80px;
+  }
+
+  .product-showcase__size {
+    font-size: 1.25rem;
+  }
+
+  .product-showcase__price {
+    font-size: var(--text-body, 1rem);
+  }
+
+  .product-showcase__dimension {
+    padding-left: 14px;
+  }
+
+  .product-showcase__price-block {
+    padding-right: 14px;
+  }
+}
+

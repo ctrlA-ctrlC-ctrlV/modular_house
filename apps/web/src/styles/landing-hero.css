@@ -1,0 +1,101 @@
+/* =============================================================================
+   Landing Page — Mobile Hero Override
+   =============================================================================
+   Reduces the hero height on mobile so the ProductShowcase section is visible
+   in the initial viewport.  Scoped to .landing-hero so other pages using
+   HeroWithSideText are unaffected.
+   ============================================================================= */
+
+@media only screen and (max-width: 768px) {
+  .landing-hero.hero-container {
+    height: 45vh;/*52vh;*/
+    max-height: 50vh;/*52vh;*/
+    min-height: 340px;
+  }
+
+  /* Push content to bottom of the shorter hero.
+     Base mobile CSS sets height:auto which collapses the wrapper,
+     making justify-content ineffective. Restore height:100% so
+     flex-end can push content down. */
+  .landing-hero.hero-container .hero-content-wrapper {
+    height: 100%;
+    justify-content: flex-end;
+    padding: 28px;
+  }
+
+  /* Override base mobile padding-top:45% — compact bottom-aligned layout */
+  .landing-hero.hero-container .hero-main-area {
+    padding-top: 0;
+    align-items: flex-end;
+    flex: 1;
+    width: 100%;
+  }
+
+  .landing-hero .hero-text-block {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  /* Smaller title to avoid running behind the logo */
+  .landing-hero.hero-container .hero-title {
+    font-size: clamp(1.8rem, 6.5vw, 2.6rem);
+    margin: 0 0 14px 0;
+  }
+
+  .landing-hero.hero-container .hero-subtitle {
+    font-size: 0.72rem;
+    margin-bottom: 10px;
+    margin-left: 0;
+  }
+
+  /* Tighten CTA spacing */
+  .landing-hero .hero-cta-wrapper {
+    margin-top: 0;
+  }
+
+  /* Hide footer area (description + explore link) on mobile */
+  .landing-hero .hero-footer-area {
+    display: none;
+  }
+
+  /* ─── Landing ProductShowcase — compact mobile layout ─── */
+  #product-showcase .product-showcase {
+    padding: 0 20px;
+  }
+
+  #product-showcase .product-showcase__left {
+    padding: 16px 0 24px;
+    gap: 5px;
+  }
+
+  #product-showcase .product-showcase__eyebrow {
+    font-size: var(--text-caption, 0.7rem);
+    margin-bottom: 8px;
+  }
+
+  #product-showcase .product-showcase__row {
+    height: 82px;
+  }
+
+  #product-showcase .product-showcase__dimension {
+    padding-left: 20px;
+  }
+
+  #product-showcase .product-showcase__size {
+    font-size: 1.7rem;
+  }
+
+  #product-showcase .product-showcase__price-block {
+    padding-right: 20px;
+  }
+
+  #product-showcase .product-showcase__price {
+    font-size: 0.95rem;
+  }
+
+  #product-showcase .product-showcase__badge {
+    margin-top: 4px;
+    padding: 1px 6px;
+    font-size: 0.55rem;
+  }
+}

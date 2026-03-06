@@ -365,12 +365,13 @@
 /**
  * Mobile breakpoint (max-width: 767px).
  * Realigns info group to left and increases display text size
- * for visual impact on narrow screens. flex-direction
+ * for visual impact on narrow screens. The content switches to
+ * flex-direction: column for a vertical stacked layout.
  */
 @media (max-width: 767px) {
   .hero-bold-bottom-text {
     height: 100vh;
-    padding: 120px 15px 30px 15px;
+    padding: 120px 15px 60px 15px;
   }
 
   .hero-bold-bottom-text__content {
@@ -398,5 +399,33 @@
   .hero-bold-bottom-text__big-text {
     font-size: clamp(3rem, 13.3vw, 4.5rem);  /*clamp(3rem, 13.3vw, 4rem)*/
     letter-spacing: var(--tracking-default, 0em);
+  }
+}
+
+
+/**
+ * Narrow mobile breakpoint (max-width: 374px).
+ * Further reduces hero padding and big-text size for 320px viewports.
+ * The title wrapper margin is reduced proportionally to prevent the
+ * info group from being pushed below the visible fold on very short
+ * screens at this width. The CTA button padding decreases to maintain
+ * a comfortable touch target while preserving horizontal space.
+ */
+@media (max-width: 374px) {
+  .hero-bold-bottom-text {
+    padding: 100px 12px 40px 12px;
+  }
+
+  .hero-bold-bottom-text__big-text {
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
+  }
+
+  .hero-bold-bottom-text__cta {
+    padding: 12px 24px;
+    font-size: 0.8125rem;
+  }
+
+  .hero-bold-bottom-text__title-wrapper {
+    margin: 70% 0 5% 0;
   }
 }

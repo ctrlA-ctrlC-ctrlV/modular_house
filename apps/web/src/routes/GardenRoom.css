@@ -1,0 +1,130 @@
+/* =============================================================================
+   GardenRoom Route — Page-Level Styles
+   =============================================================================
+
+   Styles specific to the /garden-room route layout. Component-level styles
+   (e.g. ProductRangeGrid, HeroBoldBottomText) live in the @modular-house/ui
+   package. This file handles only page composition and elements unique to
+   the route, such as the "Explore Our Ranges" anchor link.
+
+   BEM naming: block = "garden-room", elements use double underscores.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Garden Room Hero Section
+   ---------------------------------------------------------------------------
+   The hero wrapper uses relative positioning so that the "Explore Our Ranges"
+   anchor link can be absolutely positioned at the bottom of the hero area,
+   visually overlapping the hero image.
+   --------------------------------------------------------------------------- */
+
+.garden-room__hero {
+  position: relative;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Explore Our Ranges — Anchor Link
+   ---------------------------------------------------------------------------
+   A floating text link positioned at the bottom-centre of the hero section.
+   On click it smooth-scrolls to the #product-range section. The down arrow
+   character (Unicode \2193) is appended via CSS to reinforce the scroll
+   affordance without adding a presentational element to the DOM.
+   --------------------------------------------------------------------------- */
+
+.garden-room__explore-link {
+  position: absolute;
+  bottom: 0.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+
+  /* Reset native button styles */
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+
+  /* Typography */
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.garden-room__explore-link:hover,
+.garden-room__explore-link:focus-visible {
+  opacity: 0.75;
+}
+
+/* Down arrow indicator appended after the link text */
+.garden-room__explore-link::after {
+  content: ' \2193';
+  display: inline-block;
+  margin-left: 0.25rem;
+}
+
+
+/* =============================================================================
+   RESPONSIVE BREAKPOINTS
+   =============================================================================
+
+   PAGE-LEVEL RESPONSIVE OVERRIDES
+   These rules address layout concerns that arise from the combination of
+   components on the /garden-room route, rather than from any single component
+   in isolation. Individual component breakpoints are managed within each
+   component's own stylesheet in @modular-house/ui.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Tablet breakpoint (max-width: 768px)
+   ---------------------------------------------------------------------------
+   Adjusts the hero explore link and section spacing for tablet-sized screens.
+   The explore link font size decreases to prevent it from competing with
+   the hero CTA button at reduced viewport widths.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .garden-room__explore-link {
+    font-size: 0.75rem;
+    bottom: 0.5rem;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Mobile breakpoint (max-width: 480px)
+   ---------------------------------------------------------------------------
+   Further reduces explore link size for narrow handset viewports. The
+   bottom offset is increased slightly so the link does not overlap with
+   the hero big-text element on shorter screens.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .garden-room__explore-link {
+    font-size: 0.6875rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 320px)
+   ---------------------------------------------------------------------------
+   Addresses the narrowest supported viewport (e.g. iPhone SE). Prevents
+   the explore link text from wrapping or overflowing the hero section.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 320px) {
+  .garden-room__explore-link {
+    font-size: 0.625rem;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.5rem;
+  }
+}

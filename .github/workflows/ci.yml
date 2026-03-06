@@ -12,6 +12,7 @@ on:
       - '**-seo-maximization'
       - '**-admin-panel-redesign'
       - '**-seo-improvement'
+      - '**-garden-room-redesign'
   pull_request:
     branches:
       - main

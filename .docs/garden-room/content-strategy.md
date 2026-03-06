@@ -3,8 +3,8 @@
 ## Target Keywords
 
 ### Primary
-- "garden room Ireland"
 - "garden room Dublin"
+- "garden room Ireland"
 - "garden rooms"
 
 ### Secondary (Long-tail)

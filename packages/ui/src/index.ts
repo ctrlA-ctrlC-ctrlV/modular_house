@@ -22,5 +22,6 @@ export { QuickViewModal, type QuickViewProduct, type QuickViewModalProps } from 
 export { AccordionFAQ, type AccordionFAQItem, type AccordionFAQProps } from './components/AccordionFAQ/AccordionFAQ';
 export { ProductShowcase, type ProductShowcaseProps, type ProductShowcaseProduct, type ProductShowcaseFeature, type ProductShowcaseWarranty } from './components/ProductShowcase/ProductShowcase';
 export { InfiniteMasonryGallery, type InfiniteMasonryGalleryProps, type InfiniteGalleryImage } from './components/InfiniteMasonryGallery/InfiniteMasonryGallery';
+export { ComparisonSection, type ComparisonSectionProps, type ComparisonCategory, type MaterialScore, type MaterialMeta } from './components/ComparisonSection/ComparisonSection';
 export * from './types';
 // Add your shared UI components here

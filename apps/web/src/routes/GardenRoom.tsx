@@ -200,7 +200,7 @@ const GardenRoom: React.FC = () => {
       </div>
 
       {/* ===================================================================
-          Section 4 — Why Steel Frame
+          Section 2 — Why Steel Frame
           ===================================================================
           A four-column feature grid presenting the key advantages of steel
           frame construction. Each card includes an icon (from CustomIcons),
@@ -241,7 +241,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 2 — Product Showcase (50/50 Split)
+          Section 3 — Product Showcase (50/50 Split)
           ===================================================================
           A 50/50 split section introducing the standardised product line.
           Left: 1×4 product grid with background images, dimensions, and
@@ -270,7 +270,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 3 — Infinite Gallery
+          Section 4 — Infinite Gallery
           ===================================================================
           Horizontally-scrolling infinite masonry gallery placed directly
           below the Product Showcase. Uses all available garden room and
@@ -288,7 +288,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 4 — Product Range (Detail Cards)
+          Section 5 — Product Range (Detail Cards)
           ===================================================================
           Displays four garden room product cards (15, 25, 35, 45 square
           metres) in a responsive grid. Product data is sourced from the

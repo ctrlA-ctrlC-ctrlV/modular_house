@@ -2,12 +2,30 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/**
+ * HTML & Body Reset
+ * 
+ * Sets the document to occupy exactly 100% of the viewport with no
+ * native scroll. The TemplateLayout component provides a dedicated
+ * scrollable container (.theme-template.h-100.overflow-y-auto) that
+ * handles all vertical scrolling. This architecture:
+ *   1. Prevents double scrollbars (body vs inner container)
+ *   2. Enables scroll-position restoration per route
+ *   3. Allows the header to overlay content without layout shift
+ */
+html,
 body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
   min-width: 320px;
-  min-height: 100vh;
 }
 
 #root {
   width: 100%;
+  height: 100%;
 }

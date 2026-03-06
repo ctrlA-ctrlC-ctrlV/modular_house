@@ -328,11 +328,12 @@ html {
 /**
  * Body element reset
  * Ensures full viewport coverage and applies brand background.
+ * Note: height and overflow are set in index.css to enable single-scrollbar
+ * architecture via TemplateLayout.
  */
 body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
   background-color: var(--brand-bg-primary);
   color: var(--brand-ink);
   font-family: var(--font-sans);

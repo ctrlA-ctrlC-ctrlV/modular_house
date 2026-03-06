@@ -217,15 +217,23 @@ const GardenRoom: React.FC = () => {
           =================================================================== */}
       <div id="why-steel-frame" style={{ backgroundColor: '#F6F5F0' }}>
         <FeatureSection
-          topHeading="WHY MODULAR HOUSE"
-          mainHeading="Engineered for Performance"
+          topHeading="DUBLIN-MADE GARDEN ROOMS"
+          mainHeading="Built in Dublin. Designed for life in Ireland."
           introText={
-            <p>
-              Our garden rooms are built with CNC-cut steel framing — the same
-              structural technology used in commercial construction. The result
-              is a building that is stronger, faster to assemble, and more
-              thermally efficient than traditional timber or block alternatives.
-            </p>
+            <>
+              <p>
+                At Modular House, we manufacture our own light gauge steel
+                frames in Dublin, giving every garden room tighter quality
+                control, faster lead times, and a structure built for Irish
+                weather from day one.
+              </p>
+              <p>
+                If you are looking for a garden room in Dublin or anywhere in
+                Ireland, our system delivers the precision of factory-built
+                construction with the warmth, finish, and everyday comfort of a
+                fully insulated modern living space.
+              </p>
+            </>
           }
           features={GARDEN_ROOM_FEATURES}
         />

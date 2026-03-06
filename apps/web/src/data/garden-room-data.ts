@@ -437,27 +437,27 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
 export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
   {
     icon: React.createElement(CustomIcons, { name: 'measureTape', size: 48 }),
-    title: 'Precision Steel Frame',
+    title: 'Made in Our Dublin Factory',
     description:
-      'Every frame is CNC-cut to sub-millimetre accuracy, eliminating thermal bridging and ensuring a perfect fit. Steel does not warp, shrink, or rot — delivering consistent structural performance for decades.',
+      'We manufacture every light gauge steel frame in-house in Dublin, so your garden room benefits from tighter quality control, accurate fabrication, and dependable lead times from design through installation.',
   },
   {
     icon: React.createElement(CustomIcons, { name: 'tiles', size: 48 }),
-    title: 'Rapid Build',
+    title: 'Faster, Cleaner Installation',
     description:
-      'Our off-site fabrication process means your garden room is ready in 6 to 8 weeks, with minimal on-site disruption. Most of the construction happens in our Dublin workshop before assembly on your property.',
+      'Because the structure is pre-engineered before it reaches site, our garden rooms go up faster with less mess, less noise, and less disruption to your home than a traditional build.',
   },
   {
     icon: React.createElement(CustomIcons, { name: 'bioEnergy', size: 48 }),
-    title: 'Energy Efficient',
+    title: 'Built for Irish Weather',
     description:
-      'A-rated BER as standard, with high-performance PIR insulation, triple-glazed thermally broken windows, and optional underfloor heating. Designed to stay warm in winter and cool in summer without high energy bills.',
+      'High-performance insulation, thermally efficient detailing, and quality glazing help create garden rooms in Ireland that stay warm in winter, comfortable in summer, and efficient to run all year round.',
   },
   {
     icon: React.createElement(CustomIcons, { name: 'keyCircle', size: 48 }),
-    title: 'Built to Last',
+    title: 'A Long-Term Space, Not a Shed',
     description:
-      'Steel-frame construction delivers a 50+ year structural lifespan with zero risk of rot, warping, or pest damage. Every garden room comes with a 10-year structural warranty for complete peace of mind.',
+      'Our steel-framed garden rooms are engineered as permanent-feeling spaces for work, guests, fitness, or daily living, with none of the rot, warp, or maintenance concerns associated with timber-heavy alternatives.',
   },
 ];
 

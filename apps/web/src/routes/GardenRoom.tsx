@@ -37,12 +37,12 @@ import {
   ProductShowcase,
   InfiniteMasonryGallery,
   FeatureSection,
-  TwoColumnSplitLayout,
   TestimonialGrid,
   AccordionFAQ,
   ContactFormWithImageBg,
   QuickViewModal,
   ComparisonSection,
+  InfoBanner,
   type ContactFormData,
   type LinkRenderer,
   type ProductCard,
@@ -321,39 +321,32 @@ const GardenRoom: React.FC = () => {
       {/* ===================================================================
           Section 5 — Planning Permission
           ===================================================================
-          Two-column layout presenting planning permission guidance for
-          prospective garden room buyers in Ireland. The left column contains
-          the informational copy with a checklist of exemption thresholds,
-          and an external link to the government planning resource. The
-          right column displays a compliant garden room photograph.
+          Informational banner presenting planning permission guidance for
+          prospective garden room buyers in Ireland. Displays exemption
+          thresholds with visual status indicators (active/pending) and
+          links to the official government planning resource.
 
           The content covers three key points:
           1. Current exemption: up to 25m² requires no planning permission.
           2. Pending legislation: 35m² and 45m² sizes may become exempt.
-          3. Service value: Modular House handles all planning paperwork.
+          3. External link to official government planning information.
           =================================================================== */}
-      <div id="planning-permission">
-        <TwoColumnSplitLayout
-          backgroundColor="white"
-          subtitle="PLANNING MADE SIMPLE"
-          title="Do You Need Planning Permission?"
-          description1={
-            'Under current Irish law, garden rooms up to 25m\u00B2 are exempt from planning permission '
-            + 'when they meet certain conditions. New legislation is being prepared to increase this '
-            + 'threshold, which would allow garden rooms up to 45m\u00B2 without planning permission.\n\n'
-            + '\u2713 Up to 25m\u00B2 \u2014 No planning permission needed\n'
-            + '\u2713 35m\u00B2 & 45m\u00B2 \u2014 Legislation pending\n'
-            + '\u2713 We handle all paperwork for you'
-          }
-          image1Src="/resource/garden-room/garden-room5.png"
-          image1WebP="/resource/garden-room/garden-room5.webp"
-          image1Avif="/resource/garden-room/garden-room5.avif"
-          image1Alt="Garden room with planning permission compliant design"
-          image1Width={2400}
-          image1Height={1578}
-          button1Text="Learn More About Planning"
-          button1Link="https://www.gov.ie/en/publication/planning-exemptions/"
-          renderLink={renderLink}
+      <div id="planning-permission" className="garden-room__planning-permission">
+        <InfoBanner
+          eyebrow="Regulations"
+          heading="Do You Need Planning Permission?"
+          body="Under current Irish law, garden rooms up to 25m² are exempt from planning permission when they meet certain conditions. New legislation is being prepared to increase this threshold, allowing garden rooms up to 45m² without planning permission."
+          statusItems={[
+            { label: 'Up to 25m²', status: 'active', tag: 'Exempt' },
+            { label: '35m²', status: 'pending', tag: 'Pending' },
+            { label: '45m²', status: 'pending', tag: 'Pending' },
+          ]}
+          link={{
+            href: 'https://www.irishtimes.com/politics/2025/06/04/garden-rooms-and-attics-what-are-the-proposed-changes-to-regulations/',
+            text: 'Learn More About Planning',
+            openInNewTab: true,
+          }}
+          ariaLabel="Planning permission information"
         />
       </div>
 

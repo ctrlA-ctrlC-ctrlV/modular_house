@@ -410,3 +410,85 @@
   color: var(--brand-stone);
 }
 
+
+/* =============================================================================
+   SECTION 4: RESPONSIVE BREAKPOINTS
+   =============================================================================
+   Adjustments for tablet, mobile, and narrow mobile viewports. The 50/50 grid
+   stacks vertically at 992px (handled above). These rules address typography,
+   spacing, and touch-target sizing below that threshold.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Tablet breakpoint (max-width: 768px)
+   ---------------------------------------------------------------------------
+   Reduces product row height and dimension typography for tablet screens.
+   The warranty grid switches to single-column to prevent cramped cells.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .product-showcase {
+    padding: 0 16px;
+  }
+
+  .product-showcase__left {
+    padding: 32px 0;
+  }
+
+  .product-showcase__row {
+    height: 90px;
+  }
+
+  .product-showcase__size {
+    font-size: 1.5rem;
+  }
+
+  .product-showcase__dimension {
+    padding-left: 20px;
+  }
+
+  .product-showcase__price-block {
+    padding-right: 20px;
+  }
+
+  .product-showcase__right {
+    padding: 32px 0;
+  }
+
+  .product-showcase__warranty-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Further reduces product row height and typography for the narrowest
+   supported viewports (e.g., 320px). Ensures dimension text and price
+   do not overlap inside each product row.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .product-showcase__row {
+    height: 80px;
+  }
+
+  .product-showcase__size {
+    font-size: 1.25rem;
+  }
+
+  .product-showcase__price {
+    font-size: var(--text-body, 1rem);
+  }
+
+  .product-showcase__dimension {
+    padding-left: 14px;
+  }
+
+  .product-showcase__price-block {
+    padding-right: 14px;
+  }
+}
+

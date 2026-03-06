@@ -68,3 +68,63 @@
   display: inline-block;
   margin-left: 0.25rem;
 }
+
+
+/* =============================================================================
+   RESPONSIVE BREAKPOINTS
+   =============================================================================
+
+   PAGE-LEVEL RESPONSIVE OVERRIDES
+   These rules address layout concerns that arise from the combination of
+   components on the /garden-room route, rather than from any single component
+   in isolation. Individual component breakpoints are managed within each
+   component's own stylesheet in @modular-house/ui.
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Tablet breakpoint (max-width: 768px)
+   ---------------------------------------------------------------------------
+   Adjusts the hero explore link and section spacing for tablet-sized screens.
+   The explore link font size decreases to prevent it from competing with
+   the hero CTA button at reduced viewport widths.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .garden-room__explore-link {
+    font-size: 0.75rem;
+    bottom: 0.5rem;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Mobile breakpoint (max-width: 480px)
+   ---------------------------------------------------------------------------
+   Further reduces explore link size for narrow handset viewports. The
+   bottom offset is increased slightly so the link does not overlap with
+   the hero big-text element on shorter screens.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .garden-room__explore-link {
+    font-size: 0.6875rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 320px)
+   ---------------------------------------------------------------------------
+   Addresses the narrowest supported viewport (e.g. iPhone SE). Prevents
+   the explore link text from wrapping or overflowing the hero section.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 320px) {
+  .garden-room__explore-link {
+    font-size: 0.625rem;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.5rem;
+  }
+}

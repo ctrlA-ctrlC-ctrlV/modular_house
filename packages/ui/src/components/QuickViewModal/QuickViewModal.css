@@ -523,9 +523,29 @@
    SECTION 15: RESPONSIVE — MOBILE
    ============================================================================= */
 
+/* ---------------------------------------------------------------------------
+   Mobile breakpoint (max-width: 540px)
+   ---------------------------------------------------------------------------
+   Stacks the footer vertically so price and CTA button fill the available
+   width. Switches the specs grid to single-column for readability.
+   --------------------------------------------------------------------------- */
+
 @media (max-width: 540px) {
+  .quick-view-modal {
+    padding: 16px;
+  }
+
   .quick-view-modal__hero {
     padding: 36px 24px 28px;
+    min-height: 200px;
+  }
+
+  .quick-view-modal__size {
+    font-size: 48px;
+  }
+
+  .quick-view-modal__name {
+    font-size: 22px;
   }
 
   .quick-view-modal__body {
@@ -551,5 +571,45 @@
 
   .quick-view-modal__cta {
     justify-content: center;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Further reduces hero text sizing and modal padding for 320px viewports.
+   The overlay padding is minimised to maximise usable dialog width on
+   screens narrower than 375px.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .quick-view-modal {
+    padding: 8px;
+  }
+
+  .quick-view-modal__dialog {
+    border-radius: 14px;
+  }
+
+  .quick-view-modal__hero {
+    padding: 28px 18px 22px;
+    min-height: 180px;
+  }
+
+  .quick-view-modal__size {
+    font-size: 38px;
+  }
+
+  .quick-view-modal__name {
+    font-size: 18px;
+  }
+
+  .quick-view-modal__body {
+    padding: 20px 18px 24px;
+  }
+
+  .quick-view-modal__price {
+    font-size: 26px;
   }
 }

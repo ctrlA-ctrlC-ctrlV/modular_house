@@ -288,11 +288,65 @@
     width: 40px;
   }
 
+  /* Lightbox navigation buttons — increase touch target size on mobile
+     to meet the recommended 44x44px minimum for touch interfaces.
+     The buttons are repositioned closer to the viewport edges. */
+  .img-lightbox-prev,
+  .img-lightbox-next {
+    padding: 18px 14px;
+    font-size: 20px;
+  }
+
   .img-lightbox-prev {
     left: 10px;
   }
 
   .img-lightbox-next {
     right: 10px;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Focus-visible styles for lightbox navigation buttons.
+   These are defined outside the media query so they apply at all viewports.
+   The outline provides keyboard users with a clear visual indicator when
+   tabbing through the lightbox controls.
+   --------------------------------------------------------------------------- */
+
+.img-lightbox-prev:focus-visible,
+.img-lightbox-next:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Reduces gallery header padding and edge fades for the narrowest supported
+   viewports. The lightbox image constraints are tightened to prevent
+   overflow at 320px screen widths.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .img-gallery__header {
+    padding: 20px 16px 12px;
+  }
+
+  .img-gallery__footer {
+    padding: 10px 16px 16px;
+  }
+
+  .img-gallery__edge-fade {
+    width: 24px;
+  }
+
+  .img-lightbox-prev {
+    left: 6px;
+  }
+
+  .img-lightbox-next {
+    right: 6px;
   }
 }

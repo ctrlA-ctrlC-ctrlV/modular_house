@@ -557,4 +557,54 @@
   .product-range-grid__header {
     margin-bottom: 40px;
   }
+
+  /* InfoBanner within header — ensure the banner does not overflow the
+     narrower container by constraining its width and reducing padding. */
+  .product-range-grid__header-content {
+    margin-top: 24px;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Addresses 320px viewports where the product cards, header typography,
+   and the embedded InfoBanner need tighter spacing to avoid horizontal
+   overflow. Card body padding is reduced and title font-size is clamped.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .product-range-grid {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .product-range-grid__title {
+    font-size: clamp(26px, 8vw, 36px);
+  }
+
+  .product-range-grid__description {
+    font-size: 13px;
+  }
+
+  .product-range-card__top-content {
+    padding: 24px 20px 20px;
+  }
+
+  .product-range-card__body {
+    padding: 20px 18px 22px;
+  }
+
+  .product-range-card__size-badge {
+    font-size: 32px;
+  }
+
+  .product-range-card__name {
+    font-size: 18px;
+  }
+
+  .product-range-card__price {
+    font-size: 22px;
+  }
 }

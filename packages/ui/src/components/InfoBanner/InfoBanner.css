@@ -367,9 +367,46 @@
   .info-banner {
     padding: 1.75rem 1.5rem;
   }
-  
+
   .info-banner__status-list {
     flex-direction: column;
     gap: 0.625rem;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Narrow mobile breakpoint (max-width: 374px)
+   ---------------------------------------------------------------------------
+   Tightens padding and typography for 320px viewports where the banner
+   may appear inside a constrained parent (e.g., ProductRangeGrid header).
+   The heading and body font sizes are reduced to prevent line wrapping
+   that would push the banner below the fold.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 374px) {
+  .info-banner {
+    padding: 1.25rem 1rem;
+  }
+
+  .info-banner__heading {
+    font-size: var(--text-body, 1rem);
+  }
+
+  .info-banner__body {
+    font-size: var(--text-tiny, 0.75rem);
+  }
+
+  .info-banner__status-label {
+    font-size: var(--text-tiny, 0.75rem);
+  }
+
+  .info-banner__status-tag {
+    font-size: 0.625rem;
+    padding: 0.15em 0.4em;
+  }
+
+  .info-banner__link {
+    font-size: var(--text-tiny, 0.75rem);
   }
 }

@@ -401,3 +401,31 @@
     letter-spacing: var(--tracking-default, 0em);
   }
 }
+
+
+/**
+ * Narrow mobile breakpoint (max-width: 374px).
+ * Further reduces hero padding and big-text size for 320px viewports.
+ * The title wrapper margin is reduced proportionally to prevent the
+ * info group from being pushed below the visible fold on very short
+ * screens at this width. The CTA button padding decreases to maintain
+ * a comfortable touch target while preserving horizontal space.
+ */
+@media (max-width: 374px) {
+  .hero-bold-bottom-text {
+    padding: 100px 12px 40px 12px;
+  }
+
+  .hero-bold-bottom-text__big-text {
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
+  }
+
+  .hero-bold-bottom-text__cta {
+    padding: 12px 24px;
+    font-size: 0.8125rem;
+  }
+
+  .hero-bold-bottom-text__title-wrapper {
+    margin: 70% 0 5% 0;
+  }
+}

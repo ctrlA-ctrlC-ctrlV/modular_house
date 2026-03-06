@@ -222,7 +222,150 @@ function CircleScore({ score, max, color, label }: CircleScoreProps) {
 }
 
 /* =============================================================================
-   SECTION 4: MAIN COMPONENT
+   SECTION 4: MOBILE TABLE VIEW
+   ============================================================================= */
+
+interface MobileTableViewProps {
+  categories: ComparisonCategory[];
+  materials: MaterialMeta[];
+  totals: Record<string, number>;
+  maxScore: number;
+  expandedRow: number | null;
+  setExpandedRow: (row: number | null) => void;
+}
+
+/**
+ * Mobile-optimized table view keeping all 3 material columns visible
+ * using compact horizontal bars and a sticky header.
+ */
+function MobileTableView({
+  categories,
+  materials,
+  totals,
+  maxScore,
+  expandedRow,
+  setExpandedRow,
+}: MobileTableViewProps) {
+  return (
+    <div className="comparison-section__mobile-table">
+      {/* Sticky column headers */}
+      <div className="comparison-section__mobile-headers">
+        {materials.map((m, mi) => (
+          <div
+            key={m.key}
+            className={`comparison-section__mobile-header${mi > 0 ? ' comparison-section__mobile-header--bordered' : ''}${m.featured ? ' comparison-section__mobile-header--featured' : ''}`}
+          >
+            {m.featured && (
+              <span className="comparison-section__mobile-badge">Ours</span>
+            )}
+            <div className="comparison-section__mobile-header-inner">
+              <span
+                className="comparison-section__mobile-dot"
+                style={{ backgroundColor: m.color }}
+              />
+              <span
+                className="comparison-section__mobile-name"
+                style={{ color: m.color }}
+              >
+                {m.name}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Category rows */}
+      <div className="comparison-section__mobile-rows">
+        {categories.map((cat, i) => {
+          const isExpanded = expandedRow === i;
+          const notesId = `comparison-mobile-notes-${i}`;
+
+          return (
+            <div key={i} className="comparison-section__mobile-row-group">
+              {/* Category label button */}
+              <button
+                className="comparison-section__mobile-label"
+                onClick={() => setExpandedRow(isExpanded ? null : i)}
+                aria-expanded={isExpanded}
+                aria-controls={notesId}
+              >
+                <span>{cat.label}</span>
+                <span
+                  className={`comparison-section__mobile-arrow${isExpanded ? ' comparison-section__mobile-arrow--expanded' : ''}`}
+                  aria-hidden="true"
+                >
+                  ▼
+                </span>
+              </button>
+
+              {/* 3-column score cells */}
+              <div className="comparison-section__mobile-cells">
+                {materials.map((m, mi) => {
+                  const data = cat[m.key];
+                  return (
+                    <div
+                      key={m.key}
+                      className={`comparison-section__mobile-cell${mi > 0 ? ' comparison-section__mobile-cell--bordered' : ''}${m.featured ? ' comparison-section__mobile-cell--featured' : ''}`}
+                    >
+                      <div
+                        className={`comparison-section__mobile-value${data.score >= 4 ? ' comparison-section__mobile-value--strong' : ''}`}
+                      >
+                        {data.value}
+                      </div>
+                      <ScoreBar
+                        score={data.score}
+                        color={m.color}
+                        delay={i * 60 + mi * 30}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Expanded notes */}
+              <div
+                id={notesId}
+                className={`comparison-section__mobile-notes${isExpanded ? ' comparison-section__mobile-notes--expanded' : ''}`}
+                aria-hidden={!isExpanded}
+              >
+                <div className="comparison-section__mobile-notes-grid">
+                  {materials.map((m, mi) => (
+                    <div
+                      key={m.key}
+                      className={`comparison-section__mobile-note${mi > 0 ? ' comparison-section__mobile-note--bordered' : ''}`}
+                    >
+                      {cat[m.key].note}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Totals */}
+      <div className="comparison-section__mobile-totals">
+        {materials.map((m, mi) => (
+          <div
+            key={m.key}
+            className={`comparison-section__mobile-total${mi > 0 ? ' comparison-section__mobile-total--bordered' : ''}${m.featured ? ' comparison-section__mobile-total--featured' : ''}`}
+          >
+            <CircleScore
+              score={totals[m.key]}
+              max={maxScore}
+              color={m.color}
+              label={`${m.name} overall score`}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* =============================================================================
+   SECTION 5: MAIN COMPONENT
    ============================================================================= */
 
 export function ComparisonSection({
@@ -256,6 +399,24 @@ export function ComparisonSection({
   const [activeCard, setActiveCard] = useState<string>(
     materials.find((m) => m.featured)?.key ?? materials[0].key,
   );
+
+  /**
+   * State: tracks the viewport width for responsive rendering.
+   * Used to switch between mobile and desktop table layouts.
+   */
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
+  );
+
+  /** Effect: updates viewport width on window resize. */
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  /** Breakpoint for mobile layout (matches CSS). */
+  const isMobile = viewportWidth < 640;
 
   /** Unique identifier for the section heading, used by aria-labelledby for accessibility. */
   const headingId = useId();
@@ -319,121 +480,132 @@ export function ComparisonSection({
 
         {/* ── Table View ─────────────────────────────────────────── */}
         {activeView === 'table' && (
-          <div className="comparison-section__table" role="table" aria-label="Construction method comparison">
-            {/* Column headers */}
-            <div className="comparison-section__col-headers" role="row">
-              <div className="comparison-section__col-header comparison-section__col-header--label" role="columnheader">
-                <span className="comparison-section__col-header-text">Category</span>
-              </div>
-              {materials.map((m) => (
-                <div
-                  key={m.key}
-                  className={`comparison-section__col-header${m.featured ? ' comparison-section__col-header--featured' : ''}`}
-                  role="columnheader"
-                >
-                  {m.featured && (
-                    <span className="comparison-section__featured-badge">Our Method</span>
-                  )}
-                  <span
-                    className="comparison-section__col-name"
-                    style={{ color: m.color }}
-                  >
-                    {m.name}
-                  </span>
+          isMobile ? (
+            <MobileTableView
+              categories={categories}
+              materials={materials}
+              totals={totals}
+              maxScore={maxScore}
+              expandedRow={expandedRow}
+              setExpandedRow={setExpandedRow}
+            />
+          ) : (
+            <div className="comparison-section__table" role="table" aria-label="Construction method comparison">
+              {/* Column headers */}
+              <div className="comparison-section__col-headers" role="row">
+                <div className="comparison-section__col-header comparison-section__col-header--label" role="columnheader">
+                  <span className="comparison-section__col-header-text">Category</span>
                 </div>
-              ))}
-            </div>
-
-            {/* Data rows */}
-            {categories.map((cat, i) => {
-              const isExpanded = expandedRow === i;
-              const notesId = `comparison-notes-${i}`;
-
-              return (
-                <div className="comparison-section__row-group" key={i}>
+                {materials.map((m) => (
                   <div
-                    className="comparison-section__row"
-                    role="row"
-                    aria-expanded={isExpanded}
-                    aria-controls={notesId}
-                    tabIndex={0}
-                    onClick={() => setExpandedRow(isExpanded ? null : i)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setExpandedRow(isExpanded ? null : i);
-                      }
-                    }}
+                    key={m.key}
+                    className={`comparison-section__col-header${m.featured ? ' comparison-section__col-header--featured' : ''}`}
+                    role="columnheader"
                   >
-                    <div className="comparison-section__row-label" role="rowheader">
-                      <span>{cat.label}</span>
-                      <span
-                        className={`comparison-section__row-arrow${isExpanded ? ' comparison-section__row-arrow--expanded' : ''}`}
-                        aria-hidden="true"
-                      >
-                        ▼
-                      </span>
-                    </div>
-                    {columnKeys.map((mk) => {
-                      const data = cat[mk];
-                      const mat = materialsByKey.get(mk);
-                      if (!mat) return null;
-                      return (
-                        <div
-                          key={mk}
-                          className={`comparison-section__row-cell${mk === (materials.find((m) => m.featured)?.key) ? ' comparison-section__row-cell--featured' : ''}`}
-                          role="cell"
+                    {m.featured && (
+                      <span className="comparison-section__featured-badge">Our Method</span>
+                    )}
+                    <span
+                      className="comparison-section__col-name"
+                      style={{ color: m.color }}
+                    >
+                      {m.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Data rows */}
+              {categories.map((cat, i) => {
+                const isExpanded = expandedRow === i;
+                const notesId = `comparison-notes-${i}`;
+
+                return (
+                  <div className="comparison-section__row-group" key={i}>
+                    <div
+                      className="comparison-section__row"
+                      role="row"
+                      aria-expanded={isExpanded}
+                      aria-controls={notesId}
+                      tabIndex={0}
+                      onClick={() => setExpandedRow(isExpanded ? null : i)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setExpandedRow(isExpanded ? null : i);
+                        }
+                      }}
+                    >
+                      <div className="comparison-section__row-label" role="rowheader">
+                        <span>{cat.label}</span>
+                        <span
+                          className={`comparison-section__row-arrow${isExpanded ? ' comparison-section__row-arrow--expanded' : ''}`}
+                          aria-hidden="true"
                         >
-                          <span
-                            className={`comparison-section__row-value${data.score >= 4 ? ' comparison-section__row-value--strong' : ''}`}
-                          >
-                            {data.value}
-                          </span>
-                          <ScoreBar score={data.score} color={mat.color} delay={i * 80 + 200} />
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Expanded notes */}
-                  <div
-                    id={notesId}
-                    className={`comparison-section__notes${isExpanded ? ' comparison-section__notes--expanded' : ''}`}
-                    role="row"
-                    aria-hidden={!isExpanded}
-                  >
-                    <div className="comparison-section__note-cell comparison-section__note-cell--spacer" role="cell" />
-                    {columnKeys.map((mk) => (
-                      <div key={mk} className="comparison-section__note-cell" role="cell">
-                        {cat[mk].note}
+                          ▼
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                      {columnKeys.map((mk) => {
+                        const data = cat[mk];
+                        const mat = materialsByKey.get(mk);
+                        if (!mat) return null;
+                        return (
+                          <div
+                            key={mk}
+                            className={`comparison-section__row-cell${mk === (materials.find((m) => m.featured)?.key) ? ' comparison-section__row-cell--featured' : ''}`}
+                            role="cell"
+                          >
+                            <span
+                              className={`comparison-section__row-value${data.score >= 4 ? ' comparison-section__row-value--strong' : ''}`}
+                            >
+                              {data.value}
+                            </span>
+                            <ScoreBar score={data.score} color={mat.color} delay={i * 80 + 200} />
+                          </div>
+                        );
+                      })}
+                    </div>
 
-            {/* Totals row */}
-            <div className="comparison-section__totals" role="row">
-              <div className="comparison-section__total-cell comparison-section__total-cell--label" role="rowheader">
-                <span className="comparison-section__col-header-text">Overall</span>
-              </div>
-              {materials.map((m) => (
-                <div
-                  key={m.key}
-                  className={`comparison-section__total-cell${m.featured ? ' comparison-section__total-cell--featured' : ''}`}
-                  role="cell"
-                >
-                  <CircleScore
-                    score={totals[m.key]}
-                    max={maxScore}
-                    color={m.color}
-                    label={`${m.name} overall score`}
-                  />
+                    {/* Expanded notes */}
+                    <div
+                      id={notesId}
+                      className={`comparison-section__notes${isExpanded ? ' comparison-section__notes--expanded' : ''}`}
+                      role="row"
+                      aria-hidden={!isExpanded}
+                    >
+                      <div className="comparison-section__note-cell comparison-section__note-cell--spacer" role="cell" />
+                      {columnKeys.map((mk) => (
+                        <div key={mk} className="comparison-section__note-cell" role="cell">
+                          {cat[mk].note}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Totals row */}
+              <div className="comparison-section__totals" role="row">
+                <div className="comparison-section__total-cell comparison-section__total-cell--label" role="rowheader">
+                  <span className="comparison-section__col-header-text">Overall</span>
                 </div>
-              ))}
+                {materials.map((m) => (
+                  <div
+                    key={m.key}
+                    className={`comparison-section__total-cell${m.featured ? ' comparison-section__total-cell--featured' : ''}`}
+                    role="cell"
+                  >
+                    <CircleScore
+                      score={totals[m.key]}
+                      max={maxScore}
+                      color={m.color}
+                      label={`${m.name} overall score`}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* ── Card View ──────────────────────────────────────────── */}

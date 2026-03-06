@@ -422,7 +422,7 @@ const GardenRoom: React.FC = () => {
           =================================================================== */}
       <div id="contact-cta">
         <ContactFormWithImageBg
-          backgroundImage="/resource/landing_hero2.png"
+          backgroundImage="/resource/background-1.jpg"
           title={"Ready to Start Your\nGarden Room Project?"}
           onSubmit={handleContactSubmit}
         />

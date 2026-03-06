@@ -365,12 +365,13 @@
 /**
  * Mobile breakpoint (max-width: 767px).
  * Realigns info group to left and increases display text size
- * for visual impact on narrow screens. flex-direction
+ * for visual impact on narrow screens. The content switches to
+ * flex-direction: column for a vertical stacked layout.
  */
 @media (max-width: 767px) {
   .hero-bold-bottom-text {
     height: 100vh;
-    padding: 120px 15px 30px 15px;
+    padding: 120px 15px 60px 15px;
   }
 
   .hero-bold-bottom-text__content {

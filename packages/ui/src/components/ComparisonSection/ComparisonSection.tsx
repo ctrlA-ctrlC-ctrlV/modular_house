@@ -225,18 +225,46 @@ function CircleScore({ score, max, color, label }: CircleScoreProps) {
    SECTION 4: MOBILE TABLE VIEW
    ============================================================================= */
 
+/**
+ * Props for the MobileTableView internal sub-component.
+ *
+ * This interface defines the data contract between the parent ComparisonSection
+ * and the mobile-optimized table rendering. All props are required because the
+ * mobile view depends on pre-computed values from the parent component.
+ */
 interface MobileTableViewProps {
+  /** Array of comparison categories (rows) to display */
   categories: ComparisonCategory[];
+  /** Material column definitions with colour and label metadata */
   materials: MaterialMeta[];
+  /** Pre-computed aggregate scores per material key */
   totals: Record<string, number>;
+  /** Maximum possible score (category count multiplied by 5) for percentage calculation */
   maxScore: number;
+  /** Index of currently expanded row (null if none are expanded) */
   expandedRow: number | null;
+  /** Callback to update the expanded row state (pass null to collapse) */
   setExpandedRow: (row: number | null) => void;
 }
 
 /**
- * Mobile-optimized table view keeping all 3 material columns visible
- * using compact horizontal bars and a sticky header.
+ * MobileTableView (internal sub-component)
+ *
+ * Renders a mobile-optimized comparison table that keeps all three material
+ * columns visible using a compact horizontal layout. The design prioritises
+ * information density over whitespace to maximise screen real estate on
+ * narrow viewports.
+ *
+ * Key features:
+ * - Sticky column headers remain visible during vertical scroll
+ * - Expandable note rows reveal detailed explanations per category
+ * - Compact score bars provide quick visual comparison
+ * - Circle score totals at the bottom summarise overall performance
+ *
+ * Accessibility:
+ * - Category label buttons use aria-expanded and aria-controls
+ * - Notes panels are hidden from screen readers when collapsed
+ * - Focus-visible outlines applied via CSS
  */
 function MobileTableView({
   categories,

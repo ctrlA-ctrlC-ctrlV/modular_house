@@ -141,7 +141,7 @@
 
 **Purpose**: Ensure all 8 sections are correctly ordered, backgrounds alternate properly, and the full page meets visual/responsive/accessibility requirements.
 
-- [ ] T016 Review the final section ordering in `apps/web/src/routes/GardenRoom.tsx`. Ensure sections appear in this exact order: (1) Hero with dark overlay, (2) Product Range on white, (3) Why Steel Frame on beige #F6F5F0, (4) Planning Permission on white, (5) Gallery on beige #F6F5F0, (6) Testimonials on white, (7) FAQ on beige #F6F5F0, (8) CTA with dark overlay. Verify that each section wrapper has the correct background colour applied (either via component prop like `backgroundColor="white"`, inline style, or CSS class). Remove any TODO comments left from incremental development.
+- [X] T016 Review the final section ordering in `apps/web/src/routes/GardenRoom.tsx`. Ensure sections appear in this exact order: (1) Hero with dark overlay, (2) Product Range on white, (3) Why Steel Frame on beige #F6F5F0, (4) Planning Permission on white, (5) Gallery on beige #F6F5F0, (6) Testimonials on white, (7) FAQ on beige #F6F5F0, (8) CTA with dark overlay. Verify that each section wrapper has the correct background colour applied (either via component prop like `backgroundColor="white"`, inline style, or CSS class). Remove any TODO comments left from incremental development.
 
 - [ ] T017 [P] Add section `id` attributes to each section wrapper in `apps/web/src/routes/GardenRoom.tsx` for anchor link navigation: `id="garden_room_hero"`, `id="product-range"`, `id="why-steel-frame"`, `id="planning-permission"`, `id="garden-room-gallery"`, `id="testimonials"`, `id="faq"`, `id="contact-cta"`. Verify the hero "Explore Our Ranges" link scrolls smoothly to `#product-range`.
 

@@ -68,24 +68,3 @@
   display: inline-block;
   margin-left: 0.25rem;
 }
-
-
-/* ---------------------------------------------------------------------------
-   Planning Permission Section
-   ---------------------------------------------------------------------------
-   Centers the InfoBanner component within the section and applies vertical
-   padding for visual separation from adjacent sections.
-   --------------------------------------------------------------------------- */
-
-.garden-room__planning-permission {
-  display: flex;
-  justify-content: center;
-  padding: 4rem 1.5rem;
-  background-color: var(--brand-bg-primary, #FEFEFE);
-}
-
-@media (max-width: 600px) {
-  .garden-room__planning-permission {
-    padding: 2.5rem 1rem;
-  }
-}

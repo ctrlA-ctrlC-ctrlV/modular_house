@@ -124,6 +124,17 @@
   font-weight: 300;
 }
 
+/**
+ * Header Content Slot
+ * Optional content rendered after description (e.g., InfoBanner).
+ * Centered with top margin for visual separation.
+ */
+.product-range-grid__header-content {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
 
 /* =============================================================================
    SECTION 4: GRID CONTAINER

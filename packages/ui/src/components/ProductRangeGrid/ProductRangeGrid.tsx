@@ -98,6 +98,11 @@ export interface ProductRangeGridProps {
   title?: string;
   /** Section description paragraph rendered below the title */
   description?: string;
+  /**
+   * Optional content rendered after the description and before the product grid.
+   * Useful for inserting banners, notices, or supplementary information.
+   */
+  headerContent?: React.ReactNode;
   /** Product card data array driving the grid content */
   products: ProductCard[];
   /** Custom link renderer for SPA navigation (e.g., react-router-dom Link) */
@@ -146,6 +151,7 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
   eyebrow,
   title,
   description,
+  headerContent,
   products,
   renderLink,
   onQuickView,
@@ -173,6 +179,11 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
         )}
         {description && (
           <p className="product-range-grid__description">{description}</p>
+        )}
+        {headerContent && (
+          <div className="product-range-grid__header-content">
+            {headerContent}
+          </div>
         )}
       </div>
 

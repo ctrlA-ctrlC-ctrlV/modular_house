@@ -232,7 +232,7 @@ export const InfoBanner: React.FC<InfoBannerProps> = ({
    * document outline context without altering the visual styling.
    */
   const HeadingTag = `h${headingLevel}` as keyof Pick<
-    JSX.IntrinsicElements,
+    React.JSX.IntrinsicElements,
     'h2' | 'h3' | 'h4' | 'h5' | 'h6'
   >;
   const hasStatusItems = statusItems.length > 0;

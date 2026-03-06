@@ -23,5 +23,6 @@ export { AccordionFAQ, type AccordionFAQItem, type AccordionFAQProps } from './c
 export { ProductShowcase, type ProductShowcaseProps, type ProductShowcaseProduct, type ProductShowcaseFeature, type ProductShowcaseWarranty } from './components/ProductShowcase/ProductShowcase';
 export { InfiniteMasonryGallery, type InfiniteMasonryGalleryProps, type InfiniteGalleryImage } from './components/InfiniteMasonryGallery/InfiniteMasonryGallery';
 export { ComparisonSection, type ComparisonSectionProps, type ComparisonCategory, type MaterialScore, type MaterialMeta } from './components/ComparisonSection/ComparisonSection';
+export { InfoBanner, type InfoBannerProps, type InfoBannerStatusItem, type InfoBannerLink, type StatusType } from './components/InfoBanner/InfoBanner';
 export * from './types';
 // Add your shared UI components here

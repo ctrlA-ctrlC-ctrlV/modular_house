@@ -1,0 +1,374 @@
+/**
+ * InfoBanner Component Stylesheet
+ * =============================================================================
+ * 
+ * PURPOSE:
+ * Provides styling for an informational banner component with status indicators,
+ * designed for regulatory notices, announcements, and feature availability.
+ * This component consumes brand design tokens from the central style.css file.
+ * 
+ * ARCHITECTURE:
+ * This stylesheet follows the Open-Closed Principle: component-level tokens are
+ * defined at the root level with fallback values, allowing consumers to override
+ * appearance without modifying this file. All color, typography, and spacing
+ * values reference centralized brand tokens.
+ * 
+ * DEPENDENCIES:
+ * - Requires style.css to be imported in the consuming application
+ * - Brand tokens: --font-sans, --font-serif, --weight-*, --tracking-*, --brand-*
+ * 
+ * BEM NAMING CONVENTION:
+ * - Block: .info-banner
+ * - Element: .info-banner__[element]
+ * - Modifier: .info-banner__[element]--[modifier]
+ * 
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   These CSS custom properties bridge global brand tokens to component-specific
+   naming. Consumers can override these variables without modifying brand tokens.
+   Fallback values ensure the component remains functional in isolation.
+   ============================================================================= */
+
+:root {
+  /**
+   * Background color for the banner.
+   * Uses brand secondary background for subtle distinction.
+   */
+  --info-banner-bg: var(--brand-bg-secondary, #F6F5F0);
+  
+  /**
+   * Border color for the banner.
+   * Uses brand border color for subtle containment.
+   */
+  --info-banner-border: var(--brand-bd-color, #E5E7DE);
+  
+  /**
+   * Accent bar color on the left edge.
+   * Matches border color for visual cohesion.
+   */
+  --info-banner-accent: var(--brand-bd-color, #E5E7DE);
+  
+  /**
+   * Primary title color for the heading.
+   * Uses brand title color for emphasis.
+   */
+  --info-banner-title: var(--brand-title, #121414);
+  
+  /**
+   * Muted text color for eyebrow and secondary elements.
+   * Uses brand stone for de-emphasized text.
+   */
+  --info-banner-muted: var(--brand-stone, #888888);
+  
+  /**
+   * Body text color for main content.
+   * Uses brand slate for comfortable reading.
+   */
+  --info-banner-body: var(--brand-slate, #555555);
+  
+  /**
+   * Primary ink color for labels and active states.
+   * Uses brand ink for strong visual presence.
+   */
+  --info-banner-ink: var(--brand-ink, #1a1a1a);
+  
+  /**
+   * Primary background color (white).
+   * Used for contrast in checkmarks and tags.
+   */
+  --info-banner-white: var(--brand-bg-primary, #FEFEFE);
+  
+  /**
+   * Divider border color.
+   * Uses standard brand border.
+   */
+  --info-banner-divider: var(--brand-border, #e0e0e0);
+}
+
+
+/* =============================================================================
+   SECTION 2: BANNER CONTAINER
+   -----------------------------------------------------------------------------
+   Main container with background, border, padding, and accent bar.
+   ============================================================================= */
+
+.info-banner {
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--info-banner-bg);
+  border: 1px solid var(--info-banner-border);
+  border-radius: 4px;
+  padding: 2.25rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/**
+ * Subtle left accent bar.
+ * Provides visual distinction and brand alignment.
+ */
+.info-banner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--info-banner-accent);
+}
+
+
+/* =============================================================================
+   SECTION 3: EYEBROW
+   -----------------------------------------------------------------------------
+   Uppercase label appearing above the heading.
+   ============================================================================= */
+
+.info-banner__eyebrow {
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  font-size: var(--text-tiny, 0.75rem);
+  font-weight: var(--weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide, 0.12em);
+  color: var(--info-banner-muted);
+  margin-bottom: 0.625rem;
+  line-height: 1;
+}
+
+
+/* =============================================================================
+   SECTION 4: HEADING
+   -----------------------------------------------------------------------------
+   Primary serif heading for the banner.
+   ============================================================================= */
+
+.info-banner__heading {
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-size: var(--text-heading-s, 1.25rem);
+  font-weight: var(--weight-regular, 400);
+  letter-spacing: var(--tracking-tight, -0.02em);
+  color: var(--info-banner-title);
+  line-height: 1.25;
+  margin-bottom: 0.875rem;
+}
+
+
+/* =============================================================================
+   SECTION 5: BODY TEXT
+   -----------------------------------------------------------------------------
+   Descriptive text providing context and details.
+   ============================================================================= */
+
+.info-banner__body {
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: var(--weight-light, 300);
+  color: var(--info-banner-body);
+  line-height: 1.65;
+  max-width: 640px;
+  margin-bottom: 1.375rem;
+}
+
+.info-banner__body p {
+  margin: 0;
+}
+
+
+/* =============================================================================
+   SECTION 6: STATUS LIST
+   -----------------------------------------------------------------------------
+   Horizontal (desktop) or vertical (mobile) list of status items.
+   ============================================================================= */
+
+.info-banner__status-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+
+/* =============================================================================
+   SECTION 7: STATUS ITEM
+   -----------------------------------------------------------------------------
+   Individual status item with check indicator, label, and tag.
+   ============================================================================= */
+
+.info-banner__status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+/* =============================================================================
+   SECTION 8: STATUS CHECK INDICATOR
+   -----------------------------------------------------------------------------
+   Circular indicator with checkmark icon.
+   Two variants: active (filled) and pending (outlined).
+   ============================================================================= */
+
+.info-banner__status-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-banner__status-check svg {
+  width: 11px;
+  height: 11px;
+}
+
+/**
+ * Active state: Filled dark circle with white checkmark.
+ * Indicates item is currently in effect.
+ */
+.info-banner__status-check--active {
+  background-color: var(--info-banner-ink);
+}
+
+.info-banner__status-check--active svg {
+  stroke: var(--info-banner-white);
+}
+
+/**
+ * Pending state: Outlined circle with muted checkmark.
+ * Indicates item is awaiting approval or implementation.
+ */
+.info-banner__status-check--pending {
+  background-color: transparent;
+  border: 1.5px solid var(--info-banner-border);
+}
+
+.info-banner__status-check--pending svg {
+  stroke: var(--info-banner-muted);
+}
+
+
+/* =============================================================================
+   SECTION 9: STATUS LABEL
+   -----------------------------------------------------------------------------
+   Text label for the status item.
+   ============================================================================= */
+
+.info-banner__status-label {
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: var(--weight-regular, 400);
+  color: var(--info-banner-ink);
+  line-height: 1;
+}
+
+
+/* =============================================================================
+   SECTION 10: STATUS TAG
+   -----------------------------------------------------------------------------
+   Badge/tag indicating status type.
+   Two variants: active (dark) and pending (light).
+   ============================================================================= */
+
+.info-banner__status-tag {
+  font-size: var(--text-tiny, 0.75rem);
+  font-weight: var(--weight-medium, 500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2em 0.55em;
+  border-radius: 3px;
+  line-height: 1;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+
+/**
+ * Active tag: Dark background with light text.
+ * High contrast for emphasis.
+ */
+.info-banner__status-tag--active {
+  background-color: var(--info-banner-ink);
+  color: var(--info-banner-white);
+}
+
+/**
+ * Pending tag: Light background with muted text.
+ * Low contrast for de-emphasis.
+ */
+.info-banner__status-tag--pending {
+  background-color: var(--info-banner-border);
+  color: var(--info-banner-body);
+}
+
+
+/* =============================================================================
+   SECTION 11: DIVIDER
+   -----------------------------------------------------------------------------
+   Horizontal rule separating content from the link.
+   ============================================================================= */
+
+.info-banner__divider {
+  border: none;
+  border-top: 1px solid var(--info-banner-border);
+  margin-bottom: 1.25rem;
+}
+
+
+/* =============================================================================
+   SECTION 12: LINK
+   -----------------------------------------------------------------------------
+   CTA link with animated arrow on hover.
+   ============================================================================= */
+
+.info-banner__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-style: italic;
+  font-size: var(--text-caption, 0.875rem);
+  color: var(--info-banner-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--info-banner-divider);
+  padding-bottom: 2px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.info-banner__link:hover {
+  border-bottom-color: var(--info-banner-ink);
+  color: var(--info-banner-ink);
+}
+
+.info-banner__link svg {
+  width: 13px;
+  height: 13px;
+  stroke: var(--info-banner-muted);
+  transition: stroke 0.2s ease, transform 0.2s ease;
+}
+
+.info-banner__link:hover svg {
+  stroke: var(--info-banner-ink);
+  transform: translateX(2px);
+}
+
+
+/* =============================================================================
+   SECTION 13: RESPONSIVE ADJUSTMENTS
+   -----------------------------------------------------------------------------
+   Mobile-first responsive breakpoints for smaller screens.
+   ============================================================================= */
+
+@media (max-width: 600px) {
+  .info-banner {
+    padding: 1.75rem 1.5rem;
+  }
+  
+  .info-banner__status-list {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+}

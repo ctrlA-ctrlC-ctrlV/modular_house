@@ -227,12 +227,12 @@ export function ProductShowcase({
         {/* ─── RIGHT: Features & Warranties ────────────────────────────── */}
         <div className="product-showcase__right">
           {/* Features */}
-          <span className="product-showcase__eyebrow">{featuresEyebrow}</span>
+          <h4 className="product-showcase__eyebrow">{featuresEyebrow}</h4>
 
           <div className="product-showcase__feature-list">
             {features.map((f) => (
               <div key={f.title} className="product-showcase__feature">
-                <span className="product-showcase__feature-icon">{f.icon}</span>
+                <span className="product-showcase__feature-icon" aria-hidden="true">{f.icon}</span>
                 <div>
                   <span className="product-showcase__feature-title">
                     {f.title}
@@ -247,9 +247,9 @@ export function ProductShowcase({
 
           {/* Warranties */}
           <div className="product-showcase__warranty-section">
-            <span className="product-showcase__eyebrow">
+            <h4 className="product-showcase__eyebrow">
               {warrantyEyebrow}
-            </span>
+            </h4>
 
             <div className="product-showcase__warranty-grid">
               {warranties.map((w) => (

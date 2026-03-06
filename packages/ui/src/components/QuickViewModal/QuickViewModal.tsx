@@ -151,28 +151,89 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
   const dialogRef = useRef<HTMLDivElement>(null);
 
   /**
-   * Close the modal when the Escape key is pressed.
+   * Stores a reference to the DOM element that triggered the modal.
+   * When the modal closes, focus is returned to this element so that
+   * keyboard users do not lose their place in the document flow.
+   */
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Handle keyboard events while the modal is open.
+   * - Escape: closes the modal.
+   * - Tab / Shift+Tab: traps focus within the dialog by cycling between
+   *   the first and last focusable elements inside the dialog container.
    */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      /* Focus trap — constrain Tab navigation to elements within the dialog */
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusableSelector =
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+        const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector);
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          /* Shift+Tab on first element wraps to last */
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          /* Tab on last element wraps to first */
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
     },
     [onClose],
   );
 
   /**
-   * Lock body scroll when the modal is open; restore on close or unmount.
-   * Attach Escape key listener.
+   * Side effects when the modal opens or closes:
+   * 1. Captures the currently focused element (the trigger) for focus return.
+   * 2. Locks body scroll to prevent background content from scrolling.
+   * 3. Attaches the keyboard event listener for Escape and focus trapping.
+   * 4. Moves initial focus into the dialog (close button) for immediate
+   *    keyboard access.
+   *
+   * On cleanup (modal close or component unmount):
+   * 1. Restores body scroll.
+   * 2. Removes the keyboard listener.
+   * 3. Returns focus to the trigger element.
    */
   useEffect(() => {
     if (!product) return;
 
+    /* Capture the element that opened the modal */
+    triggerRef.current = document.activeElement as HTMLElement;
+
     document.body.style.overflow = 'hidden';
     document.addEventListener('keydown', handleKeyDown);
+
+    /* Move initial focus to the close button inside the dialog */
+    requestAnimationFrame(() => {
+      const closeBtn = dialogRef.current?.querySelector<HTMLElement>(
+        '.quick-view-modal__close',
+      );
+      closeBtn?.focus();
+    });
 
     return () => {
       document.body.style.overflow = '';
       document.removeEventListener('keydown', handleKeyDown);
+
+      /* Return focus to the element that opened the modal */
+      triggerRef.current?.focus();
     };
   }, [product, handleKeyDown]);
 
@@ -237,11 +298,14 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
     <div
       className="quick-view-modal"
       onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${name} quick view`}
     >
-      <div className="quick-view-modal__dialog" ref={dialogRef}>
+      <div
+        className="quick-view-modal__dialog"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${name} quick view`}
+      >
         {/* Close button */}
         <button
           type="button"

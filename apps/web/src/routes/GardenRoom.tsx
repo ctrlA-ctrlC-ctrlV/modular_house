@@ -310,6 +310,7 @@ const GardenRoom: React.FC = () => {
             <InfoBanner
               eyebrow="Regulations"
               heading="Do You Need Planning Permission?"
+              headingLevel={3}
               body="Under current Irish law, garden rooms up to 25m² are exempt from planning permission when they meet certain conditions. New legislation is being prepared to increase this threshold, allowing garden rooms up to 45m² without planning permission."
               statusItems={[
                 { label: 'Up to 25m²', status: 'active', tag: 'Exempt' },

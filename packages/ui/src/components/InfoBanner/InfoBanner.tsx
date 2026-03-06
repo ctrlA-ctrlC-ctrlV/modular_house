@@ -115,38 +115,47 @@ export interface InfoBannerProps {
    * Styled as uppercase, letter-spaced label.
    */
   eyebrow?: string;
-  
+
   /**
    * The primary heading text for the banner.
    * Displayed in serif font with tight letter-spacing.
    */
   heading: string;
-  
+
   /**
    * The body text providing context and details.
    * Can be a string or React node for rich content.
    */
   body: React.ReactNode;
-  
+
   /**
    * Array of status items to display in the status list.
    * Each item shows a visual indicator, label, and tag.
    */
   statusItems?: InfoBannerStatusItem[];
-  
+
   /**
    * Optional link displayed at the bottom of the banner.
    * Includes animated arrow on hover.
    */
   link?: InfoBannerLink;
-  
+
   /**
    * Accessible label for the banner region.
    * Used for screen reader navigation.
    * @default "Information banner"
    */
   ariaLabel?: string;
-  
+
+  /**
+   * The HTML heading level (2-6) for the banner heading element.
+   * Allows consumers to maintain correct heading hierarchy when the
+   * banner is nested inside another sectioning element that already
+   * establishes its own heading level.
+   * @default 2
+   */
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
+
   /**
    * Additional CSS class names to apply to the banner.
    */
@@ -214,8 +223,18 @@ export const InfoBanner: React.FC<InfoBannerProps> = ({
   statusItems = [],
   link,
   ariaLabel = 'Information banner',
+  headingLevel = 2,
   className = '',
 }) => {
+  /**
+   * Dynamic heading element derived from the headingLevel prop.
+   * Allows the consumer to specify the correct heading level for its
+   * document outline context without altering the visual styling.
+   */
+  const HeadingTag = `h${headingLevel}` as keyof Pick<
+    JSX.IntrinsicElements,
+    'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  >;
   const hasStatusItems = statusItems.length > 0;
   const hasLink = link !== undefined;
   
@@ -231,7 +250,7 @@ export const InfoBanner: React.FC<InfoBannerProps> = ({
       )}
       
       {/* Main Heading */}
-      <h2 className="info-banner__heading">{heading}</h2>
+      <HeadingTag className="info-banner__heading">{heading}</HeadingTag>
       
       {/* Body Text */}
       <div className="info-banner__body">
@@ -240,9 +259,14 @@ export const InfoBanner: React.FC<InfoBannerProps> = ({
       
       {/* Status Items List */}
       {hasStatusItems && (
-        <div className="info-banner__status-list">
+        <div className="info-banner__status-list" role="list">
           {statusItems.map((item, index) => (
-            <div className="info-banner__status-item" key={index}>
+            <div
+              className="info-banner__status-item"
+              key={index}
+              role="listitem"
+              aria-label={`${item.label}: ${item.tag}`}
+            >
               <span
                 className={`info-banner__status-check info-banner__status-check--${item.status}`}
                 aria-hidden="true"
@@ -252,6 +276,7 @@ export const InfoBanner: React.FC<InfoBannerProps> = ({
               <span className="info-banner__status-label">{item.label}</span>
               <span
                 className={`info-banner__status-tag info-banner__status-tag--${item.status}`}
+                aria-hidden="true"
               >
                 {item.tag}
               </span>
@@ -269,6 +294,11 @@ export const InfoBanner: React.FC<InfoBannerProps> = ({
             href={link.href}
             target={link.openInNewTab !== false ? '_blank' : undefined}
             rel={link.openInNewTab !== false ? 'noopener noreferrer' : undefined}
+            aria-label={
+              link.openInNewTab !== false
+                ? `${link.text} (opens in new tab)`
+                : undefined
+            }
           >
             {link.text}
             <ArrowIcon />

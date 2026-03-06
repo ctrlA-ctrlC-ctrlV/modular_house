@@ -201,6 +201,38 @@ const GardenRoom: React.FC = () => {
         </button>
       </div>
 
+      {/* ===================================================================
+          Section 4 — Why Steel Frame
+          ===================================================================
+          A four-column feature grid presenting the key advantages of steel
+          frame construction. Each card includes an icon (from CustomIcons),
+          a title, and a descriptive paragraph. The feature data is sourced
+          from GARDEN_ROOM_FEATURES in garden-room-data.ts, which uses:
+            - measureTape  -> Precision Steel Frame
+            - tiles        -> Rapid Build
+            - bioEnergy    -> Energy Efficient
+            - keyCircle    -> Built to Last
+
+          The section sits on a beige background (#F6F5F0) to provide
+          visual separation between the Product Range and Planning
+          Permission sections.
+          =================================================================== */}
+      <div id="why-steel-frame" style={{ backgroundColor: '#F6F5F0' }}>
+        <FeatureSection
+          topHeading="WHY MODULAR HOUSE"
+          mainHeading="Engineered for Performance"
+          introText={
+            <p>
+              Our garden rooms are built with CNC-cut steel framing — the same
+              structural technology used in commercial construction. The result
+              is a building that is stronger, faster to assemble, and more
+              thermally efficient than traditional timber or block alternatives.
+            </p>
+          }
+          features={GARDEN_ROOM_FEATURES}
+        />
+      </div>
+
 
       {/* ===================================================================
           Section 2 — Product Showcase (50/50 Split)
@@ -352,32 +384,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 6 — Gallery
-          ===================================================================
-          Masonry-style image gallery showcasing completed garden room and
-          sauna projects. Each thumbnail supports WebP and AVIF optimised
-          variants via the OptimizedImage component used internally by
-          FullMassonryGallery. Clicking a thumbnail opens a full-screen
-          lightbox viewer for detailed inspection.
-
-          The gallery data is sourced from GARDEN_ROOM_GALLERY in
-          garden-room-data.ts (8 items covering garden rooms and saunas).
-          The beige background (#F6F5F0) provides visual separation from
-          the white Planning Permission section above and the white
-          Testimonials section below.
-          =================================================================== */}
-      <div id="garden_room_gallery" style={{ backgroundColor: '#F6F5F0' }}>
-        <FullMassonryGallery
-          itemCount={GARDEN_ROOM_GALLERY.length}
-          items={GARDEN_ROOM_GALLERY}
-          title="Garden Room Projects"
-          description="Explore our portfolio of precision-built garden sanctuaries. See how Modular House combines steel-frame engineering with architectural design to create high-performance spaces you can enjoy year-round."
-        />
-      </div>
-
-
-      {/* ===================================================================
-          Section 7 — Testimonials
+          Section 6 — Testimonials
           ===================================================================
           Displays customer testimonials in a responsive grid layout. Each
           card includes a quote, the customer's name and location, and a

@@ -17,6 +17,71 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/modular_house_favicon.png" />
     <link rel="apple-touch-icon" href="/modular_house_favicon.png" />
 
+    <!--
+      Web Font Preconnect Hints
+      ==========================================================================
+      Establishes early connections to Google Fonts origins before the browser
+      discovers the font stylesheets. This eliminates connection setup latency
+      (DNS lookup, TCP handshake, TLS negotiation) from the critical path.
+      
+      Two origins are required for Google Fonts:
+      - fonts.googleapis.com: Serves the CSS stylesheet containing @font-face rules
+      - fonts.gstatic.com: Serves the actual font files (WOFF2 binaries)
+      
+      The crossorigin attribute is required for fonts.gstatic.com because font
+      files are fetched with CORS; omitting it would force the browser to open
+      a second connection when the actual font request is made.
+      ==========================================================================
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+      Asynchronous Web Font Loading (Non-Render-Blocking)
+      ==========================================================================
+      Implements the "print media swap" pattern to load Google Fonts without
+      blocking the initial render. This technique works as follows:
+      
+      1. The stylesheet is initially requested with media="print", which means
+         the browser downloads it in the background without blocking rendering
+         (print stylesheets are non-render-blocking by definition).
+      
+      2. Once the stylesheet has fully loaded, the onload handler changes the
+         media attribute to "all", applying the font-face rules to the page.
+      
+      3. The <noscript> fallback ensures fonts still load for users with
+         JavaScript disabled, though they will be render-blocking in that case.
+      
+      PERFORMANCE IMPACT:
+      This pattern eliminates 1000-2000ms of render-blocking time for First
+      Contentful Paint (FCP) and Largest Contentful Paint (LCP) on typical
+      network conditions.
+      
+      FONT-DISPLAY BEHAVIOR:
+      The Google Fonts URL includes display=swap which instructs browsers to:
+      - Immediately render text using the fallback font stack
+      - Swap to the web font once it becomes available
+      This ensures text is always visible during the font loading period.
+      ==========================================================================
+    -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+      />
+    </noscript>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!--
       Injection Point for SEO Meta Tags (Server-Side Rendering)

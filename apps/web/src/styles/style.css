@@ -27,14 +27,29 @@
  */
 
 /* =============================================================================
-   SECTION 1: FONT IMPORTS
+   SECTION 1: FONT DEPENDENCIES
    -----------------------------------------------------------------------------
    External font resources required by the brand typography system.
    Libre Baskerville provides the editorial serif aesthetic for headings.
    Inter provides the clean sans-serif for body text and UI elements.
+   
+   PERFORMANCE OPTIMIZATION:
+   Fonts are loaded asynchronously via <link> elements in index.html rather
+   than CSS @import to eliminate render-blocking behavior. The HTML document
+   uses the "print media" preload pattern:
+   
+     <link rel="preload" as="style" href="fonts.css" onload="this.rel='stylesheet'">
+   
+   This technique allows the browser to download fonts without blocking the
+   initial paint, significantly improving First Contentful Paint (FCP) and
+   Largest Contentful Paint (LCP) metrics.
+   
+   FALLBACK STRATEGY:
+   System font stacks are defined in SECTION 2 (--font-sans, --font-serif)
+   to ensure text remains visible during web font loading. The Google Fonts
+   URL includes `display=swap` which instructs browsers to render text with
+   the fallback font immediately, then swap to the web font once loaded.
    ============================================================================= */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
 /* =============================================================================
    SECTION 2: BRAND DESIGN TOKENS (ROOT CUSTOM PROPERTIES)

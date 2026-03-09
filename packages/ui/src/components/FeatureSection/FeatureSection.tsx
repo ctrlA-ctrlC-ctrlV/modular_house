@@ -165,11 +165,12 @@ export const FeatureSection: React.FC<FeatureSectionProps> = ({
           Eyebrow heading for section categorization.
           Conditionally rendered only when topHeading is provided.
         */}
+        
         {topHeading && (
           <div className="feature-section__top-heading-wrapper">
-            <h6 className="feature-section__top-heading">
+            <h2 className="feature-section__top-heading">
               {topHeading}
-            </h6>
+            </h2>
           </div>
         )}
         

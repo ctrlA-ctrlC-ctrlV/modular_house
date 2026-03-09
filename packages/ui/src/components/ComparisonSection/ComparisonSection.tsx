@@ -46,7 +46,16 @@
  *           __tile-header, __tile-label, __tile-score, __tile-value,
  *           __tile-note, __cta, __cta-eyebrow, __cta-heading, __cta-text,
  *           __cta-btn, __disclaimer
- * Modifiers: --active, --featured, --expanded, --strong
+ * Modifiers: --active, --featured, --expanded, --strong, --lgs
+ *
+ * COLUMN STYLING:
+ * The LGS (Light Gauge Steel) column receives special visual treatment using
+ * the --lgs modifier class. Headers and totals use a darker shade of the accent
+ * colour (rgba(181, 83, 41, 0.1)), while inline cells use the standard header
+ * colour (rgba(181, 83, 41, 0.08)). This conditional styling is applied when
+ * the material key equals 'lgs', independent of the --featured modifier to
+ * maintain separation of concerns. Both modifiers can be applied simultaneously
+ * for additive styling effects.
  *
  * =============================================================================
  */
@@ -281,7 +290,7 @@ function MobileTableView({
         {materials.map((m, mi) => (
           <div
             key={m.key}
-            className={`comparison-section__mobile-header${mi > 0 ? ' comparison-section__mobile-header--bordered' : ''}${m.featured ? ' comparison-section__mobile-header--featured' : ''}`}
+            className={`comparison-section__mobile-header${mi > 0 ? ' comparison-section__mobile-header--bordered' : ''}${m.featured ? ' comparison-section__mobile-header--featured' : ''}${m.key === 'lgs' ? ' comparison-section__mobile-header--lgs' : ''}`}
           >
             {m.featured && (
               <span className="comparison-section__mobile-badge">Ours</span>
@@ -333,7 +342,7 @@ function MobileTableView({
                   return (
                     <div
                       key={m.key}
-                      className={`comparison-section__mobile-cell${mi > 0 ? ' comparison-section__mobile-cell--bordered' : ''}${m.featured ? ' comparison-section__mobile-cell--featured' : ''}`}
+                      className={`comparison-section__mobile-cell${mi > 0 ? ' comparison-section__mobile-cell--bordered' : ''}${m.featured ? ' comparison-section__mobile-cell--featured' : ''}${m.key === 'lgs' ? ' comparison-section__mobile-cell--lgs' : ''}`}
                     >
                       <div
                         className={`comparison-section__mobile-value${data.score >= 4 ? ' comparison-section__mobile-value--strong' : ''}`}
@@ -377,7 +386,7 @@ function MobileTableView({
         {materials.map((m, mi) => (
           <div
             key={m.key}
-            className={`comparison-section__mobile-total${mi > 0 ? ' comparison-section__mobile-total--bordered' : ''}${m.featured ? ' comparison-section__mobile-total--featured' : ''}`}
+            className={`comparison-section__mobile-total${mi > 0 ? ' comparison-section__mobile-total--bordered' : ''}${m.featured ? ' comparison-section__mobile-total--featured' : ''}${m.key === 'lgs' ? ' comparison-section__mobile-total--lgs' : ''}`}
           >
             <CircleScore
               score={totals[m.key]}
@@ -527,7 +536,7 @@ export function ComparisonSection({
                 {materials.map((m) => (
                   <div
                     key={m.key}
-                    className={`comparison-section__col-header${m.featured ? ' comparison-section__col-header--featured' : ''}`}
+                    className={`comparison-section__col-header${m.featured ? ' comparison-section__col-header--featured' : ''}${m.key === 'lgs' ? ' comparison-section__col-header--lgs' : ''}`}
                     role="columnheader"
                   >
                     {m.featured && (
@@ -580,7 +589,7 @@ export function ComparisonSection({
                         return (
                           <div
                             key={mk}
-                            className={`comparison-section__row-cell${mk === (materials.find((m) => m.featured)?.key) ? ' comparison-section__row-cell--featured' : ''}`}
+                            className={`comparison-section__row-cell${mk === (materials.find((m) => m.featured)?.key) ? ' comparison-section__row-cell--featured' : ''}${mk === 'lgs' ? ' comparison-section__row-cell--lgs' : ''}`}
                             role="cell"
                           >
                             <span
@@ -620,7 +629,7 @@ export function ComparisonSection({
                 {materials.map((m) => (
                   <div
                     key={m.key}
-                    className={`comparison-section__total-cell${m.featured ? ' comparison-section__total-cell--featured' : ''}`}
+                    className={`comparison-section__total-cell${m.featured ? ' comparison-section__total-cell--featured' : ''}${m.key === 'lgs' ? ' comparison-section__total-cell--lgs' : ''}`}
                     role="cell"
                   >
                     <CircleScore

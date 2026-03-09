@@ -47,6 +47,13 @@
   --cs-color-accent: var(--brand-link, #B55329);
   --cs-color-white: var(--brand-white, #FEFEFE);
 
+  /*
+   * Design system light green token.
+   * Reserved for potential future use. Currently unused as LGS column styling
+   * uses variations of --cs-color-accent (rgba values) for visual consistency.
+   */
+  --cs-color-light-green: var(--brand-light-green-cyan);
+
   /* --- Spacing --- */
   --cs-section-py: 72px;
   --cs-section-px: 24px;
@@ -198,6 +205,15 @@
   background: rgba(181, 83, 41, 0.04);
 }
 
+/**
+ * LGS column header modifier.
+ * Applies a darker shade of the accent colour to visually distinguish the LGS
+ * Steel Frame column header, emphasising it as the company's primary offering.
+ */
+.comparison-section__col-header--lgs {
+  background: rgba(181, 83, 41, 0.1);
+}
+
 .comparison-section__col-header-text {
   font-size: 0.75rem;
   font-weight: 600;
@@ -279,6 +295,15 @@
 
 .comparison-section__row-cell--featured {
   background: rgba(181, 83, 41, 0.02);
+}
+
+/**
+ * LGS row cell modifier.
+ * Applies the same background colour as the original header to data cells
+ * within the LGS column, providing consistent visual grouping.
+ */
+.comparison-section__row-cell--lgs {
+  background: rgba(181, 83, 41, 0.08);
 }
 
 .comparison-section__row-value {
@@ -372,6 +397,15 @@
 
 .comparison-section__total-cell--featured {
   background: rgba(181, 83, 41, 0.04);
+}
+
+/**
+ * LGS totals cell modifier.
+ * Applies the darker accent shade to the totals row for the LGS column,
+ * maintaining visual continuity with the column header.
+ */
+.comparison-section__total-cell--lgs {
+  background: rgba(181, 83, 41, 0.08);
 }
 
 
@@ -678,6 +712,15 @@
   background: transparent;
 }
 
+/**
+ * LGS mobile header modifier.
+ * Applies a darker accent shade to the mobile column header for the LGS
+ * Steel Frame column, providing visual consistency with the desktop layout.
+ */
+.comparison-section__mobile-header--lgs {
+  background: rgba(181, 83, 41, 0.08);
+}
+
 .comparison-section__mobile-badge {
   position: absolute;
   top: 0;
@@ -782,6 +825,15 @@
   background: rgba(181, 83, 41, 0.025);
 }
 
+/**
+ * LGS mobile cell modifier.
+ * Applies the original header background colour to mobile-view data cells
+ * within the LGS column, ensuring consistent styling across breakpoints.
+ */
+.comparison-section__mobile-cell--lgs {
+  background: rgba(181, 83, 41, 0.04);
+}
+
 .comparison-section__mobile-value {
   font-size: 0.82rem;
   font-weight: 400;
@@ -853,6 +905,15 @@
 
 .comparison-section__mobile-total--featured {
   background: rgba(181, 83, 41, 0.03);
+}
+
+/**
+ * LGS mobile totals cell modifier.
+ * Applies the darker accent shade to the mobile totals row for the LGS
+ * column, completing the visual treatment across all table elements.
+ */
+.comparison-section__mobile-total--lgs {
+  background: rgba(181, 83, 41, 0.08);
 }
 
 /* Smaller circle for mobile */

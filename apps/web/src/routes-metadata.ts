@@ -46,7 +46,14 @@ export const routesMetadata: RouteMetadata[] = [
     seo: {
       title: 'Modular House Extensions & Garden Rooms',
       description: 'Transform your home into modular home. With premium modular house extensions and garden rooms. Modern design, sustainable materials, and fast installation.',
-      canonicalUrl: 'https://modularhouse.ie/',
+      /**
+       * Homepage canonical URL without trailing slash.
+       * While the root URL traditionally accepts a trailing slash, this
+       * project enforces a site-wide no-trailing-slash convention for
+       * consistency. Search engines treat both formats equivalently for
+       * the domain root, so this choice does not affect SEO.
+       */
+      canonicalUrl: 'https://modularhouse.ie',
 
       /**
        * Extended robots directive for high-value pages.
@@ -68,7 +75,8 @@ export const routesMetadata: RouteMetadata[] = [
         imageWidth: 1200,
         imageHeight: 630,
         imageType: 'image/jpeg',
-        url: 'https://modularhouse.ie/',
+        // og:url matches the canonical URL format (no trailing slash)
+        url: 'https://modularhouse.ie',
         siteName: 'Modular House Construction',
         // article:modified_time freshness signal — identical to the build
         // timestamp used in WebPage.dateModified and sitemap <lastmod>.

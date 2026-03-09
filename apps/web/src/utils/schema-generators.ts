@@ -65,8 +65,9 @@ interface BreadcrumbListItem {
  * the specific page document rather than treating them as isolated objects.
  *
  * URL construction rules:
- * - Homepage path ('/'): resolves to 'https://modularhouse.ie/' (with trailing slash).
- * - All other paths: resolves to 'https://modularhouse.ie{path}' (no trailing slash).
+ * All paths, including the homepage, resolve to URLs without trailing slashes.
+ * This convention aligns with the site-wide URL normalization strategy that
+ * strips trailing slashes to prevent duplicate content issues.
  *
  * BreadcrumbList itemListElement rules:
  * - Homepage: single item [Home] with no item URL (the page IS the home).
@@ -91,9 +92,10 @@ export function generatePageSchema(
   description: string,
   buildTimestamp: string
 ): SchemaDef[] {
-  // Construct the fully-qualified URL for this page. The homepage receives a
-  // trailing slash to match the canonical URL convention; all others do not.
-  const pageUrl = path === '/' ? `${BASE_URL}/` : `${BASE_URL}${path}`;
+  // Construct the fully-qualified URL for this page.
+  // All URLs use the no-trailing-slash convention for consistency.
+  // The homepage (path '/') resolves to BASE_URL without trailing slash.
+  const pageUrl = path === '/' ? BASE_URL : `${BASE_URL}${path}`;
 
   // Stable @id values for cross-referencing between the two nodes.
   const webpageId = `${pageUrl}#webpage`;

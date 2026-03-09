@@ -229,14 +229,26 @@ export const routesMetadata: RouteMetadata[] = [
 
       schema: [
         // ------------------------------------------------------------------
-        // Product schema with individual Offer entries
+        // Product Schema with Offer Pricing
         // ------------------------------------------------------------------
-        // Each offer corresponds to one of the four garden room sizes. The
-        // availability value follows Schema.org's ItemAvailability enumeration:
-        //   - InStock    — 15m² and 25m² models (available for order)
-        //   - PreOrder   — 35m² and 45m² models (pending legislation)
-        // The url for each offer points to the contact page with the product
-        // query parameter, matching the CTA links on the ProductRangeGrid.
+        // Each offer represents a distinct garden room size with its
+        // corresponding base price. The `price` property is REQUIRED by
+        // Google Search Console for Product rich results eligibility.
+        //
+        // PRICING SOURCE:
+        // Base prices are derived from PRODUCT_SHOWCASE_PRODUCTS in
+        // data/garden-room-data.ts. Any price update must be synchronised
+        // between both files to maintain consistency across the UI and
+        // structured data markup.
+        //
+        // AVAILABILITY VALUES (Schema.org ItemAvailability enumeration):
+        //   - InStock    : 15m² and 25m² models (currently available)
+        //   - PreOrder   : 35m² and 45m² models (pending legislation)
+        //
+        // URL STRUCTURE:
+        // Each offer URL directs to the contact page with the product
+        // query parameter pre-filled, matching the CTA links rendered
+        // by the ProductRangeGrid component on the page.
         // ------------------------------------------------------------------
         {
           type: 'Product',
@@ -251,6 +263,7 @@ export const routesMetadata: RouteMetadata[] = [
               {
                 '@type': 'Offer',
                 name: '15m\u00B2 Compact Studio',
+                price: '26000',
                 priceCurrency: 'EUR',
                 availability: 'https://schema.org/InStock',
                 url: 'https://modularhouse.ie/contact?product=garden-room-15',
@@ -258,6 +271,7 @@ export const routesMetadata: RouteMetadata[] = [
               {
                 '@type': 'Offer',
                 name: '25m\u00B2 Garden Suite',
+                price: '37000',
                 priceCurrency: 'EUR',
                 availability: 'https://schema.org/InStock',
                 url: 'https://modularhouse.ie/contact?product=garden-room-25',
@@ -265,6 +279,7 @@ export const routesMetadata: RouteMetadata[] = [
               {
                 '@type': 'Offer',
                 name: '35m\u00B2 Garden Living',
+                price: '65000',
                 priceCurrency: 'EUR',
                 availability: 'https://schema.org/PreOrder',
                 url: 'https://modularhouse.ie/contact?product=garden-room-35&interest=true',
@@ -272,6 +287,7 @@ export const routesMetadata: RouteMetadata[] = [
               {
                 '@type': 'Offer',
                 name: '45m\u00B2 Grand Studio',
+                price: '76000',
                 priceCurrency: 'EUR',
                 availability: 'https://schema.org/PreOrder',
                 url: 'https://modularhouse.ie/contact?product=garden-room-45&interest=true',
@@ -404,7 +420,24 @@ export const routesMetadata: RouteMetadata[] = [
       },
 
       schema: [
-        // Existing Product schema — retained from the prior routes-metadata.ts entry.
+        // ------------------------------------------------------------------
+        // Product Schema with AggregateOffer Pricing
+        // ------------------------------------------------------------------
+        // House extensions use variable pricing based on project scope,
+        // so AggregateOffer with lowPrice/highPrice is the appropriate
+        // schema type. This differs from the garden-room page which uses
+        // individual Offer entries with fixed prices for each size.
+        //
+        // GOOGLE RICH RESULTS REQUIREMENT:
+        // Either `price` or `priceSpecification.price` must be specified
+        // within offers. For price ranges, AggregateOffer with lowPrice
+        // and highPrice satisfies this requirement.
+        //
+        // PRICE RANGE:
+        // EUR 35,000 to 75,000 reflects typical project costs. Update
+        // these values when pricing changes to maintain search result
+        // accuracy.
+        // ------------------------------------------------------------------
         {
           type: 'Product',
           data: {
@@ -415,11 +448,12 @@ export const routesMetadata: RouteMetadata[] = [
               name: 'Modular House',
             },
             offers: {
-              '@type': 'Offer',
+              '@type': 'AggregateOffer',
               priceCurrency: 'EUR',
               availability: 'https://schema.org/InStock',
               lowPrice: '35000',
               highPrice: '75000',
+              offerCount: 1,
             },
           },
         },

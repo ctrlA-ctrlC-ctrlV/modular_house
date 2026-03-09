@@ -255,6 +255,10 @@ export const routesMetadata: RouteMetadata[] = [
           data: {
             name: 'Garden Room',
             description: 'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin.',
+            // IMAGE PROPERTY (REQUIRED)
+            // Google Search Console requires an image for Product rich results.
+            // This URL matches the Open Graph image used for social sharing.
+            image: 'https://modularhouse.ie/resource/garden_room_hero.png',
             brand: {
               '@type': 'Brand',
               name: 'Modular House',
@@ -443,6 +447,10 @@ export const routesMetadata: RouteMetadata[] = [
           data: {
             name: 'Modular House Extension',
             description: 'Expand your living space with a high-quality modular extension.',
+            // IMAGE PROPERTY (REQUIRED)
+            // Google Search Console requires an image for Product rich results.
+            // This URL matches the Open Graph image used for social sharing.
+            image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
             brand: {
               '@type': 'Brand',
               name: 'Modular House',

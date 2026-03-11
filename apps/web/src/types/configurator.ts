@@ -3,30 +3,47 @@
  * =============================================================================
  *
  * PURPOSE:
- * Defines the TypeScript interfaces for the garden room product configurator.
- * These types describe the complete data shape required to render a multi-step
- * product configuration experience for any garden room size (15, 25, 35, 45 m2).
+ * Defines the TypeScript interfaces that mirror the SQL database schema for
+ * the garden room product configurator. These types represent normalised
+ * relational entities (products, finishes, addons, specifications) and are
+ * designed for direct mapping to PostgreSQL tables via Prisma.
  *
- * ARCHITECTURE:
- * - ConfiguratorProduct is the root entity representing one configurable product.
- * - FinishOption and FinishCategory define selectable cladding and interior materials.
- * - AddonOption defines optional paid upgrades applied on top of the base price.
- * - ProductSpec captures key-value specification pairs for the overview step.
- * - ProductDimensions describes the physical envelope in metric units.
- * - Aperture and FloorPlanConfig provide structured data for floor plan SVG rendering.
+ * DATABASE DESIGN:
+ * The schema follows a normalised relational model with six core tables:
+ *
+ *   configurator_products          -- Root product entity (one row per size)
+ *   configurator_finish_options    -- Denormalised swatch catalogue
+ *   configurator_finish_categories -- Groups finishes into configurator steps
+ *   configurator_product_finishes  -- Many-to-many join (product x finish category x option)
+ *   configurator_addon_options     -- Per-product add-on definitions
+ *   configurator_product_specs     -- Per-product key-value specifications
+ *
+ * The "configurator_" prefix namespaces all tables to avoid collisions
+ * with existing entities (Page, GalleryItem, etc.) in the schema.
+ *
+ * PRICING:
+ * All monetary values (basePrice, addon prices) are stored in euro cents
+ * as integers to avoid floating-point precision issues. All displayed
+ * prices include VAT at the Irish standard rate (23%).
+ *
+ * BATHROOM & KITCHEN RULES:
+ * The bathroomKitchenPolicy field on each product encodes the business
+ * rule as a discriminated union:
+ *   - "not-available" : 15 m2 -- cannot add bathroom & kitchen at all
+ *   - "optional-addon" : 25 m2 -- available as a selectable paid add-on
+ *   - "included"       : 35 & 45 m2 -- included in the base price with plumbing
+ *
+ * FINISH PREVIEW IMAGES:
+ * When the customer selects a finish, the configurator displays a
+ * photograph from /public/resource/garden-room/product-config/ rather
+ * than updating the floor plan SVG. Each FinishOption carries an
+ * `imagePath` field pointing to the corresponding JPEG preview.
  *
  * DESIGN PRINCIPLES:
- * - Open-Closed: New products, finishes, or addons can be added by appending
- *   data entries without modifying any existing interface definitions.
- * - Strict typing: all fields are explicitly typed with no use of `any`.
- * - Immutable data arrays: ReadonlyArray is used where constant data must
- *   not be mutated at runtime.
- *
- * RELATIONSHIP TO EXISTING TYPES:
- * - ProductCard and QuickViewProduct (from @modular-house/ui) describe the card
- *   and modal views on the /garden-room landing page.
- * - ConfiguratorProduct describes the detailed configuration page reached
- *   from those cards. Cross-referencing is done via the `slug` field.
+ * - Open-Closed: new products, finishes, or addons require only INSERT
+ *   statements -- no DDL changes or interface modifications.
+ * - Strict typing: all fields are explicitly typed; no use of `any`.
+ * - ReadonlyArray for constant seed data consumed by the frontend.
  *
  * =============================================================================
  */
@@ -35,19 +52,28 @@
 /* =============================================================================
    SECTION 1: FINISH CONFIGURATION
    -----------------------------------------------------------------------------
-   Finish options model the selectable colour/material swatches that the user
-   picks during the exterior and interior configurator steps. Each option
-   carries two colour values: a primary swatch colour and an accent used for
-   gradient rendering in the UI.
+   Maps to two database tables:
+     1. configurator_finish_options    -- the swatch catalogue
+     2. configurator_finish_categories -- groups finishes into steps
+
+   Each FinishOption carries both swatch rendering data (color, accent) and
+   a preview image path. The image is displayed in the configurator hero
+   area when the customer selects that finish, replacing the floor plan.
+
+   SQL table: configurator_finish_options
+   Columns: id (UUID PK), name, color, accent, image_path, created_at, updated_at
    ============================================================================= */
 
 /**
  * A single selectable finish swatch (e.g., one cladding colour or interior
  * material). Rendered as a colour circle with a radial gradient from
- * `color` to `accent`.
+ * `color` to `accent`. When selected, the hero image switches to the
+ * photograph at `imagePath`.
+ *
+ * SQL: configurator_finish_options
  */
 export interface FinishOption {
-  /** Unique identifier used as the selection key (e.g., "black", "teak"). */
+  /** Database primary key (UUID v4). */
   id: string;
   /** Human-readable display name (e.g., "Black", "Teak"). */
   name: string;
@@ -55,6 +81,11 @@ export interface FinishOption {
   color: string;
   /** Secondary hex colour for the gradient accent (e.g., "#333"). */
   accent: string;
+  /**
+   * Path to the preview photograph displayed when this finish is selected.
+   * Relative to /public (e.g., "/resource/garden-room/product-config/exterior_finish_black.jpg").
+   */
+  imagePath: string;
 }
 
 /**
@@ -62,14 +93,24 @@ export interface FinishOption {
  * Each category maps to a distinct step in the workflow (e.g., "Exterior",
  * "Interior"). The `sublabel` provides contextual copy displayed below
  * the step heading.
+ *
+ * SQL: configurator_finish_categories
+ * Columns: id (UUID PK), slug, label, sublabel, display_order, created_at, updated_at
+ *
+ * The many-to-many relationship between products and finish options within
+ * a category is resolved through the configurator_product_finishes join table.
  */
 export interface FinishCategory {
-  /** Step identifier used for routing and state tracking (e.g., "exterior"). */
+  /** Database primary key (UUID v4). */
   id: string;
+  /** Stable identifier used for routing and state tracking (e.g., "exterior"). */
+  slug: string;
   /** Step heading displayed in the configurator (e.g., "Exterior Finish"). */
   label: string;
   /** Descriptive text displayed below the heading. */
   sublabel: string;
+  /** Sort position within the configurator step sequence (ascending). */
+  displayOrder: number;
   /** Available finish choices within this category. */
   options: ReadonlyArray<FinishOption>;
 }
@@ -78,16 +119,26 @@ export interface FinishCategory {
 /* =============================================================================
    SECTION 2: ADD-ON CONFIGURATION
    -----------------------------------------------------------------------------
-   Add-on options represent optional paid upgrades that increase the total
-   price beyond the base. Each add-on has a unique identifier, display copy,
-   a price delta, and a semantic icon identifier (not an emoji) that the
-   UI layer resolves to an SVG icon or component.
+   Maps to database table: configurator_addon_options
+   Columns: id (UUID PK), product_id (FK), slug, name, description,
+            price_cents_incl_vat, icon_id, display_order, created_at, updated_at
+
+   Add-on options represent optional paid upgrades. Each add-on row is
+   scoped to a specific product (product_id FK) because pricing varies
+   by room size. The iconId field is a semantic string that the UI layer
+   resolves to an SVG component.
+
+   IMPORTANT: The "Bathroom + Kitchen" add-on only appears in the addon
+   list for products where bathroomKitchenPolicy is "optional-addon"
+   (currently only 25 m2). For 15 m2 it does not exist; for 35 and 45 m2
+   it is included in the base price and represented by the includedFeatures
+   array on the product, not as an add-on.
    ============================================================================= */
 
 /**
  * Semantic icon identifiers for add-on rendering. Maps to SVG icons or
- * icon components in the UI layer. New icons should be appended here
- * when new add-on types are introduced.
+ * icon components in the UI layer. New identifiers should be appended
+ * here when new add-on categories are introduced.
  */
 export type AddonIconId =
   | 'plumbing'
@@ -99,27 +150,37 @@ export type AddonIconId =
 
 /**
  * An optional paid upgrade that the customer can toggle on or off.
- * The `price` represents the incremental cost added to the base price.
- * Prices are per-product (the same add-on type may cost differently
- * depending on the product size).
+ * Scoped to one product via the product_id foreign key in the database.
+ *
+ * SQL: configurator_addon_options
  */
 export interface AddonOption {
-  /** Unique add-on identifier (e.g., "bathroom-kitchen"). */
+  /** Database primary key (UUID v4). */
   id: string;
-  /** Human-readable add-on name (e.g., "Bathroom + Kitchen"). */
+  /** FK reference to the parent ConfiguratorProduct. */
+  productId: string;
+  /** URL-safe identifier (e.g., "triple-glazing"). */
+  slug: string;
+  /** Human-readable add-on name (e.g., "Triple Glazing Upgrade"). */
   name: string;
   /** Brief description of what the add-on includes. */
   description: string;
-  /** Incremental cost in euros, excluding VAT. */
-  price: number;
+  /** Incremental cost in euro cents, inclusive of 23% VAT. */
+  priceCentsInclVat: number;
   /** Semantic icon identifier resolved to a visual by the UI layer. */
   iconId: AddonIconId;
+  /** Sort position within the add-on list for this product (ascending). */
+  displayOrder: number;
 }
 
 
 /* =============================================================================
    SECTION 3: PRODUCT SPECIFICATIONS
    -----------------------------------------------------------------------------
+   Maps to database table: configurator_product_specs
+   Columns: id (UUID PK), product_id (FK), label, value, display_order,
+            created_at, updated_at
+
    Specification items are displayed as a grid of key-value pairs on the
    product overview step. They describe what is included in the base
    configuration before any user selections or add-ons.
@@ -128,26 +189,70 @@ export interface AddonOption {
 /**
  * A single key-value specification line displayed in the "What's Included"
  * grid on the overview step.
+ *
+ * SQL: configurator_product_specs
  */
 export interface ProductSpec {
+  /** Database primary key (UUID v4). */
+  id: string;
+  /** FK reference to the parent ConfiguratorProduct. */
+  productId: string;
   /** Specification label (e.g., "Dimensions", "Insulation"). */
   label: string;
   /** Specification value (e.g., "5.0m x 3.0m", "120mm PIR"). */
   value: string;
+  /** Sort position within the specification grid (ascending). */
+  displayOrder: number;
 }
 
 
 /* =============================================================================
-   SECTION 4: PHYSICAL DIMENSIONS
+   SECTION 4: INCLUDED FEATURES
    -----------------------------------------------------------------------------
-   Captures the external and internal dimensional data for one product.
+   Maps to database table: configurator_included_features
+   Columns: id (UUID PK), product_id (FK), name, description, display_order,
+            created_at, updated_at
+
+   Represents features that are bundled into the base price for a given
+   product and are NOT user-toggleable. This differs from add-ons (which
+   are optional). For example, the 35 m2 and 45 m2 models include
+   bathroom, kitchen, and plumbing connections as standard.
+   ============================================================================= */
+
+/**
+ * A non-optional feature included in the product's base price.
+ * Displayed on the overview step as part of "What's Included" but
+ * not presented as a toggleable option in the add-ons step.
+ *
+ * SQL: configurator_included_features
+ */
+export interface IncludedFeature {
+  /** Database primary key (UUID v4). */
+  id: string;
+  /** FK reference to the parent ConfiguratorProduct. */
+  productId: string;
+  /** Feature name (e.g., "Bathroom + Kitchen"). */
+  name: string;
+  /** Brief description (e.g., "Full plumbing with bathroom, kitchen, and WC"). */
+  description: string;
+  /** Sort position within the included features list (ascending). */
+  displayOrder: number;
+}
+
+
+/* =============================================================================
+   SECTION 5: PHYSICAL DIMENSIONS
+   -----------------------------------------------------------------------------
+   Stored as columns directly on the configurator_products table rather
+   than in a separate table, since there is a strict 1:1 relationship.
+
    All measurements use metric units. The width and depth represent the
-   external footprint; the internal height is the usable ceiling clearance.
+   external footprint; the height is the usable internal ceiling clearance.
    ============================================================================= */
 
 /**
  * Physical dimensional data for one garden room model.
- * Used for specification display, floor plan rendering, and dimension labels.
+ * Stored as scalar columns on the configurator_products table.
  */
 export interface ProductDimensions {
   /** External width in metres (e.g., 5.0). */
@@ -162,11 +267,12 @@ export interface ProductDimensions {
 
 
 /* =============================================================================
-   SECTION 5: FLOOR PLAN CONFIGURATION
+   SECTION 6: FLOOR PLAN CONFIGURATION
    -----------------------------------------------------------------------------
-   Provides structured data for the SVG floor plan component. Each product
-   has a set of apertures (windows, doors) placed on specific walls, plus
-   display labels for the dimension annotations.
+   Stored as a JSONB column (floor_plan_config) on the configurator_products
+   table. The data is structured but does not justify its own normalised
+   table because it is always read and written as a unit, never queried
+   independently.
 
    Wall positions use compass directions viewed from above:
    - north: top wall (front-facing)
@@ -177,14 +283,11 @@ export interface ProductDimensions {
 
 /**
  * Cardinal wall positions on the floor plan, viewed from above.
- * Used to place apertures (windows, doors) on the correct wall segment.
  */
 export type WallPosition = 'north' | 'east' | 'south' | 'west';
 
 /**
  * Aperture type identifiers representing different glazing unit styles.
- * The floor plan SVG renderer uses these to select the correct visual
- * representation (opening arc for doors, cross-hatch for windows, etc.).
  */
 export type ApertureType =
   | 'tilt-turn-window'
@@ -194,7 +297,6 @@ export type ApertureType =
 
 /**
  * A single glazing aperture placed on one wall of the floor plan.
- * Contains physical dimensions (in millimetres) and placement data.
  */
 export interface Aperture {
   /** Glazing unit type, determines visual rendering style. */
@@ -209,8 +311,7 @@ export interface Aperture {
 
 /**
  * Complete floor plan rendering configuration for one product.
- * Combines the aperture layout with formatted dimension labels
- * for the SVG annotation text.
+ * Stored as JSONB on the configurator_products table (floor_plan_config column).
  */
 export interface FloorPlanConfig {
   /** Ordered list of glazing apertures to render on the floor plan. */
@@ -226,16 +327,20 @@ export interface FloorPlanConfig {
 
 
 /* =============================================================================
-   SECTION 6: PRODUCT IMAGE SET
+   SECTION 7: PRODUCT HERO IMAGE
    -----------------------------------------------------------------------------
-   Defines the multi-format image set for a product. Follows the progressive
-   enhancement pattern: AVIF (smallest, best quality) -> WebP -> PNG fallback.
-   Same convention used by ProductCard and QuickViewProduct in @modular-house/ui.
+   The default product hero image (displayed before any finish selection)
+   is stored as columns on the configurator_products table. Once a finish
+   is selected, the configurator switches to the FinishOption.imagePath
+   photograph from /public/resource/garden-room/product-config/.
    ============================================================================= */
 
 /**
- * Multi-format image paths for a product. Browsers select the optimal
- * format via the <picture> element's <source> tags.
+ * Multi-format image paths for a product hero. Browsers select the
+ * optimal format via <picture> / <source> elements.
+ *
+ * Stored as scalar columns on the configurator_products table:
+ *   image_src, image_webp, image_avif, image_alt
  */
 export interface ProductImageSet {
   /** Primary image path (PNG/JPEG fallback). Always required. */
@@ -250,17 +355,55 @@ export interface ProductImageSet {
 
 
 /* =============================================================================
-   SECTION 7: MAIN CONFIGURATOR PRODUCT
+   SECTION 8: BATHROOM & KITCHEN POLICY
    -----------------------------------------------------------------------------
-   The root entity binding all configuration data for one garden room product.
-   A complete ConfiguratorProduct provides everything the multi-step
-   configurator page needs to render: identity, pricing, specifications,
-   selectable finishes, add-ons, floor plan data, and imagery.
+   A discriminated union type encoding the business rules for bathroom and
+   kitchen availability per product size:
+
+   | Policy          | Applies to | Behaviour                                 |
+   |-----------------|------------|-------------------------------------------|
+   | not-available   | 15 m2      | No bathroom/kitchen option at all          |
+   | optional-addon  | 25 m2      | Offered as a toggleable paid add-on        |
+   | included        | 35, 45 m2  | Included in base price with plumbing       |
+
+   Stored as a VARCHAR(20) column (bathroom_kitchen_policy) on the
+   configurator_products table.
+   ============================================================================= */
+
+/**
+ * Discriminated policy values for bathroom & kitchen availability.
+ * Used to control both the UI rendering logic and add-on list filtering.
+ */
+export type BathroomKitchenPolicy =
+  | 'not-available'
+  | 'optional-addon'
+  | 'included';
+
+
+/* =============================================================================
+   SECTION 9: MAIN CONFIGURATOR PRODUCT
+   -----------------------------------------------------------------------------
+   Maps to database table: configurator_products
+   Columns: id (UUID PK), slug (UNIQUE), name, tagline,
+            width_m, depth_m, height_m, area_m2,
+            base_price_cents_incl_vat, pricing_note,
+            bathroom_kitchen_policy,
+            glazing_note, floor_plan_config (JSONB),
+            image_src, image_webp, image_avif, image_alt,
+            available, planning_permission, lead_time,
+            display_order, created_at, updated_at
+
+   One-to-many relations:
+     -> configurator_addon_options     (product_id FK)
+     -> configurator_product_specs     (product_id FK)
+     -> configurator_included_features (product_id FK)
+
+   Many-to-many relations (via join table):
+     -> configurator_finish_options (through configurator_product_finishes)
 
    Each of the four garden room sizes (15, 25, 35, 45 m2) is represented
-   by one ConfiguratorProduct instance. The page component consumes this
-   data to render a fully templated configurator without any hard-coded
-   product-specific values.
+   by one row. The page component consumes this data to render a fully
+   templated configurator without any hard-coded product-specific values.
    ============================================================================= */
 
 /**
@@ -268,16 +411,23 @@ export interface ProductImageSet {
  *
  * This is the root data type consumed by the product configurator page.
  * It composes identity, pricing, configuration options, specifications,
- * floor plan, and availability data into a single cohesive entity.
+ * included features, floor plan, and availability data into a single
+ * cohesive entity.
  *
- * To add a new product size, create a new ConfiguratorProduct object
- * conforming to this interface and append it to the products array.
- * No existing code needs modification (Open-Closed Principle).
+ * To add a new product size:
+ *   1. INSERT a new row into configurator_products.
+ *   2. INSERT related addon, spec, and included feature rows.
+ *   3. INSERT join-table entries for finish category/option assignments.
+ * No existing code or DDL changes are required (Open-Closed Principle).
+ *
+ * SQL: configurator_products
  */
 export interface ConfiguratorProduct {
   /* --- Identity ----------------------------------------------- */
 
-  /** URL-safe slug used for routing and query parameters (e.g., "compact-15"). */
+  /** Database primary key (UUID v4). */
+  id: string;
+  /** URL-safe slug used for routing (UNIQUE constraint, e.g., "compact-15"). */
   slug: string;
   /** Marketing name displayed as the configurator heading (e.g., "The Compact"). */
   name: string;
@@ -292,30 +442,49 @@ export interface ConfiguratorProduct {
   /* --- Pricing ------------------------------------------------ */
 
   /**
-   * Base price in euros, excluding VAT.
+   * Base price in euro cents, inclusive of 23% VAT.
    * The total configured price is calculated as:
-   *   basePrice + sum(selected addon prices)
+   *   basePriceCentsInclVat + sum(selected addon priceCentsInclVat values)
    */
-  basePrice: number;
-  /** Regulatory pricing note displayed below the total (e.g., "VAT not included"). */
+  basePriceCentsInclVat: number;
+  /** Pricing footnote displayed below the total (e.g., "Price includes VAT"). */
   pricingNote: string;
+
+  /* --- Bathroom & Kitchen Policy ------------------------------ */
+
+  /**
+   * Business rule for bathroom & kitchen availability on this product:
+   *   - "not-available"  : cannot be added (15 m2)
+   *   - "optional-addon" : offered as a paid add-on (25 m2)
+   *   - "included"       : bundled in the base price with plumbing (35, 45 m2)
+   */
+  bathroomKitchenPolicy: BathroomKitchenPolicy;
 
   /* --- Configuration Options ---------------------------------- */
 
   /**
    * Ordered list of finish categories forming the configurator steps.
    * Typically two entries: exterior cladding and interior wall finish.
-   * Additional categories (e.g., flooring) can be appended without
-   * modifying the configurator component logic.
+   * Additional categories can be appended without modifying the
+   * configurator component logic.
    */
   finishCategories: ReadonlyArray<FinishCategory>;
 
   /**
    * Available add-on upgrades with per-product pricing.
-   * Each product may offer different add-ons or different prices
-   * for the same add-on type, depending on the room size.
+   * For 15 m2, this list excludes bathroom & kitchen entirely.
+   * For 25 m2, bathroom & kitchen appears as an add-on here.
+   * For 35 & 45 m2, bathroom & kitchen is NOT in this list
+   * (it is in includedFeatures instead).
    */
   addons: ReadonlyArray<AddonOption>;
+
+  /**
+   * Features included in the base price that are not user-toggleable.
+   * For 35 & 45 m2 this includes bathroom, kitchen, and plumbing.
+   * For 15 & 25 m2 this may be empty or contain other base features.
+   */
+  includedFeatures: ReadonlyArray<IncludedFeature>;
 
   /* --- Specifications ----------------------------------------- */
 
@@ -330,12 +499,12 @@ export interface ConfiguratorProduct {
 
   /* --- Floor Plan --------------------------------------------- */
 
-  /** Structured data for the SVG floor plan rendering component. */
+  /** Structured data for the SVG floor plan rendering component (JSONB). */
   floorPlan: FloorPlanConfig;
 
   /* --- Imagery ------------------------------------------------ */
 
-  /** Multi-format product image set for the configurator hero area. */
+  /** Default product hero image shown before any finish is selected. */
   image: ProductImageSet;
 
   /* --- Availability ------------------------------------------- */
@@ -346,4 +515,6 @@ export interface ConfiguratorProduct {
   planningPermission: boolean;
   /** Estimated delivery timeline from order to handover (e.g., "6-8 weeks"). */
   leadTime: string;
+  /** Sort position for product listing order (ascending). */
+  displayOrder: number;
 }

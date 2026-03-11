@@ -1,35 +1,40 @@
 /**
- * Configurator Product Data -- Product Instances for All Four Sizes
+ * Configurator Product Data -- Seed Data for All Four Garden Room Sizes
  * =============================================================================
  *
  * PURPOSE:
  * Single source of truth for all product configuration data consumed by the
- * garden room configurator page. Each ConfiguratorProduct instance provides
- * everything the multi-step configurator needs to render a complete product
- * configuration experience without any hard-coded product-specific values.
+ * garden room configurator page. This file represents the seed data that
+ * mirrors the contents of the PostgreSQL database tables defined by the
+ * configurator schema (see types/configurator.ts for the full ER mapping).
+ *
+ * In the current architecture this data is compiled into the frontend bundle.
+ * When the API endpoint is implemented, this file will serve as the initial
+ * database seed script — the data shapes map 1:1 to the SQL tables.
  *
  * PRODUCTS (4 total):
- * | Slug        | Name         | Area  | Base Price | Available |
- * |-------------|--------------|-------|------------|-----------|
- * | compact-15  | The Compact  | 15 m2 | EUR 26,000 | Yes       |
- * | studio-25   | The Studio   | 25 m2 | EUR 37,000 | Yes       |
- * | living-35   | The Living   | 35 m2 | EUR 65,000 | No        |
- * | grand-45    | The Grand    | 45 m2 | EUR 76,000 | No        |
+ * | Slug        | Name         | Area  | Base (incl. VAT) | B&K Policy     | Available |
+ * |-------------|--------------|-------|------------------|----------------|-----------|
+ * | compact-15  | The Compact  | 15 m2 | EUR 26,000       | not-available  | Yes       |
+ * | studio-25   | The Studio   | 25 m2 | EUR 37,000       | optional-addon | Yes       |
+ * | living-35   | The Living   | 35 m2 | EUR 65,000       | included       | No        |
+ * | grand-45    | The Grand    | 45 m2 | EUR 76,000       | included       | No        |
  *
- * SHARED DATA:
- * Exterior and interior finish options are identical across all products.
- * They are defined once as module-level constants and referenced by each
- * product's finishCategories array. If a future product requires a unique
- * finish palette, its finishCategories can be overridden independently.
+ * PRICING:
+ * All monetary values are stored in euro cents inclusive of 23% VAT,
+ * matching the SQL column type (integer cents). The frontend formats
+ * cents to display euros using locale-aware formatting.
  *
- * Add-on pricing scales with product size. Larger rooms incur higher costs
- * for the same add-on type due to increased material and labour requirements.
+ * BATHROOM & KITCHEN RULES:
+ * - 15 m2: cannot add bathroom & kitchen (bathroomKitchenPolicy = "not-available")
+ * - 25 m2: offered as an optional paid add-on (bathroomKitchenPolicy = "optional-addon")
+ * - 35 & 45 m2: included in base price with plumbing (bathroomKitchenPolicy = "included"),
+ *   represented via the includedFeatures array
  *
- * ADDING A NEW PRODUCT:
- * 1. Create a new ConfiguratorProduct object following the pattern below.
- * 2. Append it to the CONFIGURATOR_PRODUCTS array.
- * 3. Add an entry to the CONFIGURATOR_PRODUCTS_BY_SLUG map.
- * No existing code or interface modifications are required.
+ * FINISH PREVIEW IMAGES:
+ * Selecting a finish switches the hero image to a photograph from
+ * /public/resource/garden-room/product-config/ (e.g., exterior_finish_black.jpg).
+ * Each FinishOption carries an imagePath field pointing to the correct file.
  *
  * =============================================================================
  */
@@ -37,7 +42,6 @@
 import type {
   FinishOption,
   FinishCategory,
-  AddonOption,
   ConfiguratorProduct,
 } from '../types/configurator';
 
@@ -45,43 +49,79 @@ import type {
 /* =============================================================================
    SECTION 1: SHARED FINISH OPTIONS
    -----------------------------------------------------------------------------
-   Exterior cladding and interior wall finish options shared across all
-   products. These constants are referenced by each product's
-   finishCategories array. The options are ordered by display priority.
+   Maps to the configurator_finish_options table.
 
-   Colour values use hex notation. The `color` is the primary swatch fill
-   and the `accent` provides the darker gradient stop for the radial
-   gradient effect in the swatch UI.
+   Exterior cladding and interior wall finish options shared across all
+   products. Each option includes swatch colours for UI rendering and
+   an imagePath pointing to the preview photograph displayed when the
+   customer selects that finish.
+
+   Image files are located in:
+     /public/resource/garden-room/product-config/
    ============================================================================= */
 
 /**
  * Exterior cladding colour options available for all garden room sizes.
  * Composite cladding with a 25-year colour guarantee.
+ *
+ * SQL: configurator_finish_options (category_slug = "exterior")
  */
 const EXTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
-  { id: 'black',  name: 'Black',  color: '#1a1a1a', accent: '#333333' },
-  { id: 'teak',   name: 'Teak',   color: '#B5764C', accent: '#9A6340' },
-  { id: 'walnut', name: 'Walnut', color: '#5C4033', accent: '#4A3228' },
+  {
+    id: 'ef-black',
+    name: 'Black',
+    color: '#1a1a1a',
+    accent: '#333333',
+    imagePath: '/resource/garden-room/product-config/exterior_finish_black.jpg',
+  },
+  {
+    id: 'ef-teak',
+    name: 'Teak',
+    color: '#B5764C',
+    accent: '#9A6340',
+    imagePath: '/resource/garden-room/product-config/exterior_finish_teak.jpg',
+  },
+  {
+    id: 'ef-walnut',
+    name: 'Walnut',
+    color: '#5C4033',
+    accent: '#4A3228',
+    imagePath: '/resource/garden-room/product-config/exterior_finish_walnut.jpg',
+  },
 ];
 
 /**
  * Interior wall finish options available for all garden room sizes.
  * Applied to internal plasterboard lining surfaces.
+ *
+ * SQL: configurator_finish_options (category_slug = "interior")
  */
 const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
-  { id: 'stone', name: 'Stone', color: '#C4BFB6', accent: '#A8A299' },
-  { id: 'cloth', name: 'Cloth', color: '#E8E0D4', accent: '#D4CAB8' },
+  {
+    id: 'if-stone',
+    name: 'Stone',
+    color: '#C4BFB6',
+    accent: '#A8A299',
+    imagePath: '/resource/garden-room/product-config/interior_finish_stone.jpg',
+  },
+  {
+    id: 'if-cloth',
+    name: 'Cloth',
+    color: '#E8E0D4',
+    accent: '#D4CAB8',
+    imagePath: '/resource/garden-room/product-config/interior_finish_cloth.jpg',
+  },
 ];
 
 
 /* =============================================================================
    SECTION 2: SHARED PRICING NOTE
    -----------------------------------------------------------------------------
-   Regulatory pricing disclaimer shared across all products. Displayed below
-   the total price on the overview and summary steps.
+   Pricing footnote displayed below the total price on overview and summary
+   steps. All prices include VAT at the Irish standard rate (23%).
    ============================================================================= */
 
-const PRICING_NOTE = 'VAT not included \u00B7 Final price confirmed at consultation';
+const PRICING_NOTE = 'Price includes VAT \u00B7 Final price confirmed at consultation';
 
 
 /* =============================================================================
@@ -91,6 +131,9 @@ const PRICING_NOTE = 'VAT not included \u00B7 Final price confirmed at consultat
    product-specific sublabel text. This avoids repeating the finish options
    array references in every product definition while allowing each product
    to display its own contextual description.
+
+   Maps to configurator_finish_categories table rows + join table entries
+   in configurator_product_finishes.
    ============================================================================= */
 
 /**
@@ -103,15 +146,19 @@ const PRICING_NOTE = 'VAT not included \u00B7 Final price confirmed at consultat
 function buildFinishCategories(productName: string): ReadonlyArray<FinishCategory> {
   return [
     {
-      id: 'exterior',
+      id: 'fc-exterior',
+      slug: 'exterior',
       label: 'Exterior Finish',
       sublabel: `Choose the cladding colour for your ${productName}`,
+      displayOrder: 1,
       options: EXTERIOR_FINISH_OPTIONS,
     },
     {
-      id: 'interior',
+      id: 'fc-interior',
+      slug: 'interior',
       label: 'Interior Finish',
       sublabel: `Select the interior wall finish for your ${productName}`,
+      displayOrder: 2,
       options: INTERIOR_FINISH_OPTIONS,
     },
   ];
@@ -121,17 +168,23 @@ function buildFinishCategories(productName: string): ReadonlyArray<FinishCategor
 /* =============================================================================
    SECTION 4: PRODUCT DEFINITIONS
    -----------------------------------------------------------------------------
-   Each ConfiguratorProduct instance below defines the complete data for one
-   garden room size. Products are listed in ascending order by floor area.
+   Each ConfiguratorProduct instance below maps to one row in the
+   configurator_products table plus related child rows in:
+     - configurator_addon_options
+     - configurator_product_specs
+     - configurator_included_features
+     - configurator_product_finishes (join table)
 
-   Add-on pricing follows a size-based scaling model:
-   - Bathroom + Kitchen: scaled by room area (more plumbing runs, larger space)
-   - Triple Glazing Upgrade: scaled by glazing area (more/larger apertures)
-   - Composite Decking Step: scaled by entrance width
+   Products are listed in ascending order by floor area.
 
-   Specifications are derived from the QuickViewProduct data in
-   garden-room-data.ts but restructured as key-value ProductSpec pairs
-   suited to the configurator overview grid layout.
+   PRICING CONVENTION:
+   All prices are in euro cents inclusive of 23% VAT.
+   Example: EUR 26,000 = 2_600_000 cents.
+
+   BATHROOM & KITCHEN:
+   - 15 m2: not available (bathroomKitchenPolicy = "not-available")
+   - 25 m2: optional add-on in the addons array
+   - 35, 45 m2: included in base price via includedFeatures array
    ============================================================================= */
 
 /**
@@ -139,9 +192,10 @@ function buildFinishCategories(productName: string): ReadonlyArray<FinishCategor
  *
  * The smallest garden room, designed for focused single-purpose use.
  * Exempt from planning permission under current Irish legislation.
- * Single tilt-turn window on the north wall, single French door on east.
+ * Bathroom & kitchen cannot be added to this model.
  */
 const COMPACT_15: ConfiguratorProduct = {
+  id: 'cp-compact-15',
   slug: 'compact-15',
   name: 'The Compact',
   tagline: '15 m\u00B2 garden room \u2014 manufactured in Dublin',
@@ -153,50 +207,51 @@ const COMPACT_15: ConfiguratorProduct = {
     areaM2: 15,
   },
 
-  basePrice: 26000,
+  basePriceCentsInclVat: 2_600_000,
   pricingNote: PRICING_NOTE,
+  bathroomKitchenPolicy: 'not-available',
 
   finishCategories: buildFinishCategories('The Compact'),
 
   addons: [
     {
-      id: 'bathroom-kitchen',
-      name: 'Bathroom + Kitchen',
-      description: 'Compact plumbing connection with shower room and kitchenette',
-      price: 8000,
-      iconId: 'plumbing',
-    },
-    {
-      id: 'triple-glazing',
+      id: 'ao-compact-triple-glazing',
+      productId: 'cp-compact-15',
+      slug: 'triple-glazing',
       name: 'Triple Glazing Upgrade',
       description: 'Enhanced thermal and acoustic insulation for all glazing',
-      price: 800,
+      priceCentsInclVat: 80_000,
       iconId: 'glazing',
+      displayOrder: 1,
     },
     {
-      id: 'composite-decking',
+      id: 'ao-compact-composite-decking',
+      productId: 'cp-compact-15',
+      slug: 'composite-decking',
       name: 'Composite Decking Step',
       description: 'Durable composite entrance step with anti-slip finish',
-      price: 150,
+      priceCentsInclVat: 15_000,
       iconId: 'decking',
+      displayOrder: 2,
     },
   ],
 
+  includedFeatures: [],
+
   specs: [
-    { label: 'Dimensions',  value: '5.0m \u00D7 3.0m' },
-    { label: 'Area',        value: '15 m\u00B2' },
-    { label: 'Structure',   value: 'Galvanised steel SHS frame' },
-    { label: 'Insulation',  value: '120mm PIR (U-value 0.15)' },
-    { label: 'Flooring',    value: 'Composite flooring' },
-    { label: 'Glazing',     value: 'Tilt & turn window + French door' },
-    { label: 'Electrics',   value: 'Full consumer unit, Cat6 ready' },
-    { label: 'Roof',        value: 'Flat roof membrane, included' },
+    { id: 'sp-compact-01', productId: 'cp-compact-15', label: 'Dimensions',  value: '5.0m \u00D7 3.0m',                displayOrder: 1 },
+    { id: 'sp-compact-02', productId: 'cp-compact-15', label: 'Area',        value: '15 m\u00B2',                       displayOrder: 2 },
+    { id: 'sp-compact-03', productId: 'cp-compact-15', label: 'Structure',   value: 'Galvanised steel SHS frame',       displayOrder: 3 },
+    { id: 'sp-compact-04', productId: 'cp-compact-15', label: 'Insulation',  value: '120mm PIR (U-value 0.15)',         displayOrder: 4 },
+    { id: 'sp-compact-05', productId: 'cp-compact-15', label: 'Flooring',    value: 'Composite flooring',               displayOrder: 5 },
+    { id: 'sp-compact-06', productId: 'cp-compact-15', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
+    { id: 'sp-compact-07', productId: 'cp-compact-15', label: 'Electrics',   value: 'Full consumer unit, Cat6 ready',   displayOrder: 7 },
+    { id: 'sp-compact-08', productId: 'cp-compact-15', label: 'Roof',        value: 'Flat roof membrane, included',     displayOrder: 8 },
   ],
 
   glazingNote:
     'Glazing details: 700mm \u00D7 2100mm tilt & turn window + ' +
-    '1200mm \u00D7 2100mm French door. ' +
-    'Plumbing connection included with Bathroom + Kitchen add-on.',
+    '1200mm \u00D7 2100mm French door.',
 
   floorPlan: {
     apertures: [
@@ -210,12 +265,13 @@ const COMPACT_15: ConfiguratorProduct = {
     src:  '/resource/garden-room/garden-room4.png',
     webP: '/resource/garden-room/garden-room4.webp',
     avif: '/resource/garden-room/garden-room4.avif',
-    alt:  'The Compact 15m\u00B2 steel frame garden room floor plan',
+    alt:  'The Compact 15m\u00B2 steel frame garden room',
   },
 
   available: true,
   planningPermission: false,
   leadTime: '6\u20138 weeks',
+  displayOrder: 1,
 };
 
 
@@ -223,10 +279,11 @@ const COMPACT_15: ConfiguratorProduct = {
  * 25 m2 -- The Studio
  *
  * The most popular model, sitting at the maximum size for exempted
- * development under current Irish planning legislation. Dual-zone
- * layout potential with a larger French door for natural light.
+ * development under current Irish planning legislation. Bathroom &
+ * kitchen is offered as an optional paid add-on.
  */
 const STUDIO_25: ConfiguratorProduct = {
+  id: 'cp-studio-25',
   slug: 'studio-25',
   name: 'The Studio',
   tagline: '25 m\u00B2 garden room \u2014 manufactured in Dublin',
@@ -238,44 +295,56 @@ const STUDIO_25: ConfiguratorProduct = {
     areaM2: 25,
   },
 
-  basePrice: 37000,
+  basePriceCentsInclVat: 3_700_000,
   pricingNote: PRICING_NOTE,
+  bathroomKitchenPolicy: 'optional-addon',
 
   finishCategories: buildFinishCategories('The Studio'),
 
   addons: [
     {
-      id: 'bathroom-kitchen',
+      id: 'ao-studio-bathroom-kitchen',
+      productId: 'cp-studio-25',
+      slug: 'bathroom-kitchen',
       name: 'Bathroom + Kitchen',
       description: 'Full plumbing connection with bathroom and kitchen facilities',
-      price: 10000,
+      priceCentsInclVat: 1_000_000,
       iconId: 'plumbing',
+      displayOrder: 1,
     },
     {
-      id: 'triple-glazing',
+      id: 'ao-studio-triple-glazing',
+      productId: 'cp-studio-25',
+      slug: 'triple-glazing',
       name: 'Triple Glazing Upgrade',
       description: 'Enhanced thermal and acoustic insulation for all glazing',
-      price: 1000,
+      priceCentsInclVat: 100_000,
       iconId: 'glazing',
+      displayOrder: 2,
     },
     {
-      id: 'composite-decking',
+      id: 'ao-studio-composite-decking',
+      productId: 'cp-studio-25',
+      slug: 'composite-decking',
       name: 'Composite Decking Step',
       description: 'Durable composite entrance step with anti-slip finish',
-      price: 200,
+      priceCentsInclVat: 20_000,
       iconId: 'decking',
+      displayOrder: 3,
     },
   ],
 
+  includedFeatures: [],
+
   specs: [
-    { label: 'Dimensions',  value: '6.25m \u00D7 4.0m' },
-    { label: 'Area',        value: '25 m\u00B2' },
-    { label: 'Structure',   value: 'Galvanised steel SHS frame' },
-    { label: 'Insulation',  value: '120mm PIR (U-value 0.15)' },
-    { label: 'Flooring',    value: 'Composite flooring' },
-    { label: 'Glazing',     value: 'Tilt & turn window + French door' },
-    { label: 'Electrics',   value: 'Full consumer unit, Cat6 ready' },
-    { label: 'Roof',        value: 'Flat roof membrane, included' },
+    { id: 'sp-studio-01', productId: 'cp-studio-25', label: 'Dimensions',  value: '5.0m \u00D7 5.0m',                  displayOrder: 1 },
+    { id: 'sp-studio-02', productId: 'cp-studio-25', label: 'Area',        value: '25 m\u00B2',                         displayOrder: 2 },
+    { id: 'sp-studio-03', productId: 'cp-studio-25', label: 'Structure',   value: 'Galvanised steel SHS frame',         displayOrder: 3 },
+    { id: 'sp-studio-04', productId: 'cp-studio-25', label: 'Insulation',  value: '120mm PIR (U-value 0.15)',           displayOrder: 4 },
+    { id: 'sp-studio-05', productId: 'cp-studio-25', label: 'Flooring',    value: 'Composite flooring',                 displayOrder: 5 },
+    { id: 'sp-studio-06', productId: 'cp-studio-25', label: 'Glazing',     value: 'Tilt & turn window + French door',   displayOrder: 6 },
+    { id: 'sp-studio-07', productId: 'cp-studio-25', label: 'Electrics',   value: 'Full consumer unit, Cat6 ready',     displayOrder: 7 },
+    { id: 'sp-studio-08', productId: 'cp-studio-25', label: 'Roof',        value: 'Flat roof membrane, included',       displayOrder: 8 },
   ],
 
   glazingNote:
@@ -288,19 +357,20 @@ const STUDIO_25: ConfiguratorProduct = {
       { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
       { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
     ],
-    dimensionLabels: { width: '6.25m', depth: '4.0m' },
+    dimensionLabels: { width: '5.0m', depth: '5.0m' },
   },
 
   image: {
     src:  '/resource/garden-room/garden-room1.png',
     webP: '/resource/garden-room/garden-room1.webp',
     avif: '/resource/garden-room/garden-room1.avif',
-    alt:  'The Studio 25m\u00B2 steel frame garden room floor plan',
+    alt:  'The Studio 25m\u00B2 steel frame garden room',
   },
 
   available: true,
   planningPermission: false,
   leadTime: '8\u201310 weeks',
+  displayOrder: 2,
 };
 
 
@@ -308,11 +378,12 @@ const STUDIO_25: ConfiguratorProduct = {
  * 35 m2 -- The Living
  *
  * Mid-range model using a portal steel frame for column-free interiors.
- * Requires planning permission under current legislation. Features a
- * wider sliding door and an additional window for cross-ventilation.
+ * Requires planning permission under current legislation. Bathroom,
+ * kitchen, and plumbing connections are included in the base price.
  * Currently listed as "Coming Soon".
  */
 const LIVING_35: ConfiguratorProduct = {
+  id: 'cp-living-35',
   slug: 'living-35',
   name: 'The Living',
   tagline: '35 m\u00B2 garden room \u2014 manufactured in Dublin',
@@ -324,50 +395,67 @@ const LIVING_35: ConfiguratorProduct = {
     areaM2: 35,
   },
 
-  basePrice: 65000,
+  basePriceCentsInclVat: 6_500_000,
   pricingNote: PRICING_NOTE,
+  bathroomKitchenPolicy: 'included',
 
   finishCategories: buildFinishCategories('The Living'),
 
   addons: [
     {
-      id: 'bathroom-kitchen',
-      name: 'Bathroom + Kitchen',
-      description: 'Full plumbing connection with bathroom, kitchen, and WC facilities',
-      price: 12000,
-      iconId: 'plumbing',
-    },
-    {
-      id: 'triple-glazing',
+      id: 'ao-living-triple-glazing',
+      productId: 'cp-living-35',
+      slug: 'triple-glazing',
       name: 'Triple Glazing Upgrade',
       description: 'Enhanced thermal and acoustic insulation for all glazing',
-      price: 1500,
+      priceCentsInclVat: 150_000,
       iconId: 'glazing',
+      displayOrder: 1,
     },
     {
-      id: 'composite-decking',
+      id: 'ao-living-composite-decking',
+      productId: 'cp-living-35',
+      slug: 'composite-decking',
       name: 'Composite Decking Step',
       description: 'Durable composite entrance step with anti-slip finish',
-      price: 250,
+      priceCentsInclVat: 25_000,
       iconId: 'decking',
+      displayOrder: 2,
+    },
+  ],
+
+  includedFeatures: [
+    {
+      id: 'if-living-bk',
+      productId: 'cp-living-35',
+      name: 'Bathroom + Kitchen',
+      description: 'Full plumbing connection with bathroom, kitchen, and WC facilities included',
+      displayOrder: 1,
+    },
+    {
+      id: 'if-living-plumbing',
+      productId: 'cp-living-35',
+      name: 'Plumbing Connection',
+      description: 'Hot and cold water supply, waste drainage, and soil stack connection',
+      displayOrder: 2,
     },
   ],
 
   specs: [
-    { label: 'Dimensions',  value: '7.0m \u00D7 5.0m' },
-    { label: 'Area',        value: '35 m\u00B2' },
-    { label: 'Structure',   value: 'Galvanised steel portal frame' },
-    { label: 'Insulation',  value: '100mm PIR (U-value 0.12)' },
-    { label: 'Flooring',    value: 'Composite flooring' },
-    { label: 'Glazing',     value: '2\u00D7 tilt & turn windows + sliding door' },
-    { label: 'Electrics',   value: 'Full consumer unit, Cat6 ready' },
-    { label: 'Roof',        value: 'Flat roof membrane, included' },
+    { id: 'sp-living-01', productId: 'cp-living-35', label: 'Dimensions',  value: '7.0m \u00D7 5.0m',                           displayOrder: 1 },
+    { id: 'sp-living-02', productId: 'cp-living-35', label: 'Area',        value: '35 m\u00B2',                                  displayOrder: 2 },
+    { id: 'sp-living-03', productId: 'cp-living-35', label: 'Structure',   value: 'Galvanised steel portal frame',                displayOrder: 3 },
+    { id: 'sp-living-04', productId: 'cp-living-35', label: 'Insulation',  value: '100mm PIR (U-value 0.12)',                     displayOrder: 4 },
+    { id: 'sp-living-05', productId: 'cp-living-35', label: 'Flooring',    value: 'Composite flooring',                           displayOrder: 5 },
+    { id: 'sp-living-06', productId: 'cp-living-35', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + sliding door',   displayOrder: 6 },
+    { id: 'sp-living-07', productId: 'cp-living-35', label: 'Electrics',   value: 'Full consumer unit, Cat6 ready',               displayOrder: 7 },
+    { id: 'sp-living-08', productId: 'cp-living-35', label: 'Roof',        value: 'Flat roof membrane, included',                 displayOrder: 8 },
+    { id: 'sp-living-09', productId: 'cp-living-35', label: 'Plumbing',    value: 'Bathroom + kitchen + WC included',             displayOrder: 9 },
   ],
 
   glazingNote:
     'Glazing details: 2\u00D7 700mm \u00D7 2100mm tilt & turn windows + ' +
-    '2400mm \u00D7 2100mm sliding door. ' +
-    'Plumbing connection included with Bathroom + Kitchen add-on.',
+    '2400mm \u00D7 2100mm sliding door.',
 
   floorPlan: {
     apertures: [
@@ -382,12 +470,13 @@ const LIVING_35: ConfiguratorProduct = {
     src:  '/resource/garden-room/garden-room2.png',
     webP: '/resource/garden-room/garden-room2.webp',
     avif: '/resource/garden-room/garden-room2.avif',
-    alt:  'The Living 35m\u00B2 steel frame garden room floor plan',
+    alt:  'The Living 35m\u00B2 steel frame garden room',
   },
 
   available: false,
   planningPermission: true,
   leadTime: '10\u201312 weeks',
+  displayOrder: 3,
 };
 
 
@@ -395,11 +484,12 @@ const LIVING_35: ConfiguratorProduct = {
  * 45 m2 -- The Grand
  *
  * The largest model, designed as a genuine self-contained building.
- * Uses a portal steel frame with dual-zone heating and extensive
- * glazing on multiple walls. Requires planning permission.
- * Currently listed as "Coming Soon".
+ * Uses a portal steel frame with dual-zone heating and extensive glazing.
+ * Bathroom, kitchen, and plumbing connections are included in the base price.
+ * Requires planning permission. Currently listed as "Coming Soon".
  */
 const GRAND_45: ConfiguratorProduct = {
+  id: 'cp-grand-45',
   slug: 'grand-45',
   name: 'The Grand',
   tagline: '45 m\u00B2 garden room \u2014 manufactured in Dublin',
@@ -411,50 +501,67 @@ const GRAND_45: ConfiguratorProduct = {
     areaM2: 45,
   },
 
-  basePrice: 76000,
+  basePriceCentsInclVat: 7_600_000,
   pricingNote: PRICING_NOTE,
+  bathroomKitchenPolicy: 'included',
 
   finishCategories: buildFinishCategories('The Grand'),
 
   addons: [
     {
-      id: 'bathroom-kitchen',
-      name: 'Bathroom + Kitchen',
-      description: 'Full plumbing with bathroom, full kitchen, and WC facilities',
-      price: 15000,
-      iconId: 'plumbing',
-    },
-    {
-      id: 'triple-glazing',
+      id: 'ao-grand-triple-glazing',
+      productId: 'cp-grand-45',
+      slug: 'triple-glazing',
       name: 'Triple Glazing Upgrade',
       description: 'Enhanced thermal and acoustic insulation for all glazing',
-      price: 2000,
+      priceCentsInclVat: 200_000,
       iconId: 'glazing',
+      displayOrder: 1,
     },
     {
-      id: 'composite-decking',
+      id: 'ao-grand-composite-decking',
+      productId: 'cp-grand-45',
+      slug: 'composite-decking',
       name: 'Composite Decking Step',
       description: 'Durable composite entrance step with anti-slip finish',
-      price: 300,
+      priceCentsInclVat: 30_000,
       iconId: 'decking',
+      displayOrder: 2,
+    },
+  ],
+
+  includedFeatures: [
+    {
+      id: 'if-grand-bk',
+      productId: 'cp-grand-45',
+      name: 'Bathroom + Kitchen',
+      description: 'Full plumbing with bathroom, full kitchen, and WC facilities included',
+      displayOrder: 1,
+    },
+    {
+      id: 'if-grand-plumbing',
+      productId: 'cp-grand-45',
+      name: 'Plumbing Connection',
+      description: 'Hot and cold water supply, waste drainage, and soil stack connection',
+      displayOrder: 2,
     },
   ],
 
   specs: [
-    { label: 'Dimensions',  value: '9.0m \u00D7 5.0m' },
-    { label: 'Area',        value: '45 m\u00B2' },
-    { label: 'Structure',   value: 'Galvanised steel portal frame' },
-    { label: 'Insulation',  value: '150mm PIR (U-value 0.12)' },
-    { label: 'Flooring',    value: 'Composite flooring' },
-    { label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door' },
-    { label: 'Electrics',   value: 'Full consumer unit, Cat6, EV-ready' },
-    { label: 'Roof',        value: 'Flat roof membrane, included' },
+    { id: 'sp-grand-01', productId: 'cp-grand-45', label: 'Dimensions',  value: '9.0m \u00D7 5.0m',                                              displayOrder: 1 },
+    { id: 'sp-grand-02', productId: 'cp-grand-45', label: 'Area',        value: '45 m\u00B2',                                                     displayOrder: 2 },
+    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'Galvanised steel portal frame',                                   displayOrder: 3 },
+    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '150mm PIR (U-value 0.12)',                                        displayOrder: 4 },
+    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Composite flooring',                                              displayOrder: 5 },
+    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door',        displayOrder: 6 },
+    { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit, Cat6, EV-ready',                              displayOrder: 7 },
+    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'Flat roof membrane, included',                                    displayOrder: 8 },
+    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + full kitchen + WC included',                           displayOrder: 9 },
   ],
 
   glazingNote:
     'Glazing details: 2\u00D7 900mm \u00D7 2100mm tilt & turn windows + ' +
-    '1600mm \u00D7 2100mm French door + 3000mm \u00D7 2100mm sliding door. ' +
-    'Plumbing connection included with Bathroom + Kitchen add-on.',
+    '1600mm \u00D7 2100mm French door + 3000mm \u00D7 2100mm sliding door.',
 
   floorPlan: {
     apertures: [
@@ -470,12 +577,13 @@ const GRAND_45: ConfiguratorProduct = {
     src:  '/resource/garden-room/garden-room3.png',
     webP: '/resource/garden-room/garden-room3.webp',
     avif: '/resource/garden-room/garden-room3.avif',
-    alt:  'The Grand 45m\u00B2 steel frame garden room floor plan',
+    alt:  'The Grand 45m\u00B2 steel frame garden room',
   },
 
   available: false,
   planningPermission: true,
   leadTime: '12\u201316 weeks',
+  displayOrder: 4,
 };
 
 

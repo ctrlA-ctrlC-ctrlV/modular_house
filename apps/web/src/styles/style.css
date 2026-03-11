@@ -72,10 +72,10 @@
      ------------------------------------------------------------------------- */
   
   /** Primary sans-serif stack for body text, UI elements, and buttons */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;/*'Lekton', monospace;*/
   
   /** Serif stack for headings and editorial content */
-  --font-serif: 'Libre Baskerville', serif;
+  --font-serif: 'Special Gothic Condensed One', sans-serif; /*'Libre Baskerville', serif;*/
 
   /* -------------------------------------------------------------------------
      2.2 TYPOGRAPHY: TYPE SCALE (FLUID SIZING)

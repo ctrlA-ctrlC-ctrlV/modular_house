@@ -366,7 +366,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           className="configurator__cta-button"
           onClick={() => state.setShowConsultation(true)}
         >
-          Book Your Consultation &rarr;
+          Send me my estimate &rarr;
         </button>
       </>
     );
@@ -382,16 +382,16 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   const renderConsultationForm = (): React.ReactNode => (
     <div style={{ animation: 'configurator-fade-up 0.45s ease both' }}>
       <div className="configurator__step-heading">
-        <h2 className="configurator__step-title">Book a Consultation</h2>
+        <h2 className="configurator__step-title">Just a few details to finalise your estimate</h2>
         <p className="configurator__step-subtitle">
-          We&apos;ll get back to you within 24 hours
+          Your estimate will land in your inbox within 30 seconds
         </p>
       </div>
 
       <div className="configurator__form-group">
         {/* Form fields */}
         <div>
-          <label className="configurator__form-label" htmlFor="cfg-name">Full Name</label>
+          <label className="configurator__form-label" htmlFor="cfg-name">First Name</label>
           <input
             id="cfg-name"
             type="text"
@@ -409,11 +409,11 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           />
         </div>
         <div>
-          <label className="configurator__form-label" htmlFor="cfg-phone">Phone</label>
+          <label className="configurator__form-label" htmlFor="cfg-phone">Mobile</label>
           <input
             id="cfg-phone"
             type="tel"
-            placeholder="+353 1 234 5678"
+            placeholder="081 2345678"
             className="configurator__form-input"
           />
         </div>
@@ -453,7 +453,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
         {/* Submit button */}
         <button type="button" className="configurator__form-submit">
-          Submit Request &rarr;
+          Submit &rarr;
         </button>
 
         {/* Back to summary link */}

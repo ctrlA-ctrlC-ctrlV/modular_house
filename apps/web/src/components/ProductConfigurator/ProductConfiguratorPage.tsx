@@ -511,6 +511,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       {/* Step progress indicator */}
       <ProgressBar
         currentStepIndex={state.stepIndex}
+        highestCompletedStepIndex={state.highestCompletedStepIndex}
         onStepClick={state.goToStep}
       />
 

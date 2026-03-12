@@ -39,6 +39,8 @@ import { calculateTotalPriceCents } from './utils';
 interface PersistedState {
   stepIndex: number;
   selections: ConfiguratorSelections;
+  /** The furthest step index the user has reached during this session. */
+  highestCompletedStepIndex: number;
 }
 
 
@@ -49,6 +51,12 @@ interface PersistedState {
 export interface ConfiguratorStateAPI {
   /** Zero-based index of the current step. */
   stepIndex: number;
+  /**
+   * The highest step index the user has reached during this session.
+   * Used by the ProgressBar to keep previously visited steps highlighted
+   * and clickable even when the user navigates backward.
+   */
+  highestCompletedStepIndex: number;
   /** Incrementing key used to trigger step-change animations. */
   animationKey: number;
   /** The user's current selections across all steps. */
@@ -60,7 +68,7 @@ export interface ConfiguratorStateAPI {
   /** Whether the consultation form overlay is visible on the summary step. */
   showConsultation: boolean;
 
-  /** Navigate to a specific step by index (only backward navigation). */
+  /** Navigate to a specific step by index (any previously visited step). */
   goToStep: (index: number) => void;
   /** Advance to the next step (if canProceed is true). */
   nextStep: () => void;
@@ -134,6 +142,11 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     return persisted?.selections ?? DEFAULT_SELECTIONS;
   });
 
+  const [highestCompletedStepIndex, setHighestCompletedStepIndex] = useState<number>(() => {
+    const persisted = loadPersistedState(product.slug);
+    return persisted?.highestCompletedStepIndex ?? 0;
+  });
+
   const [animationKey, setAnimationKey] = useState<number>(0);
   const [showConsultation, setShowConsultation] = useState<boolean>(false);
 
@@ -142,8 +155,8 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
      Persist state to sessionStorage whenever it changes
      ----------------------------------------------------------------------- */
   useEffect(() => {
-    savePersistedState(product.slug, { stepIndex, selections });
-  }, [product.slug, stepIndex, selections]);
+    savePersistedState(product.slug, { stepIndex, selections, highestCompletedStepIndex });
+  }, [product.slug, stepIndex, selections, highestCompletedStepIndex]);
 
 
   /* -----------------------------------------------------------------------
@@ -181,20 +194,31 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
      Navigation Actions
      ----------------------------------------------------------------------- */
 
-  /** Navigate to a previously completed step by index. */
+  /**
+   * Navigate to any previously visited step by index.
+   * Permits both backward and forward navigation within the range of
+   * steps the user has already completed (0 .. highestCompletedStepIndex).
+   * Steps beyond the highest completed index remain unreachable.
+   */
   const goToStep = useCallback((index: number) => {
-    if (index < stepIndex) {
+    if (index <= highestCompletedStepIndex && index !== stepIndex) {
       setAnimationKey((k) => k + 1);
       setStepIndex(index);
       setShowConsultation(false);
     }
-  }, [stepIndex]);
+  }, [stepIndex, highestCompletedStepIndex]);
 
-  /** Advance to the next step if the current step's requirements are met. */
+  /**
+   * Advance to the next step if the current step's requirements are met.
+   * Updates highestCompletedStepIndex monotonically so previously visited
+   * steps retain their completed state during backward navigation.
+   */
   const nextStep = useCallback(() => {
     if (stepIndex < CONFIGURATOR_STEPS.length - 1) {
+      const newStepIndex = stepIndex + 1;
       setAnimationKey((k) => k + 1);
-      setStepIndex((s) => s + 1);
+      setStepIndex(newStepIndex);
+      setHighestCompletedStepIndex((prev) => Math.max(prev, newStepIndex));
       setShowConsultation(false);
     }
   }, [stepIndex]);
@@ -239,6 +263,7 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
      ----------------------------------------------------------------------- */
   return {
     stepIndex,
+    highestCompletedStepIndex,
     animationKey,
     selections,
     totalPriceCents,

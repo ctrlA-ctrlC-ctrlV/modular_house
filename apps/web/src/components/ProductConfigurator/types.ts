@@ -96,6 +96,26 @@ export interface ConfiguratorStep {
    configuration category.
    ============================================================================= */
 
+/* =============================================================================
+   SECTION 5: STEP PROGRESS TRACKING
+   -----------------------------------------------------------------------------
+   Tracks the highest step index the user has reached during the current
+   configuration session. This value is persisted alongside the step index
+   and selections so that previously completed steps remain highlighted
+   and navigable even when the user navigates backward.
+   ============================================================================= */
+
+/**
+ * The zero-based index of the highest step the user has completed.
+ * Used by the ProgressBar to determine which steps display a checkmark
+ * and remain clickable regardless of the current step position.
+ *
+ * Default value is 0 (only the overview step has been viewed).
+ * Updated monotonically -- it never decreases during a session.
+ */
+export type HighestCompletedStepIndex = number;
+
+
 /**
  * Identifies each tab available on the summary page navigation bar.
  */

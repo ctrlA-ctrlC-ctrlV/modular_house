@@ -32,6 +32,12 @@ interface ProgressBarProps {
   /** Zero-based index of the currently active step. */
   currentStepIndex: number;
   /**
+   * The highest step index the user has reached during this session.
+   * Steps at or below this index display a completed checkmark and remain
+   * clickable even when the user navigates to an earlier step.
+   */
+  highestCompletedStepIndex: number;
+  /**
    * Callback invoked when the user clicks a completed step to navigate to it.
    * Receives the zero-based index of the target step.
    */
@@ -160,20 +166,31 @@ const Connector: React.FC<ConnectorProps> = ({ isHighlighted }) => {
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   currentStepIndex,
+  highestCompletedStepIndex,
   onStepClick,
 }) => {
   return (
     <div className="configurator__progress" role="navigation" aria-label="Configuration steps">
       <div className="configurator__progress-bar">
         {CONFIGURATOR_STEPS.map((step, index) => {
-          const isCompleted = index < currentStepIndex;
+          /*
+           * A step is "completed" if the user has previously visited it
+           * (index <= highestCompletedStepIndex) and it is not the step
+           * currently being viewed. This ensures all previously reached
+           * steps retain their checkmark and remain clickable even when
+           * the user navigates backward.
+           */
+          const isCompleted = index <= highestCompletedStepIndex && index !== currentStepIndex;
           const isActive = index === currentStepIndex;
 
           return (
             <div key={step.id} className="configurator__progress-step-group">
-              {/* Connector line before every step except the first */}
+              {/* Connector line before every step except the first.
+                 Highlighted when the step to the right has been visited
+                 at any point during the session, not just when it is
+                 at or below the current step position. */}
               {index > 0 && (
-                <Connector isHighlighted={index <= currentStepIndex} />
+                <Connector isHighlighted={index <= highestCompletedStepIndex || index <= currentStepIndex} />
               )}
               <StepNode
                 index={index}

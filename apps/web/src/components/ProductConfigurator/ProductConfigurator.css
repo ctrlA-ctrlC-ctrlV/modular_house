@@ -275,9 +275,12 @@
    using the fadeUp keyframe. Centred with max-width constraint.
    --------------------------------------------------------------------------- */
 
+/* The bottom padding no longer needs to compensate for a fixed-position
+   navigation bar. The bottom nav is now sticky within the flex column,
+   so standard bottom padding is sufficient. */
 .configurator__content {
   flex: 1;
-  padding: 40px 32px 120px;
+  padding: 40px 32px 32px;
   max-width: var(--cfg-content-max-width);
   margin: 0 auto;
   width: 100%;
@@ -934,15 +937,21 @@
 /* ---------------------------------------------------------------------------
    Bottom Navigation Bar
    ---------------------------------------------------------------------------
-   Fixed at the viewport bottom. Contains Back and Continue buttons.
-   Hidden on the summary step (step 4).
+   Sticky-positioned at the bottom of the .configurator flex container.
+   Contains Back and Continue buttons. Hidden on the summary step (step 4).
+
+   Using `position: sticky` instead of `position: fixed` ensures the bar
+   stays pinned to the viewport bottom while the user scrolls through step
+   content, but naturally stops at the container boundary so it never
+   overlaps the site footer rendered outside the configurator.
+
+   The `margin-top: auto` pushes the bar to the bottom of the flex column
+   when the content area is shorter than the viewport.
    --------------------------------------------------------------------------- */
 
 .configurator__bottom-nav {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
   padding: 16px 32px;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
@@ -952,7 +961,7 @@
   justify-content: space-between;
   align-items: center;
   max-width: var(--cfg-content-max-width);
-  margin: 0 auto;
+  margin: auto auto 0;
   z-index: 100;
 }
 
@@ -1112,7 +1121,7 @@
   }
 
   .configurator__content {
-    padding: 24px 20px 120px;
+    padding: 24px 20px 24px;
   }
 
   .configurator__progress {

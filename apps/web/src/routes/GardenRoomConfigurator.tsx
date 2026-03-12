@@ -32,9 +32,11 @@
 
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Seo } from '@modular-house/ui';
 import { CONFIGURATOR_PRODUCTS_BY_SLUG } from '../data/configurator-products';
 import { ProductConfiguratorPage } from '../components/ProductConfigurator';
 import { useHeaderConfig } from '../components/HeaderContext';
+import { BUILD_TIMESTAMP } from '../build-timestamp';
 
 
 /* =============================================================================
@@ -116,9 +118,60 @@ const GardenRoomConfigurator: React.FC = () => {
 
 
   /* -----------------------------------------------------------------------
+     SEO Metadata
+     -----------------------------------------------------------------------
+     Injects page-level <head> tags for search engines and social sharing.
+     Because the route is dynamic (/:slug), metadata cannot be defined
+     statically in routes-metadata.ts and must be composed at runtime
+     from the resolved product data.
+
+     The absolute image URL is constructed by prefixing the product's
+     relative image.src path with the production domain. The
+     BUILD_TIMESTAMP is forwarded as article:modified_time so social
+     crawlers can assess content freshness.
+
+     siteTitleSuffix is set to an empty string because the title prop
+     already includes the "| Modular House" brand suffix.
+     ----------------------------------------------------------------------- */
+  const seoTitle = `Configure Your ${product.name} | Modular House`;
+  const seoDescription =
+    `${product.name} ${product.dimensions.areaM2}m\u00B2 steel frame garden room configurator. ` +
+    'Choose finishes, add-ons, and get your instant estimate.';
+  const canonicalUrl = `https://modularhouse.ie/garden-room/configure/${product.slug}`;
+  const absoluteImageUrl = `https://modularhouse.ie${product.image.src}`;
+
+
+  /* -----------------------------------------------------------------------
      Render the configurator page for the resolved product
      ----------------------------------------------------------------------- */
-  return <ProductConfiguratorPage product={product} />;
+  return (
+    <>
+      <Seo
+        title={seoTitle}
+        siteTitleSuffix=""
+        description={seoDescription}
+        canonicalUrl={canonicalUrl}
+        robots="index, follow"
+        openGraph={{
+          type: 'website',
+          title: seoTitle,
+          description: seoDescription,
+          image: absoluteImageUrl,
+          url: canonicalUrl,
+          siteName: 'Modular House',
+          article_modified_time: BUILD_TIMESTAMP,
+        }}
+        twitter={{
+          cardType: 'summary_large_image',
+          site: '@ModularHouse',
+          title: seoTitle,
+          description: seoDescription,
+          image: absoluteImageUrl,
+        }}
+      />
+      <ProductConfiguratorPage product={product} />
+    </>
+  );
 };
 
 export default GardenRoomConfigurator;

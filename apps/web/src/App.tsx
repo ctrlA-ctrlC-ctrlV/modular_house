@@ -28,6 +28,7 @@ import { Routes, Route } from 'react-router-dom'
 import { TemplateLayout } from './components/TemplateLayout'
 import { TrailingSlashRedirect } from './components/TrailingSlashRedirect'
 import { routes } from './route-config'
+import GardenRoomConfigurator from './routes/GardenRoomConfigurator'
 
 import AdminLogin from './routes/admin/login'
 import AdminDashboard from './routes/admin/index'
@@ -63,6 +64,14 @@ function App() {
           {routes.map(({ path, component: Component }) => (
             <Route key={path} path={path} element={<Component />} />
           ))}
+
+          {/*
+            Garden Room Configurator — dynamic route with :slug parameter.
+            Each garden room product (compact-15, studio-25, living-35, grand-45)
+            has its own configurator page at /garden-room/configure/:slug.
+            The slug is resolved to a ConfiguratorProduct inside the component.
+          */}
+          <Route path="/garden-room/configure/:slug" element={<GardenRoomConfigurator />} />
         </Route>
 
         {/* Admin Routes — also normalized for trailing slash consistency */}

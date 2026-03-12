@@ -26,7 +26,7 @@
  * =============================================================================
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import { useConfiguratorState } from './useConfiguratorState';
 import { ProgressBar } from './ProgressBar';
@@ -54,10 +54,22 @@ interface ProductConfiguratorPageProps {
    ProductConfiguratorPage Component
    ============================================================================= */
 
+/** Defines the available options for the preferred date dropdown. */
+type DatePreference = 'asap' | 'select-date';
+
 export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = ({
   product,
 }) => {
   const state = useConfiguratorState(product);
+
+  /* -----------------------------------------------------------------------
+     Local Form State -- Date Preference
+     -----------------------------------------------------------------------
+     Tracks whether the user wants the earliest available date or wishes
+     to specify a particular date. When set to "select-date", a native
+     date picker is rendered below the dropdown.
+     ----------------------------------------------------------------------- */
+  const [datePreference, setDatePreference] = useState<DatePreference>('asap');
 
   /* -----------------------------------------------------------------------
      Derived Lookup Values
@@ -389,7 +401,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       </div>
 
       <div className="configurator__form-group">
-        {/* Form fields */}
+        {/* First Name field */}
         <div>
           <label className="configurator__form-label" htmlFor="cfg-name">First Name</label>
           <input
@@ -399,6 +411,8 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             className="configurator__form-input"
           />
         </div>
+
+        {/* Email field */}
         <div>
           <label className="configurator__form-label" htmlFor="cfg-email">Email</label>
           <input
@@ -408,6 +422,8 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             className="configurator__form-input"
           />
         </div>
+
+        {/* Mobile phone field */}
         <div>
           <label className="configurator__form-label" htmlFor="cfg-phone">Mobile</label>
           <input
@@ -417,14 +433,44 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             className="configurator__form-input"
           />
         </div>
+
+        {/* B1: Eircode field -- Irish postal code input placed after Mobile */}
         <div>
-          <label className="configurator__form-label" htmlFor="cfg-date">Preferred Date</label>
+          <label className="configurator__form-label" htmlFor="cfg-eircode">Eircode</label>
           <input
-            id="cfg-date"
-            type="date"
+            id="cfg-eircode"
+            type="text"
+            placeholder="D00 A000"
             className="configurator__form-input"
+            autoComplete="postal-code"
           />
         </div>
+
+        {/* B2: Preferred Date dropdown with conditional date picker.
+            Defaults to "As Soon As Possible". When "Select Date" is chosen,
+            a native date input is revealed below the dropdown. */}
+        <div>
+          <label className="configurator__form-label" htmlFor="cfg-date-preference">Preferred Date</label>
+          <select
+            id="cfg-date-preference"
+            className="configurator__form-input"
+            value={datePreference}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setDatePreference(e.target.value as DatePreference)
+            }
+          >
+            <option value="asap">As Soon As Possible</option>
+            <option value="select-date">Select Date</option>
+          </select>
+        </div>
+        {datePreference === 'select-date' && (
+          <div>
+            <label className="configurator__form-label" htmlFor="cfg-date">Select your preferred date</label>
+            <input id="cfg-date" type="date" className="configurator__form-input" />
+          </div>
+        )}
+
+        {/* Message field (optional free-text area) */}
         <div>
           <label className="configurator__form-label" htmlFor="cfg-message">Message (optional)</label>
           <textarea
@@ -435,20 +481,28 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           />
         </div>
 
-        {/* Configuration summary */}
+        {/* B4: Anti-spam honeypot field.
+            Positioned off-screen and hidden from assistive technology via
+            aria-hidden. Bots that auto-fill all visible fields will populate
+            this input, allowing the submission handler to silently reject
+            the request without revealing the spam detection mechanism. */}
+        <div className="configurator__form-honeypot" aria-hidden="true">
+          <label htmlFor="cfg-security">What is the last 4 letters of SIEHTAWA?</label>
+          <input
+            id="cfg-security"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
+
+        {/* B3: Configuration summary -- displays product name, dimensions,
+            and selected finishes in a compact readable format. */}
         <div className="configurator__form-summary">
-          Your configuration: <strong>{selectedExterior?.name ?? 'None'}</strong> exterior,{' '}
-          <strong>{selectedInterior?.name ?? 'None'}</strong> interior
-          {state.selections.selectedAddonIds.length > 0 && (
-            <>
-              , with{' '}
-              {product.addons
-                .filter((a) => state.selections.selectedAddonIds.includes(a.id))
-                .map((a) => a.name)
-                .join(', ')}
-            </>
-          )}
-          {' '}&mdash; <strong>{formatPriceCents(state.totalPriceCents)}</strong>
+          Your configuration: <strong>{product.name}</strong>,{' '}
+          {product.dimensions.widthM}m x {product.dimensions.depthM}m,{' '}
+          <strong>{selectedExterior?.name ?? 'No exterior'}</strong>,{' '}
+          <strong>{selectedInterior?.name ?? 'No interior'}</strong>
         </div>
 
         {/* Submit button */}

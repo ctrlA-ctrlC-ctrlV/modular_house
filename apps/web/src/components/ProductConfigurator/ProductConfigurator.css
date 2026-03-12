@@ -1,0 +1,1218 @@
+/* =============================================================================
+   Product Configurator -- Styles
+   =============================================================================
+
+   Page-level and component styles for the garden room product configurator.
+   BEM naming convention: block = "configurator", elements use double
+   underscores, modifiers use double hyphens.
+
+   TYPOGRAPHY:
+   Headings use 'Instrument Serif' for the editorial feel consistent with
+   the prototype. Body text and UI elements use 'DM Sans'.
+
+   LAYOUT:
+   The configurator uses a single-column centred layout (max-width: 640px)
+   with a sticky sub-header and a fixed bottom navigation bar.
+
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   CSS Custom Properties -- Configurator Design Tokens
+   ---------------------------------------------------------------------------
+   Scoped to the .configurator block to avoid polluting the global namespace.
+   These tokens are derived from the prototype's inline styles and are
+   reused across all child components for visual consistency.
+   --------------------------------------------------------------------------- */
+
+.configurator {
+  --cfg-color-primary: #1a1a1a;
+  --cfg-color-primary-hover: #333333;
+  --cfg-color-text: #1a1a1a;
+  --cfg-color-text-secondary: #888888;
+  --cfg-color-text-muted: #999999;
+  --cfg-color-text-disabled: #aaaaaa;
+  --cfg-color-border: #e8e8e8;
+  --cfg-color-border-light: #f0f0f0;
+  --cfg-color-surface: #ffffff;
+  --cfg-color-surface-alt: #fafafa;
+  --cfg-color-surface-warm: #f9f8f6;
+  --cfg-color-gradient-start: #f7f6f3;
+  --cfg-color-gradient-end: #edeae4;
+  --cfg-color-connector-inactive: #e0e0e0;
+  --cfg-color-step-inactive: #d1d1d1;
+  --cfg-color-step-text-inactive: #bbbbbb;
+  --cfg-color-water: #89CFF0;
+
+  --cfg-font-heading: 'Instrument Serif', serif;
+  --cfg-font-body: 'DM Sans', sans-serif;
+
+  --cfg-radius-sm: 7px;
+  --cfg-radius-md: 12px;
+  --cfg-radius-lg: 14px;
+  --cfg-radius-xl: 16px;
+  --cfg-radius-2xl: 20px;
+  --cfg-radius-full: 50%;
+
+  --cfg-shadow-selected: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --cfg-shadow-step-active: 0 0 0 4px rgba(26, 26, 26, 0.08);
+
+  --cfg-transition-fast: 0.2s ease;
+  --cfg-transition-normal: 0.25s ease;
+  --cfg-transition-smooth: 0.35s ease;
+
+  --cfg-content-max-width: 640px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Animations
+   ---------------------------------------------------------------------------
+   Keyframe definitions for step transitions. Applied via the animation
+   property on content containers when the active step changes.
+   --------------------------------------------------------------------------- */
+
+@keyframes configurator-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes configurator-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Root Container
+   --------------------------------------------------------------------------- */
+
+.configurator {
+  min-height: 100vh;
+  background: var(--cfg-color-surface);
+  font-family: var(--cfg-font-body);
+  color: var(--cfg-color-text);
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Sticky Sub-Header (Apple-Style)
+   ---------------------------------------------------------------------------
+   Sits below the site header. Displays the product name on the left and
+   the running total price on the right. Uses backdrop-filter for the
+   frosted glass effect. On mobile, both elements align right.
+   --------------------------------------------------------------------------- */
+
+.configurator__sub-header {
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--cfg-color-border-light);
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
+}
+
+.configurator__sub-header-name {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--cfg-color-text);
+}
+
+.configurator__sub-header-price-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.configurator__sub-header-vat-label {
+  font-size: 12px;
+  color: var(--cfg-color-text-secondary);
+  font-weight: 400;
+}
+
+.configurator__sub-header-price {
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Progress Bar
+   ---------------------------------------------------------------------------
+   Horizontal step indicator displayed below the sub-header. Each step node
+   is a circular numbered indicator connected by horizontal lines.
+   --------------------------------------------------------------------------- */
+
+.configurator__progress {
+  padding: 24px 32px 0;
+}
+
+.configurator__progress-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  min-height: 64px;
+}
+
+.configurator__progress-step-group {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* -- Step Node ----------------------------------------------------------- */
+
+.configurator__step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.configurator__step-node--clickable {
+  cursor: pointer;
+}
+
+.configurator__step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--cfg-radius-full);
+  border: 2.5px solid var(--cfg-color-step-inactive);
+  background: var(--cfg-color-surface);
+  color: var(--cfg-color-text-disabled);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cfg-font-body);
+  transition: all var(--cfg-transition-smooth);
+  box-shadow: none;
+}
+
+.configurator__step-circle--active {
+  border-color: var(--cfg-color-primary);
+  color: var(--cfg-color-text);
+  box-shadow: var(--cfg-shadow-step-active);
+}
+
+.configurator__step-circle--completed {
+  border-color: var(--cfg-color-primary);
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+}
+
+.configurator__step-label {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--cfg-color-step-text-inactive);
+  font-family: var(--cfg-font-body);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.configurator__step-label--active {
+  font-weight: 600;
+  color: var(--cfg-color-text);
+}
+
+.configurator__step-label--completed {
+  font-weight: 500;
+  color: #555555;
+}
+
+/* -- Connector Line ------------------------------------------------------ */
+
+.configurator__connector {
+  width: 40px;
+  height: 2px;
+  flex-shrink: 0;
+  background: var(--cfg-color-connector-inactive);
+  transition: background var(--cfg-transition-smooth);
+  margin-top: 17px;
+}
+
+.configurator__connector--active {
+  background: var(--cfg-color-primary);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Step Content Area
+   ---------------------------------------------------------------------------
+   Main content region below the progress bar. Animates on step transitions
+   using the fadeUp keyframe. Centred with max-width constraint.
+   --------------------------------------------------------------------------- */
+
+.configurator__content {
+  flex: 1;
+  padding: 40px 32px 120px;
+  max-width: var(--cfg-content-max-width);
+  margin: 0 auto;
+  width: 100%;
+  animation: configurator-fade-up 0.45s ease both;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Step Heading
+   --------------------------------------------------------------------------- */
+
+.configurator__step-heading {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: configurator-fade-up 0.5s ease both;
+}
+
+.configurator__step-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--cfg-color-text);
+  margin: 0;
+  letter-spacing: -0.03em;
+  font-family: var(--cfg-font-heading);
+}
+
+.configurator__step-subtitle {
+  font-size: 15px;
+  color: var(--cfg-color-text-secondary);
+  margin-top: 8px;
+  font-family: var(--cfg-font-body);
+  font-weight: 400;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Hero Visual Container
+   ---------------------------------------------------------------------------
+   Wraps the floor plan SVG or finish preview image on overview, exterior,
+   interior, and summary steps. Uses a warm gradient background.
+   --------------------------------------------------------------------------- */
+
+.configurator__hero-visual {
+  background: linear-gradient(145deg, var(--cfg-color-gradient-start), var(--cfg-color-gradient-end));
+  border-radius: var(--cfg-radius-2xl);
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+.configurator__hero-visual--compact {
+  padding: 40px 24px 32px;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Finish Preview Image
+   ---------------------------------------------------------------------------
+   Displayed when the user selects a finish option. Replaces the floor plan
+   SVG in the hero visual container on the exterior and interior steps.
+   --------------------------------------------------------------------------- */
+
+.configurator__finish-preview {
+  width: 100%;
+  max-width: 400px;
+  border-radius: var(--cfg-radius-md);
+  object-fit: cover;
+  animation: configurator-scale-in 0.3s ease both;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Price Display (Overview Step)
+   --------------------------------------------------------------------------- */
+
+.configurator__price-display {
+  text-align: center;
+}
+
+.configurator__price-amount {
+  font-size: 44px;
+  font-weight: 700;
+  font-family: var(--cfg-font-heading);
+  letter-spacing: -0.03em;
+}
+
+.configurator__price-note {
+  font-size: 14px;
+  color: var(--cfg-color-text-secondary);
+  margin-top: 4px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Specifications Grid (Overview Step)
+   --------------------------------------------------------------------------- */
+
+.configurator__specs-heading {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cfg-color-text-secondary);
+  margin-bottom: 20px;
+}
+
+.configurator__specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.configurator__spec-card {
+  padding: 16px 18px;
+  border-radius: var(--cfg-radius-md);
+  border: 1px solid var(--cfg-color-border-light);
+  background: var(--cfg-color-surface-alt);
+}
+
+.configurator__spec-label {
+  font-size: 11px;
+  color: var(--cfg-color-text-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.configurator__spec-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Glazing Note (Overview Step)
+   --------------------------------------------------------------------------- */
+
+.configurator__glazing-note {
+  margin-top: 24px;
+  padding: 14px 18px;
+  border-radius: var(--cfg-radius-md);
+  background: var(--cfg-color-surface-warm);
+  border: 1px solid #eeeeee;
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.6;
+}
+
+.configurator__glazing-note strong {
+  color: var(--cfg-color-text);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Included Features (Overview Step -- 35/45 m2)
+   --------------------------------------------------------------------------- */
+
+.configurator__included-features {
+  margin-top: 24px;
+}
+
+.configurator__included-feature {
+  padding: 14px 18px;
+  border-radius: var(--cfg-radius-md);
+  background: var(--cfg-color-surface-warm);
+  border: 1px solid #eeeeee;
+  margin-bottom: 8px;
+}
+
+.configurator__included-feature-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+  margin-bottom: 2px;
+}
+
+.configurator__included-feature-desc {
+  font-size: 13px;
+  color: #666666;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Finish Selection Cards
+   ---------------------------------------------------------------------------
+   Row of selectable finish swatches. Each card displays a colour swatch
+   circle and the finish name. The selected card receives a prominent
+   border and shadow.
+   --------------------------------------------------------------------------- */
+
+.configurator__finish-row {
+  display: flex;
+  gap: 14px;
+}
+
+.configurator__finish-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+  border-radius: var(--cfg-radius-xl);
+  border: 2px solid var(--cfg-color-border);
+  background: var(--cfg-color-surface);
+  cursor: pointer;
+  transition: all var(--cfg-transition-normal);
+  min-width: 140px;
+  flex: 1;
+  box-shadow: none;
+}
+
+.configurator__finish-card--selected {
+  border-color: var(--cfg-color-primary);
+  background: var(--cfg-color-surface-alt);
+  box-shadow: var(--cfg-shadow-selected);
+}
+
+.configurator__finish-swatch {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--cfg-radius-full);
+  border: 3px solid transparent;
+  transition: all var(--cfg-transition-normal);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.configurator__finish-swatch--selected {
+  border-color: var(--cfg-color-primary);
+}
+
+.configurator__finish-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cfg-color-text);
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__finish-name--selected {
+  font-weight: 600;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Add-on Cards
+   ---------------------------------------------------------------------------
+   Vertically stacked toggleable cards. Each card displays an icon, name,
+   description, price, and a checkbox indicator.
+   --------------------------------------------------------------------------- */
+
+.configurator__addons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.configurator__addon-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  border-radius: var(--cfg-radius-xl);
+  border: 2px solid var(--cfg-color-border);
+  background: var(--cfg-color-surface);
+  cursor: pointer;
+  transition: all var(--cfg-transition-normal);
+  width: 100%;
+  text-align: left;
+  box-shadow: none;
+}
+
+.configurator__addon-card--selected {
+  border-color: var(--cfg-color-primary);
+  background: var(--cfg-color-surface-alt);
+  box-shadow: var(--cfg-shadow-selected);
+}
+
+.configurator__addon-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--cfg-radius-lg);
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: all var(--cfg-transition-normal);
+  flex-shrink: 0;
+}
+
+.configurator__addon-icon--selected {
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+}
+
+.configurator__addon-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.configurator__addon-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__addon-description {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+  margin-top: 3px;
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__addon-price {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+  font-family: var(--cfg-font-body);
+  white-space: nowrap;
+}
+
+.configurator__addon-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--cfg-radius-sm);
+  flex-shrink: 0;
+  border: 2px solid var(--cfg-color-step-inactive);
+  background: var(--cfg-color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--cfg-transition-fast);
+}
+
+.configurator__addon-checkbox--checked {
+  border: none;
+  background: var(--cfg-color-primary);
+}
+
+.configurator__addon-total {
+  margin-top: 24px;
+  padding: 14px 18px;
+  border-radius: var(--cfg-radius-md);
+  background: var(--cfg-color-surface-warm);
+  border: 1px solid #eeeeee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.configurator__addon-total-label {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+}
+
+.configurator__addon-total-amount {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Summary Page -- Navigation Bar
+   ---------------------------------------------------------------------------
+   Replaces the floor plan on the summary step. Contains tabs for
+   Exterior Finish, Interior Finish, Glazing, and Other Details.
+   --------------------------------------------------------------------------- */
+
+.configurator__summary-nav {
+  background: linear-gradient(145deg, var(--cfg-color-gradient-start), var(--cfg-color-gradient-end));
+  border-radius: var(--cfg-radius-2xl);
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.configurator__summary-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--cfg-color-border);
+}
+
+.configurator__summary-tab {
+  flex: 1;
+  padding: 14px 12px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  font-family: var(--cfg-font-body);
+  cursor: pointer;
+  transition: all var(--cfg-transition-fast);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.configurator__summary-tab--active {
+  color: var(--cfg-color-text);
+  font-weight: 600;
+  border-bottom-color: var(--cfg-color-primary);
+}
+
+.configurator__summary-tab:hover {
+  color: var(--cfg-color-text);
+}
+
+.configurator__summary-tab-content {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-height: 200px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Summary Page -- Finish Preview (inside nav bar)
+   --------------------------------------------------------------------------- */
+
+.configurator__summary-finish-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.configurator__summary-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--cfg-radius-full);
+  flex-shrink: 0;
+}
+
+.configurator__summary-finish-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+}
+
+.configurator__summary-finish-image {
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--cfg-radius-md);
+  object-fit: cover;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Summary Page -- Price Breakdown
+   --------------------------------------------------------------------------- */
+
+.configurator__price-breakdown {
+  border-radius: var(--cfg-radius-xl);
+  border: 1px solid var(--cfg-color-border-light);
+  overflow: hidden;
+}
+
+.configurator__price-line {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--cfg-color-border-light);
+}
+
+.configurator__price-line-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.configurator__price-line-detail {
+  font-size: 12px;
+  color: var(--cfg-color-text-muted);
+  margin-top: 2px;
+}
+
+.configurator__price-line-amount {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.configurator__price-line--addon {
+  font-size: 14px;
+}
+
+.configurator__price-line--addon .configurator__price-line-label {
+  font-weight: 400;
+  color: #555555;
+}
+
+.configurator__price-total {
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cfg-color-surface-alt);
+}
+
+.configurator__price-total-label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.configurator__price-total-amount {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--cfg-font-heading);
+  letter-spacing: -0.02em;
+}
+
+.configurator__price-disclaimer {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--cfg-color-text-muted);
+  text-align: center;
+}
+
+
+/* ---------------------------------------------------------------------------
+   CTA Button
+   --------------------------------------------------------------------------- */
+
+.configurator__cta-button {
+  margin-top: 32px;
+  width: 100%;
+  padding: 18px 24px;
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+  border: none;
+  border-radius: var(--cfg-radius-lg);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--cfg-font-body);
+  letter-spacing: -0.01em;
+  transition: all var(--cfg-transition-fast);
+}
+
+.configurator__cta-button:hover {
+  background: var(--cfg-color-primary-hover);
+  transform: scale(1.01);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Consultation Form
+   --------------------------------------------------------------------------- */
+
+.configurator__form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.configurator__form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cfg-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.configurator__form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--cfg-color-border);
+  border-radius: var(--cfg-radius-md);
+  font-size: 15px;
+  font-family: var(--cfg-font-body);
+  outline: none;
+  transition: border-color var(--cfg-transition-fast);
+  background: var(--cfg-color-surface-alt);
+  box-sizing: border-box;
+}
+
+.configurator__form-input:focus {
+  border-color: var(--cfg-color-primary);
+}
+
+.configurator__form-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--cfg-color-border);
+  border-radius: var(--cfg-radius-md);
+  font-size: 15px;
+  font-family: var(--cfg-font-body);
+  outline: none;
+  transition: border-color var(--cfg-transition-fast);
+  resize: vertical;
+  background: var(--cfg-color-surface-alt);
+  box-sizing: border-box;
+}
+
+.configurator__form-textarea:focus {
+  border-color: var(--cfg-color-primary);
+}
+
+.configurator__form-summary {
+  margin-top: 8px;
+  padding: 14px 18px;
+  border-radius: var(--cfg-radius-md);
+  background: var(--cfg-color-surface-warm);
+  border: 1px solid #eeeeee;
+  font-size: 13px;
+  color: #666666;
+}
+
+.configurator__form-summary strong {
+  color: var(--cfg-color-text);
+}
+
+.configurator__form-submit {
+  margin-top: 8px;
+  width: 100%;
+  padding: 18px 24px;
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+  border: none;
+  border-radius: var(--cfg-radius-lg);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--cfg-font-body);
+  transition: all var(--cfg-transition-fast);
+}
+
+.configurator__form-submit:hover {
+  background: var(--cfg-color-primary-hover);
+  transform: scale(1.01);
+}
+
+.configurator__form-back {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: var(--cfg-color-text-secondary);
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--cfg-font-body);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Bottom Navigation Bar
+   ---------------------------------------------------------------------------
+   Fixed at the viewport bottom. Contains Back and Continue buttons.
+   Hidden on the summary step (step 4).
+   --------------------------------------------------------------------------- */
+
+.configurator__bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--cfg-color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--cfg-content-max-width);
+  margin: 0 auto;
+  z-index: 100;
+}
+
+.configurator__back-button {
+  padding: 12px 20px;
+  background: transparent;
+  border: 2px solid var(--cfg-color-connector-inactive);
+  border-radius: var(--cfg-radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--cfg-font-body);
+  color: #555555;
+  transition: all var(--cfg-transition-fast);
+}
+
+.configurator__back-button:hover {
+  border-color: var(--cfg-color-primary);
+  color: var(--cfg-color-text);
+}
+
+.configurator__continue-button {
+  padding: 14px 32px;
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+  border: none;
+  border-radius: var(--cfg-radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--cfg-font-body);
+  transition: all var(--cfg-transition-fast);
+}
+
+.configurator__continue-button:hover {
+  background: var(--cfg-color-primary-hover);
+}
+
+.configurator__continue-button--disabled {
+  background: #dddddd;
+  color: var(--cfg-color-text-disabled);
+  cursor: default;
+}
+
+.configurator__continue-button--disabled:hover {
+  background: #dddddd;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Floor Plan SVG
+   --------------------------------------------------------------------------- */
+
+.configurator__floor-plan {
+  width: 100%;
+  max-width: 220px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Summary -- Finish Badges (below floor plan area)
+   --------------------------------------------------------------------------- */
+
+.configurator__summary-badges {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.configurator__summary-badge {
+  text-align: center;
+}
+
+.configurator__summary-badge-label {
+  font-size: 11px;
+  color: var(--cfg-color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.configurator__summary-badge-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.configurator__summary-badge-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--cfg-radius-full);
+}
+
+.configurator__summary-badge-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.configurator__summary-divider {
+  width: 1px;
+  background: #dddddd;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Summary -- Detail Row (inside tab content)
+   --------------------------------------------------------------------------- */
+
+.configurator__summary-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.configurator__summary-detail-label {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+  font-weight: 500;
+}
+
+.configurator__summary-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+}
+
+
+/* =============================================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Mobile (max-width: 768px)
+   ---------------------------------------------------------------------------
+   On mobile viewports, the sticky sub-header shifts both the product name
+   and price to align right, following the Apple product page convention
+   where the price is the primary focus on narrow screens.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .configurator__sub-header {
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 12px 20px;
+  }
+
+  .configurator__sub-header-name {
+    font-size: 14px;
+  }
+
+  .configurator__sub-header-price {
+    font-size: 14px;
+  }
+
+  .configurator__content {
+    padding: 24px 20px 120px;
+  }
+
+  .configurator__progress {
+    padding: 16px 20px 0;
+  }
+
+  .configurator__step-title {
+    font-size: 28px;
+  }
+
+  .configurator__step-subtitle {
+    font-size: 14px;
+  }
+
+  .configurator__hero-visual {
+    padding: 32px 20px;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  .configurator__hero-visual--compact {
+    padding: 28px 16px 24px;
+  }
+
+  .configurator__price-amount {
+    font-size: 36px;
+  }
+
+  .configurator__finish-row {
+    gap: 10px;
+  }
+
+  .configurator__finish-card {
+    padding: 16px;
+    min-width: 100px;
+  }
+
+  .configurator__finish-swatch {
+    width: 56px;
+    height: 56px;
+  }
+
+  .configurator__addon-card {
+    padding: 16px 18px;
+    gap: 14px;
+  }
+
+  .configurator__bottom-nav {
+    padding: 12px 20px;
+  }
+
+  .configurator__summary-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .configurator__summary-tab {
+    font-size: 12px;
+    padding: 12px 8px;
+  }
+
+  .configurator__connector {
+    width: 24px;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Small Mobile (max-width: 480px)
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .configurator__specs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .configurator__finish-row {
+    flex-wrap: wrap;
+  }
+
+  .configurator__finish-card {
+    min-width: calc(50% - 8px);
+  }
+
+  .configurator__step-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .configurator__connector {
+    width: 16px;
+    margin-top: 14px;
+  }
+
+  .configurator__step-label {
+    font-size: 10px;
+  }
+
+  .configurator__price-total-amount {
+    font-size: 22px;
+  }
+}

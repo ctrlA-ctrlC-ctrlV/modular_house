@@ -58,6 +58,8 @@ export interface CreateSubmissionInput {
 export interface CreateSubmissionResult {
   id: string;
   submission: Submission;
+  /** The generated quote number assigned to the associated Customer record. */
+  quoteNumber: string;
 }
 
 export interface UpdateEmailLogInput {
@@ -87,7 +89,9 @@ export class SubmissionsService {
         // 1. Generate Quote Number
         const quoteNumber = await generateQuoteNumber(tx);
 
-        // 2. Create Customer
+        // 2. Create Customer record with base contact details and optional
+        //    configurator-specific fields. For non-configurator submissions
+        //    the configurator fields remain null.
         const customer = await tx.customer.create({
             data: {
                 quoteNumber,
@@ -100,6 +104,13 @@ export class SubmissionsService {
                 product: submissionData.preferredProduct || 'Unspecified',
                 status: 'active',
                 createdBy: 'system',
+                sourcePage: submissionData.sourcePage,
+                configuratorProductSlug: submissionData.configuratorProductSlug,
+                configuratorExteriorFinish: submissionData.configuratorExteriorFinish,
+                configuratorInteriorFinish: submissionData.configuratorInteriorFinish,
+                configuratorAddons: submissionData.configuratorAddons,
+                configuratorTotalCents: submissionData.configuratorTotalCents,
+                preferredDate: submissionData.preferredDate,
             }
         });
 
@@ -127,11 +138,12 @@ export class SubmissionsService {
           },
         });
 
-        return { id: submission.id, submission };
+        return { id: submission.id, submission, quoteNumber: customer.quoteNumber };
       });
 
       logger.info({
         submissionId: result.id,
+        quoteNumber: result.quoteNumber,
         email: submissionData.email,
         sourcePageSlug,
         createdAt: result.submission.createdAt,

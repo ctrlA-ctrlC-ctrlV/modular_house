@@ -29,22 +29,31 @@ router.post('/enquiry',
         preferredProduct,
         message,
         consent,
-        website // honeypot field
+        website, // honeypot field
+        // Configurator-specific fields (optional, only present for configurator submissions)
+        sourcePage,
+        configuratorProductSlug,
+        configuratorExteriorFinish,
+        configuratorInteriorFinish,
+        configuratorAddons,
+        configuratorTotalCents,
+        preferredDate,
       } = req.body;
 
-      // Honeypot check - reject if website field is filled (including whitespace-only)
+      // Honeypot check - reject if website field is filled (including whitespace-only).
+      // Returns a fake success response to avoid revealing the detection mechanism.
       if (website && website.length > 0) {
         logger.warn({
           ip: req.socket?.remoteAddress,
           userAgent: req.headers['user-agent'],
           honeypotValue: website,
-          email: email, // Log email for tracking spam attempts
+          email: email,
         }, 'Honeypot triggered - rejecting submission');
-        
-        // Return success to avoid revealing honeypot to bot
+
         res.status(200).json({
           ok: true,
-          id: crypto.randomUUID()
+          id: crypto.randomUUID(),
+          quoteNumber: `Q${(new Date().getFullYear() % 100)}10000`,
         });
         return;
       }
@@ -59,11 +68,15 @@ router.post('/enquiry',
         .update(clientIP)
         .digest('hex');
 
-      // Get source page from referer or default
+      // Determine source page: use the explicitly provided sourcePage field
+      // if present (sent by the configurator), otherwise fall back to
+      // extracting the slug from the HTTP Referer header.
       const referer = req.headers['referer'] || '';
-      const sourcePageSlug = extractSlugFromReferer(referer) || 'contact';
+      const sourcePageSlug = sourcePage || extractSlugFromReferer(referer) || 'contact';
 
-      // Prepare submission data for T026 SubmissionsService
+      // Prepare submission data, including configurator-specific fields
+      // when they are present. Non-configurator submissions omit these
+      // fields, which preserves backward compatibility.
       const submissionData = {
         firstName,
         lastName,
@@ -73,7 +86,14 @@ router.post('/enquiry',
         eircode,
         preferredProduct,
         message,
-        consent
+        consent,
+        sourcePage: sourcePageSlug,
+        configuratorProductSlug,
+        configuratorExteriorFinish,
+        configuratorInteriorFinish,
+        configuratorAddons,
+        configuratorTotalCents,
+        preferredDate,
       };
 
       // Create submission record using SubmissionsService
@@ -106,9 +126,12 @@ router.post('/enquiry',
         }, 'Error processing submission emails - submission was stored but emails may have failed');
       });
 
+      // Include the generated quoteNumber in the response so the frontend
+      // can display it on the configurator confirmation screen.
       res.status(200).json({
         ok: true,
-        id: submissionId
+        id: submissionId,
+        quoteNumber: result.quoteNumber,
       });
 
     } catch (error) {

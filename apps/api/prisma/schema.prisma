@@ -139,6 +139,12 @@ model Redirect {
   @@map("redirects")
 }
 
+// --------------------------------------------------------------------------
+// Customer: Stores customer contact details and quote metadata created from
+// enquiry submissions. The sourcePage field identifies which page or feature
+// generated the record. Configurator-specific fields are nullable and only
+// populated when the submission originates from the garden room configurator.
+// --------------------------------------------------------------------------
 model Customer {
   id          String    @id @default(uuid()) @db.Uuid
   product     String    @db.VarChar(50)
@@ -155,6 +161,28 @@ model Customer {
   quoteDate   DateTime  @default(now()) @map("quote_date") @db.Timestamptz(6)
   quoteNumber String    @unique @map("quote_number") @db.VarChar(20)
   surname     String?   @db.VarChar(100)
+
+  /// Identifies the originating page: "contact", "landing", "garden-room", or "configurator".
+  sourcePage             String?  @default("contact") @map("source_page") @db.VarChar(50)
+
+  /// Configurator-specific: product slug selected during configuration (e.g. "studio-25").
+  configuratorProductSlug    String?  @map("configurator_product_slug") @db.VarChar(50)
+
+  /// Configurator-specific: selected exterior cladding finish name.
+  configuratorExteriorFinish String?  @map("configurator_exterior_finish") @db.VarChar(50)
+
+  /// Configurator-specific: selected interior wall finish name.
+  configuratorInteriorFinish String?  @map("configurator_interior_finish") @db.VarChar(50)
+
+  /// Configurator-specific: comma-separated list of selected add-on slugs.
+  configuratorAddons         String?  @map("configurator_addons")
+
+  /// Configurator-specific: total configured price in euro cents (base + add-ons).
+  configuratorTotalCents     Int?     @map("configurator_total_cents")
+
+  /// Customer's preferred date for consultation: "asap" or an ISO date string.
+  preferredDate              String?  @map("preferred_date") @db.VarChar(50)
+
   notes       Note[]
 
   @@map("customers")

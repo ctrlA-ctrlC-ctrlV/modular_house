@@ -27,6 +27,7 @@
  */
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import type { DatePreferenceValue } from './types';
 import { useConfiguratorState } from './useConfiguratorState';
@@ -609,26 +610,85 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      Selects which step content to render based on the current step index
      and the consultation form visibility flag.
      ----------------------------------------------------------------------- */
-  const renderStepContent = (): React.ReactNode => {
-    /* When the form has been successfully submitted, the confirmation
-       screen (Task B5) will be rendered here. Until B5 is implemented,
-       display a simple success message with the quote number. */
-    if (currentStep?.id === 'summary' && state.formStatus === 'success') {
-      return (
-        <div className="configurator__confirmation" style={{ animation: 'configurator-fade-up 0.45s ease both' }}>
-          <div className="configurator__step-heading">
-            <h2 className="configurator__step-title">Your estimate is on its way</h2>
-            <p className="configurator__step-subtitle">
-              Check your inbox -- your personalised estimate will arrive within 30 seconds.
-            </p>
-          </div>
-          {state.quoteNumber && (
-            <p className="configurator__confirmation-quote">
-              Quote reference: <strong>{state.quoteNumber}</strong>
-            </p>
-          )}
+  /* -----------------------------------------------------------------------
+     Confirmation Screen (Post-Submission)
+     -----------------------------------------------------------------------
+     Apple-inspired success view rendered after a successful form submission.
+     Features an animated SVG checkmark (circle scales in, then the check
+     stroke draws itself), a thank-you heading, subtitle, quote number
+     badge, and a pill-shaped "Back to Home" link.
+
+     This view completely replaces the summary step content and is
+     unreachable via the progress bar (the goToStep guard in
+     useConfiguratorState prevents navigation when formStatus is "success").
+     ----------------------------------------------------------------------- */
+  const renderConfirmationScreen = (): React.ReactNode => (
+    <div className="configurator__confirmation">
+      {/* Animated checkmark SVG -- circle scales in, then stroke draws */}
+      <div className="configurator__checkmark-container">
+        <svg
+          className="configurator__checkmark-svg"
+          viewBox="0 0 80 80"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <circle
+            className="configurator__checkmark-circle"
+            cx="40"
+            cy="40"
+            r="36"
+            stroke="#1a1a1a"
+            strokeWidth="3"
+            fill="none"
+          />
+          <path
+            className="configurator__checkmark-path"
+            d="M24 40 L35 51 L56 30"
+            stroke="#1a1a1a"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
+      </div>
+
+      {/* Heading and subtitle */}
+      <h2 className="configurator__confirmation-title">
+        Your estimate is on its way
+      </h2>
+      <p className="configurator__confirmation-subtitle">
+        Check your inbox &mdash; your personalised estimate will arrive within 30 seconds.
+      </p>
+
+      {/* Quote number badge */}
+      {state.quoteNumber && (
+        <div className="configurator__confirmation-quote-badge">
+          <span className="configurator__confirmation-quote-label">Quote Number</span>
+          <span className="configurator__confirmation-quote-value">{state.quoteNumber}</span>
         </div>
-      );
+      )}
+
+      {/* Back to Home pill button */}
+      <Link to="/" className="configurator__home-link">
+        Back to Home
+      </Link>
+    </div>
+  );
+
+
+  /* -----------------------------------------------------------------------
+     Step Content Router
+     -----------------------------------------------------------------------
+     Selects which step content to render based on the current step index
+     and the consultation form visibility flag.
+     ----------------------------------------------------------------------- */
+  const renderStepContent = (): React.ReactNode => {
+    /* Render the confirmation screen when the form submission has
+       succeeded. This takes priority over all other summary views. */
+    if (currentStep?.id === 'summary' && state.formStatus === 'success') {
+      return renderConfirmationScreen();
     }
 
     if (currentStep?.id === 'summary' && state.showConsultation) {

@@ -1037,28 +1037,149 @@ select.configurator__form-input {
 /* ---------------------------------------------------------------------------
    Confirmation Screen (Post-Submission)
    ---------------------------------------------------------------------------
-   Simple success state displayed after a successful form submission.
-   Centred layout with padding for visual breathing room. The full
-   Apple-style animated checkmark confirmation is implemented in Task B5;
-   this provides a functional placeholder with the quote reference.
+   Apple-inspired success screen displayed after the consultation form is
+   submitted successfully. Features a centred layout with an animated SVG
+   checkmark, a thank-you message, a quote number badge, and a pill-shaped
+   "Back to Home" link.
+
+   The animation sequence is:
+   1. The circle scales in from 0 to full size (scale-in-circle, 0.5s).
+   2. The checkmark stroke draws itself (draw-checkmark, 0.4s after 0.4s delay).
+   3. The text content fades up (configurator-fade-up, staggered delays).
    --------------------------------------------------------------------------- */
 
 .configurator__confirmation {
   text-align: center;
   padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: configurator-fade-up 0.45s ease both;
 }
 
-.configurator__confirmation-quote {
-  margin-top: 16px;
-  font-size: 16px;
-  color: var(--cfg-color-text-secondary);
-  font-family: var(--cfg-font-body);
+/* -- Animated Checkmark SVG Container ------------------------------------ */
+
+.configurator__checkmark-container {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 28px;
 }
 
-.configurator__confirmation-quote strong {
+.configurator__checkmark-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Circle entrance: scales from 0 to 1 with a slight overshoot */
+.configurator__checkmark-circle {
+  transform-origin: center;
+  animation: scale-in-circle 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Checkmark stroke draw: uses stroke-dasharray/dashoffset technique.
+   Total path length is approximately 55 units. The animation starts
+   with the full dash offset (path hidden) and transitions to 0 (fully drawn). */
+.configurator__checkmark-path {
+  stroke-dasharray: 55;
+  stroke-dashoffset: 55;
+  animation: draw-checkmark 0.4s ease-out 0.4s forwards;
+}
+
+/* -- Confirmation Title -------------------------------------------------- */
+
+.configurator__confirmation-title {
+  font-family: var(--cfg-font-heading);
+  font-size: 28px;
+  font-weight: 700;
   color: var(--cfg-color-text);
-  font-size: 18px;
-  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  animation: configurator-fade-up 0.5s ease 0.3s both;
+}
+
+/* -- Confirmation Subtitle ----------------------------------------------- */
+
+.configurator__confirmation-subtitle {
+  font-family: var(--cfg-font-body);
+  font-size: 15px;
+  color: var(--cfg-color-text-secondary);
+  margin: 0 0 24px 0;
+  max-width: 380px;
+  line-height: 1.5;
+  animation: configurator-fade-up 0.5s ease 0.45s both;
+}
+
+/* -- Quote Number Badge -------------------------------------------------- */
+
+.configurator__confirmation-quote-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 28px;
+  background: var(--cfg-color-surface-alt);
+  border: 1px solid var(--cfg-color-border-light);
+  border-radius: var(--cfg-radius-md);
+  margin-bottom: 32px;
+  animation: configurator-fade-up 0.5s ease 0.6s both;
+}
+
+.configurator__confirmation-quote-label {
+  font-family: var(--cfg-font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cfg-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.configurator__confirmation-quote-value {
+  font-family: var(--cfg-font-body);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cfg-color-text);
+  letter-spacing: 0.05em;
+}
+
+/* -- Back to Home Pill Link ---------------------------------------------- */
+
+.configurator__home-link {
+  display: inline-block;
+  padding: 14px 36px;
+  background: var(--cfg-color-primary);
+  color: var(--cfg-color-surface);
+  border-radius: 28px;
+  font-family: var(--cfg-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  transition: all var(--cfg-transition-fast);
+  animation: configurator-fade-up 0.5s ease 0.75s both;
+}
+
+.configurator__home-link:hover {
+  background: var(--cfg-color-primary-hover);
+  transform: scale(1.02);
+}
+
+/* -- Checkmark Keyframe Animations --------------------------------------- */
+
+@keyframes scale-in-circle {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes draw-checkmark {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 
@@ -1313,6 +1434,14 @@ select.configurator__form-input {
 
   .configurator__connector {
     width: 24px;
+  }
+
+  .configurator__confirmation-title {
+    font-size: 24px;
+  }
+
+  .configurator__confirmation-subtitle {
+    font-size: 14px;
   }
 }
 

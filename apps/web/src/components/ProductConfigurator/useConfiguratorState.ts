@@ -333,12 +333,17 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
    * Steps beyond the highest completed index remain unreachable.
    */
   const goToStep = useCallback((index: number) => {
+    /* Block all step navigation once the confirmation screen is displayed.
+       This prevents the user from accidentally leaving the success state
+       by clicking a progress bar step. */
+    if (formStatus === 'success') return;
+
     if (index <= highestCompletedStepIndex && index !== stepIndex) {
       setAnimationKey((k) => k + 1);
       setStepIndex(index);
       setShowConsultation(false);
     }
-  }, [stepIndex, highestCompletedStepIndex]);
+  }, [stepIndex, highestCompletedStepIndex, formStatus]);
 
   /**
    * Advance to the next step if the current step's requirements are met.

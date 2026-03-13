@@ -165,6 +165,10 @@ export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
    both the visual variant (solid vs dashed border) and the CTA style
    (filled vs outline button).
 
+   CTA links route to the product configurator page at
+   /garden-room/configure/:slug, where the slug matches the
+   CONFIGURATOR_PRODUCTS_BY_SLUG keys in configurator-products.ts.
+
    Image paths reference the /public/resource/garden-room/ directory,
    with PNG fallback, WebP, and AVIF optimised variants.
    ============================================================================= */
@@ -182,7 +186,7 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
     planningPermission: false,
     inStock: true,
     ctaText: 'Get a Quote',
-    ctaLink: '/contact?product=garden-room-15',
+    ctaLink: '/garden-room/configure/compact-15',
     available: true,
   },
   {
@@ -198,7 +202,7 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
     inStock: true,
     badge: 'Most Popular',
     ctaText: 'Get a Quote',
-    ctaLink: '/contact?product=garden-room-25',
+    ctaLink: '/garden-room/configure/studio-25',
     available: true,
   },
   {
@@ -214,7 +218,7 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
     inStock: false,
     badge: 'Coming Soon',
     ctaText: 'Register Interest',
-    ctaLink: '/contact?product=garden-room-35&interest=true',
+    ctaLink: '/garden-room/configure/living-35',
     available: false,
   },
   {
@@ -230,7 +234,7 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
     inStock: false,
     badge: 'Coming Soon',
     ctaText: 'Register Interest',
-    ctaLink: '/contact?product=garden-room-45&interest=true',
+    ctaLink: '/garden-room/configure/grand-45',
     available: false,
   },
 ];
@@ -242,6 +246,7 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
    Extended product data used by the QuickViewModal component. Each entry
    corresponds to a product in GARDEN_ROOM_PRODUCTS (same index order) and
    adds description, specs, and lead time fields for the expanded modal view.
+   CTA links mirror the configurator routes used by the product cards above.
    ============================================================================= */
 
 export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
@@ -269,7 +274,7 @@ export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
       electrics: 'Full consumer unit, Cat6 ready',
     },
     leadTime: '6\u20138 weeks',
-    ctaLink: '/contact?product=garden-room-15',
+    ctaLink: '/garden-room/configure/compact-15',
     ctaText: 'Get a Quote',
   },
   {
@@ -297,7 +302,7 @@ export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
       plumbing: 'Optional kitchenette prep',
     },
     leadTime: '8\u201310 weeks',
-    ctaLink: '/contact?product=garden-room-25',
+    ctaLink: '/garden-room/configure/studio-25',
     ctaText: 'Get a Quote',
   },
   {
@@ -325,7 +330,7 @@ export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
       plumbing: 'Optional kitchenette & WC',
     },
     leadTime: '10\u201312 weeks',
-    ctaLink: '/contact?product=garden-room-35&interest=true',
+    ctaLink: '/garden-room/configure/living-35',
     ctaText: 'Register Interest',
   },
   {
@@ -353,7 +358,7 @@ export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
       plumbing: 'Optional full kitchen & WC',
     },
     leadTime: '12\u201316 weeks',
-    ctaLink: '/contact?product=garden-room-45&interest=true',
+    ctaLink: '/garden-room/configure/grand-45',
     ctaText: 'Register Interest',
   },
 ];

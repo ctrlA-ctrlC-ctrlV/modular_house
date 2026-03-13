@@ -3,6 +3,12 @@ import { logger } from '../middleware/logger.js';
 import { SubmissionPayload, EmailLog, EmailResultLog } from '../types/submission.js';
 import { mailer, EmailResult } from './mailer.js';
 import { config } from '../config/env.js';
+import { CONFIGURATOR_PRODUCT_LOOKUP } from '../data/configurator-products.js';
+import {
+  buildConfiguratorInternalEmail,
+  type ConfiguratorAddonItem,
+} from '../templates/configurator-internal.js';
+import { buildConfiguratorExternalEmail } from '../templates/configurator-external.js';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -303,9 +309,40 @@ export class SubmissionsService {
   }
 
   /**
+   * Resolves a comma-separated addon slug string into an array of display-ready
+   * addon items using the product lookup table. Unrecognised slugs are included
+   * with a fallback name and zero price so the email still lists them.
+   */
+  private static resolveAddons(
+    addonSlugs: string | undefined,
+    productSlug: string | undefined
+  ): ConfiguratorAddonItem[] {
+    if (!addonSlugs || !addonSlugs.trim()) return [];
+
+    const product = productSlug
+      ? CONFIGURATOR_PRODUCT_LOOKUP[productSlug]
+      : undefined;
+
+    return addonSlugs
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .map((slug) => {
+        const lookup = product?.addons[slug];
+        return {
+          name: lookup?.name ?? slug,
+          priceCents: lookup?.priceCents ?? 0,
+        };
+      });
+  }
+
+  /**
    * Send internal notification email for a submission
    */
-  static async sendInternalNotification(submission: Submission): Promise<EmailResultLog> {
+  static async sendInternalNotification(
+    submission: Submission,
+    quoteNumber?: string,
+  ): Promise<EmailResultLog> {
     try {
       // Check if mailer is ready
       const isReady = await mailer.ensureReady();
@@ -322,10 +359,51 @@ export class SubmissionsService {
       }
 
       const payload = submission.payload as SubmissionPayload;
-      
-      const subject = `New Enquiry from ${payload.firstName} ${payload.lastName || ''}`.trim();
-      
-      const textContent = `
+
+      // Branch: use the configurator-specific template when the submission
+      // originates from the product configurator; otherwise fall through to
+      // the existing generic template.
+      const isConfigurator = payload.sourcePage === 'configurator';
+
+      let subject: string;
+      let textContent: string;
+      let htmlContent: string;
+
+      if (isConfigurator && quoteNumber) {
+        const productData = payload.configuratorProductSlug
+          ? CONFIGURATOR_PRODUCT_LOOKUP[payload.configuratorProductSlug]
+          : undefined;
+
+        const addons = this.resolveAddons(
+          payload.configuratorAddons,
+          payload.configuratorProductSlug,
+        );
+
+        const templateResult = buildConfiguratorInternalEmail({
+          quoteNumber,
+          submittedAt: submission.createdAt.toISOString(),
+          firstName: payload.firstName,
+          email: payload.email,
+          phone: payload.phone,
+          eircode: payload.eircode ?? '',
+          productName: productData?.name ?? payload.configuratorProductSlug ?? 'Unknown',
+          productDimensions: productData?.dimensions ?? '',
+          productArea: productData?.area ?? '',
+          exteriorFinish: payload.configuratorExteriorFinish ?? 'Not specified',
+          interiorFinish: payload.configuratorInteriorFinish ?? 'Not specified',
+          addons,
+          totalCents: payload.configuratorTotalCents ?? 0,
+          preferredDate: payload.preferredDate ?? 'asap',
+          message: payload.message ?? '',
+        });
+
+        subject = templateResult.subject;
+        textContent = templateResult.text;
+        htmlContent = templateResult.html;
+      } else {
+        subject = `New Enquiry from ${payload.firstName} ${payload.lastName || ''}`.trim();
+
+        textContent = `
         New Enquiry Submission
 
         Name: ${payload.firstName} ${payload.lastName || ''}
@@ -342,7 +420,7 @@ export class SubmissionsService {
         Consent: ${submission.consentFlag ? 'Yes' : 'No'}
             `.trim();
 
-      const htmlContent = `
+        htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -408,6 +486,7 @@ export class SubmissionsService {
         </body>
         </html>
             `.trim();
+      }
 
       const result = await mailer.sendInternalNotification(subject, textContent, htmlContent);
 
@@ -447,7 +526,10 @@ export class SubmissionsService {
   /**
    * Send customer confirmation email (if enabled)
    */
-  static async sendCustomerConfirmation(submission: Submission): Promise<EmailResultLog | null> {
+  static async sendCustomerConfirmation(
+    submission: Submission,
+    quoteNumber?: string,
+  ): Promise<EmailResultLog | null> {
     // Check if customer confirmation is enabled
     if (!config.app.customerConfirmEnabled) {
       logger.info({
@@ -472,10 +554,44 @@ export class SubmissionsService {
       }
 
       const payload = submission.payload as SubmissionPayload;
-      
-      const subject = 'Thank you for your enquiry - Modular House';
-      
-      const textContent = `
+
+      // Branch: use the configurator-specific template when the submission
+      // originates from the product configurator; otherwise fall through to
+      // the existing generic template.
+      const isConfigurator = payload.sourcePage === 'configurator';
+
+      let subject: string;
+      let textContent: string;
+      let htmlContent: string;
+
+      if (isConfigurator && quoteNumber) {
+        const productData = payload.configuratorProductSlug
+          ? CONFIGURATOR_PRODUCT_LOOKUP[payload.configuratorProductSlug]
+          : undefined;
+
+        const addons = this.resolveAddons(
+          payload.configuratorAddons,
+          payload.configuratorProductSlug,
+        );
+
+        const templateResult = buildConfiguratorExternalEmail({
+          quoteNumber,
+          firstName: payload.firstName,
+          productName: productData?.name ?? payload.configuratorProductSlug ?? 'Unknown',
+          productDimensions: productData?.dimensions ?? '',
+          exteriorFinish: payload.configuratorExteriorFinish ?? 'Not specified',
+          interiorFinish: payload.configuratorInteriorFinish ?? 'Not specified',
+          addons,
+          totalCents: payload.configuratorTotalCents ?? 0,
+        });
+
+        subject = templateResult.subject;
+        textContent = templateResult.text;
+        htmlContent = templateResult.html;
+      } else {
+        subject = 'Thank you for your enquiry - Modular House';
+
+        textContent = `
         Dear ${payload.firstName},
 
         Thank you for your enquiry about our modular house solutions.
@@ -491,7 +607,7 @@ export class SubmissionsService {
         This is an automated confirmation. Please do not reply to this email.
             `.trim();
 
-            const htmlContent = `
+        htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -511,16 +627,16 @@ export class SubmissionsService {
             </div>
             <div class="content">
             <p>Dear ${payload.firstName},</p>
-            
+
             <p>Thank you for your enquiry about our modular house solutions.</p>
-            
+
             <p>We have received your message and one of our team members will be in touch with you shortly to discuss your requirements.</p>
-            
+
             <p>If you have any urgent questions in the meantime, please feel free to contact us directly.</p>
-            
+
             <p>Best regards,<br>
             <strong>The Modular House Team</strong></p>
-            
+
             <div class="footer">
                 <p>This is an automated confirmation. Please do not reply to this email.</p>
             </div>
@@ -529,6 +645,7 @@ export class SubmissionsService {
         </body>
         </html>
             `.trim();
+      }
 
       const result = await mailer.sendCustomerConfirmation(
         payload.email,
@@ -573,20 +690,27 @@ export class SubmissionsService {
   }
 
   /**
-   * Process submission: send emails and update email log
+   * Process submission: send emails and update email log.
+   *
+   * @param submission - The Prisma Submission record.
+   * @param quoteNumber - The generated quote reference from the Customer record.
+   *   Required for configurator submissions so the email templates can display it.
    */
-  static async processSubmission(submission: Submission): Promise<void> {
+  static async processSubmission(
+    submission: Submission,
+    quoteNumber?: string,
+  ): Promise<void> {
     const startTime = Date.now();
-    
+
     logger.info({
       submissionId: submission.id,
     }, 'Processing submission emails');
 
     // Send internal notification (required)
-    const internalResult = await this.sendInternalNotification(submission);
+    const internalResult = await this.sendInternalNotification(submission, quoteNumber);
 
     // Send customer confirmation (optional, based on config)
-    const customerResult = await this.sendCustomerConfirmation(submission);
+    const customerResult = await this.sendCustomerConfirmation(submission, quoteNumber);
 
     const duration = Date.now() - startTime;
 

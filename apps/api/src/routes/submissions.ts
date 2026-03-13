@@ -116,9 +116,10 @@ router.post('/enquiry',
         userAgent: userAgent.substring(0, 100), // Truncate user agent
       }, 'Submission created and stored successfully');
 
-      // Process submission emails (internal notification + optional customer confirmation)
-      // This runs asynchronously - we don't wait for it to complete
-      SubmissionsService.processSubmission(result.submission).catch((emailError) => {
+      // Process submission emails (internal notification + optional customer confirmation).
+      // The quoteNumber is forwarded so configurator templates can display it.
+      // This runs asynchronously - we don't wait for it to complete.
+      SubmissionsService.processSubmission(result.submission, result.quoteNumber).catch((emailError) => {
         logger.error({
           error: emailError instanceof Error ? emailError.message : 'Unknown error',
           stack: emailError instanceof Error ? emailError.stack : undefined,

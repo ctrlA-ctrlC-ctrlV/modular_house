@@ -124,3 +124,67 @@ export type SummaryTabId =
   | 'interior-finish'
   | 'glazing'
   | 'other-details';
+
+
+/* =============================================================================
+   SECTION 6: CONSULTATION FORM DATA
+   -----------------------------------------------------------------------------
+   Represents the complete set of form field values captured in the
+   consultation form on the summary step. All fields default to empty
+   strings except datePreference which defaults to "asap".
+
+   The honeypot field is an anti-spam mechanism: legitimate users never
+   see or fill it, but automated bots that populate all fields will
+   trigger a silent fake-success rejection.
+   ============================================================================= */
+
+/**
+ * Allowed values for the preferred date dropdown on the consultation form.
+ * "asap" indicates the customer wants the earliest available slot;
+ * "select-date" reveals a native date picker for specific date selection.
+ */
+export type DatePreferenceValue = 'asap' | 'select-date';
+
+/**
+ * Captures all form field values from the consultation form.
+ * Each field maps to a controlled input in the rendered form.
+ */
+export interface ConfiguratorFormData {
+  /** Customer's first name (required). */
+  firstName: string;
+  /** Customer's email address (required). */
+  email: string;
+  /** Customer's mobile phone number (required). */
+  phone: string;
+  /** Irish postal code (required). */
+  eircode: string;
+  /** Whether the customer wants ASAP or a specific date. */
+  datePreference: DatePreferenceValue;
+  /** ISO date string when datePreference is "select-date", otherwise empty. */
+  selectedDate: string;
+  /** Optional free-text message from the customer. */
+  message: string;
+  /** Anti-spam honeypot field -- expected to remain empty for real users. */
+  honeypot: string;
+}
+
+
+/* =============================================================================
+   SECTION 7: FORM SUBMISSION STATUS
+   -----------------------------------------------------------------------------
+   Tracks the lifecycle of the consultation form submission. The status
+   transitions are:
+     idle -> submitting -> success | error
+   Once in the "success" state, the confirmation screen is displayed and
+   no further transitions occur.
+   ============================================================================= */
+
+/**
+ * Discriminated status values for the form submission lifecycle.
+ *
+ * - "idle"       : Form is displayed, awaiting user input.
+ * - "submitting" : Request is in flight; submit button shows a spinner.
+ * - "success"    : Submission succeeded; confirmation screen is shown.
+ * - "error"      : Submission failed; error message is displayed inline.
+ */
+export type FormStatus = 'idle' | 'submitting' | 'success' | 'error';

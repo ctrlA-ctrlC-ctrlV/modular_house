@@ -24,9 +24,10 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import type { ConfiguratorProduct } from '../../types/configurator';
-import type { ConfiguratorSelections } from './types';
+import type { ConfiguratorSelections, ConfiguratorFormData, FormStatus } from './types';
 import { CONFIGURATOR_STEPS, SESSION_STORAGE_KEY_PREFIX } from './constants';
 import { calculateTotalPriceCents } from './utils';
+import { apiClient } from '../../lib/apiClient';
 
 
 /* =============================================================================
@@ -68,6 +69,21 @@ export interface ConfiguratorStateAPI {
   /** Whether the consultation form overlay is visible on the summary step. */
   showConsultation: boolean;
 
+  /* -- Form state --------------------------------------------------------- */
+
+  /** Current values of all consultation form fields. */
+  formData: ConfiguratorFormData;
+  /** Lifecycle status of the form submission (idle, submitting, success, error). */
+  formStatus: FormStatus;
+  /** Quote number returned by the API after a successful submission. */
+  quoteNumber: string;
+  /** Human-readable error message when formStatus is "error". */
+  formError: string;
+  /** Per-field validation error messages, keyed by field name. Empty when valid. */
+  formValidationErrors: Partial<Record<keyof ConfiguratorFormData, string>>;
+
+  /* -- Navigation actions ------------------------------------------------- */
+
   /** Navigate to a specific step by index (any previously visited step). */
   goToStep: (index: number) => void;
   /** Advance to the next step (if canProceed is true). */
@@ -82,6 +98,20 @@ export interface ConfiguratorStateAPI {
   toggleAddon: (addonId: string) => void;
   /** Show or hide the consultation form on the summary step. */
   setShowConsultation: (show: boolean) => void;
+
+  /* -- Form actions ------------------------------------------------------- */
+
+  /**
+   * Update a single form field value. Accepts the field name and new value,
+   * clearing any existing validation error for that field.
+   */
+  updateFormField: <K extends keyof ConfiguratorFormData>(field: K, value: ConfiguratorFormData[K]) => void;
+  /**
+   * Validate and submit the consultation form. Performs client-side
+   * validation, checks the honeypot, then sends the data to the API.
+   * On success, sets formStatus to "success" and stores the quote number.
+   */
+  submitForm: () => Promise<void>;
 }
 
 
@@ -125,6 +155,92 @@ const DEFAULT_SELECTIONS: ConfiguratorSelections = {
 
 
 /* =============================================================================
+   Default Form Data
+   -----------------------------------------------------------------------------
+   Initial values for the consultation form fields. All text fields begin
+   as empty strings; the date preference defaults to "asap" (earliest
+   available). This constant is used both for initial state and for
+   identifying a pristine form.
+   ============================================================================= */
+
+const DEFAULT_FORM_DATA: ConfiguratorFormData = {
+  firstName: '',
+  email: '',
+  phone: '',
+  eircode: '',
+  datePreference: 'asap',
+  selectedDate: '',
+  message: '',
+  honeypot: '',
+};
+
+
+/* =============================================================================
+   Form Validation
+   -----------------------------------------------------------------------------
+   Client-side validation for the consultation form. Returns a map of
+   field names to error messages. An empty map indicates the form is valid.
+
+   Validation rules:
+   - firstName: required, non-empty after trimming
+   - email:     required, must match a basic email pattern
+   - phone:     required, must contain only digits, spaces, hyphens, and +()
+   - eircode:   required, must match the Irish Eircode alphanumeric format
+   ============================================================================= */
+
+/** Basic email pattern for client-side validation (not exhaustive). */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Irish phone number pattern: digits, spaces, hyphens, plus, parentheses. */
+const PHONE_PATTERN = /^[\d\s\-+()]+$/;
+
+/** Irish Eircode pattern: alphanumeric characters and optional spaces. */
+const EIRCODE_PATTERN = /^[A-Z0-9\s]+$/i;
+
+/**
+ * Validates all required consultation form fields and returns a map of
+ * field-level error messages. Returns an empty object when all fields
+ * pass validation.
+ *
+ * @param data - The current form field values to validate.
+ * @returns A partial record mapping invalid field names to their error messages.
+ */
+function validateFormData(
+  data: ConfiguratorFormData
+): Partial<Record<keyof ConfiguratorFormData, string>> {
+  const errors: Partial<Record<keyof ConfiguratorFormData, string>> = {};
+
+  if (!data.firstName.trim()) {
+    errors.firstName = 'First name is required';
+  }
+
+  if (!data.email.trim()) {
+    errors.email = 'Email is required';
+  } else if (!EMAIL_PATTERN.test(data.email.trim())) {
+    errors.email = 'Please enter a valid email address';
+  }
+
+  if (!data.phone.trim()) {
+    errors.phone = 'Mobile number is required';
+  } else if (!PHONE_PATTERN.test(data.phone.trim())) {
+    errors.phone = 'Please enter a valid phone number';
+  }
+
+  if (!data.eircode.trim()) {
+    errors.eircode = 'Eircode is required';
+  } else if (!EIRCODE_PATTERN.test(data.eircode.trim())) {
+    errors.eircode = 'Please enter a valid Eircode';
+  }
+
+  if (data.datePreference === 'select-date' && !data.selectedDate) {
+    errors.selectedDate = 'Please select a date';
+  }
+
+  return errors;
+}
+
+
+/* =============================================================================
    useConfiguratorState Hook
    ============================================================================= */
 
@@ -149,6 +265,22 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
 
   const [animationKey, setAnimationKey] = useState<number>(0);
   const [showConsultation, setShowConsultation] = useState<boolean>(false);
+
+  /* -----------------------------------------------------------------------
+     Form State
+     -----------------------------------------------------------------------
+     Manages the consultation form fields, submission lifecycle status,
+     server-returned quote number, error messages, and per-field validation
+     errors. These values are NOT persisted to sessionStorage because the
+     form should start fresh on each page load.
+     ----------------------------------------------------------------------- */
+  const [formData, setFormData] = useState<ConfiguratorFormData>(DEFAULT_FORM_DATA);
+  const [formStatus, setFormStatus] = useState<FormStatus>('idle');
+  const [quoteNumber, setQuoteNumber] = useState<string>('');
+  const [formError, setFormError] = useState<string>('');
+  const [formValidationErrors, setFormValidationErrors] = useState<
+    Partial<Record<keyof ConfiguratorFormData, string>>
+  >({});
 
 
   /* -----------------------------------------------------------------------
@@ -259,6 +391,115 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
 
 
   /* -----------------------------------------------------------------------
+     Form Actions
+     -----------------------------------------------------------------------
+     Provides controlled-input update and async submission logic for the
+     consultation form. The updateFormField function clears the validation
+     error for the modified field on every keystroke, providing real-time
+     feedback. The submitForm function performs full validation, checks the
+     honeypot, and dispatches the API request.
+     ----------------------------------------------------------------------- */
+
+  /**
+   * Updates a single field in the form data state and clears any existing
+   * validation error for that field. Uses a generic key constraint to
+   * ensure type safety between field names and their corresponding values.
+   */
+  const updateFormField = useCallback(
+    <K extends keyof ConfiguratorFormData>(field: K, value: ConfiguratorFormData[K]) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      setFormValidationErrors((prev) => {
+        if (prev[field]) {
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        }
+        return prev;
+      });
+    },
+    [],
+  );
+
+  /**
+   * Validates the form, checks the honeypot, and submits the configurator
+   * enquiry to the backend API.
+   *
+   * Honeypot behaviour: if the hidden honeypot field contains any value,
+   * the function silently simulates a successful submission (sets status
+   * to "success" with a fake quote number) without sending a request,
+   * preventing spam bots from detecting that their submission was rejected.
+   *
+   * On genuine success, the API-returned quote number is stored and the
+   * form transitions to the "success" state. On failure, an error message
+   * is stored and the form transitions to the "error" state, allowing the
+   * user to retry.
+   */
+  const submitForm = useCallback(async () => {
+    /* -- Client-side validation ------------------------------------------ */
+    const errors = validateFormData(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormValidationErrors(errors);
+      return;
+    }
+
+    /* -- Honeypot check: silently fake success for bots ------------------- */
+    if (formData.honeypot.trim() !== '') {
+      setFormStatus('success');
+      setQuoteNumber('Q0000000');
+      return;
+    }
+
+    /* -- Build the preferred date value ----------------------------------- */
+    const preferredDate =
+      formData.datePreference === 'asap' ? 'asap' : formData.selectedDate;
+
+    /* -- Resolve selected finish names for the API payload ---------------- */
+    const exteriorCategory = product.finishCategories.find((fc) => fc.slug === 'exterior');
+    const interiorCategory = product.finishCategories.find((fc) => fc.slug === 'interior');
+    const exteriorName =
+      exteriorCategory?.options.find((o) => o.id === selections.exteriorFinishId)?.name ?? '';
+    const interiorName =
+      interiorCategory?.options.find((o) => o.id === selections.interiorFinishId)?.name ?? '';
+
+    /* -- Build comma-separated add-on slug list --------------------------- */
+    const addonSlugs = product.addons
+      .filter((a) => selections.selectedAddonIds.includes(a.id))
+      .map((a) => a.slug)
+      .join(',');
+
+    /* -- Transition to submitting state ----------------------------------- */
+    setFormStatus('submitting');
+    setFormError('');
+
+    try {
+      const response = await apiClient.submitEnquiry({
+        firstName: formData.firstName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        eircode: formData.eircode.trim(),
+        message: formData.message.trim() || undefined,
+        consent: true,
+        sourcePage: 'configurator',
+        configuratorProductSlug: product.slug,
+        configuratorExteriorFinish: exteriorName,
+        configuratorInteriorFinish: interiorName,
+        configuratorAddons: addonSlugs || undefined,
+        configuratorTotalCents: totalPriceCents,
+        preferredDate,
+      });
+
+      setQuoteNumber(response.quoteNumber);
+      setFormStatus('success');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setFormError(message);
+      setFormStatus('error');
+    }
+  }, [formData, product, selections, totalPriceCents]);
+
+
+  /* -----------------------------------------------------------------------
      Return Stable API Object
      ----------------------------------------------------------------------- */
   return {
@@ -269,6 +510,11 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     totalPriceCents,
     canProceed,
     showConsultation,
+    formData,
+    formStatus,
+    quoteNumber,
+    formError,
+    formValidationErrors,
     goToStep,
     nextStep,
     previousStep,
@@ -276,5 +522,7 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     setInteriorFinish,
     toggleAddon,
     setShowConsultation,
+    updateFormField,
+    submitForm,
   };
 }

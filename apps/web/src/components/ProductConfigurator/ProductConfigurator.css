@@ -938,6 +938,48 @@ select.configurator__form-input {
 }
 
 
+/* -- Form Input Error State -----------------------------------------------
+   Applied to inputs that fail client-side validation. Uses a red border
+   to draw attention to the invalid field without changing the layout.
+   ----------------------------------------------------------------------- */
+
+.configurator__form-input--error {
+  border-color: #dc2626;
+}
+
+.configurator__form-input--error:focus {
+  border-color: #dc2626;
+}
+
+/* -- Per-Field Validation Error Message -----------------------------------
+   Compact error text rendered directly below the invalid input. Uses a
+   subdued red that remains legible against both light and warm backgrounds.
+   ----------------------------------------------------------------------- */
+
+.configurator__form-field-error {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #dc2626;
+  font-family: var(--cfg-font-body);
+}
+
+/* -- Form-Level Error Message ---------------------------------------------
+   Displayed above the submit button when the API request fails. Uses an
+   alert role for accessibility so screen readers announce the error.
+   ----------------------------------------------------------------------- */
+
+.configurator__form-error {
+  padding: 12px 16px;
+  border-radius: var(--cfg-radius-md);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 14px;
+  font-family: var(--cfg-font-body);
+  line-height: 1.4;
+}
+
+
 .configurator__form-submit {
   margin-top: 8px;
   width: 100%;
@@ -958,6 +1000,28 @@ select.configurator__form-input {
   transform: scale(1.01);
 }
 
+/* -- Submit Button Loading State ------------------------------------------
+   Reduces opacity and disables pointer interaction while the API request
+   is in flight, providing clear visual feedback that the action is pending.
+   ----------------------------------------------------------------------- */
+
+.configurator__form-submit--loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.configurator__form-submit--loading:hover {
+  transform: none;
+}
+
+.configurator__form-submit:disabled {
+  cursor: not-allowed;
+}
+
+.configurator__form-submit:disabled:hover {
+  transform: none;
+}
+
 .configurator__form-back {
   width: 100%;
   padding: 12px;
@@ -967,6 +1031,34 @@ select.configurator__form-input {
   font-size: 14px;
   cursor: pointer;
   font-family: var(--cfg-font-body);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Confirmation Screen (Post-Submission)
+   ---------------------------------------------------------------------------
+   Simple success state displayed after a successful form submission.
+   Centred layout with padding for visual breathing room. The full
+   Apple-style animated checkmark confirmation is implemented in Task B5;
+   this provides a functional placeholder with the quote reference.
+   --------------------------------------------------------------------------- */
+
+.configurator__confirmation {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.configurator__confirmation-quote {
+  margin-top: 16px;
+  font-size: 16px;
+  color: var(--cfg-color-text-secondary);
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__confirmation-quote strong {
+  color: var(--cfg-color-text);
+  font-size: 18px;
+  letter-spacing: 0.5px;
 }
 
 

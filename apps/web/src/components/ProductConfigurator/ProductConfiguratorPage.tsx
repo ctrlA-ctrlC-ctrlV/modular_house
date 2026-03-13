@@ -26,8 +26,9 @@
  * =============================================================================
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { ConfiguratorProduct } from '../../types/configurator';
+import type { DatePreferenceValue } from './types';
 import { useConfiguratorState } from './useConfiguratorState';
 import { ProgressBar } from './ProgressBar';
 import { StickySubHeader } from './StickySubHeader';
@@ -54,22 +55,10 @@ interface ProductConfiguratorPageProps {
    ProductConfiguratorPage Component
    ============================================================================= */
 
-/** Defines the available options for the preferred date dropdown. */
-type DatePreference = 'asap' | 'select-date';
-
 export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = ({
   product,
 }) => {
   const state = useConfiguratorState(product);
-
-  /* -----------------------------------------------------------------------
-     Local Form State -- Date Preference
-     -----------------------------------------------------------------------
-     Tracks whether the user wants the earliest available date or wishes
-     to specify a particular date. When set to "select-date", a native
-     date picker is rendered below the dropdown.
-     ----------------------------------------------------------------------- */
-  const [datePreference, setDatePreference] = useState<DatePreference>('asap');
 
   /* -----------------------------------------------------------------------
      Derived Lookup Values
@@ -391,136 +380,227 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      Overlays the summary step with a contact form. Displays a summary
      of the current configuration and a "Back to summary" link.
      ----------------------------------------------------------------------- */
-  const renderConsultationForm = (): React.ReactNode => (
-    <div style={{ animation: 'configurator-fade-up 0.45s ease both' }}>
-      <div className="configurator__step-heading">
-        <h2 className="configurator__step-title">Just a few details to finalise your estimate</h2>
-        <p className="configurator__step-subtitle">
-          Your estimate will land in your inbox within 30 seconds
-        </p>
-      </div>
+  const renderConsultationForm = (): React.ReactNode => {
+    /** Whether the form is currently being submitted to the API. */
+    const isSubmitting = state.formStatus === 'submitting';
 
-      <div className="configurator__form-group">
-        {/* First Name field */}
-        <div>
-          <label className="configurator__form-label" htmlFor="cfg-name">First Name</label>
-          <input
-            id="cfg-name"
-            type="text"
-            placeholder="John Murphy"
-            className="configurator__form-input"
-          />
+    return (
+      <div style={{ animation: 'configurator-fade-up 0.45s ease both' }}>
+        <div className="configurator__step-heading">
+          <h2 className="configurator__step-title">Just a few details to finalise your estimate</h2>
+          <p className="configurator__step-subtitle">
+            Your estimate will land in your inbox within 30 seconds
+          </p>
         </div>
 
-        {/* Email field */}
-        <div>
-          <label className="configurator__form-label" htmlFor="cfg-email">Email</label>
-          <input
-            id="cfg-email"
-            type="email"
-            placeholder="john@email.com"
-            className="configurator__form-input"
-          />
-        </div>
-
-        {/* Mobile phone field */}
-        <div>
-          <label className="configurator__form-label" htmlFor="cfg-phone">Mobile</label>
-          <input
-            id="cfg-phone"
-            type="tel"
-            placeholder="081 2345678"
-            className="configurator__form-input"
-          />
-        </div>
-
-        {/* B1: Eircode field -- Irish postal code input placed after Mobile */}
-        <div>
-          <label className="configurator__form-label" htmlFor="cfg-eircode">Eircode</label>
-          <input
-            id="cfg-eircode"
-            type="text"
-            placeholder="D00 A000"
-            className="configurator__form-input"
-            autoComplete="postal-code"
-          />
-        </div>
-
-        {/* B2: Preferred Date dropdown with conditional date picker.
-            Defaults to "As Soon As Possible". When "Select Date" is chosen,
-            a native date input is revealed below the dropdown. */}
-        <div>
-          <label className="configurator__form-label" htmlFor="cfg-date-preference">Preferred Date</label>
-          <select
-            id="cfg-date-preference"
-            className="configurator__form-input"
-            value={datePreference}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setDatePreference(e.target.value as DatePreference)
-            }
-          >
-            <option value="asap">As Soon As Possible</option>
-            <option value="select-date">Select Date</option>
-          </select>
-        </div>
-        {datePreference === 'select-date' && (
+        <div className="configurator__form-group">
+          {/* First Name field (required) */}
           <div>
-            <label className="configurator__form-label" htmlFor="cfg-date">Select your preferred date</label>
-            <input id="cfg-date" type="date" className="configurator__form-input" />
+            <label className="configurator__form-label" htmlFor="cfg-name">First Name</label>
+            <input
+              id="cfg-name"
+              type="text"
+              placeholder="John Murphy"
+              className={[
+                'configurator__form-input',
+                state.formValidationErrors.firstName && 'configurator__form-input--error',
+              ].filter(Boolean).join(' ')}
+              value={state.formData.firstName}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                state.updateFormField('firstName', e.target.value)
+              }
+              disabled={isSubmitting}
+            />
+            {state.formValidationErrors.firstName && (
+              <p className="configurator__form-field-error">{state.formValidationErrors.firstName}</p>
+            )}
           </div>
-        )}
 
-        {/* Message field (optional free-text area) */}
-        <div>
-          <label className="configurator__form-label" htmlFor="cfg-message">Message (optional)</label>
-          <textarea
-            id="cfg-message"
-            rows={3}
-            placeholder="Any questions or site details..."
-            className="configurator__form-textarea"
-          />
+          {/* Email field (required) */}
+          <div>
+            <label className="configurator__form-label" htmlFor="cfg-email">Email</label>
+            <input
+              id="cfg-email"
+              type="email"
+              placeholder="john@email.com"
+              className={[
+                'configurator__form-input',
+                state.formValidationErrors.email && 'configurator__form-input--error',
+              ].filter(Boolean).join(' ')}
+              value={state.formData.email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                state.updateFormField('email', e.target.value)
+              }
+              disabled={isSubmitting}
+            />
+            {state.formValidationErrors.email && (
+              <p className="configurator__form-field-error">{state.formValidationErrors.email}</p>
+            )}
+          </div>
+
+          {/* Mobile phone field (required) */}
+          <div>
+            <label className="configurator__form-label" htmlFor="cfg-phone">Mobile</label>
+            <input
+              id="cfg-phone"
+              type="tel"
+              placeholder="081 2345678"
+              className={[
+                'configurator__form-input',
+                state.formValidationErrors.phone && 'configurator__form-input--error',
+              ].filter(Boolean).join(' ')}
+              value={state.formData.phone}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                state.updateFormField('phone', e.target.value)
+              }
+              disabled={isSubmitting}
+            />
+            {state.formValidationErrors.phone && (
+              <p className="configurator__form-field-error">{state.formValidationErrors.phone}</p>
+            )}
+          </div>
+
+          {/* B1: Eircode field -- Irish postal code input placed after Mobile (required) */}
+          <div>
+            <label className="configurator__form-label" htmlFor="cfg-eircode">Eircode</label>
+            <input
+              id="cfg-eircode"
+              type="text"
+              placeholder="D00 A000"
+              className={[
+                'configurator__form-input',
+                state.formValidationErrors.eircode && 'configurator__form-input--error',
+              ].filter(Boolean).join(' ')}
+              autoComplete="postal-code"
+              value={state.formData.eircode}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                state.updateFormField('eircode', e.target.value)
+              }
+              disabled={isSubmitting}
+            />
+            {state.formValidationErrors.eircode && (
+              <p className="configurator__form-field-error">{state.formValidationErrors.eircode}</p>
+            )}
+          </div>
+
+          {/* B2: Preferred Date dropdown with conditional date picker.
+              Defaults to "As Soon As Possible". When "Select Date" is chosen,
+              a native date input is revealed below the dropdown. */}
+          <div>
+            <label className="configurator__form-label" htmlFor="cfg-date-preference">Preferred Date</label>
+            <select
+              id="cfg-date-preference"
+              className="configurator__form-input"
+              value={state.formData.datePreference}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                state.updateFormField('datePreference', e.target.value as DatePreferenceValue)
+              }
+              disabled={isSubmitting}
+            >
+              <option value="asap">As Soon As Possible</option>
+              <option value="select-date">Select Date</option>
+            </select>
+          </div>
+          {state.formData.datePreference === 'select-date' && (
+            <div>
+              <label className="configurator__form-label" htmlFor="cfg-date">Select your preferred date</label>
+              <input
+                id="cfg-date"
+                type="date"
+                className={[
+                  'configurator__form-input',
+                  state.formValidationErrors.selectedDate && 'configurator__form-input--error',
+                ].filter(Boolean).join(' ')}
+                value={state.formData.selectedDate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  state.updateFormField('selectedDate', e.target.value)
+                }
+                disabled={isSubmitting}
+              />
+              {state.formValidationErrors.selectedDate && (
+                <p className="configurator__form-field-error">{state.formValidationErrors.selectedDate}</p>
+              )}
+            </div>
+          )}
+
+          {/* Message field (optional free-text area) */}
+          <div>
+            <label className="configurator__form-label" htmlFor="cfg-message">Message (optional)</label>
+            <textarea
+              id="cfg-message"
+              rows={3}
+              placeholder="Any questions or site details..."
+              className="configurator__form-textarea"
+              value={state.formData.message}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                state.updateFormField('message', e.target.value)
+              }
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* B4: Anti-spam honeypot field.
+              Positioned off-screen and hidden from assistive technology via
+              aria-hidden. Bots that auto-fill all visible fields will populate
+              this input, allowing the submission handler to silently reject
+              the request without revealing the spam detection mechanism. */}
+          <div className="configurator__form-honeypot" aria-hidden="true">
+            <label htmlFor="cfg-security">What is the last 4 letters of SIEHTAWA?</label>
+            <input
+              id="cfg-security"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={state.formData.honeypot}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                state.updateFormField('honeypot', e.target.value)
+              }
+            />
+          </div>
+
+          {/* B3: Configuration summary -- displays product name, dimensions,
+              and selected finishes in a compact readable format. */}
+          <div className="configurator__form-summary">
+            Your configuration: <strong>{product.name}</strong>,{' '}
+            {product.dimensions.widthM}m x {product.dimensions.depthM}m,{' '}
+            <strong>{selectedExterior?.name ?? 'No exterior'}</strong>,{' '}
+            <strong>{selectedInterior?.name ?? 'No interior'}</strong>
+          </div>
+
+          {/* Form-level error message displayed when the submission fails */}
+          {state.formStatus === 'error' && state.formError && (
+            <div className="configurator__form-error" role="alert">
+              {state.formError}
+            </div>
+          )}
+
+          {/* Submit button -- shows loading indicator during submission */}
+          <button
+            type="button"
+            className={[
+              'configurator__form-submit',
+              isSubmitting && 'configurator__form-submit--loading',
+            ].filter(Boolean).join(' ')}
+            onClick={state.submitForm}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit \u2192'}
+          </button>
+
+          {/* Back to summary link (hidden during submission) */}
+          {!isSubmitting && (
+            <button
+              type="button"
+              className="configurator__form-back"
+              onClick={() => state.setShowConsultation(false)}
+            >
+              &larr; Back to summary
+            </button>
+          )}
         </div>
-
-        {/* B4: Anti-spam honeypot field.
-            Positioned off-screen and hidden from assistive technology via
-            aria-hidden. Bots that auto-fill all visible fields will populate
-            this input, allowing the submission handler to silently reject
-            the request without revealing the spam detection mechanism. */}
-        <div className="configurator__form-honeypot" aria-hidden="true">
-          <label htmlFor="cfg-security">What is the last 4 letters of SIEHTAWA?</label>
-          <input
-            id="cfg-security"
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-          />
-        </div>
-
-        {/* B3: Configuration summary -- displays product name, dimensions,
-            and selected finishes in a compact readable format. */}
-        <div className="configurator__form-summary">
-          Your configuration: <strong>{product.name}</strong>,{' '}
-          {product.dimensions.widthM}m x {product.dimensions.depthM}m,{' '}
-          <strong>{selectedExterior?.name ?? 'No exterior'}</strong>,{' '}
-          <strong>{selectedInterior?.name ?? 'No interior'}</strong>
-        </div>
-
-        {/* Submit button */}
-        <button type="button" className="configurator__form-submit">
-          Submit &rarr;
-        </button>
-
-        {/* Back to summary link */}
-        <button
-          type="button"
-          className="configurator__form-back"
-          onClick={() => state.setShowConsultation(false)}
-        >
-          &larr; Back to summary
-        </button>
       </div>
-    </div>
-  );
+    );
+  };
 
 
   /* -----------------------------------------------------------------------
@@ -530,6 +610,27 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      and the consultation form visibility flag.
      ----------------------------------------------------------------------- */
   const renderStepContent = (): React.ReactNode => {
+    /* When the form has been successfully submitted, the confirmation
+       screen (Task B5) will be rendered here. Until B5 is implemented,
+       display a simple success message with the quote number. */
+    if (currentStep?.id === 'summary' && state.formStatus === 'success') {
+      return (
+        <div className="configurator__confirmation" style={{ animation: 'configurator-fade-up 0.45s ease both' }}>
+          <div className="configurator__step-heading">
+            <h2 className="configurator__step-title">Your estimate is on its way</h2>
+            <p className="configurator__step-subtitle">
+              Check your inbox -- your personalised estimate will arrive within 30 seconds.
+            </p>
+          </div>
+          {state.quoteNumber && (
+            <p className="configurator__confirmation-quote">
+              Quote reference: <strong>{state.quoteNumber}</strong>
+            </p>
+          )}
+        </div>
+      );
+    }
+
     if (currentStep?.id === 'summary' && state.showConsultation) {
       return renderConsultationForm();
     }

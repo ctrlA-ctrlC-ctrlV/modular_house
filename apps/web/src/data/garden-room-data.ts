@@ -1,31 +1,49 @@
 /**
- * Garden Room Page — Shared Data Constants
+ * Garden Room Page -- Shared Data Constants
  * =============================================================================
  *
  * PURPOSE:
  * Single source of truth for all content displayed on the /garden-room page.
  * By centralising data here, page-level component files remain purely
  * presentational, and updating copy, images, or product availability
- * requires only data changes — not component modifications.
+ * requires only data changes -- not component modifications.
  *
  * ARCHITECTURE:
- * Each exported constant is a typed array that maps directly to a section
- * of the garden room page. The types are imported from @modular-house/ui
- * to ensure strict compatibility with the corresponding component props.
+ * Product data follows a normalised relational pattern inspired by
+ * PostgreSQL schema design. A single canonical record per garden room
+ * size (CanonicalGardenRoomProduct) holds every per-product fact exactly
+ * once. Component-specific export arrays are derived from this canonical
+ * set via projection functions (.map()), eliminating redundant declarations
+ * and guaranteeing cross-section consistency.
  *
- * DATA CATEGORIES:
- * 1. GARDEN_ROOM_PRODUCTS   — Product Range section (ProductRangeGrid)
- * 2. GARDEN_ROOM_FAQS       — FAQ section (AccordionFAQ) + FAQPage schema
- * 3. GARDEN_ROOM_FEATURES   — Why Steel Frame section (FeatureSection)
- * 4. GARDEN_ROOM_TESTIMONIALS — Testimonials section (TestimonialGrid)
- * 5. GARDEN_ROOM_GALLERY    — Gallery section (FullMassonryGallery)
- * 6. INFINITE_GALLERY_IMAGES — Infinite scrolling gallery (InfiniteMasonryGallery)
+ * Non-product data (features, testimonials, FAQs, gallery, comparison)
+ * does not repeat across components and is declared directly as typed
+ * constants without canonical abstraction.
  *
- * DUAL USE:
- * The GARDEN_ROOM_FAQS array feeds both the AccordionFAQ component props
- * and the FAQPage JSON-LD schema generation in routes-metadata.ts. Any
- * change to FAQ content here automatically propagates to both the visible
- * accordion and the structured data markup.
+ * CANONICAL DATA MODEL:
+ *   CanonicalGardenRoomProduct       -- Root product entity (mirrors `products` table)
+ *     .image: CanonicalImageSet      -- Multi-format image paths (mirrors `product_images`)
+ *     .technicalSpecs: Record        -- Key-value specs (mirrors `product_specs` table)
+ *     .cardUseCases / quickViewUseCases -- Context-specific use cases (mirrors `product_use_cases`)
+ *
+ * DERIVED EXPORTS (projected from CANONICAL_PRODUCTS):
+ *   PRODUCT_SHOWCASE_PRODUCTS        -- ProductShowcase (50/50 hero split)
+ *   GARDEN_ROOM_PRODUCTS             -- ProductRangeGrid (detail cards)
+ *   GARDEN_ROOM_QUICK_VIEW           -- QuickViewModal (expanded overlay)
+ *
+ * DIRECT EXPORTS (standalone, non-duplicated):
+ *   PRODUCT_SHOWCASE_FEATURES        -- Standard features list
+ *   PRODUCT_SHOWCASE_WARRANTIES      -- Warranty coverage list
+ *   GARDEN_ROOM_FAQS                 -- FAQ accordion + FAQPage JSON-LD schema
+ *   GARDEN_ROOM_FEATURES             -- "Why Steel Frame" feature cards
+ *   GARDEN_ROOM_TESTIMONIALS         -- Customer testimonials
+ *   GARDEN_ROOM_GALLERY              -- Masonry gallery items
+ *   GARDEN_ROOM_COMPARISON_CATEGORIES-- Construction method comparison
+ *   INFINITE_GALLERY_IMAGES          -- Infinite horizontal gallery
+ *
+ * EXTENSION:
+ * To add a new product size, append one entry to CANONICAL_PRODUCTS.
+ * All three derived exports update automatically (Open-Closed Principle).
  *
  * =============================================================================
  */
@@ -58,96 +76,375 @@ interface TestimonialItem {
 
 
 /* =============================================================================
-   SECTION 0: PRODUCT SHOWCASE DATA
-   -----------------------------------------------------------------------------
-   Data for the ProductShowcase component — the 50/50 split section placed
-   between the Hero and the Product Range grid. Left side shows four product
-   rows with background images; right side lists standard features and
-   warranty coverage.
+   CANONICAL PRODUCT RECORD -- SINGLE SOURCE OF TRUTH
+   =============================================================================
+
+   Each garden room size (15, 25, 35, 45 m2) is represented by exactly one
+   CanonicalGardenRoomProduct record. All per-product facts -- identity,
+   naming, pricing, images, availability, use cases, technical specs -- are
+   declared once here. The component-specific export arrays further below
+   are derived via .map() projections, eliminating redundant declarations
+   and ensuring cross-section consistency.
+
+   This structure mirrors a normalised PostgreSQL schema:
+
+     products table         -> CanonicalGardenRoomProduct (root entity)
+     product_images table   -> CanonicalImageSet (1:1 image set per product)
+     product_specs table    -> technicalSpecs (1:many key-value pairs)
+     product_use_cases      -> cardUseCases / quickViewUseCases (1:many per context)
+
+   To add a new product size, append one entry to CANONICAL_PRODUCTS.
+   All derived exports update automatically (Open-Closed Principle).
+
    ============================================================================= */
 
-export const PRODUCT_SHOWCASE_PRODUCTS: ProductShowcaseProduct[] = [
+
+/**
+ * Multi-format image paths for a single product photograph.
+ * Mirrors a `product_images` row with format-specific columns.
+ * All paths are relative to /public.
+ */
+interface ImageSet {
+  /** Primary image path (PNG or JPEG fallback). */
+  readonly png: string;
+  /** WebP optimised variant for modern browsers. */
+  readonly webP: string;
+  /** AVIF optimised variant for maximum compression. */
+  readonly avif: string;
+}
+
+
+/**
+ * Complete canonical record for one garden room product.
+ * Contains every per-product fact used across the /garden-room page.
+ * Component-specific exports project subsets of these fields into the
+ * shapes required by their respective UI components.
+ *
+ * Mirrors the configurator_products table plus related lookup tables
+ * for images, specs, and use cases.
+ */
+interface GardenRoomProduct {
+  /** Primary key / URL slug (e.g., "compact-15"). Unique across all products. */
+  readonly id: string;
+  /** Floor area in square metres (e.g., 15). Derives display strings like "15m2". */
+  readonly areaM2: number;
+  /** Formatted external dimensions (e.g., "5.0m x 3.0m"). Also injected as specs.footprint. */
+  readonly dimensionsDisplay: string;
+
+  /** Short label for the ProductShowcase strip (e.g., "The Compact"). */
+  readonly showcaseLabel: string;
+  /** Full marketing name for product cards and quick view (e.g., "Compact Studio"). */
+  readonly name: string;
+  /** Marketing tagline displayed below the product name. */
+  readonly tagline: string;
+
+  /** Multi-format image set shared across all component views. */
+  readonly image: ImageSet;
+
+  /**
+   * Base price string inclusive of VAT, displayed consistently across all
+   * page sections (ProductShowcase, ProductRangeGrid, QuickViewModal).
+   * This is the single canonical price for the product.
+   */
+  readonly basePrice: string;
+
+  /** Whether planning permission is required under current Irish legislation. */
+  readonly planningPermission: boolean;
+  /** Whether the product is currently manufactured and available for order. */
+  readonly inStock: boolean;
+  /** Whether the product CTA links to a live configurator (true) or interest form (false). */
+  readonly available: boolean;
+  /** Optional badge label rendered on the ProductCard (e.g., "Most Popular", "Coming Soon"). */
+  readonly badge?: string;
+
+  /** Call-to-action button text (e.g., "Get a Quote", "Register Interest"). */
+  readonly ctaText: string;
+  /** Call-to-action link target (configurator route, e.g., "/garden-room/configure/compact-15"). */
+  readonly ctaLink: string;
+
+  /** Use cases displayed as bullet points on the ProductRangeGrid card. */
+  readonly cardUseCases: ReadonlyArray<string>;
+  /** Use cases displayed in the QuickViewModal (may include additional detail vs card). */
+  readonly quickViewUseCases: ReadonlyArray<string>;
+
+  /** Long-form product description for the QuickViewModal. */
+  readonly description: string;
+  /**
+   * Technical specifications for the QuickViewModal, excluding the footprint
+   * dimension (which is derived from dimensionsDisplay at projection time).
+   * Mirrors the product_specs join table in a normalised database schema.
+   */
+  readonly technicalSpecs: Readonly<Record<string, string>>;
+  /** Estimated lead time string (e.g., "6-8 weeks"). */
+  readonly leadTime: string;
+
+  /** Sort position for rendering order (ascending). */
+  readonly displayOrder: number;
+}
+
+
+/**
+ * Canonical product data for all four garden room sizes.
+ * Each entry stores every per-product fact exactly once. The three
+ * component-specific export arrays (PRODUCT_SHOWCASE_PRODUCTS,
+ * GARDEN_ROOM_PRODUCTS, GARDEN_ROOM_QUICK_VIEW) are projected from
+ * this single array, guaranteeing data consistency across all page sections.
+ *
+ * Ordering matches the desired display order (ascending by floor area).
+ */
+const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
+
+  /* ---- 15 m2 -- Compact ------------------------------------------------- */
   {
     id: 'compact-15',
-    size: '15',
-    unit: 'm²',
-    dimensions: '5.0m × 3.0m',
-    price: '€26,000',
-    label: 'The Compact',
-    permitFree: true,
-    imageSrc: '/resource/garden-room/garden-room4.png',
-    imageWebP: '/resource/garden-room/garden-room4.webp',
-    imageAvif: '/resource/garden-room/garden-room4.avif',
-    imageAlt: 'The Compact 15m² steel frame garden room',
+    areaM2: 15,
+    dimensionsDisplay: '5.0m \u00D7 3.0m',
+
+    showcaseLabel: 'The Compact',
+    name: 'Compact Studio',
+    tagline: 'Your private creative sanctuary',
+
+    image: {
+      png: '/resource/garden-room/garden-room4.png',
+      webP: '/resource/garden-room/garden-room4.webp',
+      avif: '/resource/garden-room/garden-room4.avif',
+    },
+
+    basePrice: '\u20AC29,500',
+
+    planningPermission: false,
+    inStock: true,
+    available: true,
+
+    ctaText: 'Get a Quote',
+    ctaLink: '/garden-room/configure/compact-15',
+
+    cardUseCases: ['Home office', 'Art studio', 'Yoga room'],
+    quickViewUseCases: ['Home Office', 'Art Studio', 'Yoga & Wellness Room', 'Music Practice'],
+
+    description:
+      'Compact yet generous, the Compact Studio is precision-engineered for focused work and creative pursuits. Floor-to-ceiling glazing floods the space with natural light, while our thermally broken steel frame ensures year-round comfort. Perfect for those who need a dedicated space without the footprint.',
+    technicalSpecs: {
+      height: '2.7m internal',
+      frame: 'Galvanised steel SHS',
+      insulation: '120mm PIR (U-value 0.15)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump',
+      electrics: 'Full consumer unit, Cat6 ready',
+    },
+    leadTime: '6\u20138 weeks',
+
+    displayOrder: 1,
   },
+
+  /* ---- 25 m2 -- Studio -------------------------------------------------- */
   {
     id: 'studio-25',
-    size: '25',
-    unit: 'm²',
-    dimensions: '6.25m × 4.0m',
-    price: '€37,000',
-    label: 'The Studio',
-    permitFree: true,
-    imageSrc: '/resource/garden-room/garden-room1.png',
-    imageWebP: '/resource/garden-room/garden-room1.webp',
-    imageAvif: '/resource/garden-room/garden-room1.avif',
-    imageAlt: 'The Studio 25m² steel frame garden room',
+    areaM2: 25,
+    dimensionsDisplay: '6.25m \u00D7 4.0m',
+
+    showcaseLabel: 'The Studio',
+    name: 'Garden Suite',
+    tagline: 'Where work meets living',
+
+    image: {
+      png: '/resource/garden-room/garden-room1.png',
+      webP: '/resource/garden-room/garden-room1.webp',
+      avif: '/resource/garden-room/garden-room1.avif',
+    },
+
+    basePrice: '\u20AC39,500',
+
+    planningPermission: false,
+    inStock: true,
+    available: true,
+    badge: 'Most Popular',
+
+    ctaText: 'Get a Quote',
+    ctaLink: '/garden-room/configure/studio-25',
+
+    cardUseCases: ['Home office + meeting space', 'Home gym', 'Music studio', '1 bed room en suite'],
+    quickViewUseCases: ['Office + Meeting Room', 'Guest Suite', 'Therapy Room', 'Design Studio'],
+
+    description:
+      'The Garden Suite offers the flexibility of a dual-zone layout \u2014 partition your space for a private office and client-facing meeting area, or configure an open-plan studio that breathes. At 25m\u00B2, it sits at the maximum size for exempted development, giving you the most space without the paperwork.',
+    technicalSpecs: {
+      height: '2.7m internal',
+      frame: 'Galvanised steel SHS',
+      insulation: '120mm PIR (U-value 0.15)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump',
+      electrics: 'Full consumer unit, Cat6 ready',
+      plumbing: 'Optional kitchenette prep',
+    },
+    leadTime: '8\u201310 weeks',
+
+    displayOrder: 2,
   },
+
+  /* ---- 35 m2 -- Living -------------------------------------------------- */
   {
     id: 'living-35',
-    size: '35',
-    unit: 'm²',
-    dimensions: '7.0m × 5.0m',
-    price: '€65,000',
-    label: 'The Living',
-    permitFree: false,
-    imageSrc: '/resource/garden-room/garden-room2.png',
-    imageWebP: '/resource/garden-room/garden-room2.webp',
-    imageAvif: '/resource/garden-room/garden-room2.avif',
-    imageAlt: 'The Living 35m² steel frame garden room',
+    areaM2: 35,
+    dimensionsDisplay: '7.0m \u00D7 5.0m',
+
+    showcaseLabel: 'The Living',
+    name: 'Garden Living',
+    tagline: 'Space to grow into',
+
+    image: {
+      png: '/resource/garden-room/garden-room2.png',
+      webP: '/resource/garden-room/garden-room2.webp',
+      avif: '/resource/garden-room/garden-room2.avif',
+    },
+
+    basePrice: '\u20AC68,500',
+
+    planningPermission: true,
+    inStock: false,
+    available: false,
+    badge: 'Coming Soon',
+
+    ctaText: 'Register Interest',
+    ctaLink: '/garden-room/configure/living-35',
+
+    cardUseCases: ['Guest suite', 'Teen retreat', 'Rental unit'],
+    quickViewUseCases: ['Multi-Desk Workspace', 'Home Gym + Office', 'Family Room', 'Content Studio'],
+
+    description:
+      'Garden Living is built for those who need room to move. Whether it\u2019s a two-person workspace with a breakout area, a home gym with an office nook, or a family media room \u2014 35m\u00B2 gives you genuine flexibility. Our portal steel frame means zero internal columns, so the space is entirely yours to define.',
+    technicalSpecs: {
+      height: '2.7m internal',
+      frame: 'Galvanised steel portal frame',
+      insulation: '150mm PIR (U-value 0.12)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump',
+      electrics: 'Full consumer unit, Cat6 ready',
+      plumbing: 'Optional kitchenette & WC',
+    },
+    leadTime: '10\u201312 weeks',
+
+    displayOrder: 3,
   },
+
+  /* ---- 45 m2 -- Grand --------------------------------------------------- */
   {
     id: 'grand-45',
-    size: '45',
-    unit: 'm²',
-    dimensions: '9.0m × 5.0m',
-    price: '€76,000',
-    label: 'The Grand',
-    permitFree: false,
-    imageSrc: '/resource/garden-room/garden-room3.png',
-    imageWebP: '/resource/garden-room/garden-room3.webp',
-    imageAvif: '/resource/garden-room/garden-room3.avif',
-    imageAlt: 'The Grand 45m² steel frame garden room',
+    areaM2: 45,
+    dimensionsDisplay: '9.0m \u00D7 5.0m',
+
+    showcaseLabel: 'The Grand',
+    name: 'Grand Studio',
+    tagline: 'A building, not just a room',
+
+    image: {
+      png: '/resource/garden-room/garden-room3.png',
+      webP: '/resource/garden-room/garden-room3.webp',
+      avif: '/resource/garden-room/garden-room3.avif',
+    },
+
+    basePrice: '\u20AC83,500',
+
+    planningPermission: true,
+    inStock: false,
+    available: false,
+    badge: 'Coming Soon',
+
+    ctaText: 'Register Interest',
+    ctaLink: '/garden-room/configure/grand-45',
+
+    cardUseCases: ['Self-contained apartment', 'Multi-room workspace'],
+    quickViewUseCases: ['Full Living Annex', 'Large Studio / Workshop', 'Commercial Suite', 'Granny Flat'],
+
+    description:
+      'The Grand Studio blurs the line between garden room and architecture. At 45m\u00B2, this is a genuine self-contained building \u2014 large enough for an open-plan living and working space, a commercial therapy or consulting suite, or an independent annex for family. Designed to the same exacting standards as our smaller models, but with the presence and capability of a permanent structure.',
+    technicalSpecs: {
+      height: '2.8m internal',
+      frame: 'Galvanised steel portal frame',
+      insulation: '150mm PIR (U-value 0.12)',
+      glazing: 'Triple-glazed aluminium',
+      heating: 'Air-to-air heat pump (dual zone)',
+      electrics: 'Full consumer unit, Cat6, EV-ready',
+      plumbing: 'Optional full kitchen & WC',
+    },
+    leadTime: '12\u201316 weeks',
+
+    displayOrder: 4,
   },
 ];
 
+
+/* =============================================================================
+   DERIVED EXPORT: PRODUCT SHOWCASE
+   -----------------------------------------------------------------------------
+   Projects canonical products into the ProductShowcaseProduct shape for the
+   50/50 split hero section. Maps identity, base pricing, images, and
+   dimensions. The permitFree flag is the boolean inverse of planningPermission.
+   The imageAlt follows a consistent template derived from showcase label and
+   floor area. Consumed by the ProductShowcase component.
+   ============================================================================= */
+
+export const PRODUCT_SHOWCASE_PRODUCTS: ProductShowcaseProduct[] =
+  CANONICAL_PRODUCTS.map((p) => ({
+    id: p.id,
+    size: String(p.areaM2),
+    unit: 'm\u00B2',
+    dimensions: p.dimensionsDisplay,
+    price: p.basePrice,
+    label: p.showcaseLabel,
+    permitFree: !p.planningPermission,
+    imageSrc: p.image.png,
+    imageWebP: p.image.webP,
+    imageAvif: p.image.avif,
+    imageAlt: `${p.showcaseLabel} ${p.areaM2}m\u00B2 steel frame garden room`,
+  }));
+
+
+/* =============================================================================
+   DIRECT EXPORT: STANDARD FEATURES
+   -----------------------------------------------------------------------------
+   Five standard features included with every garden room, displayed on the
+   right side of the ProductShowcase 50/50 split. These are product-line-wide
+   (not per-product) so they are declared directly rather than derived from
+   canonical records.
+   ============================================================================= */
+
 export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
   {
-    icon: '◆',
+    icon: '\u25C6',
     title: 'Steel Frame Construction',
     desc: 'Galvanised structural steel for unmatched durability and longevity.',
   },
   {
-    icon: '◆',
+    icon: '\u25C6',
     title: 'Full Insulation Package',
     desc: 'High-performance PIR insulation exceeding Part L building regulations.',
   },
   {
-    icon: '◆',
+    icon: '\u25C6',
     title: 'Electrical Fit-Out',
     desc: 'Certified RECI electrical installation with consumer unit included.',
   },
   {
-    icon: '◆',
+    icon: '\u25C6',
     title: 'Aluminium Windows & Doors',
     desc: 'Thermally broken, double-glazed aluminium frames in anthracite grey.',
   },
   {
-    icon: '◆',
+    icon: '\u25C6',
     title: 'Composite Cladding',
     desc: 'Low maintenance external cladding with a 25-year colour guarantee.',
   },
 ];
+
+
+/* =============================================================================
+   DIRECT EXPORT: WARRANTY COVERAGE
+   -----------------------------------------------------------------------------
+   Four warranty tiers displayed on the right side of the ProductShowcase
+   50/50 split, below the standard features. These apply uniformly across
+   all garden room models and are declared directly.
+   ============================================================================= */
 
 export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
   { years: '20', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
@@ -158,214 +455,67 @@ export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
 
 
 /* =============================================================================
-   SECTION 1: PRODUCT RANGE DATA
+   DERIVED EXPORT: PRODUCT RANGE CARDS
    -----------------------------------------------------------------------------
-   Four garden room sizes displayed in the ProductRangeGrid component.
-   Each entry maps to a card in the grid. The `available` flag controls
-   both the visual variant (solid vs dashed border) and the CTA style
-   (filled vs outline button).
-
-   CTA links route to the product configurator page at
-   /garden-room/configure/:slug, where the slug matches the
-   CONFIGURATOR_PRODUCTS_BY_SLUG keys in configurator-products.ts.
-
-   Image paths reference the /public/resource/garden-room/ directory,
-   with PNG fallback, WebP, and AVIF optimised variants.
+   Projects canonical products into the ProductCard shape for the
+   ProductRangeGrid component. Maps identity, card pricing, images, use
+   cases, and availability status. The badge field is spread conditionally
+   (only when defined on the canonical record). CTA links route to the
+   product configurator at /garden-room/configure/:slug.
    ============================================================================= */
 
-export const GARDEN_ROOM_PRODUCTS: ProductCard[] = [
-  {
-    size: '15m\u00B2',
-    name: 'Compact Studio',
-    tagline: 'Your private creative sanctuary',
-    image: '/resource/garden-room/garden-room4.png',
-    imageWebP: '/resource/garden-room/garden-room4.webp',
-    imageAvif: '/resource/garden-room/garden-room4.avif',
-    useCases: ['Home office', 'Art studio', 'Yoga room'],
-    price: '\u20AC26,000',
-    planningPermission: false,
-    inStock: true,
-    ctaText: 'Get a Quote',
-    ctaLink: '/garden-room/configure/compact-15',
-    available: true,
-  },
-  {
-    size: '25m\u00B2',
-    name: 'Garden Suite',
-    tagline: 'Where work meets living',
-    image: '/resource/garden-room/garden-room1.png',
-    imageWebP: '/resource/garden-room/garden-room1.webp',
-    imageAvif: '/resource/garden-room/garden-room1.avif',
-    useCases: ['Home office + meeting space', 'Home gym', 'Music studio', '1 bed room en suite'],
-    price: '\u20AC37,000',
-    planningPermission: false,
-    inStock: true,
-    badge: 'Most Popular',
-    ctaText: 'Get a Quote',
-    ctaLink: '/garden-room/configure/studio-25',
-    available: true,
-  },
-  {
-    size: '35m\u00B2',
-    name: 'Garden Living',
-    tagline: 'Space to grow into',
-    image: '/resource/garden-room/garden-room2.png',
-    imageWebP: '/resource/garden-room/garden-room2.webp',
-    imageAvif: '/resource/garden-room/garden-room2.avif',
-    useCases: ['Guest suite', 'Teen retreat', 'Rental unit'],
-    price: '\u20AC65,000',
-    planningPermission: true,
-    inStock: false,
-    badge: 'Coming Soon',
-    ctaText: 'Register Interest',
-    ctaLink: '/garden-room/configure/living-35',
-    available: false,
-  },
-  {
-    size: '45m\u00B2',
-    name: 'Grand Studio',
-    tagline: 'A building, not just a room',
-    image: '/resource/garden-room/garden-room3.png',
-    imageWebP: '/resource/garden-room/garden-room3.webp',
-    imageAvif: '/resource/garden-room/garden-room3.avif',
-    useCases: ['Self-contained apartment', 'Multi-room workspace'],
-    price: '\u20AC76,000',
-    planningPermission: true,
-    inStock: false,
-    badge: 'Coming Soon',
-    ctaText: 'Register Interest',
-    ctaLink: '/garden-room/configure/grand-45',
-    available: false,
-  },
-];
+export const GARDEN_ROOM_PRODUCTS: ProductCard[] =
+  CANONICAL_PRODUCTS.map((p) => ({
+    size: `${p.areaM2}m\u00B2`,
+    name: p.name,
+    tagline: p.tagline,
+    image: p.image.png,
+    imageWebP: p.image.webP,
+    imageAvif: p.image.avif,
+    useCases: [...p.cardUseCases],
+    price: p.basePrice,
+    planningPermission: p.planningPermission,
+    inStock: p.inStock,
+    ...(p.badge != null ? { badge: p.badge } : {}),
+    ctaText: p.ctaText,
+    ctaLink: p.ctaLink,
+    available: p.available,
+  }));
 
 
 /* =============================================================================
-   SECTION 1B: QUICK VIEW MODAL DATA
+   DERIVED EXPORT: QUICK VIEW MODAL DATA
    -----------------------------------------------------------------------------
-   Extended product data used by the QuickViewModal component. Each entry
-   corresponds to a product in GARDEN_ROOM_PRODUCTS (same index order) and
-   adds description, specs, and lead time fields for the expanded modal view.
-   CTA links mirror the configurator routes used by the product cards above.
+   Projects canonical products into the QuickViewProduct shape for the
+   QuickViewModal component. Maps identity, base pricing, images, extended
+   use cases, and technical details. The specs.footprint field is injected
+   from dimensionsDisplay at projection time, avoiding redundant storage
+   of dimensional data in the canonical technicalSpecs record.
    ============================================================================= */
 
-export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] = [
-  {
-    size: '15m\u00B2',
-    name: 'Compact Studio',
-    tagline: 'Your private creative sanctuary',
-    image: '/resource/garden-room/garden-room4.png',
-    imageWebP: '/resource/garden-room/garden-room4.webp',
-    imageAvif: '/resource/garden-room/garden-room4.avif',
-    useCases: ['Home Office', 'Art Studio', 'Yoga & Wellness Room', 'Music Practice'],
-    price: '\u20AC26,000',
-    planningPermission: false,
-    inStock: true,
-    available: true,
-    description:
-      'Compact yet generous, the Compact Studio is precision-engineered for focused work and creative pursuits. Floor-to-ceiling glazing floods the space with natural light, while our thermally broken steel frame ensures year-round comfort. Perfect for those who need a dedicated space without the footprint.',
-    specs: {
-      footprint: '5.0m \u00D7 3.0m',
-      height: '2.7m internal',
-      frame: 'Galvanised steel SHS',
-      insulation: '120mm PIR (U-value 0.15)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump',
-      electrics: 'Full consumer unit, Cat6 ready',
-    },
-    leadTime: '6\u20138 weeks',
-    ctaLink: '/garden-room/configure/compact-15',
-    ctaText: 'Get a Quote',
-  },
-  {
-    size: '25m\u00B2',
-    name: 'Garden Suite',
-    tagline: 'Where work meets living',
-    image: '/resource/garden-room/garden-room1.png',
-    imageWebP: '/resource/garden-room/garden-room1.webp',
-    imageAvif: '/resource/garden-room/garden-room1.avif',
-    useCases: ['Office + Meeting Room', 'Guest Suite', 'Therapy Room', 'Design Studio'],
-    price: '\u20AC37,000',
-    planningPermission: false,
-    inStock: true,
-    available: true,
-    description:
-      'The Garden Suite offers the flexibility of a dual-zone layout \u2014 partition your space for a private office and client-facing meeting area, or configure an open-plan studio that breathes. At 25m\u00B2, it sits at the maximum size for exempted development, giving you the most space without the paperwork.',
-    specs: {
-      footprint: '6.25m \u00D7 4.0m',
-      height: '2.7m internal',
-      frame: 'Galvanised steel SHS',
-      insulation: '120mm PIR (U-value 0.15)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump',
-      electrics: 'Full consumer unit, Cat6 ready',
-      plumbing: 'Optional kitchenette prep',
-    },
-    leadTime: '8\u201310 weeks',
-    ctaLink: '/garden-room/configure/studio-25',
-    ctaText: 'Get a Quote',
-  },
-  {
-    size: '35m\u00B2',
-    name: 'Garden Living',
-    tagline: 'Space to grow into',
-    image: '/resource/garden-room/garden-room2.png',
-    imageWebP: '/resource/garden-room/garden-room2.webp',
-    imageAvif: '/resource/garden-room/garden-room2.avif',
-    useCases: ['Multi-Desk Workspace', 'Home Gym + Office', 'Family Room', 'Content Studio'],
-    price: '\u20AC65,000',
-    planningPermission: true,
-    inStock: false,
-    available: false,
-    description:
-      'Garden Living is built for those who need room to move. Whether it\u2019s a two-person workspace with a breakout area, a home gym with an office nook, or a family media room \u2014 35m\u00B2 gives you genuine flexibility. Our portal steel frame means zero internal columns, so the space is entirely yours to define.',
-    specs: {
-      footprint: '7.0m \u00D7 5.0m',
-      height: '2.7m internal',
-      frame: 'Galvanised steel portal frame',
-      insulation: '150mm PIR (U-value 0.12)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump',
-      electrics: 'Full consumer unit, Cat6 ready',
-      plumbing: 'Optional kitchenette & WC',
-    },
-    leadTime: '10\u201312 weeks',
-    ctaLink: '/garden-room/configure/living-35',
-    ctaText: 'Register Interest',
-  },
-  {
-    size: '45m\u00B2',
-    name: 'Grand Studio',
-    tagline: 'A building, not just a room',
-    image: '/resource/garden-room/garden-room3.png',
-    imageWebP: '/resource/garden-room/garden-room3.webp',
-    imageAvif: '/resource/garden-room/garden-room3.avif',
-    useCases: ['Full Living Annex', 'Large Studio / Workshop', 'Commercial Suite', 'Granny Flat'],
-    price: '\u20AC76,000',
-    planningPermission: true,
-    inStock: false,
-    available: false,
-    description:
-      'The Grand Studio blurs the line between garden room and architecture. At 45m\u00B2, this is a genuine self-contained building \u2014 large enough for an open-plan living and working space, a commercial therapy or consulting suite, or an independent annex for family. Designed to the same exacting standards as our smaller models, but with the presence and capability of a permanent structure.',
-    specs: {
-      footprint: '9.0m \u00D7 5.0m',
-      height: '2.8m internal',
-      frame: 'Galvanised steel portal frame',
-      insulation: '150mm PIR (U-value 0.12)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump (dual zone)',
-      electrics: 'Full consumer unit, Cat6, EV-ready',
-      plumbing: 'Optional full kitchen & WC',
-    },
-    leadTime: '12\u201316 weeks',
-    ctaLink: '/garden-room/configure/grand-45',
-    ctaText: 'Register Interest',
-  },
-];
+export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] =
+  CANONICAL_PRODUCTS.map((p) => ({
+    size: `${p.areaM2}m\u00B2`,
+    name: p.name,
+    tagline: p.tagline,
+    image: p.image.png,
+    imageWebP: p.image.webP,
+    imageAvif: p.image.avif,
+    useCases: [...p.quickViewUseCases],
+    price: p.basePrice,
+    planningPermission: p.planningPermission,
+    inStock: p.inStock,
+    available: p.available,
+    description: p.description,
+    specs: { footprint: p.dimensionsDisplay, ...p.technicalSpecs },
+    leadTime: p.leadTime,
+    ctaLink: p.ctaLink,
+    ctaText: p.ctaText,
+  }));
 
 
 /* =============================================================================
-   SECTION 2: FAQ DATA
+   DIRECT EXPORT: FAQ DATA
    -----------------------------------------------------------------------------
    Six frequently asked questions covering the most common queries from
    prospective garden room buyers in Ireland. Each entry conforms to the
@@ -425,7 +575,7 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
 
 
 /* =============================================================================
-   SECTION 3: FEATURE ITEMS (WHY STEEL FRAME SECTION)
+   DIRECT EXPORT: FEATURE ITEMS (WHY STEEL FRAME SECTION)
    -----------------------------------------------------------------------------
    Four key selling points displayed in the FeatureSection component.
    Each item includes an icon (rendered via the CustomIcons component),
@@ -433,10 +583,10 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
 
    Icon selection uses the closest available matches from the CustomIcons
    library:
-   - measureTape  -> Precision Steel Frame (measurement / precision)
-   - tiles        -> Rapid Build (modular construction)
-   - bioEnergy    -> Energy Efficient (sustainability / energy)
-   - keyCircle    -> Built to Last (durability / warranty)
+   - measureTape  -> Made in Our Dublin Factory (measurement / precision)
+   - tiles        -> Faster, Cleaner Installation (modular construction)
+   - bioEnergy    -> Built for Irish Weather (sustainability / energy)
+   - keyCircle    -> A Long-Term Space, Not a Shed (durability / warranty)
    ============================================================================= */
 
 export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
@@ -468,7 +618,7 @@ export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
 
 
 /* =============================================================================
-   SECTION 4: TESTIMONIAL DATA
+   DIRECT EXPORT: TESTIMONIAL DATA
    -----------------------------------------------------------------------------
    Three placeholder customer testimonials displayed in the TestimonialGrid
    component. These use realistic quotes and Dublin-area locations. The
@@ -482,7 +632,7 @@ export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
 
 export const GARDEN_ROOM_TESTIMONIALS: TestimonialItem[] = [
   {
-    text: 'Our Modular House garden room has completely transformed how we work from home. The build quality is exceptional — the steel frame feels incredibly solid, and the insulation keeps it warm even in January. It was ready in just seven weeks with barely any disruption to our garden.',
+    text: 'Our Modular House garden room has completely transformed how we work from home. The build quality is exceptional \u2014 the steel frame feels incredibly solid, and the insulation keeps it warm even in January. It was ready in just seven weeks with barely any disruption to our garden.',
     authorName: 'Aoife K.',
     authorLocation: 'Dalkey, Co. Dublin',
     authorImageSrc: '/resource/avatar-placeholder.png',
@@ -496,7 +646,7 @@ export const GARDEN_ROOM_TESTIMONIALS: TestimonialItem[] = [
     rating: 5,
   },
   {
-    text: 'As an artist I was looking for a bright, well-insulated studio space without the hassle of planning permission. The Compact Studio ticked every box — the natural light from the triple-glazed windows is superb, and the BER A rating means my heating costs are minimal.',
+    text: 'As an artist I was looking for a bright, well-insulated studio space without the hassle of planning permission. The Compact Studio ticked every box \u2014 the natural light from the triple-glazed windows is superb, and the BER A rating means my heating costs are minimal.',
     authorName: 'Sinead O.',
     authorLocation: 'Malahide, Co. Dublin',
     authorImageSrc: '/resource/avatar-placeholder.png',
@@ -506,14 +656,13 @@ export const GARDEN_ROOM_TESTIMONIALS: TestimonialItem[] = [
 
 
 /* =============================================================================
-   SECTION 5: GALLERY DATA
+   DIRECT EXPORT: GALLERY DATA
    -----------------------------------------------------------------------------
-   Six to eight gallery items for the FullMassonryGallery component.
-   Each item references an existing image from /public/resource/garden-room/
-   with WebP and AVIF optimised variants.
-
-   The gallery showcases completed garden room and sauna projects.
-   Descriptive titles improve both user experience and SEO when indexed.
+   Eight gallery items for the FullMassonryGallery component. Each item
+   references an existing image from /public/resource/garden-room/ with
+   WebP and AVIF optimised variants. The gallery showcases completed garden
+   room and sauna projects. Descriptive titles improve both user experience
+   and SEO when indexed.
    ============================================================================= */
 
 export const GARDEN_ROOM_GALLERY: GalleryItem[] = [
@@ -577,13 +726,13 @@ export const GARDEN_ROOM_GALLERY: GalleryItem[] = [
 
 
 /* =============================================================================
-   SECTION 6: INFINITE MASONRY GALLERY DATA
+   DIRECT EXPORT: CONSTRUCTION COMPARISON DATA
    -----------------------------------------------------------------------------
-   Image data for the InfiniteMasonryGallery component — a horizontally-
-   scrolling infinite strip placed directly below the Product Showcase section.
-   Each image specifies its orientation so the masonry layout algorithm can
-   pair landscape images vertically and give portrait images a full-height column.
-   All images include AVIF and WebP variants for optimal delivery.
+   Eight comparison categories evaluating three construction methods (LGS
+   Steel Frame, Timber Frame, Traditional Brick) across performance metrics.
+   Each category contains per-method data with a display value, a numeric
+   score (1-5), and explanatory note. Consumed by the ComparisonSection
+   component which supports both table and card viewing modes.
    ============================================================================= */
 
 export const GARDEN_ROOM_COMPARISON_CATEGORIES: ComparisonCategory[] = [
@@ -637,6 +786,16 @@ export const GARDEN_ROOM_COMPARISON_CATEGORIES: ComparisonCategory[] = [
   },
 ];
 
+
+/* =============================================================================
+   DIRECT EXPORT: INFINITE MASONRY GALLERY DATA
+   -----------------------------------------------------------------------------
+   Image data for the InfiniteMasonryGallery component -- a horizontally-
+   scrolling infinite strip placed directly below the Product Showcase section.
+   Each image specifies its orientation so the masonry layout algorithm can
+   pair landscape images vertically and give portrait images a full-height
+   column. All images include AVIF and WebP variants for optimal delivery.
+   ============================================================================= */
 
 export const INFINITE_GALLERY_IMAGES: InfiniteGalleryImage[] = [
   {

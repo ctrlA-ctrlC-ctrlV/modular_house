@@ -207,7 +207,7 @@ const COMPACT_15: ConfiguratorProduct = {
     areaM2: 15,
   },
 
-  basePriceCentsInclVat: 2_600_000,
+  basePriceCentsInclVat: 2_950_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'not-available',
 
@@ -295,7 +295,7 @@ const STUDIO_25: ConfiguratorProduct = {
     areaM2: 25,
   },
 
-  basePriceCentsInclVat: 3_700_000,
+  basePriceCentsInclVat: 3_950_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'optional-addon',
 
@@ -395,7 +395,7 @@ const LIVING_35: ConfiguratorProduct = {
     areaM2: 35,
   },
 
-  basePriceCentsInclVat: 6_500_000,
+  basePriceCentsInclVat: 6_850_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 
@@ -501,7 +501,7 @@ const GRAND_45: ConfiguratorProduct = {
     areaM2: 45,
   },
 
-  basePriceCentsInclVat: 7_600_000,
+  basePriceCentsInclVat: 8_350_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 

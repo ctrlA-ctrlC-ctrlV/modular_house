@@ -241,7 +241,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
   {
     id: 'studio-25',
     areaM2: 25,
-    dimensionsDisplay: '6.25m \u00D7 4.0m',
+    dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
 
     showcaseLabel: 'The Studio',
     name: 'Garden Suite',

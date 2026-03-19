@@ -145,7 +145,7 @@ export const FloorPlan: React.FC<FloorPlanProps> = ({
     config.apertures.forEach((aperture, index) => {
       const key = `aperture-${index}`;
       const proportionalWidth = getProportionalWidth(aperture);
-      const startPos = aperturePositions.get(index)!;
+      const startPos = aperturePositions.get(index) ?? 0;
 
       /* Classification flags drive visual treatment per aperture type. */
       const isWindow =

@@ -216,7 +216,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     inStock: true,
     available: true,
 
-    ctaText: 'Get a Quote',
+    ctaText: 'Customise',
     ctaLink: '/garden-room/configure/compact-15',
 
     cardUseCases: ['Home office', 'Art studio', 'Yoga room'],
@@ -260,7 +260,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     available: true,
     badge: 'Most Popular',
 
-    ctaText: 'Get a Quote',
+    ctaText: 'Customise',
     ctaLink: '/garden-room/configure/studio-25',
 
     cardUseCases: ['Home office + meeting space', 'Home gym', 'Music studio', '1 bed room en suite'],

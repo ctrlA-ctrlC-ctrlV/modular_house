@@ -51,6 +51,7 @@
 import React from 'react';
 import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct, InfiniteGalleryImage, ComparisonCategory } from '@modular-house/ui';
 import { CustomIcons } from '@modular-house/ui';
+import { CONFIGURATOR_PRODUCTS_BY_SLUG } from './configurator-products';
 
 /**
  * Re-export the FeatureItem interface inline since it is used for
@@ -184,37 +185,95 @@ interface GardenRoomProduct {
 
 
 /**
+ * Garden-room-page-specific fields that are NOT shared with the configurator
+ * data model. These supplement the shared identity, pricing, availability,
+ * and image data derived from CONFIGURATOR_PRODUCTS_BY_SLUG.
+ *
+ * Excluded (derived from ConfiguratorProduct):
+ *   id, areaM2, showcaseLabel, image, basePrice, planningPermission,
+ *   inStock, available, leadTime, displayOrder
+ */
+type GardenRoomPageFields = Omit<
+  GardenRoomProduct,
+  | 'id'
+  | 'areaM2'
+  | 'showcaseLabel'
+  | 'image'
+  | 'basePrice'
+  | 'planningPermission'
+  | 'inStock'
+  | 'available'
+  | 'leadTime'
+  | 'displayOrder'
+>;
+
+/**
+ * Formats a price stored in euro cents (inclusive of VAT) into the
+ * locale-formatted display string used across all garden room page sections.
+ * Example: 2_950_000 → '€29,500'
+ */
+function formatEurCents(cents: number): string {
+  return `\u20AC${new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 }).format(cents / 100)}`;
+}
+
+/**
+ * Builds a complete GardenRoomProduct by merging shared fields from the
+ * corresponding ConfiguratorProduct (images, price, availability, lead time,
+ * sort order) with garden-room-page-specific fields (marketing name, tagline,
+ * use cases, description, technical specs).
+ *
+ * This is the single join point between the two data models. Changes to
+ * shared fields in configurator-products.ts (prices, images, availability)
+ * automatically propagate to the garden room page without editing this file.
+ *
+ * @param slug   - The configurator product slug to look up (e.g., "compact-15").
+ * @param fields - Garden-room-page-specific fields not present in the configurator model.
+ * @returns A complete GardenRoomProduct ready for projection into component shapes.
+ */
+function buildGardenRoomProduct(slug: string, fields: GardenRoomPageFields): GardenRoomProduct {
+  const cp = CONFIGURATOR_PRODUCTS_BY_SLUG[slug];
+  return {
+    id:               cp.slug,
+    areaM2:           cp.dimensions.areaM2,
+    showcaseLabel:    cp.name,
+    image: {
+      png:  cp.image.src,
+      webP: cp.image.webP ?? '',
+      avif: cp.image.avif ?? '',
+    },
+    basePrice:         formatEurCents(cp.basePriceCentsInclVat),
+    planningPermission: cp.planningPermission,
+    inStock:           cp.available,
+    available:         cp.available,
+    leadTime:          cp.leadTime,
+    displayOrder:      cp.displayOrder,
+    ...fields,
+  };
+}
+
+
+/**
  * Canonical product data for all four garden room sizes.
  * Each entry stores every per-product fact exactly once. The three
  * component-specific export arrays (PRODUCT_SHOWCASE_PRODUCTS,
  * GARDEN_ROOM_PRODUCTS, GARDEN_ROOM_QUICK_VIEW) are projected from
  * this single array, guaranteeing data consistency across all page sections.
  *
+ * Shared fields (images, price, availability, lead time, sort order) are
+ * derived from CONFIGURATOR_PRODUCTS_BY_SLUG via buildGardenRoomProduct.
+ * Only garden-room-page-specific content (marketing name, taglines, use
+ * cases, descriptions, technical specs) is declared inline.
+ *
  * Ordering matches the desired display order (ascending by floor area).
  */
 const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
 
   /* ---- 15 m2 -- Compact ------------------------------------------------- */
-  {
-    id: 'compact-15',
-    areaM2: 15,
+  buildGardenRoomProduct('compact-15', {
     dimensionsDisplay: '5.0m \u00D7 3.0m',
 
-    showcaseLabel: 'The Compact',
     name: 'Compact Studio',
     tagline: 'Your private creative sanctuary',
-
-    image: {
-      png: '/resource/garden-room/garden-room4.png',
-      webP: '/resource/garden-room/garden-room4.webp',
-      avif: '/resource/garden-room/garden-room4.avif',
-    },
-
-    basePrice: '\u20AC29,500',
-
-    planningPermission: false,
-    inStock: true,
-    available: true,
 
     ctaText: 'Customise',
     ctaLink: '/garden-room/configure/compact-15',
@@ -232,32 +291,15 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       heating: 'Air-to-air heat pump',
       electrics: 'Full consumer unit, Cat6 ready',
     },
-    leadTime: '6\u20138 weeks',
-
-    displayOrder: 1,
-  },
+  }),
 
   /* ---- 25 m2 -- Studio -------------------------------------------------- */
-  {
-    id: 'studio-25',
-    areaM2: 25,
+  buildGardenRoomProduct('studio-25', {
+    // Studio offers an alternate layout option not captured in configurator dimensions.
     dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
 
-    showcaseLabel: 'The Studio',
     name: 'Garden Suite',
     tagline: 'Where work meets living',
-
-    image: {
-      png: '/resource/garden-room/garden-room1.png',
-      webP: '/resource/garden-room/garden-room1.webp',
-      avif: '/resource/garden-room/garden-room1.avif',
-    },
-
-    basePrice: '\u20AC39,500',
-
-    planningPermission: false,
-    inStock: true,
-    available: true,
     badge: 'Most Popular',
 
     ctaText: 'Customise',
@@ -277,32 +319,14 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       electrics: 'Full consumer unit, Cat6 ready',
       plumbing: 'Optional kitchenette prep',
     },
-    leadTime: '8\u201310 weeks',
-
-    displayOrder: 2,
-  },
+  }),
 
   /* ---- 35 m2 -- Living -------------------------------------------------- */
-  {
-    id: 'living-35',
-    areaM2: 35,
+  buildGardenRoomProduct('living-35', {
     dimensionsDisplay: '7.0m \u00D7 5.0m',
 
-    showcaseLabel: 'The Living',
     name: 'Garden Living',
     tagline: 'Space to grow into',
-
-    image: {
-      png: '/resource/garden-room/garden-room2.png',
-      webP: '/resource/garden-room/garden-room2.webp',
-      avif: '/resource/garden-room/garden-room2.avif',
-    },
-
-    basePrice: '\u20AC68,500',
-
-    planningPermission: true,
-    inStock: false,
-    available: false,
     badge: 'Coming Soon',
 
     ctaText: 'Register Interest',
@@ -322,32 +346,14 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       electrics: 'Full consumer unit, Cat6 ready',
       plumbing: 'Optional kitchenette & WC',
     },
-    leadTime: '10\u201312 weeks',
-
-    displayOrder: 3,
-  },
+  }),
 
   /* ---- 45 m2 -- Grand --------------------------------------------------- */
-  {
-    id: 'grand-45',
-    areaM2: 45,
+  buildGardenRoomProduct('grand-45', {
     dimensionsDisplay: '9.0m \u00D7 5.0m',
 
-    showcaseLabel: 'The Grand',
     name: 'Grand Studio',
     tagline: 'A building, not just a room',
-
-    image: {
-      png: '/resource/garden-room/garden-room3.png',
-      webP: '/resource/garden-room/garden-room3.webp',
-      avif: '/resource/garden-room/garden-room3.avif',
-    },
-
-    basePrice: '\u20AC83,500',
-
-    planningPermission: true,
-    inStock: false,
-    available: false,
     badge: 'Coming Soon',
 
     ctaText: 'Register Interest',
@@ -367,10 +373,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       electrics: 'Full consumer unit, Cat6, EV-ready',
       plumbing: 'Optional full kitchen & WC',
     },
-    leadTime: '12\u201316 weeks',
-
-    displayOrder: 4,
-  },
+  }),
 ];
 
 

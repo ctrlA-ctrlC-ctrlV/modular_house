@@ -15,10 +15,10 @@
  * PRODUCTS (4 total):
  * | Slug        | Name         | Area  | Base (incl. VAT) | B&K Policy     | Available |
  * |-------------|--------------|-------|------------------|----------------|-----------|
- * | compact-15  | The Compact  | 15 m2 | EUR 26,000       | not-available  | Yes       |
- * | studio-25   | The Studio   | 25 m2 | EUR 37,000       | optional-addon | Yes       |
- * | living-35   | The Living   | 35 m2 | EUR 65,000       | included       | No        |
- * | grand-45    | The Grand    | 45 m2 | EUR 76,000       | included       | No        |
+ * | compact-15  | The Compact  | 15 m2 | EUR 29,500       | not-available  | Yes       |
+ * | studio-25   | The Studio   | 25 m2 | EUR 39,500       | optional-addon | Yes       |
+ * | living-35   | The Living   | 35 m2 | EUR 68,500       | included       | No        |
+ * | grand-45    | The Grand    | 45 m2 | EUR 83,500       | included       | No        |
  *
  * PRICING:
  * All monetary values are stored in euro cents inclusive of 23% VAT,

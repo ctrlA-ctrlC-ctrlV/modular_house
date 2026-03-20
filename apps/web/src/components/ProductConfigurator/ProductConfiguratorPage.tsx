@@ -34,10 +34,13 @@ import { useConfiguratorState } from './useConfiguratorState';
 import { ProgressBar } from './ProgressBar';
 import { StickySubHeader } from './StickySubHeader';
 import { FloorPlan } from './FloorPlan';
+import { ArchitecturalFloorPlan } from './ArchitecturalFloorPlan';
 import { FinishCard } from './FinishCard';
 import { AddonCard } from './AddonCard';
+import { FloorPlanCard } from './FloorPlanCard';
+import { LayoutCard } from './LayoutCard';
 import { SummaryNavBar } from './SummaryNavBar';
-import { CONFIGURATOR_STEPS } from './constants';
+import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
 import { formatPriceCents } from './utils';
 import './ProductConfigurator.css';
 
@@ -81,7 +84,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   const wallColor = selectedExterior?.color ?? '#1a1a1a';
 
   /** The current step definition for conditional rendering */
-  const currentStep = CONFIGURATOR_STEPS[state.stepIndex];
+  const currentStep = state.steps[state.stepIndex];
 
 
   /* -----------------------------------------------------------------------
@@ -100,11 +103,28 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
       {/* Hero visual with floor plan and price */}
       <div className="configurator__hero-visual">
-        <FloorPlan
-          config={product.floorPlan}
-          dimensions={product.dimensions}
-          wallColor="#1a1a1a"
-        />
+        {product.floorPlanVariants ? (() => {
+          const selectedVariant = product.floorPlanVariants.find(
+            (v) => v.id === state.selections.floorPlanVariantId
+          );
+          const selectedLayout = product.layoutOptions?.find(
+            (l) => l.id === state.selections.layoutOptionId
+          );
+          const fpSlug = (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6';
+          const layoutSlug = (selectedLayout?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
+          return (
+            <ArchitecturalFloorPlan
+              config={getStudioFloorPlanConfig(fpSlug, layoutSlug)}
+              wallColorOverride="#1a1a1a"
+            />
+          );
+        })() : (
+          <FloorPlan
+            config={product.floorPlan}
+            dimensions={product.dimensions}
+            wallColor="#1a1a1a"
+          />
+        )}
         <div className="configurator__price-display">
           <div className="configurator__price-amount">
             {formatPriceCents(product.basePriceCentsInclVat)}
@@ -297,6 +317,89 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
 
   /* -----------------------------------------------------------------------
+     Step: Floor Plan Selection (products with floorPlanVariants only)
+     -----------------------------------------------------------------------
+     Displays a grid of selectable floor plan variant cards, each rendered
+     with an ArchitecturalFloorPlan SVG preview in the Box (open-space)
+     configuration. The user must select one variant to proceed.
+     ----------------------------------------------------------------------- */
+  const renderFloorPlanStep = (): React.ReactNode => (
+    <>
+      <div className="configurator__step-heading">
+        <h2 className="configurator__step-title">Choose Your Floor Plan</h2>
+        <p className="configurator__step-subtitle">
+          Select the footprint for your {product.name}
+        </p>
+      </div>
+
+      <div className="configurator__floor-plan-grid">
+        {product.floorPlanVariants?.map((variant) => (
+          <FloorPlanCard
+            key={variant.id}
+            variant={variant}
+            isSelected={state.selections.floorPlanVariantId === variant.id}
+            onSelect={state.setFloorPlanVariant}
+          >
+            <ArchitecturalFloorPlan
+              config={getStudioFloorPlanConfig(
+                variant.slug as '5x5' | '4x6',
+                null,
+              )}
+              wallColorOverride="#1a1a1a"
+            />
+          </FloorPlanCard>
+        ))}
+      </div>
+    </>
+  );
+
+
+  /* -----------------------------------------------------------------------
+     Step: Layout Selection (products with layoutOptions only)
+     -----------------------------------------------------------------------
+     Displays a grid of selectable layout cards. Each card renders the
+     ArchitecturalFloorPlan SVG for the combination of the currently
+     selected floor plan variant and the card's layout slug.
+     ----------------------------------------------------------------------- */
+  const renderLayoutStep = (): React.ReactNode => {
+    const selectedVariant = product.floorPlanVariants?.find(
+      (v) => v.id === state.selections.floorPlanVariantId
+    );
+    const fpSlug = (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6';
+
+    return (
+      <>
+        <div className="configurator__step-heading">
+          <h2 className="configurator__step-title">Choose Your Layout</h2>
+          <p className="configurator__step-subtitle">
+            Select the interior layout for your {product.name}
+          </p>
+        </div>
+
+        <div className="configurator__layout-grid">
+          {product.layoutOptions?.map((layout) => (
+            <LayoutCard
+              key={layout.id}
+              layout={layout}
+              isSelected={state.selections.layoutOptionId === layout.id}
+              onSelect={state.setLayoutOption}
+            >
+              <ArchitecturalFloorPlan
+                config={getStudioFloorPlanConfig(
+                  fpSlug,
+                  layout.slug as 'box' | 'en-suite' | 'bedroom',
+                )}
+                wallColorOverride="#1a1a1a"
+              />
+            </LayoutCard>
+          ))}
+        </div>
+      </>
+    );
+  };
+
+
+  /* -----------------------------------------------------------------------
      Step 4: Summary (non-consultation view)
      -----------------------------------------------------------------------
      Displays the SummaryNavBar (tabbed view), price breakdown table, and
@@ -305,6 +408,9 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   const renderSummaryStep = (): React.ReactNode => {
     const selectedAddons = product.addons.filter((a) =>
       state.selections.selectedAddonIds.includes(a.id)
+    );
+    const selectedLayout = product.layoutOptions?.find(
+      (l) => l.id === state.selections.layoutOptionId
     );
 
     return (
@@ -348,6 +454,16 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               </span>
             </div>
           ))}
+
+          {/* Layout price delta (visible when a non-zero layout is selected) */}
+          {selectedLayout && selectedLayout.priceDeltaCentsInclVat > 0 && (
+            <div className="configurator__price-line configurator__price-line--addon">
+              <span className="configurator__price-line-label">{selectedLayout.name} layout</span>
+              <span className="configurator__price-line-amount">
+                +{formatPriceCents(selectedLayout.priceDeltaCentsInclVat)}
+              </span>
+            </div>
+          )}
 
           {/* Total row */}
           <div className="configurator__price-total">
@@ -563,7 +679,20 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               and selected finishes in a compact readable format. */}
           <div className="configurator__form-summary">
             Your configuration: <strong>{product.name}</strong>,{' '}
-            {product.dimensions.widthM}m x {product.dimensions.depthM}m,{' '}
+            {(() => {
+              const fpVariant = product.floorPlanVariants?.find(
+                (v) => v.id === state.selections.floorPlanVariantId
+              );
+              return fpVariant
+                ? `${fpVariant.widthM}m x ${fpVariant.depthM}m`
+                : `${product.dimensions.widthM}m x ${product.dimensions.depthM}m`;
+            })()},{' '}
+            {(() => {
+              const lo = product.layoutOptions?.find(
+                (l) => l.id === state.selections.layoutOptionId
+              );
+              return lo ? <><strong>{lo.name}</strong> layout,{' '}</> : null;
+            })()}
             <strong>{selectedExterior?.name ?? 'No exterior'}</strong>,{' '}
             <strong>{selectedInterior?.name ?? 'No interior'}</strong>
           </div>
@@ -696,6 +825,10 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
     }
 
     switch (currentStep?.id) {
+      case 'floor-plan':
+        return renderFloorPlanStep();
+      case 'layout':
+        return renderLayoutStep();
       case 'overview':
         return renderOverviewStep();
       case 'exterior':

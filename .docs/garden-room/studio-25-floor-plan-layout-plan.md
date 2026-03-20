@@ -1,6 +1,7 @@
 # The Studio 25m² -- Floor Plan & Layout Selection Implementation Plan
 
 **Created:** 2026-03-20
+**Updated:** 2026-03-20
 **Status:** Planning
 **Scope:** The Studio configurator only (slug: `studio-25`)
 
@@ -8,7 +9,7 @@
 
 ## 1. Executive Summary
 
-Add a new floor plan selection step and a layout selection step to The Studio configurator. The floor plan step lets the user choose between two footprints (5.0m x 5.0m or 4.15m x 6.0m). The layout step lets the user choose between three interior layouts (Box, En Suite, Bedroom) with tiered pricing. Bathroom and kitchen are no longer standalone add-ons -- they are bundled into the En Suite and Bedroom layouts.
+Upgrade the floor plan SVG renderer to produce architectural-quality drawings matching the reference images in `/public/resource/floorplan/`. Then add a new floor plan selection step and a layout selection step to The Studio configurator. The floor plan step lets the user choose between two footprints (5.0m x 5.0m or 4.15m x 6.0m). The layout step lets the user choose between three interior layouts (Box, En Suite, Bedroom) with tiered pricing. Bathroom and kitchen are no longer standalone add-ons -- they are bundled into the En Suite and Bedroom layouts.
 
 ---
 
@@ -393,11 +394,229 @@ function calculateTotalPriceCents(
 
 ### 5.5 Updated Floor Plan Rendering
 
-When floor plan variants exist, the `FloorPlan` component should use the selected variant's `floorPlan` config instead of `product.floorPlan`. This requires passing the resolved floor plan config through rather than always using `product.floorPlan`.
+The Studio configurator uses the new `ArchitecturalFloorPlan` component (Phase 0) instead of the MVP `FloorPlan` component. The architectural floor plan config is resolved from the combination of the selected floor plan variant + selected layout using the lookup map in `studio-floor-plans.ts`. Non-Studio products continue to use the existing MVP `FloorPlan` component unchanged.
+
+On the Floor Plan Selection step, each card renders the Box config for its floor plan variant (showing the open-space version). On the Layout Selection step, each card renders the config matching the selected floor plan + that card's layout. On the Overview step and subsequent steps, the floor plan reflects both the selected floor plan variant and the selected layout.
 
 ---
 
 ## 6. Step-by-Step Implementation Breakdown
+
+### Phase 0: Floor Plan Visual Upgrade (Prerequisite)
+
+This phase upgrades the SVG floor plan renderer from the current MVP (simple rect + blue aperture bars) to architectural-quality drawings that match the six reference images in `/public/resource/floorplan/`. Each reference image is treated as its own task for individual review. The upgraded renderer is a prerequisite for Phase 3, where the floor plan and layout selection steps use these visuals as card previews.
+
+**Reference image inventory:**
+
+| File | Floor plan | Layout | Key visual elements |
+|------|-----------|--------|---------------------|
+| `500by500_box.jpg` | 5.0m x 5.0m | Box | Square footprint, open space 22.35 SQM, 700mm T&T window + 1600mm double/sliding door on south wall, north arrow |
+| `500by500_ensuit.jpg` | 5.0m x 5.0m | En Suite | Bathroom (3.84 SQM) + Kitchen zone top-left, 700mm single door with swing arc, open space 17.95 SQM below |
+| `500by500_bedroom.jpg` | 5.0m x 5.0m | Bedroom | Bathroom (3.84 SQM) top-left, Kitchen top-right, Bedroom (7.18 SQM) mid-left with 700mm door, open space 10.36 SQM mid-right, two internal partition walls |
+| `415by600_box.jpg` | 4.15m x 6.0m | Box | Portrait rectangle, open space 22.21 SQM, same south-wall aperture layout |
+| `415by600_ensuit.jpg` | 4.15m x 6.0m | En Suite | Bathroom (3.84 SQM) top-left, Kitchen zone bottom-left, open space 17.81 SQM right, internal partition wall |
+| `415by600_bedroomjpg.jpg` | 4.15m x 6.0m | Bedroom | Bathroom (3.84 SQM) top-left, Bedroom (5.97 SQM) top-right, Kitchen bottom-left, open space 11.36 SQM bottom-right, two internal partition walls |
+
+**Visual gap analysis -- current MVP vs reference images:**
+
+| Element | Current MVP (`FloorPlan.tsx`) | Reference images | Gap |
+|---------|------------------------------|-----------------|-----|
+| Outer walls | Single stroke rect, 6px, rounded corners | Double-line walls showing wall thickness (~136mm) | Major |
+| Corner posts | None | Filled dark-grey rectangles at all four corners | Missing |
+| Inner fill | Single light rect `#f9f8f6` | White inner area bounded by inner wall face | Minor |
+| Apertures | Blue filled rects with white divider | Thin parallel lines through wall break (architectural convention) | Major |
+| Door swings | Single dashed Bezier for french doors only | Dashed quarter-circle arcs for all door types; double-leaf arcs for sliding doors | Major |
+| Dimension lines | Two text labels below/right of plan | Full leader-line dimensions with arrows, exterior bold dims + interior light dims | Major |
+| Room labels | Single centred area text "XX m2" | "ROOM NAME" + "XX.XX SQM" per zone, uppercase | Missing |
+| Aperture labels | None | "700MM T&T WINDOW", "1600MM DOUBLE/SLIDING DOOR" with offset dimensions | Missing |
+| North arrow | None | Solid black triangle below south wall entrance | Missing |
+| Internal walls | None | Double-line partition walls for En Suite and Bedroom layouts | Missing (new for Phase 3) |
+| Internal doors | None | 700mm single door opening with dashed swing arc through internal walls | Missing (new for Phase 3) |
+| Aspect ratio | Fixed 260x260 square viewBox | Square for 5x5, portrait for 4.15x6 (proportional to real dimensions) | Major |
+
+**Architectural approach -- refactor vs rewrite:**
+
+The current `FloorPlan.tsx` component is 347 lines of tightly coupled coordinate math built around a fixed 260x260 square viewBox. The reference images require fundamentally different rendering: double-line walls, proportional viewBox, leader-line dimensions, internal partitions, room labels, and door arcs. Rather than patching the MVP, the plan creates a **new `ArchitecturalFloorPlan` component** alongside the existing one. The old `FloorPlan` component remains available as a fallback for other products until they are individually migrated.
+
+The new component will be **data-driven**: it receives a floor plan descriptor object (dimensions, apertures, internal walls, room zones) and renders the corresponding SVG. This keeps the component reusable across all six floor plan variants without hard-coding coordinates per layout.
+
+---
+
+#### Task 0.1: Create core `ArchitecturalFloorPlan` component -- outer shell, walls, and corner posts
+
+**Files:** `apps/web/src/components/ProductConfigurator/ArchitecturalFloorPlan.tsx` (NEW)
+
+**Reference:** `500by500_box.jpg` (simplest case -- no internal walls, single open zone)
+
+**Actions:**
+1. Create a new React component accepting an `ArchitecturalFloorPlanConfig` prop (interface defined inline initially, extracted in Task 0.2).
+2. Compute a proportional SVG viewBox based on the room's real-world width and depth (no longer a fixed 260x260 square). Use a consistent scale factor (e.g., 1mm = 0.1 SVG units) with configurable padding for dimension lines and the north arrow.
+3. Render double-line outer walls: an outer rect and an inner rect separated by the wall thickness (~136mm scaled). Stroke colour matches the configurator's wall colour prop.
+4. Render filled corner-post rectangles at all four corners (dark grey, matching the reference post dimensions visible in the drawings).
+5. Render the inner room fill (white/off-white) bounded by the inner wall face.
+6. Add the proportional viewBox with `preserveAspectRatio="xMidYMid meet"` so the component scales cleanly in its container.
+
+**Acceptance criteria:** The SVG shows a proportionally correct double-walled rectangle with corner posts. For a 5000x5000 room it appears square; for a 4150x6000 room it appears portrait. No apertures, labels, or dimensions yet.
+
+**Risk:** None. New file, no impact on existing code.
+
+---
+
+#### Task 0.2: Architectural apertures -- windows and doors through wall breaks
+
+**Files:** `apps/web/src/components/ProductConfigurator/ArchitecturalFloorPlan.tsx`
+
+**Reference:** `500by500_box.jpg`, `415by600_box.jpg` (south wall: 700mm T&T window + 1600mm double/sliding door)
+
+**Actions:**
+1. Render apertures as wall breaks: remove a segment of the double-line wall at the aperture position and draw two thin parallel lines across the opening (the glazing indication lines visible in the reference).
+2. For tilt-and-turn windows (700mm): two parallel lines spanning the wall break, matching the reference's thin stroke style.
+3. For double/sliding doors (1600mm): two parallel lines spanning the break, plus a dashed double-leaf arc below the opening representing the door swing. The reference shows two quarter-circle dashed arcs sweeping outward (the black triangle sits between them).
+4. Position apertures using real-world millimetre offsets from the reference images:
+   - **5x5 south wall:** 650mm offset from left, then 700mm window, then 1350mm gap, then 1600mm door, then 128mm to right corner (matching `500by500_box.jpg`).
+   - **4.15x6 south wall:** 1250mm offset from left, then 700mm window, then 1350mm gap, then 1600mm door, then 828mm to right corner (matching `415by600_box.jpg`).
+5. Render aperture labels below/above each opening: "700MM T&T WINDOW", "1600MM DOUBLE/SLIDING DOOR" in small uppercase text.
+6. Render offset dimension lines between apertures and to wall edges (e.g., the 650, 1350, 128 leader lines visible in the reference).
+
+**Acceptance criteria:** The 5x5 Box and 4.15x6 Box floor plans render with architecturally correct wall breaks, glazing lines, door swing arcs, aperture labels, and inter-aperture dimensions matching the reference images.
+
+**Risk:** Low. Coordinate math requires careful measurement from reference images; any positional errors are visually obvious and straightforward to correct.
+
+---
+
+#### Task 0.3: Exterior dimension lines and north arrow
+
+**Files:** `apps/web/src/components/ProductConfigurator/ArchitecturalFloorPlan.tsx`
+
+**Reference:** All six images (dimension lines + north arrow are consistent across all)
+
+**Actions:**
+1. Render exterior dimension lines with leader arrows on the top and left sides of the plan:
+   - Top: total width dimension in bold (e.g., "5000" or "6000"), with thin extension lines dropping from the wall corners.
+   - Left: total depth dimension in bold (e.g., "5000" or "4150"), with thin extension lines extending from the wall corners.
+2. Render interior dimension lines just inside the outer wall faces:
+   - Top interior: inner width (e.g., "4728" for 5x5, "5728" for 4.15x6).
+   - Right interior: inner depth (e.g., "4728" for 5x5, "3878" for 4.15x6).
+3. Use the reference images' typographic conventions: bold weight for exterior dimensions, regular weight for interior dimensions, consistent font size scaled to the viewBox.
+4. Render the north arrow as a solid black filled triangle positioned below the south wall entrance (centred on the door opening), matching the reference placement and size.
+
+**Acceptance criteria:** Both Box floor plans display exterior bold dimensions, interior light dimensions, and a north arrow triangle, closely matching the reference images' layout and proportions.
+
+**Risk:** None. Additive rendering on top of the existing wall/aperture structure.
+
+---
+
+#### Task 0.4: Room zone labels and area text
+
+**Files:** `apps/web/src/components/ProductConfigurator/ArchitecturalFloorPlan.tsx`
+
+**Reference:** All six images (each zone labelled with name + SQM)
+
+**Actions:**
+1. Accept an array of room zone descriptors in the config, each specifying: zone name (e.g., "OPEN SPACE"), area in SQM (e.g., "22.35 SQM"), and a centre point (x, y in mm from the top-left inner wall corner).
+2. Render each zone label as two lines of centred text: the room name in a medium-weight uppercase style, and the area below in a lighter weight.
+3. For Box layouts: single zone "OPEN SPACE" centred in the room.
+4. For En Suite layouts: "BATHROOM" + "KITCHEN" + "OPEN SPACE" zones positioned per the reference images.
+5. For Bedroom layouts: "BATHROOM" + "BEDROOM" + "KITCHEN" + "OPEN SPACE" zones positioned per the reference images.
+
+**Acceptance criteria:** Zone labels render in the correct positions with the correct names and areas, matching the uppercase convention in the reference images.
+
+**Risk:** Low. Zone label positions are layout-specific and must be extracted from the reference images. The config-driven approach means positional data is in the data layer, not hard-coded in the component.
+
+---
+
+#### Task 0.5: Internal partition walls and internal doors (En Suite + Bedroom layouts)
+
+**Files:** `apps/web/src/components/ProductConfigurator/ArchitecturalFloorPlan.tsx`
+
+**Reference:** `500by500_ensuit.jpg`, `500by500_bedroom.jpg`, `415by600_ensuit.jpg`, `415by600_bedroomjpg.jpg`
+
+**Actions:**
+1. Accept an array of internal wall segments in the config, each specifying: start point (x, y in mm), end point (x, y in mm), and optional door openings along the wall.
+2. Render internal walls as double-line segments (same thickness as outer walls but potentially thinner -- the reference images show internal walls at similar thickness to outer walls).
+3. Render internal door openings as wall breaks with a dashed quarter-circle swing arc:
+   - 700mm single door openings with a dashed arc indicating the swing direction.
+   - Match the reference images' convention where the arc sweeps into the room the door opens into.
+4. Render internal dimension lines for partition positions and door offsets (e.g., "970", "730", "2536" in the En Suite reference; "1041", "400", "1350" in the Bedroom reference).
+
+**Key measurements extracted from reference images:**
+
+**5x5 En Suite (`500by500_ensuit.jpg`):**
+- Horizontal partition wall: runs from left inner wall face, length ~2536mm (creating bathroom zone above, open space below)
+- Bathroom: width ~2400mm, depth ~1600mm (3.84 SQM)
+- Kitchen: right side of top zone, width ~2192mm (open to main space)
+- Bathroom door: 700mm single door, offset 970mm from left wall, swings into bathroom
+- Internal dimension annotations: 2400, 2192, 1600, 1736, 970, 730, 2536, 2992
+
+**5x5 Bedroom (`500by500_bedroom.jpg`):**
+- Horizontal partition wall at same height as En Suite (creating top bathroom/bedroom zone)
+- Vertical partition wall: divides lower portion into bedroom (left) and open space (right)
+- Bathroom: top-left, 2400mm x 1600mm (3.84 SQM)
+- Bedroom: mid-left, 7.18 SQM, with 700mm door opening into open space
+- Kitchen: open area top-right
+- Open space: 10.36 SQM bottom-right
+- Additional dimensions: 2386, 650, 1641, 1641, 1041, 1050
+
+**4.15x6 En Suite (`415by600_ensuit.jpg`):**
+- Same bathroom dimensions (3.84 SQM) and door config as 5x5 En Suite
+- Kitchen zone in lower-left area, depth ~2143mm
+- Open space: 17.81 SQM on right side
+- Internal dimension annotations: 2400, 3191, 1600, 1736, 970, 730, 2536, 2143
+
+**4.15x6 Bedroom (`415by600_bedroomjpg.jpg`):**
+- Bathroom: top-left, 3.84 SQM (same as all other layouts)
+- Bedroom: top-right, 5.97 SQM, depth ~2000mm, 700mm door
+- Kitchen: bottom-left area, depth ~2143mm
+- Open space: 11.36 SQM bottom-right, height ~1742mm
+- Additional dimensions: 3191, 2000, 1350, 3441, 400, 2286, 1041
+
+**Acceptance criteria:** All four internal-wall layouts (5x5 En Suite, 5x5 Bedroom, 4.15x6 En Suite, 4.15x6 Bedroom) render with correct partition walls, door openings with swing arcs, and internal dimension annotations matching the reference images.
+
+**Risk:** Medium. This is the most complex rendering task. The coordinate data is dense and layout-specific. Careful extraction from the reference images is critical. Recommend implementing one layout at a time and visually comparing against the reference.
+
+---
+
+#### Task 0.6: Create floor plan config data for all six Studio layouts
+
+**Files:** `apps/web/src/data/studio-floor-plans.ts` (NEW)
+
+**Reference:** All six images
+
+**Actions:**
+1. Create a new data file containing the `ArchitecturalFloorPlanConfig` objects for all six Studio 25m² floor plan + layout combinations:
+   - `STUDIO_5x5_BOX`
+   - `STUDIO_5x5_ENSUITE`
+   - `STUDIO_5x5_BEDROOM`
+   - `STUDIO_4x6_BOX`
+   - `STUDIO_4x6_ENSUITE`
+   - `STUDIO_4x6_BEDROOM`
+2. Each config includes: outer dimensions, wall thickness, aperture definitions with exact mm positions, internal wall segments (for En Suite/Bedroom), room zone labels with centre points and areas, and dimension line annotations.
+3. The data is extracted from the six reference images using the millimetre measurements annotated in each drawing.
+4. Export a lookup function or map keyed by `(floorPlanVariantSlug, layoutSlug)` for use by the configurator step renderers.
+
+**Acceptance criteria:** All six configs produce SVGs that closely match their corresponding reference images when rendered by the `ArchitecturalFloorPlan` component.
+
+**Risk:** Low. Purely data extraction and structuring. The component (Tasks 0.1-0.5) does the rendering; this task fills in the content.
+
+---
+
+#### Task 0.7: Integration -- wire `ArchitecturalFloorPlan` into configurator steps
+
+**Files:** `apps/web/src/components/ProductConfigurator/ProductConfiguratorPage.tsx`
+
+**Reference:** N/A (integration task)
+
+**Actions:**
+1. On the Floor Plan Selection step (Step 0), render `ArchitecturalFloorPlan` inside each selectable card using the Box config for the corresponding floor plan variant (`STUDIO_5x5_BOX` for the 5x5 card, `STUDIO_4x6_BOX` for the 4.15x6 card).
+2. On the Layout Selection step (Step 1), render `ArchitecturalFloorPlan` inside each layout card using the config that matches the selected floor plan variant + layout combination (e.g., if the user chose 5x5, the three layout cards show `STUDIO_5x5_BOX`, `STUDIO_5x5_ENSUITE`, `STUDIO_5x5_BEDROOM`).
+3. On the Overview step, render `ArchitecturalFloorPlan` using the config matching both the selected floor plan and layout.
+4. Ensure the existing `FloorPlan` component continues to render for non-Studio products (Compact, Living, Grand) -- no regression.
+
+**Acceptance criteria:** The Studio configurator displays architectural-quality floor plans in the floor plan selection cards, layout selection cards, and overview step. Other products are unaffected.
+
+**Risk:** Low. The `ArchitecturalFloorPlan` component is self-contained; integration is a matter of choosing the correct config per step context.
+
+---
 
 ### Phase 1: Data Layer (No UI changes)
 
@@ -616,36 +835,48 @@ When floor plan variants exist, the `FloorPlan` component should use the selecte
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
+| Architectural floor plan coordinate precision | Medium | Medium | Visually compare each SVG against reference image during Task 0.x review; iterate on measurements |
 | Session storage migration for existing studio-25 sessions | Medium | Low | Merge persisted state with defaults; missing fields get null |
 | ProgressBar assumes static step count | Medium | Medium | Refactor to accept steps as prop |
 | API endpoint does not accept new fields | Low | Low | New fields are sent as optional; backend ignores unknown fields |
-| Floor plan aperture data for 4.15m x 6.0m layout unavailable | Medium | Medium | Placeholder aperture config; update when architectural drawings are finalised |
+| ArchitecturalFloorPlan performance with complex layouts | Low | Low | SVG node count is bounded (~50-100 elements per layout); no runtime performance concern |
 | Price calculation change affects existing quote comparisons | Low | Low | Layout price is additive; base price unchanged |
 
 ---
 
 ## 8. Files Changed Summary
 
-| File | Change Type | Description |
-|------|------------|-------------|
-| `apps/web/src/types/configurator.ts` | Modified | Add FloorPlanVariant, LayoutOption, layout-bundled policy, optional product fields |
-| `apps/web/src/data/configurator-products.ts` | Modified | Add variants + layouts to Studio-25; remove B&K add-on; update policy |
-| `apps/web/src/components/ProductConfigurator/types.ts` | Modified | Add floor-plan + layout step IDs; extend selections |
-| `apps/web/src/components/ProductConfigurator/constants.ts` | Modified | Add buildConfiguratorSteps() function |
-| `apps/web/src/components/ProductConfigurator/useConfiguratorState.ts` | Modified | Dynamic steps; new selection fields; updated canProceed + price calc |
-| `apps/web/src/components/ProductConfigurator/utils.ts` | Modified | Extended calculateTotalPriceCents signature |
-| `apps/web/src/components/ProductConfigurator/ProductConfiguratorPage.tsx` | Modified | Add floor-plan + layout step renderers; update step router |
-| `apps/web/src/components/ProductConfigurator/ProgressBar.tsx` | Modified | Accept dynamic steps array as prop |
-| `apps/web/src/components/ProductConfigurator/FloorPlanCard.tsx` | **New** | Floor plan selection card component |
-| `apps/web/src/components/ProductConfigurator/LayoutCard.tsx` | **New** | Layout selection card component |
-| `apps/web/src/components/ProductConfigurator/ProductConfigurator.css` | Modified | Add styles for floor-plan and layout grids/cards |
-| `apps/web/src/data/garden-room-data.ts` | Reviewed | No changes expected (projection ignores new optional fields) |
+| File | Change Type | Phase | Description |
+|------|------------|-------|-------------|
+| `apps/web/src/components/ProductConfigurator/ArchitecturalFloorPlan.tsx` | **New** | 0 | Data-driven architectural SVG floor plan renderer |
+| `apps/web/src/data/studio-floor-plans.ts` | **New** | 0 | Config data for all six Studio 25m² floor plan + layout combinations |
+| `apps/web/src/types/configurator.ts` | Modified | 1 | Add FloorPlanVariant, LayoutOption, layout-bundled policy, optional product fields |
+| `apps/web/src/data/configurator-products.ts` | Modified | 1 | Add variants + layouts to Studio-25; remove B&K add-on; update policy |
+| `apps/web/src/components/ProductConfigurator/types.ts` | Modified | 2 | Add floor-plan + layout step IDs; extend selections |
+| `apps/web/src/components/ProductConfigurator/constants.ts` | Modified | 2 | Add buildConfiguratorSteps() function |
+| `apps/web/src/components/ProductConfigurator/useConfiguratorState.ts` | Modified | 2 | Dynamic steps; new selection fields; updated canProceed + price calc |
+| `apps/web/src/components/ProductConfigurator/utils.ts` | Modified | 2 | Extended calculateTotalPriceCents signature |
+| `apps/web/src/components/ProductConfigurator/ProductConfiguratorPage.tsx` | Modified | 0+3 | Wire ArchitecturalFloorPlan; add floor-plan + layout step renderers; update step router |
+| `apps/web/src/components/ProductConfigurator/ProgressBar.tsx` | Modified | 3 | Accept dynamic steps array as prop |
+| `apps/web/src/components/ProductConfigurator/FloorPlanCard.tsx` | **New** | 3 | Floor plan selection card component |
+| `apps/web/src/components/ProductConfigurator/LayoutCard.tsx` | **New** | 3 | Layout selection card component |
+| `apps/web/src/components/ProductConfigurator/ProductConfigurator.css` | Modified | 3 | Add styles for floor-plan and layout grids/cards |
+| `apps/web/src/data/garden-room-data.ts` | Reviewed | 1 | No changes expected (projection ignores new optional fields) |
 
 ---
 
 ## 9. Implementation Order
 
 ```
+Phase 0 (Floor Plan Visual Upgrade) -- PREREQUISITE, runs before all other phases
+  0.1 Core component shell ──────┐
+  0.2 Apertures ─────────────────┤ Sequential: each builds on the previous
+  0.3 Dimensions + north arrow ──┤
+  0.4 Room zone labels ──────────┤
+  0.5 Internal walls + doors ────┘
+  0.6 Floor plan config data ──── Depends on 0.1-0.5 (component must exist)
+  0.7 Integration into steps ──── Depends on 0.6 + Phase 3
+
 Phase 1 (Data Layer)
   1.1 Types ──────────────┐
   1.2 Seed Data ──────────┤ No dependencies between these two
@@ -657,9 +888,9 @@ Phase 2 (State & Logic)
   2.3 State Hook ─────────┤
   2.4 Price Calc ─────────┘
 
-Phase 3 (UI Components)
+Phase 3 (UI Components) -- Task 0.7 slots in here alongside 3.3
   3.1 FloorPlanCard ──────┐
-  3.2 LayoutCard ─────────┤ 3.3 depends on 3.1 + 3.2
+  3.2 LayoutCard ─────────┤ 3.3 depends on 3.1 + 3.2 + 0.7
   3.3 Page Renderers ─────┤
   3.4 ProgressBar ────────┤
   3.5 CSS ────────────────┘
@@ -675,10 +906,14 @@ Phase 5 (Testing)
 
 ## 10. Open Questions
 
-1. **Floor plan aperture data for 4.15m x 6.0m:** What glazing configuration applies to the rectangular layout? Same apertures as the square layout, or different window/door positions?
+1. **~~Floor plan aperture data for 4.15m x 6.0m~~:** RESOLVED -- reference images now provide exact millimetre measurements for all six layouts.
 
-2. **Layout-specific floor plan rendering:** Should the floor plan SVG show internal walls for the En Suite and Bedroom layouts, or is this a future enhancement?
+2. **~~Layout-specific floor plan rendering~~:** RESOLVED -- Phase 0 implements full internal wall rendering for En Suite and Bedroom layouts.
 
 3. **Box layout bathroom restriction:** The requirement states "Bathroom cannot be added" for Box. Since bathroom is no longer an add-on, this is inherently satisfied. Confirm no future add-on for standalone bathroom is planned for Studio.
 
 4. **Garden room page card:** Should the Studio-25 card on `/garden-room` reflect the new "from EUR 39,500" pricing, or change to show layout options?
+
+5. **Architectural floor plan in non-Studio products:** Should the new `ArchitecturalFloorPlan` component eventually replace the MVP `FloorPlan` component for Compact-15, Living-35, and Grand-45? If so, reference images for those products will be needed. For now, the MVP continues to render for non-Studio products.
+
+6. **Floor plan card preview size:** On the Floor Plan Selection step, the two cards each contain a floor plan SVG. What size should these previews be -- should they be large (hero-sized, ~400px) or compact (thumbnail-sized, ~200px)? The reference images suggest architectural drawings work best at larger sizes due to the dimension label density.

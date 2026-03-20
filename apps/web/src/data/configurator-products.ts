@@ -16,7 +16,7 @@
  * | Slug        | Name         | Area  | Base (incl. VAT) | B&K Policy     | Available |
  * |-------------|--------------|-------|------------------|----------------|-----------|
  * | compact-15  | The Compact  | 15 m2 | EUR 29,500       | not-available  | Yes       |
- * | studio-25   | The Studio   | 25 m2 | EUR 39,500       | optional-addon | Yes       |
+ * | studio-25   | The Studio   | 25 m2 | EUR 39,500       | layout-bundled | Yes       |
  * | living-35   | The Living   | 35 m2 | EUR 68,500       | included       | No        |
  * | grand-45    | The Grand    | 45 m2 | EUR 83,500       | included       | No        |
  *
@@ -27,7 +27,7 @@
  *
  * BATHROOM & KITCHEN RULES:
  * - 15 m2: cannot add bathroom & kitchen (bathroomKitchenPolicy = "not-available")
- * - 25 m2: offered as an optional paid add-on (bathroomKitchenPolicy = "optional-addon")
+ * - 25 m2: determined by the selected layout option (bathroomKitchenPolicy = "layout-bundled")
  * - 35 & 45 m2: included in base price with plumbing (bathroomKitchenPolicy = "included"),
  *   represented via the includedFeatures array
  *
@@ -43,6 +43,8 @@ import type {
   FinishOption,
   FinishCategory,
   ConfiguratorProduct,
+  FloorPlanVariant,
+  LayoutOption,
 } from '../types/configurator';
 
 
@@ -297,21 +299,110 @@ const STUDIO_25: ConfiguratorProduct = {
 
   basePriceCentsInclVat: 3_950_000,
   pricingNote: PRICING_NOTE,
-  bathroomKitchenPolicy: 'optional-addon',
+  bathroomKitchenPolicy: 'layout-bundled',
 
   finishCategories: buildFinishCategories('The Studio'),
 
-  addons: [
+  /* --- Floor Plan Variants ------------------------------------ */
+
+  /**
+   * Two selectable footprints for The Studio 25m2 product.
+   * Both variants produce approximately 25 m2 of floor area but differ
+   * in shape: the 5x5 is a square, the 4x6 is a landscape rectangle.
+   * Price delta is 0 for both variants -- the distinction is purely
+   * dimensional at this stage.
+   */
+  floorPlanVariants: [
     {
-      id: 'ao-studio-bathroom-kitchen',
+      id: 'fpv-studio-5x5',
       productId: 'cp-studio-25',
-      slug: 'bathroom-kitchen',
-      name: 'Bathroom + Kitchen',
-      description: 'Full plumbing connection with bathroom and kitchen facilities',
-      priceCentsInclVat: 1_000_000,
-      iconId: 'plumbing',
+      slug: '5x5',
+      label: '5.0m x 5.0m',
+      description: 'Square footprint',
+      widthM: 5.0,
+      depthM: 5.0,
+      areaM2: 25,
+      priceDeltaCentsInclVat: 0,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '5.0m', depth: '5.0m' },
+      },
       displayOrder: 1,
     },
+    {
+      id: 'fpv-studio-4x6',
+      productId: 'cp-studio-25',
+      slug: '4x6',
+      label: '4.15m x 6.0m',
+      description: 'Rectangular footprint',
+      widthM: 4.15,
+      depthM: 6.0,
+      areaM2: 24.9,
+      priceDeltaCentsInclVat: 0,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '6.0m', depth: '4.15m' },
+      },
+      displayOrder: 2,
+    },
+  ] satisfies ReadonlyArray<FloorPlanVariant>,
+
+  /* --- Layout Options ----------------------------------------- */
+
+  /**
+   * Three interior layout tiers for The Studio 25m2 product.
+   * The Box layout is an open-plan shell (no internal walls) at no
+   * additional cost. En Suite adds a bathroom and kitchen zone for
+   * EUR 12,000. Bedroom adds a private bedroom partition on top of
+   * the En Suite configuration for EUR 16,000. These tiered prices
+   * replace the previous standalone bathroom-kitchen add-on.
+   */
+  layoutOptions: [
+    {
+      id: 'lo-studio-box',
+      productId: 'cp-studio-25',
+      slug: 'box',
+      name: 'Box',
+      description: 'Open plan with no internal walls. Maximum flexibility for your space.',
+      priceDeltaCentsInclVat: 0,
+      includesBathroom: false,
+      includesKitchen: false,
+      includesBedroomWall: false,
+      displayOrder: 1,
+    },
+    {
+      id: 'lo-studio-en-suite',
+      productId: 'cp-studio-25',
+      slug: 'en-suite',
+      name: 'En Suite',
+      description: 'Open living area with integrated bathroom and kitchen. No bedroom wall.',
+      priceDeltaCentsInclVat: 1_200_000,
+      includesBathroom: true,
+      includesKitchen: true,
+      includesBedroomWall: false,
+      displayOrder: 2,
+    },
+    {
+      id: 'lo-studio-bedroom',
+      productId: 'cp-studio-25',
+      slug: 'bedroom',
+      name: 'Bedroom',
+      description: 'Separate bedroom with wall and door, plus bathroom and kitchen.',
+      priceDeltaCentsInclVat: 1_600_000,
+      includesBathroom: true,
+      includesKitchen: true,
+      includesBedroomWall: true,
+      displayOrder: 3,
+    },
+  ] satisfies ReadonlyArray<LayoutOption>,
+
+  addons: [
     {
       id: 'ao-studio-triple-glazing',
       productId: 'cp-studio-25',
@@ -320,7 +411,7 @@ const STUDIO_25: ConfiguratorProduct = {
       description: 'Enhanced thermal and acoustic insulation for all glazing',
       priceCentsInclVat: 100_000,
       iconId: 'glazing',
-      displayOrder: 2,
+      displayOrder: 1,
     },
     {
       id: 'ao-studio-composite-decking',
@@ -330,7 +421,7 @@ const STUDIO_25: ConfiguratorProduct = {
       description: 'Durable composite entrance step with anti-slip finish',
       priceCentsInclVat: 20_000,
       iconId: 'decking',
-      displayOrder: 3,
+      displayOrder: 2,
     },
   ],
 

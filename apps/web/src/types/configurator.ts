@@ -30,7 +30,8 @@
  * The bathroomKitchenPolicy field on each product encodes the business
  * rule as a discriminated union:
  *   - "not-available" : 15 m2 -- cannot add bathroom & kitchen at all
- *   - "optional-addon" : 25 m2 -- available as a selectable paid add-on
+ *   - "optional-addon" : 25 m2 -- available as a selectable paid add-on (legacy)
+ *   - "layout-bundled" : 25 m2 -- determined by the selected LayoutOption
  *   - "included"       : 35 & 45 m2 -- included in the base price with plumbing
  *
  * FINISH PREVIEW IMAGES:
@@ -327,6 +328,119 @@ export interface FloorPlanConfig {
 
 
 /* =============================================================================
+   SECTION 6a: FLOOR PLAN VARIANTS
+   -----------------------------------------------------------------------------
+   Maps to a future database table: configurator_floor_plan_variants
+   Columns: id (UUID PK), product_id (FK), slug, label, description,
+            width_m, depth_m, area_m2, price_delta_cents_incl_vat,
+            floor_plan_config (JSONB), display_order
+
+   A floor plan variant represents one selectable external footprint for a
+   product. Products may offer multiple footprint options (e.g., The Studio
+   offers both 5.0m x 5.0m and 4.15m x 6.0m). When floor plan variants are
+   defined, the configurator inserts a floor plan selection step before the
+   overview. Products without variants use their base dimensions and skip
+   this step entirely (Open-Closed Principle).
+   ============================================================================= */
+
+/**
+ * A selectable floor plan variant for a product. Each variant defines
+ * a specific external footprint and its associated floor plan rendering
+ * configuration. Products without variants use their base dimensions.
+ *
+ * SQL: configurator_floor_plan_variants
+ * Columns: id (UUID PK), product_id (FK), slug, label, description,
+ *          width_m, depth_m, area_m2, price_delta_cents_incl_vat,
+ *          floor_plan_config (JSONB), display_order
+ */
+export interface FloorPlanVariant {
+  /** Database primary key (UUID v4). */
+  id: string;
+  /** FK reference to the parent ConfiguratorProduct. */
+  productId: string;
+  /** URL-safe slug used for routing and state tracking (e.g., "5x5", "4x6"). */
+  slug: string;
+  /** Human-readable dimension label (e.g., "5.0m x 5.0m"). */
+  label: string;
+  /** Short description of the footprint shape (e.g., "Square footprint"). */
+  description: string;
+  /** External width in metres. */
+  widthM: number;
+  /** External depth in metres. */
+  depthM: number;
+  /** Total floor area in square metres. */
+  areaM2: number;
+  /**
+   * Price adjustment in euro cents (inclusive of VAT) relative to the
+   * product base price. Currently 0 for all Studio variants -- the field
+   * exists to support future pricing differentiation without schema changes.
+   */
+  priceDeltaCentsInclVat: number;
+  /** Floor plan rendering configuration passed to the FloorPlan component. */
+  floorPlan: FloorPlanConfig;
+  /** Sort position within the floor plan selection step (ascending). */
+  displayOrder: number;
+}
+
+
+/* =============================================================================
+   SECTION 6b: LAYOUT OPTIONS
+   -----------------------------------------------------------------------------
+   Maps to a future database table: configurator_layout_options
+   Columns: id (UUID PK), product_id (FK), slug, name, description,
+            price_delta_cents_incl_vat, includes_bathroom, includes_kitchen,
+            includes_bedroom_wall, display_order
+
+   A layout option represents one selectable interior arrangement for a
+   product. Each layout defines a pricing tier and which features are
+   bundled (bathroom, kitchen, bedroom wall). When layout options are
+   defined, the configurator inserts a layout selection step after the
+   floor plan step. Products without layouts skip this step entirely.
+
+   For The Studio 25m2 product:
+     - Box:     open plan, no internal walls, no price uplift
+     - En Suite: bathroom + kitchen included, price delta = EUR 12,000
+     - Bedroom:  bathroom + kitchen + bedroom wall, delta = EUR 16,000
+   ============================================================================= */
+
+/**
+ * A selectable interior layout for a product. Each layout defines a
+ * pricing tier and which features are bundled (bathroom, kitchen, bedroom
+ * wall). The price delta is added on top of the product base price.
+ *
+ * SQL: configurator_layout_options
+ * Columns: id (UUID PK), product_id (FK), slug, name, description,
+ *          price_delta_cents_incl_vat, includes_bathroom, includes_kitchen,
+ *          includes_bedroom_wall, display_order
+ */
+export interface LayoutOption {
+  /** Database primary key (UUID v4). */
+  id: string;
+  /** FK reference to the parent ConfiguratorProduct. */
+  productId: string;
+  /** URL-safe slug used for routing and state tracking (e.g., "box", "en-suite"). */
+  slug: string;
+  /** Human-readable layout name (e.g., "Box", "En Suite", "Bedroom"). */
+  name: string;
+  /** Brief description of the layout arrangement. */
+  description: string;
+  /**
+   * Price adjustment in euro cents (inclusive of VAT) relative to the
+   * product base price. Box = 0, En Suite = 1,200,000, Bedroom = 1,600,000.
+   */
+  priceDeltaCentsInclVat: number;
+  /** Whether this layout includes a bathroom partition and fixtures. */
+  includesBathroom: boolean;
+  /** Whether this layout includes kitchen fixtures. */
+  includesKitchen: boolean;
+  /** Whether this layout includes a bedroom partition wall and door. */
+  includesBedroomWall: boolean;
+  /** Sort position within the layout selection step (ascending). */
+  displayOrder: number;
+}
+
+
+/* =============================================================================
    SECTION 7: PRODUCT HERO IMAGE
    -----------------------------------------------------------------------------
    The default product hero image (displayed before any finish selection)
@@ -364,6 +478,7 @@ export interface ProductImageSet {
    |-----------------|------------|-------------------------------------------|
    | not-available   | 15 m2      | No bathroom/kitchen option at all          |
    | optional-addon  | 25 m2      | Offered as a toggleable paid add-on        |
+   | layout-bundled  | 25 m2      | Determined by LayoutOption selection        |
    | included        | 35, 45 m2  | Included in base price with plumbing       |
 
    Stored as a VARCHAR(20) column (bathroom_kitchen_policy) on the
@@ -377,6 +492,7 @@ export interface ProductImageSet {
 export type BathroomKitchenPolicy =
   | 'not-available'
   | 'optional-addon'
+  | 'layout-bundled'
   | 'included';
 
 
@@ -455,7 +571,8 @@ export interface ConfiguratorProduct {
   /**
    * Business rule for bathroom & kitchen availability on this product:
    *   - "not-available"  : cannot be added (15 m2)
-   *   - "optional-addon" : offered as a paid add-on (25 m2)
+   *   - "optional-addon" : offered as a paid add-on (25 m2, legacy)
+   *   - "layout-bundled" : determined by the selected LayoutOption (25 m2)
    *   - "included"       : bundled in the base price with plumbing (35, 45 m2)
    */
   bathroomKitchenPolicy: BathroomKitchenPolicy;
@@ -478,6 +595,27 @@ export interface ConfiguratorProduct {
    * (it is in includedFeatures instead).
    */
   addons: ReadonlyArray<AddonOption>;
+
+  /**
+   * Optional floor plan variants. When present, the configurator inserts
+   * a floor plan selection step before the overview. When absent, the
+   * product uses its base dimensions and a single floor plan.
+   *
+   * Currently only The Studio 25m2 defines variants (5.0m x 5.0m and
+   * 4.15m x 6.0m). All other products omit this field and retain their
+   * original step sequence unchanged (Open-Closed Principle).
+   */
+  floorPlanVariants?: ReadonlyArray<FloorPlanVariant>;
+
+  /**
+   * Optional interior layout options. When present, the configurator
+   * inserts a layout selection step after the floor plan / overview step.
+   * When absent, the product has no layout step.
+   *
+   * Currently only The Studio 25m2 defines layouts (Box, En Suite,
+   * Bedroom). All other products omit this field.
+   */
+  layoutOptions?: ReadonlyArray<LayoutOption>;
 
   /**
    * Features included in the base price that are not user-toggleable.

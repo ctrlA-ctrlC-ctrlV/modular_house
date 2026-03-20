@@ -29,9 +29,11 @@
 
 /**
  * Identifies each step in the configurator workflow.
- * The step order is determined by the CONFIGURATOR_STEPS array, not by
- * the string values themselves.
+ * The step order is determined by the step array returned from
+ * buildConfiguratorSteps(), not by the string values themselves.
  *
+ * - "floor-plan": Floor plan variant selection (optional, product-specific)
+ * - "layout"    : Interior layout tier selection (optional, product-specific)
  * - "overview"  : Product introduction, base price, specifications
  * - "exterior"  : Exterior cladding finish selection
  * - "interior"  : Interior wall finish selection
@@ -39,6 +41,8 @@
  * - "summary"   : Configuration review and consultation CTA
  */
 export type ConfiguratorStepId =
+  | 'floor-plan'
+  | 'layout'
   | 'overview'
   | 'exterior'
   | 'interior'
@@ -60,6 +64,10 @@ export type ConfiguratorStepId =
  * no selection has been made for that step.
  */
 export interface ConfiguratorSelections {
+  /** Selected floor plan variant ID, or null if no variant step exists for this product. */
+  floorPlanVariantId: string | null;
+  /** Selected layout option ID, or null if no layout step exists for this product. */
+  layoutOptionId: string | null;
   /** Selected exterior finish option ID, or null if not yet chosen. */
   exteriorFinishId: string | null;
   /** Selected interior finish option ID, or null if not yet chosen. */

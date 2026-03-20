@@ -11,7 +11,7 @@
  * =============================================================================
  */
 
-import type { AddonOption } from '../../types/configurator';
+import type { AddonOption, FloorPlanVariant, LayoutOption } from '../../types/configurator';
 
 
 /**
@@ -33,23 +33,44 @@ export function formatPriceCents(cents: number): string {
 /**
  * Calculates the total configured price in euro cents.
  *
- * Sums the product base price with the prices of all selected add-ons.
- * The addon array is filtered by the provided set of selected IDs to
- * avoid scanning the full addon catalogue.
+ * Sums the product base price with the prices of all selected add-ons,
+ * plus the optional price deltas from the selected floor plan variant
+ * and interior layout option. The last four parameters are optional to
+ * maintain backward compatibility with callers that do not yet support
+ * floor plan or layout selection.
  *
- * @param basePriceCents - The product's base price in euro cents.
- * @param allAddons      - The complete list of available add-ons for this product.
- * @param selectedIds    - Array of add-on IDs the customer has selected.
- * @returns The total price in euro cents (base + selected add-ons).
+ * @param basePriceCents             - The product's base price in euro cents.
+ * @param allAddons                  - The complete list of available add-ons for this product.
+ * @param selectedAddonIds           - Array of add-on IDs the customer has selected.
+ * @param floorPlanVariants          - Optional array of floor plan variants for this product.
+ * @param selectedFloorPlanVariantId - The selected floor plan variant ID, or null/undefined.
+ * @param layoutOptions              - Optional array of layout options for this product.
+ * @param selectedLayoutOptionId     - The selected layout option ID, or null/undefined.
+ * @returns The total price in euro cents (base + add-ons + floor plan delta + layout delta).
  */
 export function calculateTotalPriceCents(
   basePriceCents: number,
   allAddons: ReadonlyArray<AddonOption>,
-  selectedIds: ReadonlyArray<string>,
+  selectedAddonIds: ReadonlyArray<string>,
+  floorPlanVariants?: ReadonlyArray<FloorPlanVariant>,
+  selectedFloorPlanVariantId?: string | null,
+  layoutOptions?: ReadonlyArray<LayoutOption>,
+  selectedLayoutOptionId?: string | null,
 ): number {
   const addonTotal = allAddons
-    .filter((addon) => selectedIds.includes(addon.id))
+    .filter((addon) => selectedAddonIds.includes(addon.id))
     .reduce((sum, addon) => sum + addon.priceCentsInclVat, 0);
 
-  return basePriceCents + addonTotal;
+  /* Floor plan variant price delta (currently 0 for all Studio variants,
+     but the field exists for future pricing differentiation). */
+  const floorPlanDelta = floorPlanVariants
+    ?.find((v) => v.id === selectedFloorPlanVariantId)
+    ?.priceDeltaCentsInclVat ?? 0;
+
+  /* Layout option price delta (Box = 0, En Suite = 1,200,000, Bedroom = 1,600,000). */
+  const layoutDelta = layoutOptions
+    ?.find((l) => l.id === selectedLayoutOptionId)
+    ?.priceDeltaCentsInclVat ?? 0;
+
+  return basePriceCents + addonTotal + floorPlanDelta + layoutDelta;
 }

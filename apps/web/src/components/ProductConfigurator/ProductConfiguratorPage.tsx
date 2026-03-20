@@ -193,7 +193,22 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             alt={`Exterior finish: ${selectedExterior.name}`}
             className="configurator__finish-preview"
           />
-        ) : (
+        ) : product.floorPlanVariants ? (() => {
+          const fpVariant = product.floorPlanVariants.find(
+            (v) => v.id === state.selections.floorPlanVariantId
+          );
+          const loOption = product.layoutOptions?.find(
+            (l) => l.id === state.selections.layoutOptionId
+          );
+          const fpSlug = (fpVariant?.slug ?? '5x5') as '5x5' | '4x6';
+          const loSlug = (loOption?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
+          return (
+            <ArchitecturalFloorPlan
+              config={getStudioFloorPlanConfig(fpSlug, loSlug)}
+              wallColorOverride={wallColor}
+            />
+          );
+        })() : (
           <FloorPlan
             config={product.floorPlan}
             dimensions={product.dimensions}
@@ -243,7 +258,22 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             alt={`Interior finish: ${selectedInterior.name}`}
             className="configurator__finish-preview"
           />
-        ) : (
+        ) : product.floorPlanVariants ? (() => {
+          const fpVariant = product.floorPlanVariants.find(
+            (v) => v.id === state.selections.floorPlanVariantId
+          );
+          const loOption = product.layoutOptions?.find(
+            (l) => l.id === state.selections.layoutOptionId
+          );
+          const fpSlug = (fpVariant?.slug ?? '5x5') as '5x5' | '4x6';
+          const loSlug = (loOption?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
+          return (
+            <ArchitecturalFloorPlan
+              config={getStudioFloorPlanConfig(fpSlug, loSlug)}
+              wallColorOverride={wallColor}
+            />
+          );
+        })() : (
           <FloorPlan
             config={product.floorPlan}
             dimensions={product.dimensions}

@@ -21,7 +21,7 @@
  */
 
 import React from 'react';
-import { CONFIGURATOR_STEPS } from './constants';
+import type { ConfiguratorStep } from './types';
 
 
 /* =============================================================================
@@ -29,6 +29,8 @@ import { CONFIGURATOR_STEPS } from './constants';
    ============================================================================= */
 
 interface ProgressBarProps {
+  /** The ordered step definitions for the current product. */
+  steps: ReadonlyArray<ConfiguratorStep>;
   /** Zero-based index of the currently active step. */
   currentStepIndex: number;
   /**
@@ -165,6 +167,7 @@ const Connector: React.FC<ConnectorProps> = ({ isHighlighted }) => {
    ============================================================================= */
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
+  steps,
   currentStepIndex,
   highestCompletedStepIndex,
   onStepClick,
@@ -172,7 +175,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <div className="configurator__progress" role="navigation" aria-label="Configuration steps">
       <div className="configurator__progress-bar">
-        {CONFIGURATOR_STEPS.map((step, index) => {
+        {steps.map((step, index) => {
           /*
            * A step is "completed" if the user has previously visited it
            * (index <= highestCompletedStepIndex) and it is not the step

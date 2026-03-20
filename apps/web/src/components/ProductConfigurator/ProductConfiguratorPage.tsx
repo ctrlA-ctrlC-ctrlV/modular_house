@@ -80,9 +80,6 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
     (opt) => opt.id === state.selections.interiorFinishId
   );
 
-  /** Default wall colour for the floor plan when no exterior finish is selected */
-  const wallColor = selectedExterior?.color ?? '#1a1a1a';
-
   /** The current step definition for conditional rendering */
   const currentStep = state.steps[state.stepIndex];
 
@@ -184,35 +181,14 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </p>
       </div>
 
-      {/* Hero area: show finish preview image when a finish is selected, otherwise floor plan */}
+      {/* Hero area: finish preview image only (no floor plan fallback on finish steps) */}
       <div className="configurator__hero-visual configurator__hero-visual--compact">
-        {selectedExterior ? (
+        {selectedExterior && (
           <img
             key={selectedExterior.id}
             src={selectedExterior.imagePath}
             alt={`Exterior finish: ${selectedExterior.name}`}
             className="configurator__finish-preview"
-          />
-        ) : product.floorPlanVariants ? (() => {
-          const fpVariant = product.floorPlanVariants.find(
-            (v) => v.id === state.selections.floorPlanVariantId
-          );
-          const loOption = product.layoutOptions?.find(
-            (l) => l.id === state.selections.layoutOptionId
-          );
-          const fpSlug = (fpVariant?.slug ?? '5x5') as '5x5' | '4x6';
-          const loSlug = (loOption?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
-          return (
-            <ArchitecturalFloorPlan
-              config={getStudioFloorPlanConfig(fpSlug, loSlug)}
-              wallColorOverride={wallColor}
-            />
-          );
-        })() : (
-          <FloorPlan
-            config={product.floorPlan}
-            dimensions={product.dimensions}
-            wallColor={wallColor}
           />
         )}
       </div>
@@ -249,35 +225,14 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </p>
       </div>
 
-      {/* Hero area: show finish preview image when a finish is selected, otherwise floor plan */}
+      {/* Hero area: finish preview image only (no floor plan fallback on finish steps) */}
       <div className="configurator__hero-visual configurator__hero-visual--compact">
-        {selectedInterior ? (
+        {selectedInterior && (
           <img
             key={selectedInterior.id}
             src={selectedInterior.imagePath}
             alt={`Interior finish: ${selectedInterior.name}`}
             className="configurator__finish-preview"
-          />
-        ) : product.floorPlanVariants ? (() => {
-          const fpVariant = product.floorPlanVariants.find(
-            (v) => v.id === state.selections.floorPlanVariantId
-          );
-          const loOption = product.layoutOptions?.find(
-            (l) => l.id === state.selections.layoutOptionId
-          );
-          const fpSlug = (fpVariant?.slug ?? '5x5') as '5x5' | '4x6';
-          const loSlug = (loOption?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
-          return (
-            <ArchitecturalFloorPlan
-              config={getStudioFloorPlanConfig(fpSlug, loSlug)}
-              wallColorOverride={wallColor}
-            />
-          );
-        })() : (
-          <FloorPlan
-            config={product.floorPlan}
-            dimensions={product.dimensions}
-            wallColor={wallColor}
           />
         )}
       </div>
@@ -888,6 +843,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
       {/* Step progress indicator */}
       <ProgressBar
+        steps={state.steps}
         currentStepIndex={state.stepIndex}
         highestCompletedStepIndex={state.highestCompletedStepIndex}
         onStepClick={state.goToStep}

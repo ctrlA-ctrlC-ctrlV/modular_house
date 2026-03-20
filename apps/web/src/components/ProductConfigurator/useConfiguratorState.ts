@@ -519,6 +519,14 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
       .map((a) => a.slug)
       .join(',');
 
+    /* -- Resolve optional floor plan and layout slugs --------------------- */
+    const floorPlanVariant = product.floorPlanVariants?.find(
+      (v) => v.id === selections.floorPlanVariantId
+    );
+    const layoutOption = product.layoutOptions?.find(
+      (l) => l.id === selections.layoutOptionId
+    );
+
     /* -- Transition to submitting state ----------------------------------- */
     setFormStatus('submitting');
     setFormError('');
@@ -537,6 +545,8 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
         configuratorInteriorFinish: interiorName,
         configuratorAddons: addonSlugs || undefined,
         configuratorTotalCents: totalPriceCents,
+        configuratorFloorPlan: floorPlanVariant?.slug || undefined,
+        configuratorLayout: layoutOption?.slug || undefined,
         preferredDate,
       });
 

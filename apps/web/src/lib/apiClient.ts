@@ -233,6 +233,10 @@ class ApiClient {
     configuratorAddons?: string;
     /** Total configured price in euro cents (base + selected add-ons). */
     configuratorTotalCents?: number;
+    /** Floor plan variant slug (e.g. "5x5", "4x6"). Only for products with floor plan variants. */
+    configuratorFloorPlan?: string;
+    /** Layout option slug (e.g. "box", "en-suite", "bedroom"). Only for products with layout options. */
+    configuratorLayout?: string;
     /** Customer's preferred consultation date: "asap" or ISO date string. */
     preferredDate?: string;
   }): Promise<SubmissionResponse> {

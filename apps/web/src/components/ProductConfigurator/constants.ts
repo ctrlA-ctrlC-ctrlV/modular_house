@@ -79,7 +79,14 @@ export function buildConfiguratorSteps(
     return BASE_STEPS;
   }
 
-  return [...prefixSteps, ...BASE_STEPS];
+  /* Products with floor plan variants (e.g., Studio-25) skip the overview
+     step because the floor plan and layout steps already introduce the
+     product. Other products retain the full base sequence. */
+  const baseSteps = product.floorPlanVariants && product.floorPlanVariants.length > 0
+    ? BASE_STEPS.filter((step) => step.id !== 'overview')
+    : BASE_STEPS;
+
+  return [...prefixSteps, ...baseSteps];
 }
 
 /**

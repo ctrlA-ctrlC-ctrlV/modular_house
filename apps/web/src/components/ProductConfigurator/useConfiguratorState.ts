@@ -24,8 +24,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import type { ConfiguratorProduct } from '../../types/configurator';
-import type { ConfiguratorSelections, ConfiguratorFormData, FormStatus } from './types';
-import { CONFIGURATOR_STEPS, SESSION_STORAGE_KEY_PREFIX } from './constants';
+import type { ConfiguratorSelections, ConfiguratorFormData, FormStatus, ConfiguratorStep } from './types';
+import { buildConfiguratorSteps, SESSION_STORAGE_KEY_PREFIX } from './constants';
 import { calculateTotalPriceCents } from './utils';
 import { apiClient } from '../../lib/apiClient';
 
@@ -50,6 +50,8 @@ interface PersistedState {
    ============================================================================= */
 
 export interface ConfiguratorStateAPI {
+  /** The ordered step sequence for the current product (may include optional steps). */
+  steps: ReadonlyArray<ConfiguratorStep>;
   /** Zero-based index of the current step. */
   stepIndex: number;
   /**
@@ -90,6 +92,10 @@ export interface ConfiguratorStateAPI {
   nextStep: () => void;
   /** Go back to the previous step. */
   previousStep: () => void;
+  /** Set the selected floor plan variant ID. Only relevant for products with floorPlanVariants. */
+  setFloorPlanVariant: (variantId: string) => void;
+  /** Set the selected interior layout option ID. Only relevant for products with layoutOptions. */
+  setLayoutOption: (optionId: string) => void;
   /** Set the selected exterior finish ID. */
   setExteriorFinish: (finishId: string) => void;
   /** Set the selected interior finish ID. */
@@ -148,6 +154,8 @@ function savePersistedState(slug: string, state: PersistedState): void {
    ============================================================================= */
 
 const DEFAULT_SELECTIONS: ConfiguratorSelections = {
+  floorPlanVariantId: null,
+  layoutOptionId: null,
   exteriorFinishId: null,
   interiorFinishId: null,
   selectedAddonIds: [],
@@ -246,7 +254,20 @@ function validateFormData(
 
 export function useConfiguratorState(product: ConfiguratorProduct): ConfiguratorStateAPI {
   /* -----------------------------------------------------------------------
+     Compute dynamic step sequence for this product
+     -----------------------------------------------------------------------
+     The step array is stable across renders because the product definition
+     is a constant. Products with floorPlanVariants and/or layoutOptions
+     receive additional steps prepended before the base sequence.
+     ----------------------------------------------------------------------- */
+  const steps = buildConfiguratorSteps(product);
+
+  /* -----------------------------------------------------------------------
      Initialise state from sessionStorage or defaults
+     -----------------------------------------------------------------------
+     When loading persisted selections, merge with DEFAULT_SELECTIONS to
+     ensure backward compatibility with older sessions that lack the new
+     floorPlanVariantId and layoutOptionId fields.
      ----------------------------------------------------------------------- */
   const [stepIndex, setStepIndex] = useState<number>(() => {
     const persisted = loadPersistedState(product.slug);
@@ -255,7 +276,9 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
 
   const [selections, setSelections] = useState<ConfiguratorSelections>(() => {
     const persisted = loadPersistedState(product.slug);
-    return persisted?.selections ?? DEFAULT_SELECTIONS;
+    return persisted?.selections
+      ? { ...DEFAULT_SELECTIONS, ...persisted.selections }
+      : DEFAULT_SELECTIONS;
   });
 
   const [highestCompletedStepIndex, setHighestCompletedStepIndex] = useState<number>(() => {
@@ -298,14 +321,22 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     product.basePriceCentsInclVat,
     product.addons,
     selections.selectedAddonIds,
+    product.floorPlanVariants,
+    selections.floorPlanVariantId,
+    product.layoutOptions,
+    selections.layoutOptionId,
   );
 
   /** Determines whether the current step has all required selections. */
   const canProceed = (() => {
-    const currentStep = CONFIGURATOR_STEPS[stepIndex];
+    const currentStep = steps[stepIndex];
     if (!currentStep) return false;
 
     switch (currentStep.id) {
+      case 'floor-plan':
+        return selections.floorPlanVariantId !== null;
+      case 'layout':
+        return selections.layoutOptionId !== null;
       case 'overview':
         return true;
       case 'exterior':
@@ -351,14 +382,14 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
    * steps retain their completed state during backward navigation.
    */
   const nextStep = useCallback(() => {
-    if (stepIndex < CONFIGURATOR_STEPS.length - 1) {
+    if (stepIndex < steps.length - 1) {
       const newStepIndex = stepIndex + 1;
       setAnimationKey((k) => k + 1);
       setStepIndex(newStepIndex);
       setHighestCompletedStepIndex((prev) => Math.max(prev, newStepIndex));
       setShowConsultation(false);
     }
-  }, [stepIndex]);
+  }, [stepIndex, steps.length]);
 
   /** Navigate one step backward. */
   const previousStep = useCallback(() => {
@@ -380,6 +411,22 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
 
   const setInteriorFinish = useCallback((finishId: string) => {
     setSelections((prev) => ({ ...prev, interiorFinishId: finishId }));
+  }, []);
+
+  /**
+   * Sets the selected floor plan variant ID. Used on the Floor Plan step
+   * for products that define floorPlanVariants (currently The Studio 25m2).
+   */
+  const setFloorPlanVariant = useCallback((variantId: string) => {
+    setSelections((prev) => ({ ...prev, floorPlanVariantId: variantId }));
+  }, []);
+
+  /**
+   * Sets the selected interior layout option ID. Used on the Layout step
+   * for products that define layoutOptions (currently The Studio 25m2).
+   */
+  const setLayoutOption = useCallback((optionId: string) => {
+    setSelections((prev) => ({ ...prev, layoutOptionId: optionId }));
   }, []);
 
   const toggleAddon = useCallback((addonId: string) => {
@@ -508,6 +555,7 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
      Return Stable API Object
      ----------------------------------------------------------------------- */
   return {
+    steps,
     stepIndex,
     highestCompletedStepIndex,
     animationKey,
@@ -523,6 +571,8 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     goToStep,
     nextStep,
     previousStep,
+    setFloorPlanVariant,
+    setLayoutOption,
     setExteriorFinish,
     setInteriorFinish,
     toggleAddon,

@@ -650,6 +650,192 @@
 
 
 /* ---------------------------------------------------------------------------
+   Floor Plan Selection Cards
+   ---------------------------------------------------------------------------
+   Two-column grid of selectable floor plan variant cards. Each card
+   contains an ArchitecturalFloorPlan SVG preview, dimension label, and
+   description. Selection state mirrors the AddonCard/FinishCard pattern.
+   --------------------------------------------------------------------------- */
+
+.configurator__floor-plan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.configurator__floor-plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px 20px;
+  border-radius: var(--cfg-radius-xl);
+  border: 2px solid var(--cfg-color-border);
+  background: var(--cfg-color-surface);
+  cursor: pointer;
+  transition: all var(--cfg-transition-normal);
+  box-shadow: none;
+  text-align: center;
+}
+
+.configurator__floor-plan-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.configurator__floor-plan-card--selected {
+  border-color: var(--cfg-color-primary);
+  background: var(--cfg-color-surface-alt);
+  box-shadow: var(--cfg-shadow-selected);
+}
+
+.configurator__floor-plan-card-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--cfg-radius-full);
+  background: var(--cfg-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.configurator__floor-plan-card-preview {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.configurator__floor-plan-card-preview svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.configurator__floor-plan-card-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cfg-color-text);
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__floor-plan-card-desc {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+  font-family: var(--cfg-font-body);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Layout Selection Cards
+   ---------------------------------------------------------------------------
+   Three-column grid of selectable layout option cards. Each card contains
+   an ArchitecturalFloorPlan SVG preview, layout name, description, price
+   line, and feature badges. Selection pattern matches floor plan cards.
+   --------------------------------------------------------------------------- */
+
+.configurator__layout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.configurator__layout-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px 20px;
+  border-radius: var(--cfg-radius-xl);
+  border: 2px solid var(--cfg-color-border);
+  background: var(--cfg-color-surface);
+  cursor: pointer;
+  transition: all var(--cfg-transition-normal);
+  box-shadow: none;
+  text-align: center;
+}
+
+.configurator__layout-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.configurator__layout-card--selected {
+  border-color: var(--cfg-color-primary);
+  background: var(--cfg-color-surface-alt);
+  box-shadow: var(--cfg-shadow-selected);
+}
+
+.configurator__layout-card-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--cfg-radius-full);
+  background: var(--cfg-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.configurator__layout-card-preview {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.configurator__layout-card-preview svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.configurator__layout-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cfg-color-text);
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__layout-card-desc {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__layout-card-price {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+  margin-top: 4px;
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__layout-card-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.configurator__layout-card-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #333;
+  background: #f0f0f0;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-family: var(--cfg-font-body);
+}
+
+
+/* ---------------------------------------------------------------------------
    Summary Page -- Navigation Bar
    ---------------------------------------------------------------------------
    Replaces the floor plan on the summary step. Contains tabs for
@@ -1416,6 +1602,22 @@ select.configurator__form-input {
   .configurator__addon-card {
     padding: 16px 18px;
     gap: 14px;
+  }
+
+  .configurator__floor-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .configurator__floor-plan-card {
+    padding: 20px 16px 16px;
+  }
+
+  .configurator__layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .configurator__layout-card {
+    padding: 20px 14px 16px;
   }
 
   .configurator__bottom-nav {

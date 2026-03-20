@@ -79,6 +79,12 @@ export const enquirySubmissionSchema = z.object({
   /** Total configured price in euro cents (base price + selected add-ons). */
   configuratorTotalCents: z.number().int().positive().optional(),
 
+  /** Floor plan variant slug (e.g. "5x5", "4x6"). Only for products with floor plan variants. */
+  configuratorFloorPlan: z.string().max(50).optional(),
+
+  /** Layout option slug (e.g. "box", "en-suite", "bedroom"). Only for products with layout options. */
+  configuratorLayout: z.string().max(50).optional(),
+
   /** Customer's preferred consultation date: "asap" or an ISO date string. */
   preferredDate: z.string().max(50).optional(),
 });

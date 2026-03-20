@@ -37,6 +37,8 @@ router.post('/enquiry',
         configuratorInteriorFinish,
         configuratorAddons,
         configuratorTotalCents,
+        configuratorFloorPlan,
+        configuratorLayout,
         preferredDate,
       } = req.body;
 
@@ -93,6 +95,8 @@ router.post('/enquiry',
         configuratorInteriorFinish,
         configuratorAddons,
         configuratorTotalCents,
+        configuratorFloorPlan,
+        configuratorLayout,
         preferredDate,
       };
 

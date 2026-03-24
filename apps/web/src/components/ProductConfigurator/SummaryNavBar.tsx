@@ -128,8 +128,22 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
         <div className="configurator__summary-section-content">
           <div className="configurator__summary-floor-plan">
             {product.floorPlanVariants ? (() => {
-              /* Resolve the floor plan and layout slugs for the
-                 ArchitecturalFloorPlan config lookup. Falls back to '5x5'
+              /* Check whether the selected variant provides a pre-rendered
+                 SVG image path. When present, render the SVG as an image
+                 element instead of the programmatic floor plan component. */
+              if (selectedVariant?.floorPlanImagePath) {
+                return (
+                  <img
+                    src={selectedVariant.floorPlanImagePath}
+                    alt={`Floor plan: ${selectedVariant.label}`}
+                    className="configurator__floor-plan-image"
+                    loading="lazy"
+                  />
+                );
+              }
+
+              /* Architectural mode: resolve floor plan and layout slugs for
+                 the ArchitecturalFloorPlan config lookup. Falls back to '5x5'
                  when no variant is selected. */
               const fpSlug = (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6';
               const layoutSlug = (selectedLayout?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;

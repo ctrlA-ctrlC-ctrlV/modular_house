@@ -378,6 +378,15 @@ export interface FloorPlanVariant {
   priceDeltaCentsInclVat: number;
   /** Floor plan rendering configuration passed to the FloorPlan component. */
   floorPlan: FloorPlanConfig;
+  /**
+   * Optional path to a pre-rendered floor plan SVG image file, relative
+   * to /public (e.g., "/resource/floorplan/9m x 5m.svg"). When provided,
+   * the configurator renders this image instead of using the programmatic
+   * ArchitecturalFloorPlan or FloorPlan component. This enables products
+   * to use professionally designed SVG floor plans without requiring a
+   * matching ArchitecturalFloorPlanConfig data structure.
+   */
+  floorPlanImagePath?: string;
   /** Sort position within the floor plan selection step (ascending). */
   displayOrder: number;
 }

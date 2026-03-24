@@ -127,8 +127,16 @@ export function resolveDefaultFinishId(
 export function buildDefaultSelections(
   product: ConfiguratorProduct,
 ): ConfiguratorSelections {
+  /* Pre-select the first floor plan variant when the product offers
+     multiple variants, ensuring the floor plan step displays an active
+     selection on first load rather than an empty state. */
+  const defaultFloorPlanVariantId =
+    product.floorPlanVariants && product.floorPlanVariants.length > 0
+      ? product.floorPlanVariants[0].id
+      : null;
+
   return {
-    floorPlanVariantId: null,
+    floorPlanVariantId: defaultFloorPlanVariantId,
     layoutOptionId: null,
     exteriorFinishId: resolveDefaultFinishId(product, 'exterior', DEFAULT_EXTERIOR_FINISH_NAME),
     interiorFinishId: resolveDefaultFinishId(product, 'interior', DEFAULT_INTERIOR_FINISH_NAME),

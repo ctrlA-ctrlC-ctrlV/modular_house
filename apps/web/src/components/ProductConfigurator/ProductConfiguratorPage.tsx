@@ -365,65 +365,91 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   /* -----------------------------------------------------------------------
      Step: Floor Plan Selection (products with floorPlanVariants only)
      -----------------------------------------------------------------------
-     Mirrors the Exterior, Interior, and Layout step pattern: a central
-     hero area displays the ArchitecturalFloorPlan SVG for the currently
-     selected floor plan variant, and a row of compact FloorPlanCard
-     components below provides the selection controls. The hero floor
-     plan updates reactively when the selection changes. All variant SVGs
-     are rendered simultaneously with CSS visibility toggling to prevent
-     unmount/remount jitter.
+     Displays a hero area with the currently selected floor plan and a row
+     of selectable FloorPlanCard components. Supports two rendering modes:
+
+     1. SVG Image mode: When a variant defines a `floorPlanImagePath`, the
+        hero area renders an <img> element pointing to the pre-rendered SVG
+        file. Used by products without layout-specific internal wall configs
+        (e.g., The Grand 45m2).
+
+     2. Architectural mode: When no `floorPlanImagePath` is present, the
+        hero area renders the programmatic ArchitecturalFloorPlan component
+        using the Studio-specific config lookup. Used by products with
+        layout-dependent floor plans (e.g., The Studio 25m2).
+
+     All variant visuals are rendered simultaneously with CSS visibility
+     toggling to prevent unmount/remount jitter during selection changes.
      ----------------------------------------------------------------------- */
-  const renderFloorPlanStep = (): React.ReactNode => (
-    <>
-      {/* Step heading */}
-      <div className="configurator__step-heading">
-        <h2 className="configurator__step-title">Choose Your Floor Plan</h2>
-        <p className="configurator__step-subtitle">
-          Select the footprint for your {product.name}
-        </p>
-      </div>
+  const renderFloorPlanStep = (): React.ReactNode => {
+    /* Determine the rendering mode from the first variant. All variants
+       within a product consistently use the same mode. */
+    const usesImageMode = product.floorPlanVariants?.[0]?.floorPlanImagePath != null;
 
-      {/* Hero area: all floor plan variant SVGs are rendered simultaneously.
-          Only the SVG matching the selected variant receives the visible
-          modifier class. This CSS-based visibility toggle avoids React
-          unmounting and remounting SVG elements on each selection change,
-          eliminating visual jitter during transitions. */}
-      <div className="configurator__hero-visual configurator__hero-visual--compact">
-        {product.floorPlanVariants?.map((variant) => (
-          <div
-            key={variant.id}
-            className={
-              'configurator__floor-plan-variant' +
-              (state.selections.floorPlanVariantId === variant.id
-                ? ' configurator__floor-plan-variant--active'
-                : ' configurator__floor-plan-variant--hidden')
-            }
-          >
-            <ArchitecturalFloorPlan
-              config={getStudioFloorPlanConfig(
-                variant.slug as '5x5' | '4x6',
-                null,
+    return (
+      <>
+        {/* Step heading */}
+        <div className="configurator__step-heading">
+          <h2 className="configurator__step-title">Choose Your Floor Plan</h2>
+          <p className="configurator__step-subtitle">
+            Select the footprint for your {product.name}
+          </p>
+        </div>
+
+        {/* Hero area: all floor plan variant visuals are rendered simultaneously.
+            Only the visual matching the selected variant receives the visible
+            modifier class. This CSS-based visibility toggle avoids React
+            unmounting and remounting elements on each selection change,
+            eliminating visual jitter during transitions. */}
+        <div className="configurator__hero-visual configurator__hero-visual--compact">
+          {product.floorPlanVariants?.map((variant) => (
+            <div
+              key={variant.id}
+              className={
+                'configurator__floor-plan-variant' +
+                (state.selections.floorPlanVariantId === variant.id
+                  ? ' configurator__floor-plan-variant--active'
+                  : ' configurator__floor-plan-variant--hidden')
+              }
+            >
+              {usesImageMode && variant.floorPlanImagePath ? (
+                /* SVG image mode: renders the pre-designed floor plan SVG
+                   as a standard image element. */
+                <img
+                  src={variant.floorPlanImagePath}
+                  alt={`Floor plan: ${variant.label}`}
+                  className="configurator__floor-plan-image"
+                />
+              ) : (
+                /* Architectural mode: renders the programmatic floor plan SVG
+                   using the Studio-specific configuration lookup. */
+                <ArchitecturalFloorPlan
+                  config={getStudioFloorPlanConfig(
+                    variant.slug as '5x5' | '4x6',
+                    null,
+                  )}
+                  wallColorOverride="#1a1a1a"
+                />
               )}
-              wallColorOverride="#1a1a1a"
-            />
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
 
-      {/* Floor plan selection cards rendered in a horizontal row, matching
-          the finish-row pattern used by Exterior, Interior, and Layout steps. */}
-      <div className="configurator__floor-plan-row">
-        {product.floorPlanVariants?.map((variant) => (
-          <FloorPlanCard
-            key={variant.id}
-            variant={variant}
-            isSelected={state.selections.floorPlanVariantId === variant.id}
-            onSelect={state.setFloorPlanVariant}
-          />
-        ))}
-      </div>
-    </>
-  );
+        {/* Floor plan selection cards rendered in a horizontal row, matching
+            the finish-row pattern used by Exterior, Interior, and Layout steps. */}
+        <div className="configurator__floor-plan-row">
+          {product.floorPlanVariants?.map((variant) => (
+            <FloorPlanCard
+              key={variant.id}
+              variant={variant}
+              isSelected={state.selections.floorPlanVariantId === variant.id}
+              onSelect={state.setFloorPlanVariant}
+            />
+          ))}
+        </div>
+      </>
+    );
+  };
 
 
   /* -----------------------------------------------------------------------

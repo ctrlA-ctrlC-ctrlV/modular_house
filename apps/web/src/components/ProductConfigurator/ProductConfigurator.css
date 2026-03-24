@@ -698,6 +698,16 @@
   display: none;
 }
 
+/* Floor plan SVG image displayed for products using pre-rendered SVG files
+   instead of the programmatic ArchitecturalFloorPlan component. Constrained
+   to the hero area width with proportional scaling. */
+.configurator__floor-plan-image {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  object-fit: contain;
+}
+
 /* -- Horizontal row container for floor plan option cards ------------------ */
 
 .configurator__floor-plan-row {

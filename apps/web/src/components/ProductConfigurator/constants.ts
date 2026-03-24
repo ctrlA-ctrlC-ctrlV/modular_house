@@ -89,6 +89,24 @@ export function buildConfiguratorSteps(
   return [...prefixSteps, ...baseSteps];
 }
 
+/* =============================================================================
+   Default Finish Names
+   -----------------------------------------------------------------------------
+   Canonical finish names used to resolve the initial exterior and interior
+   selections when no prior session state exists. These names are matched
+   case-insensitively against the product's finish category options.
+
+   - Exterior defaults to "Black" composite cladding.
+   - Interior defaults to "Stone" plasterboard finish.
+
+   Centralising these values here ensures a single point of change if the
+   default aesthetic is updated in the future.
+   ============================================================================= */
+
+export const DEFAULT_EXTERIOR_FINISH_NAME = 'Black';
+export const DEFAULT_INTERIOR_FINISH_NAME = 'Stone';
+
+
 /**
  * Session storage key used to persist configurator state across
  * page navigations within the same browser session.

@@ -11,7 +11,9 @@
  * =============================================================================
  */
 
-import type { AddonOption, FloorPlanVariant, LayoutOption } from '../../types/configurator';
+import type { AddonOption, ConfiguratorProduct, FloorPlanVariant, LayoutOption } from '../../types/configurator';
+import type { ConfiguratorSelections } from './types';
+import { DEFAULT_EXTERIOR_FINISH_NAME, DEFAULT_INTERIOR_FINISH_NAME } from './constants';
 
 
 /**
@@ -73,4 +75,63 @@ export function calculateTotalPriceCents(
     ?.priceDeltaCentsInclVat ?? 0;
 
   return basePriceCents + addonTotal + floorPlanDelta + layoutDelta;
+}
+
+
+/**
+ * Resolves the default finish option ID for a given category slug and
+ * target finish name from the product's finish category definitions.
+ *
+ * Performs a case-insensitive comparison between the target name and
+ * each option's display name within the matching category. Returns
+ * null if the category or a matching option cannot be found, allowing
+ * the caller to fall back gracefully.
+ *
+ * @param product      - The configurator product containing finish categories.
+ * @param categorySlug - The category to search (e.g., "exterior" or "interior").
+ * @param finishName   - The display name of the desired default finish.
+ * @returns The matching finish option ID, or null if no match is found.
+ */
+export function resolveDefaultFinishId(
+  product: ConfiguratorProduct,
+  categorySlug: string,
+  finishName: string,
+): string | null {
+  const category = product.finishCategories.find(
+    (fc) => fc.slug === categorySlug,
+  );
+  if (!category) return null;
+
+  const normalised = finishName.toLowerCase();
+  const match = category.options.find(
+    (opt) => opt.name.toLowerCase() === normalised,
+  );
+
+  return match?.id ?? null;
+}
+
+
+/**
+ * Builds the initial configurator selections for a given product,
+ * pre-populating the exterior and interior finish IDs with their
+ * configured defaults. This ensures the configurator displays a
+ * preview image on first load rather than showing an empty state.
+ *
+ * Default finish names are defined in constants.ts and resolved
+ * against the product's finish categories at runtime. If no
+ * matching option is found, the field remains null.
+ *
+ * @param product - The configurator product to build defaults for.
+ * @returns A fully initialised ConfiguratorSelections object.
+ */
+export function buildDefaultSelections(
+  product: ConfiguratorProduct,
+): ConfiguratorSelections {
+  return {
+    floorPlanVariantId: null,
+    layoutOptionId: null,
+    exteriorFinishId: resolveDefaultFinishId(product, 'exterior', DEFAULT_EXTERIOR_FINISH_NAME),
+    interiorFinishId: resolveDefaultFinishId(product, 'interior', DEFAULT_INTERIOR_FINISH_NAME),
+    selectedAddonIds: [],
+  };
 }

@@ -26,7 +26,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import type { ConfiguratorSelections, ConfiguratorFormData, FormStatus, ConfiguratorStep } from './types';
 import { buildConfiguratorSteps, SESSION_STORAGE_KEY_PREFIX } from './constants';
-import { calculateTotalPriceCents } from './utils';
+import { buildDefaultSelections, calculateTotalPriceCents } from './utils';
 import { apiClient } from '../../lib/apiClient';
 
 
@@ -153,7 +153,12 @@ function savePersistedState(slug: string, state: PersistedState): void {
    Default Selections
    ============================================================================= */
 
-const DEFAULT_SELECTIONS: ConfiguratorSelections = {
+/**
+ * Fallback selections used only when merging persisted state that may
+ * be missing newly added fields. Product-aware defaults (with pre-selected
+ * finishes) are computed at runtime via buildDefaultSelections().
+ */
+const EMPTY_SELECTIONS: ConfiguratorSelections = {
   floorPlanVariantId: null,
   layoutOptionId: null,
   exteriorFinishId: null,
@@ -274,11 +279,19 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     return persisted?.stepIndex ?? 0;
   });
 
+  /* Compute product-aware default selections that pre-select the
+     default exterior (Black) and interior (Stone) finishes. These
+     defaults ensure a preview image is visible on first load. */
+  const productDefaults = buildDefaultSelections(product);
+
   const [selections, setSelections] = useState<ConfiguratorSelections>(() => {
     const persisted = loadPersistedState(product.slug);
+    /* Merge persisted selections over product defaults to preserve
+       both session continuity and backward compatibility with older
+       sessions that may lack newer selection fields. */
     return persisted?.selections
-      ? { ...DEFAULT_SELECTIONS, ...persisted.selections }
-      : DEFAULT_SELECTIONS;
+      ? { ...EMPTY_SELECTIONS, ...persisted.selections }
+      : productDefaults;
   });
 
   const [highestCompletedStepIndex, setHighestCompletedStepIndex] = useState<number>(() => {

@@ -26,7 +26,7 @@
  * =============================================================================
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import type { DatePreferenceValue } from './types';
@@ -82,6 +82,21 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
   /** The current step definition for conditional rendering */
   const currentStep = state.steps[state.stepIndex];
+
+  /* Ref attached to the configurator root element for programmatic scrolling. */
+  const configuratorRef = useRef<HTMLDivElement>(null);
+
+
+  /* -----------------------------------------------------------------------
+     Scroll-to-Top on Step Change
+     -----------------------------------------------------------------------
+     Scrolls the viewport to the top of the configurator container each
+     time the active step changes. This ensures the customer always sees
+     the beginning of the next step's content without manual scrolling.
+     ----------------------------------------------------------------------- */
+  useEffect(() => {
+    configuratorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [state.stepIndex]);
 
 
   /* -----------------------------------------------------------------------
@@ -507,11 +522,16 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           <p className="configurator__step-subtitle">Review your configuration</p>
         </div>
 
-        {/* Summary navigation bar (replaces floor plan per Instruction #5) */}
+        {/* Configuration summary sections -- stacked cards showing all
+            selected options: floor plan, finishes, glazing, bathroom &
+            kitchen, and other details in a single scrollable view. */}
         <SummaryNavBar
           product={product}
           exteriorFinishId={state.selections.exteriorFinishId}
           interiorFinishId={state.selections.interiorFinishId}
+          floorPlanVariantId={state.selections.floorPlanVariantId}
+          layoutOptionId={state.selections.layoutOptionId}
+          selectedAddonIds={state.selections.selectedAddonIds}
         />
 
         {/* Price breakdown table */}
@@ -936,7 +956,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      Render
      ----------------------------------------------------------------------- */
   return (
-    <div className="configurator">
+    <div className="configurator" ref={configuratorRef}>
       {/* Apple-style sticky sub-header with product name and running price */}
       <StickySubHeader
         productName={product.name}

@@ -882,10 +882,102 @@
 
 
 /* ---------------------------------------------------------------------------
-   Summary Page -- Navigation Bar
+   Summary Page -- Stacked Section Cards
    ---------------------------------------------------------------------------
-   Replaces the floor plan on the summary step. Contains tabs for
-   Exterior Finish, Interior Finish, Glazing, and Other Details.
+   Vertically stacked summary section cards that display all configuration
+   choices simultaneously. Each section is a self-contained card with a
+   title header and content area, providing an at-a-glance overview of
+   the customer's configured garden room.
+   --------------------------------------------------------------------------- */
+
+.configurator__summary-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.configurator__summary-section {
+  background: linear-gradient(145deg, var(--cfg-color-gradient-start), var(--cfg-color-gradient-end));
+  border-radius: var(--cfg-radius-2xl);
+  overflow: hidden;
+}
+
+.configurator__summary-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cfg-color-text-secondary);
+  padding: 16px 24px 0;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.configurator__summary-section-content {
+  padding: 16px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Floor plan container within the summary section */
+.configurator__summary-floor-plan {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Dimension label displayed below the floor plan SVG */
+.configurator__summary-floor-plan-dims {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cfg-color-text);
+  text-align: center;
+}
+
+/* Layout label appended to the dimension string */
+.configurator__summary-floor-plan-layout {
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+}
+
+/* Glazing note paragraph within the glazing section */
+.configurator__summary-glazing-note {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+  line-height: 1.6;
+  text-align: center;
+  margin: 0;
+}
+
+/* Horizontal divider between detail groups within a section */
+.configurator__summary-detail-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--cfg-color-border);
+  margin: 4px 0;
+}
+
+/* Sub-heading within a section (e.g., "Selected Add-ons") */
+.configurator__summary-addons-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cfg-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: 100%;
+  text-align: left;
+  margin-top: 4px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Summary Page -- Legacy Navigation Bar (deprecated)
+   ---------------------------------------------------------------------------
+   Retained for backward compatibility. These tab-based rules are no
+   longer referenced by the current SummaryNavBar component, which uses
+   the stacked section card layout above.
    --------------------------------------------------------------------------- */
 
 .configurator__summary-nav {

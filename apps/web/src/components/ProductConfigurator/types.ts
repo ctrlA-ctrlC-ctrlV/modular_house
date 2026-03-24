@@ -97,11 +97,7 @@ export interface ConfiguratorStep {
 
 
 /* =============================================================================
-   SECTION 4: SUMMARY TAB DEFINITIONS
-   -----------------------------------------------------------------------------
-   Tab identifiers for the summary page navigation bar that replaces the
-   floor plan area. Each tab displays the user's selection for that
-   configuration category.
+   SECTION 4: (Reserved)
    ============================================================================= */
 
 /* =============================================================================
@@ -122,16 +118,6 @@ export interface ConfiguratorStep {
  * Updated monotonically -- it never decreases during a session.
  */
 export type HighestCompletedStepIndex = number;
-
-
-/**
- * Identifies each tab available on the summary page navigation bar.
- */
-export type SummaryTabId =
-  | 'exterior-finish'
-  | 'interior-finish'
-  | 'glazing'
-  | 'other-details';
 
 
 /* =============================================================================

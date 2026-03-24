@@ -10,4 +10,4 @@
  */
 
 export { ProductConfiguratorPage } from './ProductConfiguratorPage';
-export type { ConfiguratorStepId, ConfiguratorSelections, SummaryTabId } from './types';
+export type { ConfiguratorStepId, ConfiguratorSelections } from './types';

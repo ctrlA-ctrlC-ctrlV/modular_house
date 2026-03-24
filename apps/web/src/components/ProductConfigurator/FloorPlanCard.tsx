@@ -3,16 +3,22 @@
  * =============================================================================
  *
  * PURPOSE:
- * Renders a single selectable floor plan variant as a vertical card with
- * an architectural floor plan preview (passed as children), a dimension
- * label, and a short description. Used on the Floor Plan Selection step
- * for products that offer multiple footprint options.
+ * Renders a single selectable floor plan variant as a compact card
+ * displaying the dimension label and a short description. Used on the
+ * Floor Plan Selection step alongside a central hero area that shows
+ * the architectural floor plan SVG for the currently selected variant.
  *
  * DESIGN:
- * The card uses a button element for keyboard accessibility. Selection
- * state is indicated by a border change and a checkmark icon in the
- * top-right corner. The component is stateless -- selection logic is
- * managed entirely by the parent through the onSelect callback.
+ * - The card is a <button> element for keyboard accessibility and
+ *   focus management.
+ * - The floor plan SVG preview has been moved out of the card and
+ *   into the parent step's central hero area, making this card a
+ *   compact selection control consistent with FinishCard and
+ *   LayoutCard.
+ * - Selection state is indicated by a CSS modifier class and a
+ *   checkmark icon, with an accessible aria-pressed attribute.
+ * - The component is stateless; selection logic is managed by the
+ *   parent via the onSelect callback.
  *
  * =============================================================================
  */
@@ -23,6 +29,9 @@ import type { FloorPlanVariant } from '../../types/configurator';
 
 /* =============================================================================
    Checkmark Icon
+   -----------------------------------------------------------------------------
+   Small SVG tick mark rendered inside the selected state indicator circle.
+   Uses a single polyline path for minimal DOM overhead.
    ============================================================================= */
 
 const CheckmarkIcon: React.FC = () => (
@@ -43,27 +52,31 @@ const CheckmarkIcon: React.FC = () => (
    ============================================================================= */
 
 interface FloorPlanCardProps {
-  /** The floor plan variant data. */
+  /** The floor plan variant data object containing label, description, and dimensions. */
   variant: FloorPlanVariant;
-  /** Whether this card is currently selected. */
+  /** Whether this card is the currently selected floor plan variant. */
   isSelected: boolean;
-  /** Called with the variant ID when the user clicks the card. */
+  /** Callback invoked with the variant ID when the user clicks this card. */
   onSelect: (variantId: string) => void;
-  /** React children -- the ArchitecturalFloorPlan SVG is passed as a child. */
-  children: React.ReactNode;
 }
 
 
 /* =============================================================================
    FloorPlanCard Component
+   -----------------------------------------------------------------------------
+   Renders a compact, button-based card for a single floor plan variant.
+   The card displays the dimension label (e.g., "5.0m x 5.0m") and a
+   brief description (e.g., "Square footprint"). Visual selection state
+   is indicated via a CSS modifier class and an accessible aria-pressed
+   attribute.
    ============================================================================= */
 
 export const FloorPlanCard: React.FC<FloorPlanCardProps> = ({
   variant,
   isSelected,
   onSelect,
-  children,
 }) => {
+  /* Compose the card's CSS class string with an optional selected modifier. */
   const cardClass = [
     'configurator__floor-plan-card',
     isSelected && 'configurator__floor-plan-card--selected',
@@ -79,24 +92,19 @@ export const FloorPlanCard: React.FC<FloorPlanCardProps> = ({
       aria-pressed={isSelected}
       aria-label={`${variant.label}: ${variant.description}${isSelected ? ' (selected)' : ''}`}
     >
-      {/* Selection checkmark indicator (top-right corner) */}
+      {/* Selection checkmark indicator positioned in the top-right corner */}
       {isSelected && (
         <div className="configurator__floor-plan-card-check">
           <CheckmarkIcon />
         </div>
       )}
 
-      {/* Floor plan SVG preview */}
-      <div className="configurator__floor-plan-card-preview">
-        {children}
-      </div>
-
-      {/* Dimension label */}
+      {/* Dimension label (e.g., "5.0m x 5.0m") */}
       <div className="configurator__floor-plan-card-label">
         {variant.label}
       </div>
 
-      {/* Description */}
+      {/* Brief description of the footprint shape */}
       <div className="configurator__floor-plan-card-desc">
         {variant.description}
       </div>

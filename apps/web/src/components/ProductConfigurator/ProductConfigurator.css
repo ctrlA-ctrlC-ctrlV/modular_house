@@ -681,20 +681,39 @@
    description. Selection state mirrors the AddonCard/FinishCard pattern.
    --------------------------------------------------------------------------- */
 
-.configurator__floor-plan-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 24px;
+/* -- Hero floor plan variant visibility toggles --------------------------- */
+
+.configurator__floor-plan-variant {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.configurator__floor-plan-variant--active {
+  display: flex;
+}
+
+.configurator__floor-plan-variant--hidden {
+  display: none;
+}
+
+/* -- Horizontal row container for floor plan option cards ------------------ */
+
+.configurator__floor-plan-row {
+  display: flex;
+  gap: 14px;
+}
+
+/* -- Individual floor plan option card ------------------------------------ */
 
 .configurator__floor-plan-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 20px 20px;
+  gap: 6px;
+  padding: 20px 16px 16px;
   border-radius: var(--cfg-radius-xl);
   border: 2px solid var(--cfg-color-border);
   background: var(--cfg-color-surface);
@@ -702,6 +721,8 @@
   transition: all var(--cfg-transition-normal);
   box-shadow: none;
   text-align: center;
+  min-width: 140px;
+  flex: 1;
 }
 
 .configurator__floor-plan-card:hover {
@@ -716,8 +737,8 @@
 
 .configurator__floor-plan-card-check {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   width: 22px;
   height: 22px;
   border-radius: var(--cfg-radius-full);
@@ -725,18 +746,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.configurator__floor-plan-card-preview {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.configurator__floor-plan-card-preview svg {
-  max-width: 100%;
-  height: auto;
 }
 
 .configurator__floor-plan-card-label {
@@ -1641,12 +1650,13 @@ select.configurator__form-input {
     gap: 14px;
   }
 
-  .configurator__floor-plan-grid {
-    grid-template-columns: 1fr;
+  .configurator__floor-plan-row {
+    flex-wrap: wrap;
   }
 
   .configurator__floor-plan-card {
-    padding: 20px 16px 16px;
+    padding: 16px 12px 14px;
+    min-width: calc(50% - 8px);
   }
 
   .configurator__layout-row {

@@ -350,12 +350,17 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   /* -----------------------------------------------------------------------
      Step: Floor Plan Selection (products with floorPlanVariants only)
      -----------------------------------------------------------------------
-     Displays a grid of selectable floor plan variant cards, each rendered
-     with an ArchitecturalFloorPlan SVG preview in the Box (open-space)
-     configuration. The user must select one variant to proceed.
+     Mirrors the Exterior, Interior, and Layout step pattern: a central
+     hero area displays the ArchitecturalFloorPlan SVG for the currently
+     selected floor plan variant, and a row of compact FloorPlanCard
+     components below provides the selection controls. The hero floor
+     plan updates reactively when the selection changes. All variant SVGs
+     are rendered simultaneously with CSS visibility toggling to prevent
+     unmount/remount jitter.
      ----------------------------------------------------------------------- */
   const renderFloorPlanStep = (): React.ReactNode => (
     <>
+      {/* Step heading */}
       <div className="configurator__step-heading">
         <h2 className="configurator__step-title">Choose Your Floor Plan</h2>
         <p className="configurator__step-subtitle">
@@ -363,13 +368,21 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </p>
       </div>
 
-      <div className="configurator__floor-plan-grid">
+      {/* Hero area: all floor plan variant SVGs are rendered simultaneously.
+          Only the SVG matching the selected variant receives the visible
+          modifier class. This CSS-based visibility toggle avoids React
+          unmounting and remounting SVG elements on each selection change,
+          eliminating visual jitter during transitions. */}
+      <div className="configurator__hero-visual configurator__hero-visual--compact">
         {product.floorPlanVariants?.map((variant) => (
-          <FloorPlanCard
+          <div
             key={variant.id}
-            variant={variant}
-            isSelected={state.selections.floorPlanVariantId === variant.id}
-            onSelect={state.setFloorPlanVariant}
+            className={
+              'configurator__floor-plan-variant' +
+              (state.selections.floorPlanVariantId === variant.id
+                ? ' configurator__floor-plan-variant--active'
+                : ' configurator__floor-plan-variant--hidden')
+            }
           >
             <ArchitecturalFloorPlan
               config={getStudioFloorPlanConfig(
@@ -378,7 +391,20 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               )}
               wallColorOverride="#1a1a1a"
             />
-          </FloorPlanCard>
+          </div>
+        ))}
+      </div>
+
+      {/* Floor plan selection cards rendered in a horizontal row, matching
+          the finish-row pattern used by Exterior, Interior, and Layout steps. */}
+      <div className="configurator__floor-plan-row">
+        {product.floorPlanVariants?.map((variant) => (
+          <FloorPlanCard
+            key={variant.id}
+            variant={variant}
+            isSelected={state.selections.floorPlanVariantId === variant.id}
+            onSelect={state.setFloorPlanVariant}
+          />
         ))}
       </div>
     </>

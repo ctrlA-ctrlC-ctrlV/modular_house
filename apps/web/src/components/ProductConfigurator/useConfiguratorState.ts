@@ -371,6 +371,24 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
      ----------------------------------------------------------------------- */
 
   /**
+   * Resets the scroll position to the top of the visible viewport.
+   *
+   * The application layout uses a scrollable container
+   * (<div class="theme-template ... overflow-y-auto">) rather than the
+   * native window scroll. The html and body elements have overflow: hidden,
+   * so window.scrollTo() has no effect. This helper locates the actual
+   * scroll container via a DOM query and scrolls it to the origin.
+   */
+  const scrollToTop = useCallback(() => {
+    const scrollContainer = document.querySelector<HTMLElement>(
+      '.theme-template.overflow-y-auto',
+    );
+    if (scrollContainer) {
+      scrollContainer.scrollTo(0, 0);
+    }
+  }, []);
+
+  /**
    * Navigate to any previously visited step by index.
    * Permits both backward and forward navigation within the range of
    * steps the user has already completed (0 .. highestCompletedStepIndex).
@@ -386,8 +404,12 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
       setAnimationKey((k) => k + 1);
       setStepIndex(index);
       setShowConsultation(false);
+      /* Reset the viewport to the top of the page so the user sees
+         the beginning of the new step content rather than a position
+         carried over from the previous step's scroll depth. */
+      scrollToTop();
     }
-  }, [stepIndex, highestCompletedStepIndex, formStatus]);
+  }, [stepIndex, highestCompletedStepIndex, formStatus, scrollToTop]);
 
   /**
    * Advance to the next step if the current step's requirements are met.
@@ -401,8 +423,12 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
       setStepIndex(newStepIndex);
       setHighestCompletedStepIndex((prev) => Math.max(prev, newStepIndex));
       setShowConsultation(false);
+      /* Reset the viewport to the top of the page so the incoming step
+         content is visible from its beginning, not from a scroll position
+         inherited from the outgoing step. */
+      scrollToTop();
     }
-  }, [stepIndex, steps.length]);
+  }, [stepIndex, steps.length, scrollToTop]);
 
   /** Navigate one step backward. */
   const previousStep = useCallback(() => {
@@ -410,8 +436,11 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
       setAnimationKey((k) => k + 1);
       setStepIndex((s) => s - 1);
       setShowConsultation(false);
+      /* Reset the viewport to the top of the page when navigating
+         backward, ensuring consistency with forward navigation. */
+      scrollToTop();
     }
-  }, [stepIndex]);
+  }, [stepIndex, scrollToTop]);
 
 
   /* -----------------------------------------------------------------------

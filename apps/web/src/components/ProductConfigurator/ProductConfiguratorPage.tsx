@@ -388,11 +388,18 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   /* -----------------------------------------------------------------------
      Step: Layout Selection (products with layoutOptions only)
      -----------------------------------------------------------------------
-     Displays a grid of selectable layout cards. Each card renders the
-     ArchitecturalFloorPlan SVG for the combination of the currently
-     selected floor plan variant and the card's layout slug.
+     Mirrors the Exterior and Interior finish step pattern: a central hero
+     area displays the ArchitecturalFloorPlan SVG for the currently selected
+     layout, and a row of compact LayoutCard components below allows the
+     user to switch between available interior arrangements. The hero floor
+     plan updates reactively when the selection changes. All layout SVGs
+     are rendered simultaneously with CSS visibility toggling to prevent
+     unmount/remount jitter, matching the image preloading strategy used
+     on the finish steps.
      ----------------------------------------------------------------------- */
   const renderLayoutStep = (): React.ReactNode => {
+    /* Resolve the currently selected floor plan variant slug to determine
+       which architectural floor plan geometry set to render. */
     const selectedVariant = product.floorPlanVariants?.find(
       (v) => v.id === state.selections.floorPlanVariantId
     );
@@ -400,6 +407,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
     return (
       <>
+        {/* Step heading */}
         <div className="configurator__step-heading">
           <h2 className="configurator__step-title">Choose Your Layout</h2>
           <p className="configurator__step-subtitle">
@@ -407,13 +415,21 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           </p>
         </div>
 
-        <div className="configurator__layout-grid">
+        {/* Hero area: all layout floor plans are rendered simultaneously.
+            Only the plan matching the selected layout receives the visible
+            modifier class. This CSS-based visibility toggle avoids React
+            unmounting and remounting SVG elements on each selection change,
+            eliminating visual jitter during transitions. */}
+        <div className="configurator__hero-visual configurator__hero-visual--compact">
           {product.layoutOptions?.map((layout) => (
-            <LayoutCard
+            <div
               key={layout.id}
-              layout={layout}
-              isSelected={state.selections.layoutOptionId === layout.id}
-              onSelect={state.setLayoutOption}
+              className={
+                'configurator__layout-plan' +
+                (state.selections.layoutOptionId === layout.id
+                  ? ' configurator__layout-plan--active'
+                  : ' configurator__layout-plan--hidden')
+              }
             >
               <ArchitecturalFloorPlan
                 config={getStudioFloorPlanConfig(
@@ -422,7 +438,21 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
                 )}
                 wallColorOverride="#1a1a1a"
               />
-            </LayoutCard>
+            </div>
+          ))}
+        </div>
+
+        {/* Layout selection cards rendered in a horizontal row, matching
+            the finish-row pattern used by Exterior and Interior steps. */}
+        <div className="configurator__layout-row">
+          {product.layoutOptions?.map((layout) => (
+            <LayoutCard
+              key={layout.id}
+              layout={layout}
+              isSelected={state.selections.layoutOptionId === layout.id}
+              onSelect={state.setLayoutOption}
+              basePriceCents={product.basePriceCentsInclVat}
+            />
           ))}
         </div>
       </>

@@ -754,27 +754,50 @@
 
 
 /* ---------------------------------------------------------------------------
-   Layout Selection Cards
+   Layout Selection Step -- Hero Floor Plan & Option Cards
    ---------------------------------------------------------------------------
-   Three-column grid of selectable layout option cards. Each card contains
-   an ArchitecturalFloorPlan SVG preview, layout name, description, price
-   line, and feature badges. Selection pattern matches floor plan cards.
+   Follows the same visual pattern as the Exterior / Interior finish steps:
+   a central hero area displays the ArchitecturalFloorPlan SVG for the
+   currently selected layout, and a horizontal row of compact option cards
+   below provides the selection controls.
+
+   Floor plan visibility is toggled via CSS modifier classes rather than
+   conditional React mounting, preventing SVG unmount/remount jitter.
    --------------------------------------------------------------------------- */
 
-.configurator__layout-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 24px;
+/* -- Hero floor plan visibility toggles ----------------------------------- */
+
+.configurator__layout-plan {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.configurator__layout-plan--active {
+  display: flex;
+}
+
+.configurator__layout-plan--hidden {
+  display: none;
+}
+
+/* -- Horizontal row container for layout option cards --------------------- */
+
+.configurator__layout-row {
+  display: flex;
+  gap: 14px;
+}
+
+/* -- Individual layout option card ----------------------------------------- */
 
 .configurator__layout-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 16px 20px;
+  gap: 6px;
+  padding: 20px 16px 16px;
   border-radius: var(--cfg-radius-xl);
   border: 2px solid var(--cfg-color-border);
   background: var(--cfg-color-surface);
@@ -782,6 +805,8 @@
   transition: all var(--cfg-transition-normal);
   box-shadow: none;
   text-align: center;
+  min-width: 140px;
+  flex: 1;
 }
 
 .configurator__layout-card:hover {
@@ -796,8 +821,8 @@
 
 .configurator__layout-card-check {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   width: 22px;
   height: 22px;
   border-radius: var(--cfg-radius-full);
@@ -805,18 +830,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.configurator__layout-card-preview {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.configurator__layout-card-preview svg {
-  max-width: 100%;
-  height: auto;
 }
 
 .configurator__layout-card-name {
@@ -1636,12 +1649,13 @@ select.configurator__form-input {
     padding: 20px 16px 16px;
   }
 
-  .configurator__layout-grid {
-    grid-template-columns: 1fr;
+  .configurator__layout-row {
+    flex-wrap: wrap;
   }
 
   .configurator__layout-card {
-    padding: 20px 14px 16px;
+    padding: 16px 12px 14px;
+    min-width: calc(50% - 8px);
   }
 
   .configurator__bottom-nav {

@@ -598,6 +598,67 @@ const GRAND_45: ConfiguratorProduct = {
 
   finishCategories: buildFinishCategories('The Grand'),
 
+  /* --- Floor Plan Variants ------------------------------------ */
+
+  /**
+   * Two selectable external footprints for The Grand 45m2 product.
+   * The 9x5 variant is the original rectangular layout (9.0m x 5.0m).
+   * The 7.5x6 variant is a wider alternative (7.5m x 6.0m) with the
+   * same 45 m2 floor area. Both variants use pre-rendered SVG floor
+   * plan images rather than the programmatic ArchitecturalFloorPlan
+   * renderer, as the Grand does not require layout-specific internal
+   * wall configurations.
+   *
+   * Price delta is 0 for both variants -- the distinction is purely
+   * dimensional at this stage.
+   */
+  floorPlanVariants: [
+    {
+      id: 'fpv-grand-9x5',
+      productId: 'cp-grand-45',
+      slug: '9x5',
+      label: '9.0m x 5.0m',
+      description: 'Original rectangular footprint',
+      widthM: 9.0,
+      depthM: 5.0,
+      areaM2: 45,
+      priceDeltaCentsInclVat: 0,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '9.0m', depth: '5.0m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/9m x 5m.svg',
+      displayOrder: 1,
+    },
+    {
+      id: 'fpv-grand-7.5x6',
+      productId: 'cp-grand-45',
+      slug: '7.5x6',
+      label: '7.5m x 6.0m',
+      description: 'Wider rectangular footprint',
+      widthM: 7.5,
+      depthM: 6.0,
+      areaM2: 45,
+      priceDeltaCentsInclVat: 0,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '7.5m', depth: '6.0m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/7.5m x 6m.svg',
+      displayOrder: 2,
+    },
+  ] satisfies ReadonlyArray<FloorPlanVariant>,
+
   addons: [
     {
       id: 'ao-grand-triple-glazing',

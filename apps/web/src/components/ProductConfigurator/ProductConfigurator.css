@@ -348,12 +348,36 @@
    SVG in the hero visual container on the exterior and interior steps.
    --------------------------------------------------------------------------- */
 
+/* All finish preview images are rendered simultaneously in the DOM.
+   The active modifier controls visibility; the hidden modifier collapses
+   the element out of flow. This avoids React unmount/remount cycles that
+   re-trigger the intro animation and cause visible loading jitter. */
+
 .configurator__finish-preview {
   width: 100%;
   max-width: 400px;
   border-radius: var(--cfg-radius-md);
   object-fit: cover;
+  transition: opacity var(--cfg-transition-normal);
+}
+
+/* Active state: the currently selected finish image is visible and
+   plays the scale-in entrance animation only on initial mount. */
+.configurator__finish-preview--active {
+  opacity: 1;
   animation: configurator-scale-in 0.3s ease both;
+}
+
+/* Hidden state: unselected finish images are collapsed out of the
+   document flow so they do not affect layout, but remain in the DOM
+   to preserve the browser's decoded image cache. */
+.configurator__finish-preview--hidden {
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 

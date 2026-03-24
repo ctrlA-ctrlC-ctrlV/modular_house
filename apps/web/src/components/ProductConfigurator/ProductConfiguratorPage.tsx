@@ -26,7 +26,7 @@
  * =============================================================================
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import type { DatePreferenceValue } from './types';
@@ -82,6 +82,36 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
   /** The current step definition for conditional rendering */
   const currentStep = state.steps[state.stepIndex];
+
+
+  /* -----------------------------------------------------------------------
+     Image Preloading
+     -----------------------------------------------------------------------
+     Eagerly loads all finish preview images into the browser cache when
+     the component mounts. This eliminates the initial network delay that
+     causes visible jitter when the user first selects each finish option.
+     Subsequent selections serve the image from the disk/memory cache.
+     ----------------------------------------------------------------------- */
+  useEffect(() => {
+    const imagePaths: string[] = [];
+    for (const category of product.finishCategories) {
+      for (const option of category.options) {
+        imagePaths.push(option.imagePath);
+      }
+    }
+
+    const preloaded: HTMLImageElement[] = imagePaths.map((src) => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+
+    /* Cleanup: dereference preloaded images when the component unmounts
+       or the product changes, allowing garbage collection. */
+    return () => {
+      preloaded.length = 0;
+    };
+  }, [product.finishCategories]);
 
 
   /* -----------------------------------------------------------------------
@@ -181,16 +211,25 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </p>
       </div>
 
-      {/* Hero area: finish preview image only (no floor plan fallback on finish steps) */}
+      {/* Hero area: all exterior finish images are rendered simultaneously.
+         Only the selected image receives the visible modifier class.
+         This prevents React from unmounting/remounting <img> elements on
+         each selection change, which would re-trigger the intro animation
+         and cause visible jitter while the image loads from the network. */}
       <div className="configurator__hero-visual configurator__hero-visual--compact">
-        {selectedExterior && (
+        {exteriorCategory?.options.map((finish) => (
           <img
-            key={selectedExterior.id}
-            src={selectedExterior.imagePath}
-            alt={`Exterior finish: ${selectedExterior.name}`}
-            className="configurator__finish-preview"
+            key={finish.id}
+            src={finish.imagePath}
+            alt={`Exterior finish: ${finish.name}`}
+            className={
+              `configurator__finish-preview` +
+              (state.selections.exteriorFinishId === finish.id
+                ? ' configurator__finish-preview--active'
+                : ' configurator__finish-preview--hidden')
+            }
           />
-        )}
+        ))}
       </div>
 
       {/* Finish selection cards */}
@@ -225,16 +264,23 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </p>
       </div>
 
-      {/* Hero area: finish preview image only (no floor plan fallback on finish steps) */}
+      {/* Hero area: all interior finish images are rendered simultaneously.
+         Visibility is toggled via CSS modifier classes rather than conditional
+         mounting, mirroring the preloading strategy used on the exterior step. */}
       <div className="configurator__hero-visual configurator__hero-visual--compact">
-        {selectedInterior && (
+        {interiorCategory?.options.map((finish) => (
           <img
-            key={selectedInterior.id}
-            src={selectedInterior.imagePath}
-            alt={`Interior finish: ${selectedInterior.name}`}
-            className="configurator__finish-preview"
+            key={finish.id}
+            src={finish.imagePath}
+            alt={`Interior finish: ${finish.name}`}
+            className={
+              `configurator__finish-preview` +
+              (state.selections.interiorFinishId === finish.id
+                ? ' configurator__finish-preview--active'
+                : ' configurator__finish-preview--hidden')
+            }
           />
-        )}
+        ))}
       </div>
 
       {/* Finish selection cards */}

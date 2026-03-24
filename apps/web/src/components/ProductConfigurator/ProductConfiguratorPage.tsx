@@ -152,15 +152,32 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           const selectedLayout = product.layoutOptions?.find(
             (l) => l.id === state.selections.layoutOptionId
           );
-          const fpSlug = (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6';
-          const layoutSlug = (selectedLayout?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
-          return (
+          const layoutSlug = selectedLayout?.slug;
+          const imagePath =
+            (layoutSlug && selectedVariant?.floorPlanImagesByLayout?.[layoutSlug]) ??
+            selectedVariant?.floorPlanImagePath;
+          return imagePath ? (
+            <img
+              src={imagePath}
+              alt={`Floor plan: ${selectedVariant?.label ?? product.name}`}
+              className="configurator__floor-plan-image"
+            />
+          ) : (
             <ArchitecturalFloorPlan
-              config={getStudioFloorPlanConfig(fpSlug, layoutSlug)}
+              config={getStudioFloorPlanConfig(
+                (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6',
+                (selectedLayout?.slug as 'box' | 'en-suite' | 'bedroom') ?? null,
+              )}
               wallColorOverride="#1a1a1a"
             />
           );
-        })() : (
+        })() : product.floorPlanImagePath ? (
+          <img
+            src={product.floorPlanImagePath}
+            alt={`Floor plan: ${product.name}`}
+            className="configurator__floor-plan-image"
+          />
+        ) : (
           <FloorPlan
             config={product.floorPlan}
             dimensions={product.dimensions}
@@ -386,6 +403,13 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
        within a product consistently use the same mode. */
     const usesImageMode = product.floorPlanVariants?.[0]?.floorPlanImagePath != null;
 
+    /* Resolve the currently selected layout slug so that variant visuals
+       can reflect the layout when floorPlanImagesByLayout is available. */
+    const selectedLayout = product.layoutOptions?.find(
+      (l) => l.id === state.selections.layoutOptionId
+    );
+    const layoutSlug = selectedLayout?.slug;
+
     return (
       <>
         {/* Step heading */}
@@ -402,37 +426,42 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             unmounting and remounting elements on each selection change,
             eliminating visual jitter during transitions. */}
         <div className="configurator__hero-visual configurator__hero-visual--compact">
-          {product.floorPlanVariants?.map((variant) => (
-            <div
-              key={variant.id}
-              className={
-                'configurator__floor-plan-variant' +
-                (state.selections.floorPlanVariantId === variant.id
-                  ? ' configurator__floor-plan-variant--active'
-                  : ' configurator__floor-plan-variant--hidden')
-              }
-            >
-              {usesImageMode && variant.floorPlanImagePath ? (
-                /* SVG image mode: renders the pre-designed floor plan SVG
-                   as a standard image element. */
-                <img
-                  src={variant.floorPlanImagePath}
-                  alt={`Floor plan: ${variant.label}`}
-                  className="configurator__floor-plan-image"
-                />
-              ) : (
-                /* Architectural mode: renders the programmatic floor plan SVG
-                   using the Studio-specific configuration lookup. */
-                <ArchitecturalFloorPlan
-                  config={getStudioFloorPlanConfig(
-                    variant.slug as '5x5' | '4x6',
-                    null,
-                  )}
-                  wallColorOverride="#1a1a1a"
-                />
-              )}
-            </div>
-          ))}
+          {product.floorPlanVariants?.map((variant) => {
+            const imagePath =
+              (layoutSlug && variant.floorPlanImagesByLayout?.[layoutSlug]) ??
+              variant.floorPlanImagePath;
+            return (
+              <div
+                key={variant.id}
+                className={
+                  'configurator__floor-plan-variant' +
+                  (state.selections.floorPlanVariantId === variant.id
+                    ? ' configurator__floor-plan-variant--active'
+                    : ' configurator__floor-plan-variant--hidden')
+                }
+              >
+                {usesImageMode && imagePath ? (
+                  /* SVG image mode: renders the pre-designed floor plan SVG
+                     as a standard image element. */
+                  <img
+                    src={imagePath}
+                    alt={`Floor plan: ${variant.label}`}
+                    className="configurator__floor-plan-image"
+                  />
+                ) : (
+                  /* Architectural mode: renders the programmatic floor plan SVG
+                     using the Studio-specific configuration lookup. */
+                  <ArchitecturalFloorPlan
+                    config={getStudioFloorPlanConfig(
+                      variant.slug as '5x5' | '4x6',
+                      null,
+                    )}
+                    wallColorOverride="#1a1a1a"
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Floor plan selection cards rendered in a horizontal row, matching
@@ -471,6 +500,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       (v) => v.id === state.selections.floorPlanVariantId
     );
     const fpSlug = (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6';
+    const usesImageMode = selectedVariant?.floorPlanImagesByLayout != null;
 
     return (
       <>
@@ -488,25 +518,36 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             unmounting and remounting SVG elements on each selection change,
             eliminating visual jitter during transitions. */}
         <div className="configurator__hero-visual configurator__hero-visual--compact">
-          {product.layoutOptions?.map((layout) => (
-            <div
-              key={layout.id}
-              className={
-                'configurator__layout-plan' +
-                (state.selections.layoutOptionId === layout.id
-                  ? ' configurator__layout-plan--active'
-                  : ' configurator__layout-plan--hidden')
-              }
-            >
-              <ArchitecturalFloorPlan
-                config={getStudioFloorPlanConfig(
-                  fpSlug,
-                  layout.slug as 'box' | 'en-suite' | 'bedroom',
+          {product.layoutOptions?.map((layout) => {
+            const imagePath = selectedVariant?.floorPlanImagesByLayout?.[layout.slug];
+            return (
+              <div
+                key={layout.id}
+                className={
+                  'configurator__layout-plan' +
+                  (state.selections.layoutOptionId === layout.id
+                    ? ' configurator__layout-plan--active'
+                    : ' configurator__layout-plan--hidden')
+                }
+              >
+                {usesImageMode && imagePath ? (
+                  <img
+                    src={imagePath}
+                    alt={`Floor plan: ${selectedVariant?.label ?? ''} – ${layout.name}`}
+                    className="configurator__floor-plan-image"
+                  />
+                ) : (
+                  <ArchitecturalFloorPlan
+                    config={getStudioFloorPlanConfig(
+                      fpSlug,
+                      layout.slug as 'box' | 'en-suite' | 'bedroom',
+                    )}
+                    wallColorOverride="#1a1a1a"
+                  />
                 )}
-                wallColorOverride="#1a1a1a"
-              />
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Layout selection cards rendered in a horizontal row, matching

@@ -129,13 +129,19 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
           <div className="configurator__summary-floor-plan">
             {product.floorPlanVariants ? (() => {
               /* Check whether the selected variant provides a pre-rendered
-                 SVG image path. When present, render the SVG as an image
-                 element instead of the programmatic floor plan component. */
-              if (selectedVariant?.floorPlanImagePath) {
+                 SVG image path. When floorPlanImagesByLayout is available and
+                 a layout is selected, use the layout-specific image. Otherwise
+                 fall back to the variant's default floorPlanImagePath. */
+              const layoutSlug = selectedLayout?.slug;
+              const imagePath =
+                (layoutSlug && selectedVariant?.floorPlanImagesByLayout?.[layoutSlug]) ??
+                selectedVariant?.floorPlanImagePath;
+
+              if (imagePath) {
                 return (
                   <img
-                    src={selectedVariant.floorPlanImagePath}
-                    alt={`Floor plan: ${selectedVariant.label}`}
+                    src={imagePath}
+                    alt={`Floor plan: ${selectedVariant?.label ?? product.name}`}
                     className="configurator__floor-plan-image"
                     loading="lazy"
                   />
@@ -146,14 +152,21 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
                  the ArchitecturalFloorPlan config lookup. Falls back to '5x5'
                  when no variant is selected. */
               const fpSlug = (selectedVariant?.slug ?? '5x5') as '5x5' | '4x6';
-              const layoutSlug = (selectedLayout?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
+              const archLayoutSlug = (selectedLayout?.slug as 'box' | 'en-suite' | 'bedroom') ?? null;
               return (
                 <ArchitecturalFloorPlan
-                  config={getStudioFloorPlanConfig(fpSlug, layoutSlug)}
+                  config={getStudioFloorPlanConfig(fpSlug, archLayoutSlug)}
                   wallColorOverride="#1a1a1a"
                 />
               );
-            })() : (
+            })() : product.floorPlanImagePath ? (
+              <img
+                src={product.floorPlanImagePath}
+                alt={`Floor plan: ${product.name}`}
+                className="configurator__floor-plan-image"
+                loading="lazy"
+              />
+            ) : (
               <FloorPlan
                 config={product.floorPlan}
                 dimensions={product.dimensions}

@@ -387,6 +387,18 @@ export interface FloorPlanVariant {
    * matching ArchitecturalFloorPlanConfig data structure.
    */
   floorPlanImagePath?: string;
+  /**
+   * Optional mapping of layout slugs to pre-rendered floor plan SVG image
+   * paths. Used by products that have both floor plan variants and layout
+   * options (e.g., The Studio 25m2), where the displayed floor plan depends
+   * on the combination of variant and layout. When a layout is selected and
+   * this map contains a matching key, the corresponding image is rendered
+   * instead of `floorPlanImagePath`.
+   *
+   * Keys are layout slugs (e.g., "box", "en-suite", "bedroom").
+   * Values are paths relative to /public (e.g., "/resource/floorplan/5m x 5m - box.svg").
+   */
+  floorPlanImagesByLayout?: Readonly<Record<string, string>>;
   /** Sort position within the floor plan selection step (ascending). */
   displayOrder: number;
 }
@@ -648,6 +660,15 @@ export interface ConfiguratorProduct {
 
   /** Structured data for the SVG floor plan rendering component (JSONB). */
   floorPlan: FloorPlanConfig;
+
+  /**
+   * Optional path to a pre-rendered floor plan SVG image file, relative
+   * to /public (e.g., "/resource/floorplan/3m x 5m.svg"). When provided,
+   * the configurator renders this static image on the overview and summary
+   * steps instead of using the programmatic FloorPlan component. Used by
+   * products without floor plan variants (Compact 15m2, Living 35m2).
+   */
+  floorPlanImagePath?: string;
 
   /* --- Imagery ------------------------------------------------ */
 

@@ -263,6 +263,8 @@ const COMPACT_15: ConfiguratorProduct = {
     dimensionLabels: { width: '5.0m', depth: '3.0m' },
   },
 
+  floorPlanImagePath: '/resource/floorplan/3m x 5m.svg',
+
   image: {
     src:  '/resource/garden-room/garden-room4.png',
     webP: '/resource/garden-room/garden-room4.webp',
@@ -330,6 +332,12 @@ const STUDIO_25: ConfiguratorProduct = {
         ],
         dimensionLabels: { width: '5.0m', depth: '5.0m' },
       },
+      floorPlanImagePath: '/resource/floorplan/5m x 5m - box.svg',
+      floorPlanImagesByLayout: {
+        'box':      '/resource/floorplan/5m x 5m - box.svg',
+        'en-suite': '/resource/floorplan/5m x 5m - ensuit.svg',
+        'bedroom':  '/resource/floorplan/5m x 5m - bedroom.svg',
+      },
       displayOrder: 1,
     },
     {
@@ -348,6 +356,12 @@ const STUDIO_25: ConfiguratorProduct = {
           { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
         ],
         dimensionLabels: { width: '6.0m', depth: '4.15m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/6m x 4.15m - box.svg',
+      floorPlanImagesByLayout: {
+        'box':      '/resource/floorplan/6m x 4.15m - box.svg',
+        'en-suite': '/resource/floorplan/6m x 4.15m - ensuit.svg',
+        'bedroom':  '/resource/floorplan/6m x 4.15m - bedroom.svg',
       },
       displayOrder: 2,
     },
@@ -556,6 +570,8 @@ const LIVING_35: ConfiguratorProduct = {
     ],
     dimensionLabels: { width: '7.0m', depth: '5.0m' },
   },
+
+  floorPlanImagePath: '/resource/floorplan/7m x 5m - bedroom.svg',
 
   image: {
     src:  '/resource/garden-room/garden-room2.png',

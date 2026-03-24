@@ -207,6 +207,11 @@ export function ProductShowcase({
                 <span className="product-showcase__label">{p.label}</span>
               </div>
 
+              {/* Click hint */}
+              <span className="product-showcase__click-hint">
+                <u>For more details &#x25B8;</u>
+              </span>
+
               {/* Bottom accent line */}
               <div className="product-showcase__row-accent" />
             </button>

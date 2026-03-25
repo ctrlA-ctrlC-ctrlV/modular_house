@@ -410,6 +410,18 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
     );
     const layoutSlug = selectedLayout?.slug;
 
+    /* Resolve the currently selected floor plan variant so its
+       priceDeltaCentsInclVat can be added to the product base price. */
+    const selectedVariant = product.floorPlanVariants?.find(
+      (v) => v.id === state.selections.floorPlanVariantId
+    );
+
+    /* Compute the base price for the selected floor plan variant.
+       The variant's price delta is added to the product-level base price,
+       allowing future pricing differentiation per footprint. */
+    const variantBasePriceCents: number =
+      product.basePriceCentsInclVat + (selectedVariant?.priceDeltaCentsInclVat ?? 0);
+
     return (
       <>
         {/* Step heading */}
@@ -462,6 +474,19 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               </div>
             );
           })}
+
+          {/* Base price display for the selected floor plan variant.
+              Mirrors the Overview step's price block. The amount reacts
+              to variant changes because priceDeltaCentsInclVat is summed
+              with the product base price above. */}
+          <div className="configurator__price-display">
+            <div className="configurator__price-amount">
+              {formatPriceCents(variantBasePriceCents)}
+            </div>
+            <div className="configurator__price-note">
+              {product.pricingNote}
+            </div>
+          </div>
         </div>
 
         {/* Floor plan selection cards rendered in a horizontal row, matching

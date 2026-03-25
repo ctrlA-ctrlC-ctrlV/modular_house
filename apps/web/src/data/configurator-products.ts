@@ -453,9 +453,8 @@ const STUDIO_25: ConfiguratorProduct = {
   ],
 
   glazingNote:
-    'Glazing details: 700mm \u00D7 2100mm tilt & turn window + ' +
-    '1600mm \u00D7 2100mm French door. ' +
-    'Plumbing connection included with Bathroom + Kitchen add-on.',
+    '700mm \u00D7 2100mm tilt & turn window + ' +
+    '1600mm \u00D7 2100mm French door. ',
 
   floorPlan: {
     apertures: [

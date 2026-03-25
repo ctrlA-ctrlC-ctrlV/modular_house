@@ -34,6 +34,7 @@ import { FloorPlan } from './FloorPlan';
 import { ArchitecturalFloorPlan } from './ArchitecturalFloorPlan';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
 import { formatPriceCents } from './utils';
+import { PRODUCT_SHOWCASE_WARRANTIES } from '../../data/garden-room-data';
 
 
 /* =============================================================================
@@ -391,6 +392,28 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
 
 
   /* -----------------------------------------------------------------------
+     Section: Warranty Coverage
+     -----------------------------------------------------------------------
+     Displays the product-line-wide warranty tiers in the same detail-row
+     format used by other summary sections. Data is sourced from the
+     shared PRODUCT_SHOWCASE_WARRANTIES array.
+     ----------------------------------------------------------------------- */
+  const renderWarrantySection = (): React.ReactNode => (
+    <div className="configurator__summary-section">
+      <h4 className="configurator__summary-section-title">Warranty Coverage</h4>
+      <div className="configurator__summary-section-content">
+        {PRODUCT_SHOWCASE_WARRANTIES.map((w) => (
+          <div key={w.label} className="configurator__summary-detail-row">
+            <span className="configurator__summary-detail-label">{w.label}</span>
+            <span className="configurator__summary-detail-value">{w.years} years</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+
+  /* -----------------------------------------------------------------------
      Section: Other Details
      -----------------------------------------------------------------------
      Consolidates all remaining configuration details that do not belong
@@ -466,6 +489,7 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
       {renderInteriorFinishSection()}
       {renderGlazingSection()}
       {renderBathroomKitchenSection()}
+      {renderWarrantySection()}
       {renderOtherDetailsSection()}
     </div>
   );

@@ -42,7 +42,6 @@ import { LayoutCard } from './LayoutCard';
 import { SummaryNavBar } from './SummaryNavBar';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
 import { formatPriceCents } from './utils';
-import { PRODUCT_SHOWCASE_WARRANTIES } from '../../data/garden-room-data';
 import './ProductConfigurator.css';
 
 
@@ -676,19 +675,6 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
 
         <div className="configurator__price-disclaimer">
           {product.pricingNote}
-        </div>
-
-        {/* Warranty coverage */}
-        <h3 className="configurator__specs-heading">Warranty coverage</h3>
-        <div className="configurator__warranty-grid">
-          {PRODUCT_SHOWCASE_WARRANTIES.map((w) => (
-            <div key={w.label} className="configurator__warranty-card">
-              <span className="configurator__warranty-years">{w.years}</span>
-              <span className="configurator__warranty-unit">years</span>
-              <span className="configurator__warranty-label">{w.label}</span>
-              <span className="configurator__warranty-sub">{w.sub}</span>
-            </div>
-          ))}
         </div>
 
         {/* CTA button */}

@@ -550,7 +550,7 @@ const faqSchema = {
       name: 'Is my build guaranteed?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. We provide a comprehensive 50-year structural warranty on our steel frames...'
+        text: 'Yes. We provide a comprehensive 25-year structural warranty on our steel frames...'
       }
     }
   ]

@@ -450,8 +450,8 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
    ============================================================================= */
 
 export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
-  { years: '20', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
-  { years: '25', label: 'Cladding Guarantee', sub: 'Colour & weather resistance' },
+  { years: '25', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
+  { years: '15', label: 'Cladding Guarantee', sub: 'Colour & weather resistance' },
   { years: '10', label: 'Roof Membrane', sub: 'Watertight assurance' },
   { years: '10', label: 'Windows & Doors', sub: 'Thermal & mechanical' },
 ];

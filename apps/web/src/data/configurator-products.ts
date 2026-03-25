@@ -263,7 +263,7 @@ const COMPACT_15: ConfiguratorProduct = {
     dimensionLabels: { width: '5.0m', depth: '3.0m' },
   },
 
-  floorPlanImagePath: '/resource/floorplan/3m x 5m.svg',
+  floorPlanImagePath: '/resource/floorplan/3m-x-5m.svg',
 
   image: {
     src:  '/resource/garden-room/garden-room4.png',
@@ -332,11 +332,11 @@ const STUDIO_25: ConfiguratorProduct = {
         ],
         dimensionLabels: { width: '5.0m', depth: '5.0m' },
       },
-      floorPlanImagePath: '/resource/floorplan/5m x 5m - box.svg',
+      floorPlanImagePath: '/resource/floorplan/5m-x-5m-box.svg',
       floorPlanImagesByLayout: {
-        'box':      '/resource/floorplan/5m x 5m - box.svg',
-        'en-suite': '/resource/floorplan/5m x 5m - ensuit.svg',
-        'bedroom':  '/resource/floorplan/5m x 5m - bedroom.svg',
+        'box':      '/resource/floorplan/5m-x-5m-box.svg',
+        'en-suite': '/resource/floorplan/5m-x-5m-ensuit.svg',
+        'bedroom':  '/resource/floorplan/5m-x-5m-bedroom.svg',
       },
       displayOrder: 1,
     },
@@ -357,11 +357,11 @@ const STUDIO_25: ConfiguratorProduct = {
         ],
         dimensionLabels: { width: '6.0m', depth: '4.15m' },
       },
-      floorPlanImagePath: '/resource/floorplan/6m x 4.15m - box.svg',
+      floorPlanImagePath: '/resource/floorplan/6m-x-4.15m-box.svg',
       floorPlanImagesByLayout: {
-        'box':      '/resource/floorplan/6m x 4.15m - box.svg',
-        'en-suite': '/resource/floorplan/6m x 4.15m - ensuit.svg',
-        'bedroom':  '/resource/floorplan/6m x 4.15m - bedroom.svg',
+        'box':      '/resource/floorplan/6m-x-4.15m-box.svg',
+        'en-suite': '/resource/floorplan/6m-x-4.15m-ensuit.svg',
+        'bedroom':  '/resource/floorplan/6m-x-4.15m-bedroom.svg',
       },
       displayOrder: 2,
     },
@@ -571,7 +571,7 @@ const LIVING_35: ConfiguratorProduct = {
     dimensionLabels: { width: '7.0m', depth: '5.0m' },
   },
 
-  floorPlanImagePath: '/resource/floorplan/7m x 5m - bedroom.svg',
+  floorPlanImagePath: '/resource/floorplan/7m-x-5m-bedroom.svg',
 
   image: {
     src:  '/resource/garden-room/garden-room2.png',
@@ -648,7 +648,7 @@ const GRAND_45: ConfiguratorProduct = {
         ],
         dimensionLabels: { width: '9.0m', depth: '5.0m' },
       },
-      floorPlanImagePath: '/resource/floorplan/9m x 5m.svg',
+      floorPlanImagePath: '/resource/floorplan/9m-x-5m.svg',
       displayOrder: 1,
     },
     {
@@ -670,7 +670,7 @@ const GRAND_45: ConfiguratorProduct = {
         ],
         dimensionLabels: { width: '7.5m', depth: '6.0m' },
       },
-      floorPlanImagePath: '/resource/floorplan/7.5m x 6m.svg',
+      floorPlanImagePath: '/resource/floorplan/7.5m-x-6m.svg',
       displayOrder: 2,
     },
   ] satisfies ReadonlyArray<FloorPlanVariant>,

@@ -380,7 +380,7 @@ export interface FloorPlanVariant {
   floorPlan: FloorPlanConfig;
   /**
    * Optional path to a pre-rendered floor plan SVG image file, relative
-   * to /public (e.g., "/resource/floorplan/9m x 5m.svg"). When provided,
+   * to /public (e.g., "/resource/floorplan/9m-x-5m.svg"). When provided,
    * the configurator renders this image instead of using the programmatic
    * ArchitecturalFloorPlan or FloorPlan component. This enables products
    * to use professionally designed SVG floor plans without requiring a
@@ -396,7 +396,7 @@ export interface FloorPlanVariant {
    * instead of `floorPlanImagePath`.
    *
    * Keys are layout slugs (e.g., "box", "en-suite", "bedroom").
-   * Values are paths relative to /public (e.g., "/resource/floorplan/5m x 5m - box.svg").
+   * Values are paths relative to /public (e.g., "/resource/floorplan/5m-x-5m-box.svg").
    */
   floorPlanImagesByLayout?: Readonly<Record<string, string>>;
   /** Sort position within the floor plan selection step (ascending). */
@@ -663,7 +663,7 @@ export interface ConfiguratorProduct {
 
   /**
    * Optional path to a pre-rendered floor plan SVG image file, relative
-   * to /public (e.g., "/resource/floorplan/3m x 5m.svg"). When provided,
+   * to /public (e.g., "/resource/floorplan/3m-x-5m.svg"). When provided,
    * the configurator renders this static image on the overview and summary
    * steps instead of using the programmatic FloorPlan component. Used by
    * products without floor plan variants (Compact 15m2, Living 35m2).

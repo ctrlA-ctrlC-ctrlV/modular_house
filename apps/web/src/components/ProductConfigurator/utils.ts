@@ -135,9 +135,18 @@ export function buildDefaultSelections(
       ? product.floorPlanVariants[0].id
       : null;
 
+  /* Pre-select the first layout option when the product offers
+     layout tiers, ensuring the layout step shows an active selection
+     (e.g., "Box") on first load rather than requiring an explicit
+     user click before proceeding. */
+  const defaultLayoutOptionId =
+    product.layoutOptions && product.layoutOptions.length > 0
+      ? product.layoutOptions[0].id
+      : null;
+
   return {
     floorPlanVariantId: defaultFloorPlanVariantId,
-    layoutOptionId: null,
+    layoutOptionId: defaultLayoutOptionId,
     exteriorFinishId: resolveDefaultFinishId(product, 'exterior', DEFAULT_EXTERIOR_FINISH_NAME),
     interiorFinishId: resolveDefaultFinishId(product, 'interior', DEFAULT_INTERIOR_FINISH_NAME),
     selectedAddonIds: [],

@@ -1142,6 +1142,59 @@
 
 
 /* ---------------------------------------------------------------------------
+   Warranty Coverage Grid
+   --------------------------------------------------------------------------- */
+
+.configurator__warranty-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.configurator__warranty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 12px;
+  border: 1px solid var(--cfg-color-border);
+  border-radius: var(--cfg-radius-lg);
+  background: var(--cfg-color-surface);
+}
+
+.configurator__warranty-years {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: var(--cfg-font-heading);
+  line-height: 1;
+  color: var(--cfg-color-primary);
+}
+
+.configurator__warranty-unit {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cfg-color-primary);
+  margin-top: 2px;
+}
+
+.configurator__warranty-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 8px;
+  color: var(--cfg-color-text);
+}
+
+.configurator__warranty-sub {
+  font-size: 12px;
+  color: var(--cfg-color-text-muted);
+  margin-top: 2px;
+}
+
+
+/* ---------------------------------------------------------------------------
    CTA Button
    --------------------------------------------------------------------------- */
 

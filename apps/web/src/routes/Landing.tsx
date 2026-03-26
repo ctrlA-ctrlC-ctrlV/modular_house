@@ -285,31 +285,31 @@ function Landing() {
           title = "We deliver quality construction"
           testimonials = {[
             {
-              text: "Rebar made our dream home a reality. Their team was skilled, reliable, and always kept us informed. We felt supported from start to finish.",
-              authorName: "Garry O'B.",
+              text: "After three years working from a spare bedroom, our Compact garden room from Modular House has completely transformed how I work — proper insulation, steel frame durability, and a genuine office feel that the whole family now uses daily. From quote to installation it was straightforward, professional, and delivered on time with no planning permission needed. Six months in and I'd do it again without hesitation.",
+              authorName: "Garry",
               authorLocation: "Sandyford, Dublin 18",
-              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-25.jpg",
+              authorImageSrc: '/resource/avatar-placeholder.png',
               rating: 5
             },
             {
-              text: "Our office renovation was seamless. Rebar worked around our schedule and delivered a modern, functional space that exceeded our hopes.",
-              authorName: "Carlos Rivera",
-              authorLocation: "Los Angeles, CA",
-              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-24.jpg",
+              text: "As a piano teacher working from home with a growing family, Modular House gave me a dedicated, beautifully finished studio in just 6 weeks, no planning permission needed. The soundproofing, insulation, and heat pump keep it comfortable and quiet year-round, and my students and their parents love how professional it feels. It gave us our family home back. Worth every penny.",
+              authorName: "Maeve",
+              authorLocation: "Dún Laoghaire",
+              authorImageSrc: '/resource/avatar-placeholder.png',
               rating: 5
             },
             {
-              text: "We needed structural upgrades and Rebar handled every detail. Their expertise and clear updates made the process stress-free for us.",
-              authorName: "Sarah Miller",
-              authorLocation: "Austin, TX",
-              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-23.jpg",
+              text: "After years of putting off extending, Modular House made it straightforward — the steel-frame build was remarkably fast, the fully itemised quote meant no surprises, and the finish is lovely. Our 25sqm rear extension completely changed how we use our home; instead of moving, we got the open-plan space we always wanted. Would absolutely recommend to anyone thinking about extending but dreading the process.",
+              authorName: "Aoife",
+              authorLocation: "Santry, Dublin 9",
+              authorImageSrc: '/resource/avatar-placeholder.png',
               rating: 5
             },
             {
-              text: "Rebar transformed our store with minimal downtime. The results were truly stunning, and our customers absolutely love the new look and feel.",
-              authorName: "David Singh",
-              authorLocation: "Laketown, CA",
-              authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-22.jpg",
+              text: "Being a site manager, I know quality when I see it. The galvanised steel frame, continuous PIR insulation, and solid fabrication are the real deal, not a garden shed with fancy cladding. I've been training four or five times a week in my Compact since February, and between the heat pump warming it in minutes, it's already paying for itself. At €29,500, it's saved me gym fees, petrol, and an hour a day commuting. And my partner's delighted the Livingroom is finally free of weights.",
+              authorName: "John",
+              authorLocation: "Tallaght, Dublin 24",
+              authorImageSrc: '/resource/avatar-placeholder.png',
               rating: 5
             }
           ]}

@@ -635,25 +635,25 @@ export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
 
 export const GARDEN_ROOM_TESTIMONIALS: TestimonialItem[] = [
   {
-    text: 'Our Modular House garden room has completely transformed how we work from home. The build quality is exceptional \u2014 the steel frame feels incredibly solid, and the insulation keeps it warm even in January. It was ready in just seven weeks with barely any disruption to our garden.',
-    authorName: 'Aoife K.',
-    authorLocation: 'Dalkey, Co. Dublin',
+    text: "After three years working from a spare bedroom, our Compact garden room from Modular House has completely transformed how I work — proper insulation, steel frame durability, and a genuine office feel that the whole family now uses daily. From quote to installation it was straightforward, professional, and delivered on time with no planning permission needed. Six months in and I'd do it again without hesitation.",
+    authorName: "Garry",
+    authorLocation: "Sandyford, Dublin 18",
     authorImageSrc: '/resource/avatar-placeholder.png',
-    rating: 5,
+    rating: 5
   },
   {
-    text: 'We needed extra space for our teenage son and the 25 square metre Garden Suite was the perfect solution. The triple glazing and underfloor heating make it comfortable year-round. The whole process from first enquiry to handover was professional and straightforward.',
-    authorName: 'Ciaran M.',
-    authorLocation: 'Blackrock, Co. Dublin',
+    text: "As a piano teacher working from home with a growing family, Modular House gave me a dedicated, beautifully finished studio in just 6 weeks, no planning permission needed. The soundproofing, insulation, and heat pump keep it comfortable and quiet year-round, and my students and their parents love how professional it feels. It gave us our family home back. Worth every penny.",
+    authorName: "Maeve",
+    authorLocation: "Dún Laoghaire",
     authorImageSrc: '/resource/avatar-placeholder.png',
-    rating: 5,
+    rating: 5
   },
   {
-    text: 'As an artist I was looking for a bright, well-insulated studio space without the hassle of planning permission. The Compact Studio ticked every box \u2014 the natural light from the triple-glazed windows is superb, and the BER A rating means my heating costs are minimal.',
-    authorName: 'Sinead O.',
-    authorLocation: 'Malahide, Co. Dublin',
+    text: "Being a site manager, I know quality when I see it. The galvanised steel frame, continuous PIR insulation, and solid fabrication are the real deal, not a garden shed with fancy cladding. I've been training four or five times a week in my Compact since February, and between the heat pump warming it in minutes, it's already paying for itself. At €29,500, it's saved me gym fees, petrol, and an hour a day commuting. And my partner's delighted the Livingroom is finally free of weights.",
+    authorName: "John",
+    authorLocation: "Tallaght, Dublin 24",
     authorImageSrc: '/resource/avatar-placeholder.png',
-    rating: 5,
+    rating: 5
   },
 ];
 

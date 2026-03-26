@@ -286,8 +286,8 @@ function Landing() {
           testimonials = {[
             {
               text: "Rebar made our dream home a reality. Their team was skilled, reliable, and always kept us informed. We felt supported from start to finish.",
-              authorName: "Emily Chen",
-              authorLocation: "San Francisco, CA",
+              authorName: "Garry O'B.",
+              authorLocation: "Sandyford, Dublin 18",
               authorImageSrc: "https://rebar.themerex.net/wp-content/uploads/2025/08/custom-img-25.jpg",
               rating: 5
             },

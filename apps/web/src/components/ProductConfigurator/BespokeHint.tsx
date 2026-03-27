@@ -36,6 +36,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   EnquiryFormModal,
   type EnquiryFormData,
@@ -111,17 +112,23 @@ export const BespokeHint: React.FC<BespokeHintProps> = ({ onSubmit }) => {
         </button>
       </aside>
 
-      {/* EnquiryFormModal -- shared popup enquiry form from the UI package.
-          Renders as a full-screen overlay with focus trapping, scroll lock,
-          and Escape-to-close behaviour. The modal title and subtitle are
-          customised to match the bespoke context. */}
-      <EnquiryFormModal
-        isOpen={isModalOpen}
-        onClose={handleClose}
-        onSubmit={onSubmit}
-        title="Design Your Bespoke Garden Room"
-        subtext="Tell us what you have in mind and our design team will be in touch within 24 hours."
-      />
+      {/* EnquiryFormModal -- rendered via a React portal to document.body
+          so the fixed-position overlay escapes the configurator's content
+          container. The .configurator__content element applies a CSS
+          animation (transform), which creates a new containing block and
+          would otherwise constrain position:fixed children to its bounds
+          instead of the viewport. Portalling to the body root avoids this
+          stacking context limitation entirely. */}
+      {createPortal(
+        <EnquiryFormModal
+          isOpen={isModalOpen}
+          onClose={handleClose}
+          onSubmit={onSubmit}
+          title="Design Your Bespoke Garden Room"
+          subtext="Tell us what you have in mind and our design team will be in touch within 24 hours."
+        />,
+        document.body,
+      )}
     </>
   );
 };

@@ -190,6 +190,9 @@
   
   /** Secondary/alternate background color */
   --brand-bg-secondary: #F6F5F0;
+
+  /** Dark mode background color */
+  --brand-bg-dark: #1A1714;
   
   /** Border/divider color from theme */
   --brand-bd-color: #E5E7DE;

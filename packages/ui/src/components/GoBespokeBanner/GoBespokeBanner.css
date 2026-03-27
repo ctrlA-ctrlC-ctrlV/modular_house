@@ -26,7 +26,8 @@
    remaining self-contained for isolated Storybook rendering.
    ============================================================================= */
 :root {
-  --go-bespoke-bg: var(--brand-dark, #1A1714);
+  --go-bespoke-bg-dark: var(--brand-dark, #1A1714);
+  --go-bespoke-bg-beige: var(--brand-bg-secondary, #F6F5F0);
   --go-bespoke-copper: var(--brand-copper, #B55329);
   --go-bespoke-copper-dark: var(--brand-copper-dark, #8C3D1A);
   --go-bespoke-copper-light: var(--brand-copper-light, #D4764E);
@@ -43,7 +44,7 @@
 .go-bespoke {
   position: relative;
   overflow: hidden;
-  background: var(--go-bespoke-bg);
+  background: var(--go-bespoke-bg-beige);
   padding: 0;
 }
 
@@ -156,7 +157,7 @@
   font-size: clamp(28px, 4vw, 44px);
   font-weight: 400;
   line-height: 1.15;
-  color: #fff;
+  color: #000;
   max-width: 560px;
 }
 
@@ -206,12 +207,12 @@
   font-family: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif);
   font-size: 16px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(0, 0, 0, 0.55);
   max-width: 480px;
 }
 
 .go-bespoke__subtext strong {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.8);
   font-weight: 500;
 }
 
@@ -231,7 +232,7 @@
   gap: 14px;
   padding: 20px 36px;
   background: var(--go-bespoke-copper);
-  color: #fff;
+  color: #fefefe;
   font-family: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif);
   font-size: 15px;
   font-weight: 600;

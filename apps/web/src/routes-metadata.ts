@@ -44,7 +44,7 @@ export const routesMetadata: RouteMetadata[] = [
   {
     path: '/',
     seo: {
-      title: 'Modular House Extensions & Garden Rooms',
+      title: 'Modular Garden Rooms & House Extensions',
       description: 'Transform your home into modular home. With premium modular house extensions and garden rooms. Modern design, sustainable materials, and fast installation.',
       /**
        * Homepage canonical URL without trailing slash.

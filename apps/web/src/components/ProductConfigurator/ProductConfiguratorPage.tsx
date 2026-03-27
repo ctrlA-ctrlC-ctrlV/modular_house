@@ -26,10 +26,12 @@
  * =============================================================================
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { ConfiguratorProduct } from '../../types/configurator';
+import type { EnquiryFormData } from '@modular-house/ui';
 import type { DatePreferenceValue } from './types';
+import { apiClient } from '../../lib/apiClient';
 import { useConfiguratorState } from './useConfiguratorState';
 import { ProgressBar } from './ProgressBar';
 import { StickySubHeader } from './StickySubHeader';
@@ -40,6 +42,7 @@ import { AddonCard } from './AddonCard';
 import { FloorPlanCard } from './FloorPlanCard';
 import { LayoutCard } from './LayoutCard';
 import { SummaryNavBar } from './SummaryNavBar';
+import { BespokeHint } from './BespokeHint';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
 import { formatPriceCents } from './utils';
 import './ProductConfigurator.css';
@@ -63,6 +66,27 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   product,
 }) => {
   const state = useConfiguratorState(product);
+
+
+  /* -----------------------------------------------------------------------
+     Bespoke Enquiry Handler
+     -----------------------------------------------------------------------
+     Submits the bespoke enquiry form data to the API. Mapped to the
+     EnquiryFormModal's onSubmit prop via the BespokeHint component.
+     Uses useCallback to maintain a stable reference across re-renders.
+     ----------------------------------------------------------------------- */
+  const handleBespokeEnquiry = useCallback(async (data: EnquiryFormData): Promise<void> => {
+    await apiClient.submitEnquiry({
+      firstName: data.firstName,
+      email: data.email,
+      phone: data.phone,
+      preferredProduct: data.roomSize,
+      message: `Bespoke enquiry via ${product.name} configurator. Address: ${data.address}`,
+      consent: data.consent,
+      website: data.website,
+    });
+  }, [product.name]);
+
 
   /* -----------------------------------------------------------------------
      Derived Lookup Values
@@ -685,6 +709,12 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         >
           Send me my estimate &rarr;
         </button>
+
+        {/* Bespoke design hint -- a minimal, secondary prompt positioned
+            below the primary CTA. Informs the customer that a fully custom
+            design service exists without competing for visual attention
+            with the estimate submission flow above. */}
+        <BespokeHint onSubmit={handleBespokeEnquiry} />
       </>
     );
   };

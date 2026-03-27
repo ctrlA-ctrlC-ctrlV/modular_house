@@ -1675,6 +1675,76 @@ select.configurator__form-input {
 }
 
 
+/* ---------------------------------------------------------------------------
+   Bespoke Hint
+   ---------------------------------------------------------------------------
+   A subtle, secondary prompt placed below the summary step's primary CTA.
+   Designed to blend with the Apple-like aesthetic by using editorial
+   typography and minimal visual weight. The block fades in gently to
+   avoid competing with the main call-to-action.
+   --------------------------------------------------------------------------- */
+
+.configurator__bespoke-hint {
+  margin-top: 48px;
+  text-align: center;
+  animation: configurator-fade-up 0.6s ease 0.3s both;
+}
+
+/* Thin horizontal divider separating the hint from the CTA button above.
+   Uses the existing border-light token for visual consistency. */
+.configurator__bespoke-hint-divider {
+  border: none;
+  border-top: 1px solid var(--cfg-color-border-light);
+  margin: 0 auto 28px;
+  max-width: 200px;
+}
+
+/* Editorial heading -- Instrument Serif at a modest size keeps the
+   typographic hierarchy below the step title but above body text. */
+.configurator__bespoke-hint-heading {
+  font-family: var(--cfg-font-heading);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--cfg-color-text);
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+
+/* Supporting body copy -- secondary colour and small font size signal
+   that this content is supplementary, not primary. */
+.configurator__bespoke-hint-body {
+  font-family: var(--cfg-font-body);
+  font-size: 14px;
+  color: var(--cfg-color-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+/* Text-only trigger button styled as an inline arrow anchor. Resets all
+   native button chrome so the element reads as a text link. The underline
+   offset and transition match the configurator's existing interactive
+   patterns. Uses a <button> element for correct semantics (triggers an
+   in-page modal action, not a navigation). */
+.configurator__bespoke-hint-link {
+  font-family: var(--cfg-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cfg-color-text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--cfg-color-border);
+  border-radius: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  transition: border-color var(--cfg-transition-fast), color var(--cfg-transition-fast);
+}
+
+.configurator__bespoke-hint-link:hover {
+  color: var(--cfg-color-primary-hover);
+  border-bottom-color: var(--cfg-color-primary-hover);
+}
+
+
 /* =============================================================================
    RESPONSIVE BREAKPOINTS
    ============================================================================= */
@@ -1794,6 +1864,14 @@ select.configurator__form-input {
 
   .configurator__confirmation-subtitle {
     font-size: 14px;
+  }
+
+  .configurator__bespoke-hint {
+    margin-top: 36px;
+  }
+
+  .configurator__bespoke-hint-heading {
+    font-size: 18px;
   }
 }
 

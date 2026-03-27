@@ -147,7 +147,8 @@ export type AddonIconId =
   | 'decking'
   | 'heating'
   | 'solar'
-  | 'security';
+  | 'security'
+  | 'sauna';
 
 /**
  * An optional paid upgrade that the customer can toggle on or off.

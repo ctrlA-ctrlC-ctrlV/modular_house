@@ -44,7 +44,9 @@ import {
   ComparisonSection,
   InfoBanner,
   GoBespokeBanner,
+  EnquiryFormModal,
   type ContactFormData,
+  type EnquiryFormData,
   type LinkRenderer,
   type ProductCard,
   type QuickViewProduct,
@@ -81,6 +83,7 @@ const GardenRoom: React.FC = () => {
      overlay. `null` means the modal is closed.
      --------------------------------------------------------------------------- */
   const [quickViewProduct, setQuickViewProduct] = useState<QuickViewProduct | null>(null);
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
@@ -164,6 +167,18 @@ const GardenRoom: React.FC = () => {
     });
   }, []);
 
+  const handleEnquirySubmit = useCallback(async (data: EnquiryFormData): Promise<void> => {
+    await apiClient.submitEnquiry({
+      firstName: data.firstName,
+      email: data.email,
+      phone: data.phone,
+      preferredProduct: data.roomSize,
+      message: `Address: ${data.address}`,
+      consent: data.consent,
+      website: data.website,
+    });
+  }, []);
+
 
   return (
     <div className="l-container py-16">
@@ -180,7 +195,11 @@ const GardenRoom: React.FC = () => {
           titleLine1="Steel Frame Garden Rooms"
           titleLine2="Built to Last. Designed for Living."
           ctaText="Get a Free Quote"
-          ctaLink="/contact"
+          ctaLink="#"
+          onCtaClick={(e) => {
+            e.preventDefault();
+            setIsEnquiryOpen(true);
+          }}
           backgroundImage="/resource/garden_room_hero.png"
           backgroundImageWebP="/resource/garden_room_hero.webp"
           backgroundImageAvif="/resource/garden_room_hero.avif"
@@ -375,9 +394,7 @@ const GardenRoom: React.FC = () => {
           }
           ctaLabel="Design Your Own"
           onCtaClick={() => {
-            document
-              .getElementById('contact-cta')
-              ?.scrollIntoView({ behavior: 'smooth' });
+            setIsEnquiryOpen(true);
           }}
           ariaLabel="Custom bespoke garden room enquiry"
         />
@@ -471,6 +488,13 @@ const GardenRoom: React.FC = () => {
           onSubmit={handleContactSubmit}
         />
       </div>
+
+      {/* Quick Enquiry Popup — triggered by Hero CTA and Go Bespoke CTA */}
+      <EnquiryFormModal
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
+        onSubmit={handleEnquirySubmit}
+      />
 
     </div>
   );

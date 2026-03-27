@@ -25,5 +25,6 @@ export { InfiniteMasonryGallery, type InfiniteMasonryGalleryProps, type Infinite
 export { ComparisonSection, type ComparisonSectionProps, type ComparisonCategory, type MaterialScore, type MaterialMeta } from './components/ComparisonSection/ComparisonSection';
 export { InfoBanner, type InfoBannerProps, type InfoBannerStatusItem, type InfoBannerLink, type StatusType } from './components/InfoBanner/InfoBanner';
 export { GoBespokeBanner, type GoBespokeBannerProps } from './components/GoBespokeBanner/GoBespokeBanner';
+export { EnquiryFormModal, type EnquiryFormData, type EnquiryFormModalProps } from './components/EnquiryFormModal/EnquiryFormModal';
 export * from './types';
 // Add your shared UI components here

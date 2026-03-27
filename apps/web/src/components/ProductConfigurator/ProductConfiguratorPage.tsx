@@ -76,13 +76,19 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      Uses useCallback to maintain a stable reference across re-renders.
      ----------------------------------------------------------------------- */
   const handleBespokeEnquiry = useCallback(async (data: EnquiryFormData): Promise<void> => {
+    /* Maps the EnquiryFormModal payload to the API schema.
+       The roomSize field is free-text and must not be assigned to
+       preferredProduct, which is validated against a strict backend enum
+       ('Garden Room' | 'House Extension'). The room size is appended to
+       the bespoke enquiry message so the design team retains the detail. */
+    const roomSizeNote = data.roomSize ? ` Preferred size: ${data.roomSize}.` : '';
     await apiClient.submitEnquiry({
       firstName: data.firstName,
       email: data.email,
       phone: data.phone,
       address: data.address,
-      preferredProduct: data.roomSize,
-      message: `Bespoke enquiry via ${product.name} configurator.`,
+      preferredProduct: 'Garden Room',
+      message: `Bespoke enquiry via ${product.name} configurator.${roomSizeNote}`,
       consent: data.consent,
       website: data.website,
       sourcePage: 'configurator',

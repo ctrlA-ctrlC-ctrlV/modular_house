@@ -168,12 +168,20 @@ const GardenRoom: React.FC = () => {
   }, []);
 
   const handleEnquirySubmit = useCallback(async (data: EnquiryFormData): Promise<void> => {
+    /* Maps the EnquiryFormModal payload to the API schema.
+       The roomSize field is a free-text value (e.g. "25m2") and cannot be
+       assigned to preferredProduct, which is validated against a strict enum
+       ('Garden Room' | 'House Extension') on the backend. Instead, roomSize
+       is forwarded inside the message field so the information is preserved
+       for the sales team, while preferredProduct uses the correct enum value
+       for the page context. */
     await apiClient.submitEnquiry({
       firstName: data.firstName,
       email: data.email,
       phone: data.phone,
       address: data.address,
-      preferredProduct: data.roomSize,
+      preferredProduct: 'Garden Room',
+      message: data.roomSize ? `Preferred room size: ${data.roomSize}` : undefined,
       consent: data.consent,
       website: data.website,
       sourcePage: 'garden-room',

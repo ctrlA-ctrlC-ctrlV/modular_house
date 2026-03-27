@@ -172,10 +172,11 @@ const GardenRoom: React.FC = () => {
       firstName: data.firstName,
       email: data.email,
       phone: data.phone,
+      address: data.address,
       preferredProduct: data.roomSize,
-      message: `Address: ${data.address}`,
       consent: data.consent,
       website: data.website,
+      sourcePage: 'garden-room',
     });
   }, []);
 

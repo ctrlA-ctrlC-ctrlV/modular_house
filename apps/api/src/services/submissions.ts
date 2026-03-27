@@ -9,6 +9,10 @@ import {
   type ConfiguratorAddonItem,
 } from '../templates/configurator-internal.js';
 import { buildConfiguratorExternalEmail } from '../templates/configurator-external.js';
+import {
+  buildEnquiryConfirmationEmail,
+  resolveSourcePageLabel,
+} from '../templates/enquiry-confirmation.js';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -589,62 +593,21 @@ export class SubmissionsService {
         textContent = templateResult.text;
         htmlContent = templateResult.html;
       } else {
-        subject = 'Thank you for your enquiry - Modular House';
+        // Non-configurator submissions (contact form, landing page,
+        // garden room enquiry modal, etc.) use the enquiry confirmation
+        // template which includes the source page origin for traceability.
+        const sourceSlug = submission.sourcePageSlug || 'contact';
+        const templateResult = buildEnquiryConfirmationEmail({
+          firstName: payload.firstName,
+          sourcePageLabel: resolveSourcePageLabel(sourceSlug),
+          preferredProduct: payload.preferredProduct,
+          address: payload.address,
+          quoteNumber: quoteNumber || '',
+        });
 
-        textContent = `
-        Dear ${payload.firstName},
-
-        Thank you for your enquiry about our modular house solutions.
-
-        We have received your message and one of our team members will be in touch with you shortly to discuss your requirements.
-
-        If you have any urgent questions in the meantime, please feel free to contact us directly.
-
-        Best regards,
-        The Modular House Team
-
-        ---
-        This is an automated confirmation. Please do not reply to this email.
-            `.trim();
-
-        htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="utf-8">
-        <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #2c5282; color: white; padding: 20px; text-align: center; }
-            .content { padding: 30px; background-color: #ffffff; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-        </style>
-        </head>
-        <body>
-        <div class="container">
-            <div class="header">
-            <h1 style="margin: 0;">Modular House</h1>
-            </div>
-            <div class="content">
-            <p>Dear ${payload.firstName},</p>
-
-            <p>Thank you for your enquiry about our modular house solutions.</p>
-
-            <p>We have received your message and one of our team members will be in touch with you shortly to discuss your requirements.</p>
-
-            <p>If you have any urgent questions in the meantime, please feel free to contact us directly.</p>
-
-            <p>Best regards,<br>
-            <strong>The Modular House Team</strong></p>
-
-            <div class="footer">
-                <p>This is an automated confirmation. Please do not reply to this email.</p>
-            </div>
-            </div>
-        </div>
-        </body>
-        </html>
-            `.trim();
+        subject = templateResult.subject;
+        textContent = templateResult.text;
+        htmlContent = templateResult.html;
       }
 
       const result = await mailer.sendCustomerConfirmation(

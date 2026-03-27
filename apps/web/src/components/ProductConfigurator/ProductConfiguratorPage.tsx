@@ -80,10 +80,12 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       firstName: data.firstName,
       email: data.email,
       phone: data.phone,
+      address: data.address,
       preferredProduct: data.roomSize,
-      message: `Bespoke enquiry via ${product.name} configurator. Address: ${data.address}`,
+      message: `Bespoke enquiry via ${product.name} configurator.`,
       consent: data.consent,
       website: data.website,
+      sourcePage: 'configurator',
     });
   }, [product.name]);
 

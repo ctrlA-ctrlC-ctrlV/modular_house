@@ -43,6 +43,7 @@ import {
   QuickViewModal,
   ComparisonSection,
   InfoBanner,
+  GoBespokeBanner,
   type ContactFormData,
   type LinkRenderer,
   type ProductCard,
@@ -337,6 +338,48 @@ const GardenRoom: React.FC = () => {
           product={quickViewProduct}
           onClose={() => setQuickViewProduct(null)}
           renderLink={renderLink}
+        />
+      </div>
+
+
+      {/* ===================================================================
+          Section 5.5 — Go Bespoke Banner
+          ===================================================================
+          Full-width dark CTA banner positioned after the product range grid
+          and before the construction comparison section. Targets visitors
+          whose requirements are not met by the four standard garden room
+          sizes. The CTA scrolls to the contact form at the bottom of the
+          page so the user can submit a bespoke enquiry.
+          =================================================================== */}
+      <div id="go-bespoke">
+        <GoBespokeBanner
+          eyebrow="Bespoke Builds"
+          heading={
+            <>
+              Nothing catching your eye?<br />
+              <em>Go Bespoke.</em>
+              <span className="go-bespoke__wink" aria-hidden="true">{' '}&#10022;</span>
+            </>
+          }
+          subtext={
+            <>
+              Our four standard sizes cover most needs — but not every garden is
+              standard.{' '}
+              <strong>
+                Odd-shaped site, specific layout, or something we haven&apos;t
+                thought of yet?
+              </strong>{' '}
+              We&apos;ll engineer a steel-frame solution around your exact brief
+              — same factory precision, same Dublin build quality.
+            </>
+          }
+          ctaLabel="Design Your Own"
+          onCtaClick={() => {
+            document
+              .getElementById('contact-cta')
+              ?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          ariaLabel="Custom bespoke garden room enquiry"
         />
       </div>
 

@@ -24,5 +24,6 @@ export { ProductShowcase, type ProductShowcaseProps, type ProductShowcaseProduct
 export { InfiniteMasonryGallery, type InfiniteMasonryGalleryProps, type InfiniteGalleryImage } from './components/InfiniteMasonryGallery/InfiniteMasonryGallery';
 export { ComparisonSection, type ComparisonSectionProps, type ComparisonCategory, type MaterialScore, type MaterialMeta } from './components/ComparisonSection/ComparisonSection';
 export { InfoBanner, type InfoBannerProps, type InfoBannerStatusItem, type InfoBannerLink, type StatusType } from './components/InfoBanner/InfoBanner';
+export { GoBespokeBanner, type GoBespokeBannerProps } from './components/GoBespokeBanner/GoBespokeBanner';
 export * from './types';
 // Add your shared UI components here

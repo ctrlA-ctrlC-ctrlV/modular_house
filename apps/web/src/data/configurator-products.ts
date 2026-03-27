@@ -123,7 +123,7 @@ const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
    steps. All prices include VAT at the Irish standard rate (23%).
    ============================================================================= */
 
-const PRICING_NOTE = 'Price includes VAT \u00B7 Final price confirmed at consultation';
+const PRICING_NOTE = 'Price includes VAT \u00B7 Ts & Cs apply';
 
 
 /* =============================================================================

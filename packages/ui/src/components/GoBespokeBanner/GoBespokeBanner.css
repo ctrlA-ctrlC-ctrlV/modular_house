@@ -1,0 +1,375 @@
+/**
+ * GoBespokeBanner Styles
+ * =============================================================================
+ *
+ * BEM-structured stylesheet for the GoBespokeBanner component. Implements
+ * a dark-themed call-to-action banner with a diagonal steel-line texture,
+ * decorative corner brackets, and a prominent CTA button.
+ *
+ * Design token references:
+ *   --brand-copper        : Primary accent colour (#B55329)
+ *   --brand-copper-dark   : Hover state for copper (#8C3D1A)
+ *   --brand-copper-light  : Eyebrow and heading emphasis (#D4764E)
+ *   --brand-dark          : Section background (#1A1714)
+ *   --font-serif          : DM Serif Display heading typeface
+ *   --font-sans           : DM Sans body typeface
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   Component-level design tokens
+   =============================================================================
+   Local custom properties scoped to the component. These fall back to theme-
+   level brand tokens where available, ensuring consistent theming while
+   remaining self-contained for isolated Storybook rendering.
+   ============================================================================= */
+:root {
+  --go-bespoke-bg: var(--brand-dark, #1A1714);
+  --go-bespoke-copper: var(--brand-copper, #B55329);
+  --go-bespoke-copper-dark: var(--brand-copper-dark, #8C3D1A);
+  --go-bespoke-copper-light: var(--brand-copper-light, #D4764E);
+}
+
+
+/* =============================================================================
+   Block: .go-bespoke
+   =============================================================================
+   The root section element. Dark background with two pseudo-element overlays:
+   ::before renders repeating diagonal lines simulating a steel-line texture,
+   ::after places a decorative corner bracket in the top-right corner.
+   ============================================================================= */
+.go-bespoke {
+  position: relative;
+  overflow: hidden;
+  background: var(--go-bespoke-bg);
+  padding: 0;
+}
+
+/* Background texture — repeating diagonal lines at -45 degrees to evoke a
+   precision-engineered steel pattern. The lines use a low-opacity copper
+   tint to subtly integrate the brand colour. */
+.go-bespoke::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(181, 83, 41, 0.04) 40px,
+      rgba(181, 83, 41, 0.04) 41px
+    );
+}
+
+/* Decorative corner bracket — top-right. A 60x60px L-shaped border element
+   rendered at 30% opacity to provide a subtle structural accent without
+   competing with the main content. */
+.go-bespoke::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-top: 2px solid var(--go-bespoke-copper);
+  border-right: 2px solid var(--go-bespoke-copper);
+  opacity: 0.3;
+  z-index: 1;
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__inner
+   =============================================================================
+   Constrains content to a max-width of 1200px and applies a two-column grid:
+   left column (1fr) holds the text content, right column (auto) holds the
+   CTA button. Vertically centred with align-items: center.
+   ============================================================================= */
+.go-bespoke__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 40px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 48px;
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__content
+   =============================================================================
+   Flexbox column container for the eyebrow, heading, and subtext. Gap of 16px
+   provides consistent vertical spacing between child elements.
+   ============================================================================= */
+.go-bespoke__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__eyebrow
+   =============================================================================
+   Small uppercase label positioned above the heading. Rendered in the sans-
+   serif typeface at 11px with wide letter spacing (0.18em). A 32px horizontal
+   line drawn via ::before provides a decorative prefix.
+   ============================================================================= */
+.go-bespoke__eyebrow {
+  font-family: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--go-bespoke-copper-light);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Decorative prefix line — a 32px horizontal rule in copper that visually
+   anchors the eyebrow text to the left edge of the content area. */
+.go-bespoke__eyebrow::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: var(--go-bespoke-copper);
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__heading
+   =============================================================================
+   Primary heading rendered in the serif typeface. Uses clamp() for fluid
+   typography that scales between 28px and 44px based on viewport width.
+   ============================================================================= */
+.go-bespoke__heading {
+  font-family: var(--font-serif, 'DM Serif Display', Georgia, 'Times New Roman', serif);
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: #fff;
+  max-width: 560px;
+}
+
+/* Italic emphasis within the heading — uses the copper light colour to
+   visually differentiate the italicised phrase (e.g. "Go Bespoke."). */
+.go-bespoke__heading em {
+  font-style: italic;
+  color: var(--go-bespoke-copper-light);
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__wink
+   =============================================================================
+   A decorative four-pointed star character displayed inline after the heading
+   emphasis text. Plays a subtle pulsing animation on a 3-second loop: the star
+   briefly scales down to 85% and fades to 60% opacity at the 95% keyframe
+   mark, creating a gentle "wink" or sparkle effect.
+   ============================================================================= */
+.go-bespoke__wink {
+  display: inline-block;
+  font-style: normal;
+  margin-left: 4px;
+  animation: goBespokeWink 3s ease-in-out infinite;
+}
+
+@keyframes goBespokeWink {
+  0%, 90%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  95% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__subtext
+   =============================================================================
+   Supporting paragraph below the heading. Reduced opacity white text provides
+   a secondary reading layer that does not compete with the heading. Strong
+   tags within the subtext have slightly higher opacity for emphasis.
+   ============================================================================= */
+.go-bespoke__subtext {
+  font-family: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
+  max-width: 480px;
+}
+
+.go-bespoke__subtext strong {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__cta
+   =============================================================================
+   Call-to-action button styled as a solid copper rectangle with white text.
+   Includes a gradient overlay (::before) that fades in on hover, a vertical
+   lift transform, and a diffused box shadow for depth. The arrow icon
+   translates 4px to the right on hover to reinforce directionality.
+   ============================================================================= */
+.go-bespoke__cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 36px;
+  background: var(--go-bespoke-copper);
+  color: #fff;
+  font-family: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  white-space: nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Gradient overlay — a subtle top-left-to-centre highlight that fades in on
+   hover to simulate a light reflection effect on the button surface. */
+.go-bespoke__cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+/* Hover state: darkens the background, lifts the button 2px, and applies
+   a warm copper box shadow for a floating effect. */
+.go-bespoke__cta:hover {
+  background: var(--go-bespoke-copper-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(181, 83, 41, 0.35);
+}
+
+.go-bespoke__cta:hover::before {
+  opacity: 1;
+}
+
+/* Active state: resets the vertical lift so the button appears pressed. */
+.go-bespoke__cta:active {
+  transform: translateY(0);
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__cta-arrow
+   =============================================================================
+   Inline SVG arrow icon inside the CTA button. Translates 4px right on
+   button hover to provide a motion cue reinforcing directionality.
+   ============================================================================= */
+.go-bespoke__cta-arrow {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-size: 18px;
+}
+
+.go-bespoke__cta:hover .go-bespoke__cta-arrow {
+  transform: translateX(4px);
+}
+
+
+/* =============================================================================
+   Element: .go-bespoke__deco
+   =============================================================================
+   Decorative corner bracket — bottom-left. Mirrors the ::after bracket in
+   the top-right corner to frame the banner content symmetrically.
+   ============================================================================= */
+.go-bespoke__deco {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  width: 60px;
+  height: 60px;
+  border-bottom: 2px solid var(--go-bespoke-copper);
+  border-left: 2px solid var(--go-bespoke-copper);
+  opacity: 0.3;
+  z-index: 1;
+}
+
+
+/* =============================================================================
+   Entrance Animation
+   =============================================================================
+   Content and CTA button fade in from 16px below their final position using
+   a 0.6s ease animation. The CTA button has a 0.15s delay to create a
+   staggered entrance effect.
+   ============================================================================= */
+.go-bespoke__content,
+.go-bespoke__cta {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: goBespokeFadeUp 0.6s ease forwards;
+}
+
+.go-bespoke__cta {
+  animation-delay: 0.15s;
+}
+
+@keyframes goBespokeFadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =============================================================================
+   Responsive Breakpoint: max-width 768px
+   =============================================================================
+   Collapses to a single-column layout with centred text alignment. Hides the
+   decorative corner brackets to conserve space on mobile viewports. The CTA
+   button stretches to full width for a larger touch target.
+   ============================================================================= */
+@media (max-width: 768px) {
+  .go-bespoke__inner {
+    grid-template-columns: 1fr;
+    padding: 56px 24px;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .go-bespoke__eyebrow {
+    justify-content: center;
+  }
+
+  .go-bespoke__heading {
+    max-width: 100%;
+  }
+
+  .go-bespoke__subtext {
+    max-width: 100%;
+  }
+
+  .go-bespoke__cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .go-bespoke::after,
+  .go-bespoke__deco {
+    display: none;
+  }
+}

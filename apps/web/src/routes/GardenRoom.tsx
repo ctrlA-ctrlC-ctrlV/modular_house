@@ -230,41 +230,8 @@ const GardenRoom: React.FC = () => {
         </button>
       </div>
 
-      
-
-
       {/* ===================================================================
-          Section 3 — Product Showcase (50/50 Split)
-          ===================================================================
-          A 50/50 split section introducing the standardised product line.
-          Left: 1×4 product grid with background images, dimensions, and
-          prices. Each row smooth-scrolls to the Product Range section on
-          click. Right: standard features and warranty coverage.
-          =================================================================== 
-      
-      <div id="product-showcase">
-        <ProductShowcase
-          productEyebrow="PRODUCT RANGE"
-          products={PRODUCT_SHOWCASE_PRODUCTS}
-          scrollTargetId="product-range"
-          legislationNote={
-            <p>
-              <strong>Legislation Update:</strong>{' '}
-              Rooms up to 25m² currently exempt from planning permission.
-              Pending legislation will raise this to 45m² — making our full
-              range permit-free.
-            </p>
-          }
-          featuresEyebrow="INCLUDED AS STANDARD"
-          features={PRODUCT_SHOWCASE_FEATURES}
-          warrantyEyebrow="WARRANTY COVERAGE"
-          warranties={PRODUCT_SHOWCASE_WARRANTIES}
-        />
-      </div> */}
-
-
-      {/* ===================================================================
-          Section 4 — Product Range (Detail Cards)
+          Section 2 — Product Range (Detail Cards)
           ===================================================================
           Displays four garden room product cards (15, 25, 35, 45 square
           metres) in a responsive grid. Product data is sourced from the
@@ -317,7 +284,36 @@ const GardenRoom: React.FC = () => {
       </div>
 
       {/* ===================================================================
-          Section 2 — Why Steel Frame
+          Section 3 — Product Showcase (50/50 Split)
+          ===================================================================
+          A 50/50 split section introducing the standardised product line.
+          Left: 1×4 product grid with background images, dimensions, and
+          prices. Each row smooth-scrolls to the Product Range section on
+          click. Right: standard features and warranty coverage.
+          =================================================================== 
+      
+      <div id="product-showcase">
+        <ProductShowcase
+          productEyebrow="PRODUCT RANGE"
+          products={PRODUCT_SHOWCASE_PRODUCTS}
+          scrollTargetId="product-range"
+          legislationNote={
+            <p>
+              <strong>Legislation Update:</strong>{' '}
+              Rooms up to 25m² currently exempt from planning permission.
+              Pending legislation will raise this to 45m² — making our full
+              range permit-free.
+            </p>
+          }
+          featuresEyebrow="INCLUDED AS STANDARD"
+          features={PRODUCT_SHOWCASE_FEATURES}
+          warrantyEyebrow="WARRANTY COVERAGE"
+          warranties={PRODUCT_SHOWCASE_WARRANTIES}
+        />
+      </div> */}
+
+      {/* ===================================================================
+          Section 4 — Why Steel Frame
           ===================================================================
           A four-column feature grid presenting the key advantages of steel
           frame construction. Each card includes an icon (from CustomIcons),

@@ -25,6 +25,9 @@
  *   navigation to the contact route.
  * - Modal open/close state and enquiry submission are managed internally,
  *   delegating the API call to the provided onSubmit callback prop.
+ * - The onSubmit callback receives the configurator context alongside the
+ *   form data so the parent can include the customer's current product
+ *   configuration in the bespoke enquiry submission.
  *
  * ARCHITECTURE:
  * - Presentational component with minimal local state (modal visibility).
@@ -53,7 +56,8 @@ import {
  * @property onSubmit - Async callback invoked when the enquiry form is
  *                      submitted. Receives the validated EnquiryFormData
  *                      payload. The parent is responsible for dispatching
- *                      the data to the API.
+ *                      the data to the API along with any configurator
+ *                      context needed for the bespoke enquiry.
  */
 interface BespokeHintProps {
   /** Async handler called when the bespoke enquiry form is submitted. */

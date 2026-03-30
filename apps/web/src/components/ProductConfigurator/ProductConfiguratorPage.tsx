@@ -71,8 +71,11 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   /* -----------------------------------------------------------------------
      Bespoke Enquiry Handler
      -----------------------------------------------------------------------
-     Submits the bespoke enquiry form data to the API. Mapped to the
-     EnquiryFormModal's onSubmit prop via the BespokeHint component.
+     Submits the bespoke enquiry form data to the API, including the
+     current configurator context (product, finishes, add-ons, total) so
+     the internal team can see what configuration the customer was viewing
+     before requesting a custom solution. Uses sourcePage 'bespoke' to
+     distinguish this flow from standard configurator quotes.
      Uses useCallback to maintain a stable reference across re-renders.
      ----------------------------------------------------------------------- */
   const handleBespokeEnquiry = useCallback(async (data: EnquiryFormData): Promise<void> => {
@@ -82,6 +85,26 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
        ('Garden Room' | 'House Extension'). The room size is appended to
        the bespoke enquiry message so the design team retains the detail. */
     const roomSizeNote = data.roomSize ? ` Preferred size: ${data.roomSize}.` : '';
+
+    /* Resolve the currently selected finish names from the product data
+       so they can be included in the bespoke submission payload for
+       the internal team's context. */
+    const selectedExteriorName = product.finishCategories
+      .find((fc) => fc.slug === 'exterior')
+      ?.options.find((o) => o.id === state.selections.exteriorFinishId)
+      ?.name ?? '';
+    const selectedInteriorName = product.finishCategories
+      .find((fc) => fc.slug === 'interior')
+      ?.options.find((o) => o.id === state.selections.interiorFinishId)
+      ?.name ?? '';
+
+    /* Build the comma-separated add-on slug list from the current
+       configurator selections. */
+    const addonSlugs = product.addons
+      .filter((a) => state.selections.selectedAddonIds.includes(a.id))
+      .map((a) => a.slug)
+      .join(',');
+
     await apiClient.submitEnquiry({
       firstName: data.firstName,
       email: data.email,
@@ -91,9 +114,14 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       message: `Bespoke enquiry via ${product.name} configurator.${roomSizeNote}`,
       consent: data.consent,
       website: data.website,
-      sourcePage: 'configurator',
+      sourcePage: 'bespoke',
+      configuratorProductSlug: product.slug,
+      configuratorExteriorFinish: selectedExteriorName,
+      configuratorInteriorFinish: selectedInteriorName,
+      configuratorAddons: addonSlugs || undefined,
+      configuratorTotalCents: state.totalPriceCents,
     });
-  }, [product.name]);
+  }, [product, state.selections, state.totalPriceCents]);
 
 
   /* -----------------------------------------------------------------------

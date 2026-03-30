@@ -355,20 +355,212 @@
   .feature-section {
     padding: 60px 0;
   }
-  
+
   .feature-section__split {
     flex-direction: column;
     margin-bottom: 50px;
     gap: 20px;
   }
-  
+
   .feature-section__split-left,
   .feature-section__split-right {
     width: 100%;
   }
-  
+
   .feature-section__grid {
     grid-template-columns: 1fr;
     row-gap: 40px;
   }
+}
+
+
+/* =============================================================================
+   SECTION 7: CAROUSEL LAYOUT (< 650px)
+   -----------------------------------------------------------------------------
+   When the viewport is narrower than 650px, the feature grid is replaced by
+   a horizontally sliding carousel. The carousel displays one feature at a time
+   with CSS transform-based transitions and dot indicators for navigation.
+
+   The carousel container is always present in the DOM but only visible when
+   React conditionally renders it (controlled by the useMediaQuery hook).
+
+   Structure:
+   - .feature-section__carousel          : Outer wrapper (semantic region)
+   - .feature-section__carousel-viewport  : Clips overflow to show one slide
+   - .feature-section__carousel-track     : Horizontal flexbox holding all slides
+   - .feature-section__carousel-slide     : Individual slide at 100% viewport width
+   - .feature-section__carousel-dots      : Dot indicator navigation bar
+   - .feature-section__carousel-dot       : Individual dot button
+   ============================================================================= */
+
+/**
+ * Carousel outer wrapper.
+ * Provides vertical spacing consistent with the grid layout it replaces.
+ */
+.feature-section__carousel {
+  width: 100%;
+}
+
+/**
+ * Carousel viewport: clips horizontal overflow to reveal only the active slide.
+ * touch-action: pan-y allows vertical page scrolling while letting the
+ * Pointer Events API capture horizontal swipe/drag gestures.
+ */
+.feature-section__carousel-viewport {
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+/**
+ * Active grab cursor when the user is dragging within the viewport.
+ */
+.feature-section__carousel-viewport:active {
+  cursor: grabbing;
+}
+
+/**
+ * Carousel track: positions all slides in a single horizontal row.
+ * The translateX transform (applied inline via React) shifts the visible
+ * window to the active slide. The transition property animates the shift
+ * with an ease-out curve for a natural deceleration feel.
+ */
+.feature-section__carousel-track {
+  display: flex;
+  transition: transform 0.4s ease-out;
+  will-change: transform;
+}
+
+/**
+ * Individual carousel slide.
+ * Each slide occupies exactly 100% of the viewport width and does not
+ * shrink or grow, ensuring precise one-slide-at-a-time display.
+ */
+.feature-section__carousel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/**
+ * Ensures feature items inside carousel slides fill the available width
+ * and receive consistent internal padding for comfortable reading.
+ */
+.feature-section__carousel-slide .feature-section__item {
+  width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+
+/* =============================================================================
+   SECTION 7b: CAROUSEL INTRO SLIDE (< 650px)
+   -----------------------------------------------------------------------------
+   The first carousel slide contains the eyebrow heading, main heading, and
+   introductory text that are normally rendered as static content above the
+   feature grid on wider viewports. In carousel mode these are stacked
+   vertically into a single slide with adjusted spacing and typography to
+   fit comfortably within the constrained mobile viewport.
+   ============================================================================= */
+
+/**
+ * Intro slide container.
+ * Stacks eyebrow, heading, and intro text vertically with padding
+ * to match the feature slide layout and prevent edge-touching text.
+ */
+.feature-section__carousel-intro {
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+/**
+ * Reduces the bottom margin on the eyebrow heading wrapper within
+ * the carousel intro slide for tighter vertical rhythm on mobile.
+ */
+.feature-section__carousel-intro .feature-section__top-heading-wrapper {
+  margin-bottom: 16px;
+}
+
+/**
+ * Scales the main heading down for mobile readability within the
+ * carousel intro slide. Adds spacing below to separate from intro text.
+ */
+.feature-section__carousel-intro .feature-section__main-heading {
+  font-size: clamp(1.75rem, 6vw, var(--text-display, 3rem));
+  margin-bottom: 20px;
+}
+
+/**
+ * Adjusts intro text sizing within the carousel intro slide
+ * for comfortable reading on small screens.
+ */
+.feature-section__carousel-intro .feature-section__intro-text {
+  font-size: var(--text-body, 1rem);
+}
+
+
+/* =============================================================================
+   SECTION 8: CAROUSEL DOT INDICATORS
+   -----------------------------------------------------------------------------
+   Horizontal row of small circular buttons below the carousel viewport.
+   Each dot represents one slide; the active dot is visually distinguished.
+   ============================================================================= */
+
+/**
+ * Dot indicator container.
+ * Centers dots horizontally with consistent spacing above and between.
+ */
+.feature-section__carousel-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 4px 0;
+}
+
+/**
+ * Individual dot button base styles.
+ * Renders as a small circle with a subtle border and transparent fill.
+ * Transitions opacity and background-color for smooth state changes.
+ */
+.feature-section__carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--feature-text-muted, #999);
+  background-color: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/**
+ * Active dot modifier.
+ * Fills the dot with the brand accent color and removes the border
+ * to create a clear visual distinction for the current slide.
+ */
+.feature-section__carousel-dot--active {
+  background-color: var(--feature-icon-color, var(--brand-link, #333));
+  border-color: var(--feature-icon-color, var(--brand-link, #333));
+}
+
+/**
+ * Hover and focus states for dot buttons.
+ * Provides visual feedback for pointer and keyboard interaction.
+ */
+.feature-section__carousel-dot:hover,
+.feature-section__carousel-dot:focus-visible {
+  border-color: var(--feature-icon-color, var(--brand-link, #333));
+  outline: none;
+}
+
+/**
+ * Focus-visible ring for keyboard accessibility.
+ * Ensures dots are discoverable when navigating via Tab key.
+ */
+.feature-section__carousel-dot:focus-visible {
+  box-shadow: 0 0 0 2px var(--feature-bg, #fff),
+              0 0 0 4px var(--feature-icon-color, var(--brand-link, #333));
 }

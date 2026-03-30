@@ -7,7 +7,7 @@ export const PRODUCT_OPTIONS = ['Garden Room', 'House Extension'] as const;
  * Valid source pages that can generate enquiry submissions.
  * Used to identify where a submission originated from within the site.
  */
-export const SOURCE_PAGE_OPTIONS = ['contact', 'landing', 'garden-room', 'configurator'] as const;
+export const SOURCE_PAGE_OPTIONS = ['contact', 'landing', 'garden-room', 'configurator', 'bespoke'] as const;
 
 // Enquiry submission schema based on OpenAPI SubmissionCreate.
 // Extends the base contact form fields with optional configurator-specific

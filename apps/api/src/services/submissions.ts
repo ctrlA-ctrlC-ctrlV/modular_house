@@ -10,6 +10,8 @@ import {
 } from '../templates/configurator-internal.js';
 import { buildConfiguratorExternalEmail } from '../templates/configurator-external.js';
 import { buildEnquiryConfirmationEmail } from '../templates/enquiry-confirmation.js';
+import { buildBespokeInternalEmail } from '../templates/bespoke-internal.js';
+import { buildBespokeExternalEmail } from '../templates/bespoke-external.js';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -361,16 +363,51 @@ export class SubmissionsService {
 
       const payload = submission.payload as SubmissionPayload;
 
-      // Branch: use the configurator-specific template when the submission
-      // originates from the product configurator; otherwise fall through to
-      // the existing generic template.
+      // Branch: select the appropriate internal notification template based
+      // on the submission's origin page. Configurator quotes use the
+      // detailed product configuration template, bespoke enquiries use the
+      // bespoke template (configurator context + custom request), and all
+      // other sources fall through to the existing generic enquiry template.
       const isConfigurator = payload.sourcePage === 'configurator';
+      const isBespoke = payload.sourcePage === 'bespoke';
 
       let subject: string;
       let textContent: string;
       let htmlContent: string;
 
-      if (isConfigurator && quoteNumber) {
+      if (isBespoke && quoteNumber) {
+        // Bespoke enquiry: customer used the configurator but wants a custom
+        // solution. Include the configurator context for team reference.
+        const productData = payload.configuratorProductSlug
+          ? CONFIGURATOR_PRODUCT_LOOKUP[payload.configuratorProductSlug]
+          : undefined;
+
+        const addons = this.resolveAddons(
+          payload.configuratorAddons,
+          payload.configuratorProductSlug,
+        );
+
+        const templateResult = buildBespokeInternalEmail({
+          quoteNumber,
+          submittedAt: submission.createdAt.toISOString(),
+          firstName: payload.firstName,
+          email: payload.email,
+          phone: payload.phone,
+          address: payload.address ?? '',
+          productName: productData?.name ?? payload.configuratorProductSlug ?? 'Unknown',
+          productDimensions: productData?.dimensions ?? '',
+          productArea: productData?.area ?? '',
+          exteriorFinish: payload.configuratorExteriorFinish ?? 'Not specified',
+          interiorFinish: payload.configuratorInteriorFinish ?? 'Not specified',
+          addons,
+          totalCents: payload.configuratorTotalCents ?? 0,
+          bespokeMessage: payload.message ?? '',
+        });
+
+        subject = templateResult.subject;
+        textContent = templateResult.text;
+        htmlContent = templateResult.html;
+      } else if (isConfigurator && quoteNumber) {
         const productData = payload.configuratorProductSlug
           ? CONFIGURATOR_PRODUCT_LOOKUP[payload.configuratorProductSlug]
           : undefined;
@@ -556,16 +593,30 @@ export class SubmissionsService {
 
       const payload = submission.payload as SubmissionPayload;
 
-      // Branch: use the configurator-specific template when the submission
-      // originates from the product configurator; otherwise fall through to
-      // the existing generic template.
+      // Branch: select the appropriate customer confirmation template based
+      // on the submission's origin page. Configurator quotes receive the
+      // detailed configuration summary, bespoke enquiries receive a simple
+      // acknowledgement, and all other sources use the generic enquiry
+      // confirmation template.
       const isConfigurator = payload.sourcePage === 'configurator';
+      const isBespoke = payload.sourcePage === 'bespoke';
 
       let subject: string;
       let textContent: string;
       let htmlContent: string;
 
-      if (isConfigurator && quoteNumber) {
+      if (isBespoke && quoteNumber) {
+        // Bespoke enquiry: customer receives a simple acknowledgement
+        // without configuration details or pricing echoed back.
+        const templateResult = buildBespokeExternalEmail({
+          firstName: payload.firstName,
+          quoteNumber,
+        });
+
+        subject = templateResult.subject;
+        textContent = templateResult.text;
+        htmlContent = templateResult.html;
+      } else if (isConfigurator && quoteNumber) {
         const productData = payload.configuratorProductSlug
           ? CONFIGURATOR_PRODUCT_LOOKUP[payload.configuratorProductSlug]
           : undefined;
@@ -591,8 +642,8 @@ export class SubmissionsService {
         htmlContent = templateResult.html;
       } else {
         // Non-configurator submissions (contact form, landing page,
-        // garden room enquiry modal, etc.) use the enquiry confirmation
-        // template which includes the source page origin for traceability.
+        // garden room enquiry modal, etc.) use the generic enquiry
+        // confirmation template.
         const templateResult = buildEnquiryConfirmationEmail({
           firstName: payload.firstName,
           preferredProduct: payload.preferredProduct,

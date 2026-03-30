@@ -42,7 +42,7 @@ import {
   ContactFormWithImageBg,
   QuickViewModal,
   ComparisonSection,
-  InfoBanner,
+  InfoButton,
   GoBespokeBanner,
   EnquiryFormModal,
   type ContactFormData,
@@ -309,9 +309,10 @@ const GardenRoom: React.FC = () => {
           centralised GARDEN_ROOM_PRODUCTS constant in garden-room-data.ts.
           This is the scroll target for the ProductShowcase rows above.
 
-          The InfoBanner is rendered via headerContent to display planning
-          permission information directly below the section description,
-          before the product cards.
+          The InfoButton is rendered via headerContent to display a compact
+          "i" trigger that opens a modal with planning permission information.
+          This replaces the full-width InfoBanner to reduce screen real estate
+          consumption within the product grid header.
           =================================================================== */}
       <div id="product-range">
         <ProductRangeGrid
@@ -319,7 +320,8 @@ const GardenRoom: React.FC = () => {
           title="Choose Your Perfect Size"
           description="Every garden room is precision-built with CNC-cut steel framing, superior insulation, and architectural-grade finishes."
           headerContent={
-            <InfoBanner
+            <InfoButton
+              triggerLabel="Do I need Planning Permission?"
               eyebrow="Regulations"
               heading="Do You Need Planning Permission?"
               headingLevel={3}

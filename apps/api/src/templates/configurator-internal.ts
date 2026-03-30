@@ -194,7 +194,7 @@ export function buildConfiguratorInternalEmail(
   } = data;
 
   /* -- Subject line ------------------------------------------------------- */
-  const subject = `[Modular House] New Configurator Quote ${quoteNumber} from ${firstName}`;
+  const subject = `New Configurator Quote ${quoteNumber} from ${firstName}`;
 
   /* -- Formatted values for display --------------------------------------- */
   const formattedTotal = formatEurCents(totalCents);

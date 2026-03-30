@@ -34,7 +34,7 @@ import { Link } from 'react-router-dom';
 import {
   HeroBoldBottomText,
   ProductRangeGrid,
-  ProductShowcase,
+  //ProductShowcase,
   InfiniteMasonryGallery,
   FeatureSection,
   TestimonialGrid,
@@ -54,9 +54,9 @@ import {
 import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
 import {
-  PRODUCT_SHOWCASE_PRODUCTS,
-  PRODUCT_SHOWCASE_FEATURES,
-  PRODUCT_SHOWCASE_WARRANTIES,
+  //PRODUCT_SHOWCASE_PRODUCTS,
+  //PRODUCT_SHOWCASE_FEATURES,
+  //PRODUCT_SHOWCASE_WARRANTIES,
   GARDEN_ROOM_PRODUCTS,
   GARDEN_ROOM_FEATURES,
   GARDEN_ROOM_TESTIMONIALS,
@@ -301,11 +301,8 @@ const GardenRoom: React.FC = () => {
       </div> */}
 
 
-      
-
-
       {/* ===================================================================
-          Section 5 — Product Range (Detail Cards)
+          Section 4 — Product Range (Detail Cards)
           ===================================================================
           Displays four garden room product cards (15, 25, 35, 45 square
           metres) in a responsive grid. Product data is sourced from the
@@ -357,7 +354,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 5.5 — Go Bespoke Banner
+          Section 5 — Go Bespoke Banner
           ===================================================================
           Full-width dark CTA banner positioned after the product range grid
           and before the construction comparison section. Targets visitors
@@ -433,7 +430,7 @@ const GardenRoom: React.FC = () => {
       </div>
 
       {/* ===================================================================
-          Section 4 — Infinite Gallery
+          Section 8 — Infinite Gallery
           ===================================================================
           Horizontally-scrolling infinite masonry gallery placed directly
           below the Product Showcase. Uses all available garden room and
@@ -451,7 +448,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 8 — FAQ
+          Section 9 — FAQ
           ===================================================================
           Frequently asked questions presented in an accordion layout with
           expand/collapse behaviour. Renders 6 FAQ items covering common
@@ -476,7 +473,7 @@ const GardenRoom: React.FC = () => {
 
 
       {/* ===================================================================
-          Section 9 — CTA (Call to Action)
+          Section 10 — CTA (Call to Action)
           ===================================================================
           Full-width contact form section with a background image, positioned
           as the final page section to capture visitor intent after they have

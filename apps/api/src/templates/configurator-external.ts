@@ -203,7 +203,7 @@ export function buildConfiguratorExternalEmail(
           <!-- Greeting -->
           <tr>
             <td style="padding: 32px 24px 16px 24px; text-align: center;">
-              <h2 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 400; color: #111827; line-height: 1.4;">Thank you for your estimate, ${escapeHtml(firstName)}</h2>
+              <h2 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 400; color: #111827; line-height: 1.4;">Thank you for chosing Modular House, ${escapeHtml(firstName)}</h2>
             </td>
           </tr>
 

@@ -303,7 +303,7 @@ This is an automated confirmation. Please do not reply to this email.
                       <strong>Phone:</strong> <a href="tel:0830280000" style="color: #2c5282; text-decoration: none;">0830280000</a>
                     </p>
                     <p style="margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #374151;">
-                      <strong>Email:</strong> <a href="mailto:colin@modularhouse.ie" style="color: #2c5282; text-decoration: none;">colin@modularhouse.ie</a>
+                      <strong>Email:</strong> <a href="mailto:colin@modularhouse.ie" style="color: #2c5282; text-decoration: none;">colino@modularhouse.ie</a>
                     </p>
                   </td>
                 </tr>

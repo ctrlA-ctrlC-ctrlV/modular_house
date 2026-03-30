@@ -278,7 +278,8 @@ const GardenRoom: React.FC = () => {
           Left: 1×4 product grid with background images, dimensions, and
           prices. Each row smooth-scrolls to the Product Range section on
           click. Right: standard features and warranty coverage.
-          =================================================================== */}
+          =================================================================== 
+      
       <div id="product-showcase">
         <ProductShowcase
           productEyebrow="PRODUCT RANGE"
@@ -297,25 +298,10 @@ const GardenRoom: React.FC = () => {
           warrantyEyebrow="WARRANTY COVERAGE"
           warranties={PRODUCT_SHOWCASE_WARRANTIES}
         />
-      </div>
+      </div> */}
 
 
-      {/* ===================================================================
-          Section 4 — Infinite Gallery
-          ===================================================================
-          Horizontally-scrolling infinite masonry gallery placed directly
-          below the Product Showcase. Uses all available garden room and
-          sauna images from /public/resource/garden-room/ with AVIF and
-          WebP optimised variants. Supports drag, mouse-wheel scrolling,
-          momentum, and a full-screen lightbox on click.
-          =================================================================== */}
-      <div id="infinite-gallery">
-        <InfiniteMasonryGallery
-          images={INFINITE_GALLERY_IMAGES}
-          title=""//"Our Projects"
-          eyebrow=""//"GALLERY"
-        />
-      </div>
+      
 
 
       {/* ===================================================================
@@ -443,6 +429,23 @@ const GardenRoom: React.FC = () => {
           subTitle="WHAT OUR CLIENTS SAY"
           title="Trusted by Homeowners Across Ireland"
           testimonials={GARDEN_ROOM_TESTIMONIALS}
+        />
+      </div>
+
+      {/* ===================================================================
+          Section 4 — Infinite Gallery
+          ===================================================================
+          Horizontally-scrolling infinite masonry gallery placed directly
+          below the Product Showcase. Uses all available garden room and
+          sauna images from /public/resource/garden-room/ with AVIF and
+          WebP optimised variants. Supports drag, mouse-wheel scrolling,
+          momentum, and a full-screen lightbox on click.
+          =================================================================== */}
+      <div id="infinite-gallery">
+        <InfiniteMasonryGallery
+          images={INFINITE_GALLERY_IMAGES}
+          title=""//"Our Projects"
+          eyebrow=""//"GALLERY"
         />
       </div>
 

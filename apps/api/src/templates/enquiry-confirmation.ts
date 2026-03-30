@@ -133,13 +133,13 @@ export function buildEnquiryConfirmationEmail(
 
   /* -- Contextual body copy based on whether a product was specified ------- */
   const confirmationMessage = preferredProduct
-    ? `Thank you for your interest in our <strong>${escapeHtml(preferredProduct)}</strong>. We have received your enquiry and a member of our team will be in touch within <strong>24 hours</strong> to discuss your requirements.`
-    : `Thank you for your enquiry about our modular house solutions. We have received your details and a member of our team will be in touch within <strong>24 hours</strong> to discuss your requirements.`;
+    ? `Thank you for your interest in our <strong>${escapeHtml(preferredProduct)}</strong>. I have received your enquiry and I will be in touch within <strong>24 hours</strong> to discuss your requirements.`
+    : `Thank you for your enquiry about our modular house solutions. I have received your details and I will be in touch within <strong>24 hours</strong> to discuss your requirements.`;
 
   /* -- Plain-text variant of the confirmation message --------------------- */
   const confirmationMessageText = preferredProduct
-    ? `Thank you for your interest in our ${preferredProduct}. We have received your enquiry and a member of our team will be in touch within 24 hours to discuss your requirements.`
-    : `Thank you for your enquiry about our modular house solutions. We have received your details and a member of our team will be in touch within 24 hours to discuss your requirements.`;
+    ? `Thank you for your interest in our ${preferredProduct}. I have received your enquiry and I will be in touch within 24 hours to discuss your requirements.`
+    : `Thank you for your enquiry about our modular house solutions. I have received your details and I will be in touch within 24 hours to discuss your requirements.`;
 
   /* -- Plain-text body ---------------------------------------------------- */
   const text = `

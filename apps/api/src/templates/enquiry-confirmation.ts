@@ -236,6 +236,15 @@ This is an automated confirmation. Please do not reply to this email.
             </td>
           </tr>
 
+          <!-- Personal signature from the business development manager -->
+          <tr>
+            <td style="padding: 0 24px 24px 24px;">
+              <p style="margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; color: #374151; line-height: 1.6;">Best regards,</p>
+              <p style="margin: 4px 0 0 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; font-weight: 600; color: #111827;">Colin O'Sullivan</p>
+              <p style="margin: 2px 0 0 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #6b7280;">Business Development Manager</p>
+            </td>
+          </tr>
+
           <!-- Footer with reference and automated-email disclaimer -->
           <tr>
             <td style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">

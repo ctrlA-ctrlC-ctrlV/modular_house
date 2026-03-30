@@ -9,10 +9,7 @@ import {
   type ConfiguratorAddonItem,
 } from '../templates/configurator-internal.js';
 import { buildConfiguratorExternalEmail } from '../templates/configurator-external.js';
-import {
-  buildEnquiryConfirmationEmail,
-  resolveSourcePageLabel,
-} from '../templates/enquiry-confirmation.js';
+import { buildEnquiryConfirmationEmail } from '../templates/enquiry-confirmation.js';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -596,12 +593,9 @@ export class SubmissionsService {
         // Non-configurator submissions (contact form, landing page,
         // garden room enquiry modal, etc.) use the enquiry confirmation
         // template which includes the source page origin for traceability.
-        const sourceSlug = submission.sourcePageSlug || 'contact';
         const templateResult = buildEnquiryConfirmationEmail({
           firstName: payload.firstName,
-          sourcePageLabel: resolveSourcePageLabel(sourceSlug),
           preferredProduct: payload.preferredProduct,
-          address: payload.address,
           quoteNumber: quoteNumber || '',
         });
 

@@ -279,7 +279,7 @@ export function buildConfiguratorExternalEmail(
           <!-- Follow-up message -->
           <tr>
             <td style="padding: 28px 24px 8px 24px; text-align: center;">
-              <p style="margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; color: #374151; line-height: 1.6;">Our team will contact you within <strong>24 hours</strong> to discuss your project and arrange a site visit.</p>
+              <p style="margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 15px; color: #374151; line-height: 1.6;">I will contact you within <strong>24 hours</strong> to discuss your project and arrange a site visit.</p>
             </td>
           </tr>
 

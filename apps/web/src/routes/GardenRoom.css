@@ -99,6 +99,21 @@
 
 
 /* ---------------------------------------------------------------------------
+   Compact mobile breakpoint (max-width: 649px)
+   ---------------------------------------------------------------------------
+   Hides the "Explore Our Ranges" anchor link when the hero switches to
+   its compact 30vh layout. At this size the hero only shows the big text
+   and subtitle, so the floating anchor link is no longer appropriate.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 649px) {
+  .garden-room__explore-link {
+    display: none;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
    Mobile breakpoint (max-width: 480px)
    ---------------------------------------------------------------------------
    Further reduces explore link size for narrow handset viewports. The

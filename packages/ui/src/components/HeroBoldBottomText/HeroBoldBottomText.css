@@ -404,28 +404,105 @@
 
 
 /**
+ * Compact mobile breakpoint (max-width: 649px).
+ * Reduces the hero to approximately 30% of the viewport height and
+ * shows only two text elements:
+ *   1. The big text ("Garden Room") displayed prominently at the top.
+ *   2. The heading subtitle underneath in a smaller size.
+ *
+ * Everything else (CTA button) is hidden. The visual order is flipped
+ * from the desktop layout using flexbox `order` so the big text appears
+ * first without changing the DOM structure (preserving heading hierarchy
+ * and accessibility).
+ *
+ * Typography is sized relative to the 30vh container using viewport
+ * units so both text elements scale proportionally with the section.
+ */
+@media (max-width: 649px) {
+  .hero-bold-bottom-text {
+    height: 30vh;
+    min-height: 0;
+    padding: 0 15px 12px 15px;
+    justify-content: flex-end;
+  }
+
+  /**
+   * Snaps content to the bottom of the 30vh container.
+   * justify-content: flex-end anchors the big text and subtitle
+   * against the bottom edge of the hero section.
+   */
+  .hero-bold-bottom-text__content {
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 0.6vh;
+  }
+
+  /**
+   * Moves the big-text wrapper above the info group visually.
+   * order: -1 places it first in the flex flow while the DOM order
+   * (info-group then big-text) is preserved for screen readers.
+   */
+  .hero-bold-bottom-text__big-text-wrapper {
+    order: -1;
+  }
+
+  /**
+   * Resets info-group spacing. The group now only contains the
+   * subtitle heading — the CTA is hidden below.
+   */
+  .hero-bold-bottom-text__info-group {
+    align-self: flex-start;
+    max-width: 100%;
+    margin-bottom: 0;
+  }
+
+  /**
+   * Removes extra spacing around the title wrapper so the subtitle
+   * sits tightly beneath the big text.
+   */
+  .hero-bold-bottom-text__title-wrapper {
+    margin: 0;
+  }
+
+  /**
+   * Hides the call-to-action button in compact mode.
+   * The CTA remains in the DOM for accessibility but is visually
+   * removed since the primary action is accessible elsewhere on the page.
+   */
+  .hero-bold-bottom-text__cta-wrapper {
+    display: none;
+  }
+
+  /**
+   * Big display text sized relative to the viewport height so it
+   * scales proportionally with the 30vh container.
+   * 8vh at 30vh section height produces roughly 27% text-to-section ratio.
+   */
+  .hero-bold-bottom-text__big-text {
+    font-size: clamp(1.75rem, 8vh, 3.5rem);
+    line-height: 1;
+    letter-spacing: var(--tracking-tight, -0.02em);
+  }
+
+  /**
+   * Subtitle heading sized proportionally to the section height.
+   * 2vh at 30vh section height produces a comfortable secondary size.
+   */
+  .hero-bold-bottom-text__title {
+    font-size: clamp(0.7rem, 1.5vh, 1rem);
+    line-height: 1.3;
+  }
+}
+
+
+/**
  * Narrow mobile breakpoint (max-width: 374px).
- * Further reduces hero padding and big-text size for 320px viewports.
- * The title wrapper margin is reduced proportionally to prevent the
- * info group from being pushed below the visible fold on very short
- * screens at this width. The CTA button padding decreases to maintain
- * a comfortable touch target while preserving horizontal space.
+ * Further tightens padding for 320px viewports within the compact
+ * 30vh hero. Typography inherits the vh-based sizing from the 649px
+ * breakpoint and scales naturally; only horizontal padding is adjusted.
  */
 @media (max-width: 374px) {
   .hero-bold-bottom-text {
-    padding: 100px 12px 40px 12px;
-  }
-
-  .hero-bold-bottom-text__big-text {
-    font-size: clamp(2.5rem, 12vw, 3.5rem);
-  }
-
-  .hero-bold-bottom-text__cta {
-    padding: 12px 24px;
-    font-size: 0.8125rem;
-  }
-
-  .hero-bold-bottom-text__title-wrapper {
-    margin: 70% 0 5% 0;
+    padding: 0 12px;
   }
 }

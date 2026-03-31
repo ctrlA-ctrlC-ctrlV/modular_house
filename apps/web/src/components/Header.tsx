@@ -78,7 +78,7 @@ function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
    * - 'dark' variant: Uses white logo for visibility on dark/image backgrounds
    * - 'light' variant: Uses black logo for visibility on light backgrounds
    */
-  const logoSrc = variant === 'light' ? '/logo_black.svg' : '/logo_white.svg';
+  const logoSrc = variant === 'light' ? '/logo_black.svg' : '/logo_white.svg'; //'/Modular_House_logo.svg' : '/Modular_House_logo.svg';//
   const logoSrcRetina = undefined;
 
   // ===========================================================================

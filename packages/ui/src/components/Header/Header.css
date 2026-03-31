@@ -96,7 +96,7 @@
 }
 
 .header__logo-image {
-  height: 24px; /* Adjusted to match text-logo scaling */
+  height: 48px; /* Increased for condensed font visual weight */
   width: auto;
   display: block;
   /* If the logo is black text on transp background, this filter flips it to white. 

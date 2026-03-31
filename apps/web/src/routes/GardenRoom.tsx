@@ -284,77 +284,7 @@ const GardenRoom: React.FC = () => {
       </div>
 
       {/* ===================================================================
-          Section 3 — Product Showcase (50/50 Split)
-          ===================================================================
-          A 50/50 split section introducing the standardised product line.
-          Left: 1×4 product grid with background images, dimensions, and
-          prices. Each row smooth-scrolls to the Product Range section on
-          click. Right: standard features and warranty coverage.
-          =================================================================== 
-      
-      <div id="product-showcase">
-        <ProductShowcase
-          productEyebrow="PRODUCT RANGE"
-          products={PRODUCT_SHOWCASE_PRODUCTS}
-          scrollTargetId="product-range"
-          legislationNote={
-            <p>
-              <strong>Legislation Update:</strong>{' '}
-              Rooms up to 25m² currently exempt from planning permission.
-              Pending legislation will raise this to 45m² — making our full
-              range permit-free.
-            </p>
-          }
-          featuresEyebrow="INCLUDED AS STANDARD"
-          features={PRODUCT_SHOWCASE_FEATURES}
-          warrantyEyebrow="WARRANTY COVERAGE"
-          warranties={PRODUCT_SHOWCASE_WARRANTIES}
-        />
-      </div> */}
-
-      {/* ===================================================================
-          Section 4 — Why Steel Frame
-          ===================================================================
-          A four-column feature grid presenting the key advantages of steel
-          frame construction. Each card includes an icon (from CustomIcons),
-          a title, and a descriptive paragraph. The feature data is sourced
-          from GARDEN_ROOM_FEATURES in garden-room-data.ts, which uses:
-            - measureTape  -> Precision Steel Frame
-            - tiles        -> Rapid Build
-            - bioEnergy    -> Energy Efficient
-            - keyCircle    -> Built to Last
-
-          The section sits on a beige background (#F6F5F0) to provide
-          visual separation between the Product Range and Planning
-          Permission sections.
-          =================================================================== */}
-      <div id="why-steel-frame" style={{ backgroundColor: '#F6F5F0' }}>
-        <FeatureSection
-          topHeading="DUBLIN-MADE GARDEN ROOMS"
-          mainHeading="Built in Dublin. Designed for life in Ireland."
-          introText={
-            <>
-              <p>
-                At Modular House, we manufacture our own light gauge steel
-                frames in Dublin, giving every garden room tighter quality
-                control, faster lead times, and a structure built for Irish
-                weather from day one.
-              </p>
-              <p>
-                If you are looking for a garden room in Dublin or anywhere in
-                Ireland, our system delivers the precision of factory-built
-                construction with the warmth, finish, and everyday comfort of a
-                fully insulated modern living space.
-              </p>
-            </>
-          }
-          features={GARDEN_ROOM_FEATURES}
-        />
-      </div>
-
-
-      {/* ===================================================================
-          Section 5 — Go Bespoke Banner
+          Section 3 — Go Bespoke Banner
           ===================================================================
           Full-width dark CTA banner positioned after the product range grid
           and before the construction comparison section. Targets visitors
@@ -392,6 +322,74 @@ const GardenRoom: React.FC = () => {
         />
       </div>
 
+      {/* ===================================================================
+          Section 4 — Product Showcase (50/50 Split)
+          ===================================================================
+          A 50/50 split section introducing the standardised product line.
+          Left: 1×4 product grid with background images, dimensions, and
+          prices. Each row smooth-scrolls to the Product Range section on
+          click. Right: standard features and warranty coverage.
+          =================================================================== 
+      
+      <div id="product-showcase">
+        <ProductShowcase
+          productEyebrow="PRODUCT RANGE"
+          products={PRODUCT_SHOWCASE_PRODUCTS}
+          scrollTargetId="product-range"
+          legislationNote={
+            <p>
+              <strong>Legislation Update:</strong>{' '}
+              Rooms up to 25m² currently exempt from planning permission.
+              Pending legislation will raise this to 45m² — making our full
+              range permit-free.
+            </p>
+          }
+          featuresEyebrow="INCLUDED AS STANDARD"
+          features={PRODUCT_SHOWCASE_FEATURES}
+          warrantyEyebrow="WARRANTY COVERAGE"
+          warranties={PRODUCT_SHOWCASE_WARRANTIES}
+        />
+      </div> */}
+
+      {/* ===================================================================
+          Section 5 — Why Steel Frame
+          ===================================================================
+          A four-column feature grid presenting the key advantages of steel
+          frame construction. Each card includes an icon (from CustomIcons),
+          a title, and a descriptive paragraph. The feature data is sourced
+          from GARDEN_ROOM_FEATURES in garden-room-data.ts, which uses:
+            - measureTape  -> Precision Steel Frame
+            - tiles        -> Rapid Build
+            - bioEnergy    -> Energy Efficient
+            - keyCircle    -> Built to Last
+
+          The section sits on a beige background (#F6F5F0) to provide
+          visual separation between the Product Range and Planning
+          Permission sections.
+          =================================================================== */}
+      <div id="why-steel-frame" style={{ backgroundColor: '#F6F5F0' }}>
+        <FeatureSection
+          topHeading="DUBLIN-MADE GARDEN ROOMS"
+          mainHeading="Built in Dublin. Designed for life in Ireland."
+          introText={
+            <>
+              <p>
+                At Modular House, we manufacture our own light gauge steel
+                frames in Dublin, giving every garden room tighter quality
+                control, faster lead times, and a structure built for Irish
+                weather from day one.
+              </p>
+              <p>
+                If you are looking for a garden room in Dublin or anywhere in
+                Ireland, our system delivers the precision of factory-built
+                construction with the warmth, finish, and everyday comfort of a
+                fully insulated modern living space.
+              </p>
+            </>
+          }
+          features={GARDEN_ROOM_FEATURES}
+        />
+      </div>      
 
       {/* ===================================================================
           Section 6 — Construction Comparison

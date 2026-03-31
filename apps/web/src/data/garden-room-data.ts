@@ -151,8 +151,8 @@ interface GardenRoomProduct {
 
   /** Whether planning permission is required under current Irish legislation. */
   readonly planningPermission: boolean;
-  /** Whether the product is currently manufactured and available for order. */
-  readonly inStock: boolean;
+  /** Whether the product is currently manufactured and available for order. Undefined for coming-soon products so the stock pill does not render. */
+  readonly inStock?: boolean;
   /** Whether the product CTA links to a live configurator (true) or interest form (false). */
   readonly available: boolean;
   /** Optional badge label rendered on the ProductCard (e.g., "Most Popular", "Coming Soon"). */
@@ -243,7 +243,7 @@ function buildGardenRoomProduct(slug: string, fields: GardenRoomPageFields): Gar
     },
     basePrice:         formatEurCents(cp.basePriceCentsInclVat),
     planningPermission: cp.planningPermission,
-    inStock:           cp.available,
+    ...(cp.available ? { inStock: true } : {}),
     available:         cp.available,
     leadTime:          cp.leadTime,
     displayOrder:      cp.displayOrder,
@@ -327,9 +327,9 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
 
     name: 'The Living',
     tagline: 'Space to grow into',
-    badge: 'Coming Soon',
+    //badge: 'Coming Soon',
 
-    ctaText: 'Register Interest',
+    ctaText: 'Customise',
     ctaLink: '/garden-room/configure/living-35',
 
     cardUseCases: ['Guest suite', 'Teen retreat', 'Rental unit'],
@@ -354,9 +354,9 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
 
     name: 'The Studio',
     tagline: 'A building, not just a room',
-    badge: 'Coming Soon',
+    //badge: 'Coming Soon',
 
-    ctaText: 'Register Interest',
+    ctaText: 'Customise',
     ctaLink: '/garden-room/configure/grand-45',
 
     cardUseCases: ['Self-contained apartment', 'Multi-room workspace'],

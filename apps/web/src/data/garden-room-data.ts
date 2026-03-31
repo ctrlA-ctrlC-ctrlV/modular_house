@@ -272,7 +272,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
   buildGardenRoomProduct('compact-15', {
     dimensionsDisplay: '5.0m \u00D7 3.0m',
 
-    name: 'Compact Studio',
+    name: 'The Compact',
     tagline: 'Your private creative sanctuary',
 
     ctaText: 'Customise',
@@ -284,12 +284,12 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     description:
       'Compact yet generous, the Compact Studio is precision-engineered for focused work and creative pursuits. Floor-to-ceiling glazing floods the space with natural light, while our thermally broken steel frame ensures year-round comfort. Perfect for those who need a dedicated space without the footprint.',
     technicalSpecs: {
-      height: '2.7m internal',
-      frame: 'Galvanised steel SHS',
-      insulation: '120mm PIR (U-value 0.15)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump',
-      electrics: 'Full consumer unit, Cat6 ready',
+      height: '2.45m internal',
+      frame: 'LGS frame',
+      insulation: '90mm rock wool + 100mm EPS',
+      glazing: 'Double-glazed UPVC',
+      heating: 'Electric heater',
+      electrics: 'Full consumer unit ready',
     },
   }),
 
@@ -298,7 +298,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     // Studio offers an alternate layout option not captured in configurator dimensions.
     dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
 
-    name: 'Garden Suite',
+    name: 'The Studio',
     tagline: 'Where work meets living',
     badge: 'Most Popular',
 
@@ -309,15 +309,15 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     quickViewUseCases: ['Office + Meeting Room', 'Guest Suite', 'Therapy Room', 'Design Studio'],
 
     description:
-      'The Garden Suite offers the flexibility of a dual-zone layout \u2014 partition your space for a private office and client-facing meeting area, or configure an open-plan studio that breathes. At 25m\u00B2, it sits at the maximum size for exempted development, giving you the most space without the paperwork.',
+      'The Studio offers the flexibility of a dual-zone layout \u2014 partition your space for a private office and client-facing meeting area, or configure an open-plan studio that breathes. At 25m\u00B2, it sits at the maximum size for exempted development, giving you the most space without the paperwork.',
     technicalSpecs: {
-      height: '2.7m internal',
-      frame: 'Galvanised steel SHS',
-      insulation: '120mm PIR (U-value 0.15)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump',
-      electrics: 'Full consumer unit, Cat6 ready',
-      plumbing: 'Optional kitchenette prep',
+      height: '2.45m internal',
+      frame: 'LGS frame',
+      insulation: '90mm rock wool + 100mm EPS',
+      glazing: 'Double-glazed UPVC',
+      heating: 'Electric heater',
+      electrics: 'Full consumer unit ready',
+      plumbing: 'Included when select options with bathroom & kitchen',
     },
   }),
 
@@ -325,7 +325,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
   buildGardenRoomProduct('living-35', {
     dimensionsDisplay: '7.0m \u00D7 5.0m',
 
-    name: 'Garden Living',
+    name: 'The Living',
     tagline: 'Space to grow into',
     badge: 'Coming Soon',
 
@@ -338,21 +338,21 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     description:
       'Garden Living is built for those who need room to move. Whether it\u2019s a two-person workspace with a breakout area, a home gym with an office nook, or a family media room \u2014 35m\u00B2 gives you genuine flexibility. Our portal steel frame means zero internal columns, so the space is entirely yours to define.',
     technicalSpecs: {
-      height: '2.7m internal',
-      frame: 'Galvanised steel portal frame',
-      insulation: '150mm PIR (U-value 0.12)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump',
-      electrics: 'Full consumer unit, Cat6 ready',
-      plumbing: 'Optional kitchenette & WC',
+      height: '2.45m internal',
+      frame: 'LGS frame',
+      insulation: '90mm rock wool + 100mm EPS',
+      glazing: 'Double-glazed UPVC',
+      heating: 'Electric heater',
+      electrics: 'Full consumer unit ready',
+      plumbing: 'Furnished kitchen and bathroom, plumbing connection included',
     },
   }),
 
   /* ---- 45 m2 -- Grand --------------------------------------------------- */
   buildGardenRoomProduct('grand-45', {
-    dimensionsDisplay: '9.0m \u00D7 5.0m',
+    dimensionsDisplay: '9.0m \u00D7 5.0m or ',
 
-    name: 'Grand Studio',
+    name: 'The Studio',
     tagline: 'A building, not just a room',
     badge: 'Coming Soon',
 
@@ -365,13 +365,13 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     description:
       'The Grand Studio blurs the line between garden room and architecture. At 45m\u00B2, this is a genuine self-contained building \u2014 large enough for an open-plan living and working space, a commercial therapy or consulting suite, or an independent annex for family. Designed to the same exacting standards as our smaller models, but with the presence and capability of a permanent structure.',
     technicalSpecs: {
-      height: '2.8m internal',
-      frame: 'Galvanised steel portal frame',
-      insulation: '150mm PIR (U-value 0.12)',
-      glazing: 'Triple-glazed aluminium',
-      heating: 'Air-to-air heat pump (dual zone)',
-      electrics: 'Full consumer unit, Cat6, EV-ready',
-      plumbing: 'Optional full kitchen & WC',
+      height: '2.45m internal',
+      frame: 'LGS frame',
+      insulation: '90mm rock wool + 100mm EPS',
+      glazing: 'Double-glazed UPVC',
+      heating: 'Electric heater',
+      electrics: 'Full consumer unit ready',
+      plumbing: 'Furnished kitchen and bathroom, plumbing connection included',
     },
   }),
 ];
@@ -416,27 +416,27 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
   {
     icon: '\u25C6',
     title: 'Steel Frame Construction',
-    desc: 'Galvanised structural steel for unmatched durability and longevity.',
+    desc: 'Light Gauge steel for unmatched durability and longevity.',
   },
   {
     icon: '\u25C6',
     title: 'Full Insulation Package',
-    desc: 'High-performance PIR insulation exceeding Part L building regulations.',
+    desc: 'High-performance insulation exceeding Part L building regulations.',
   },
   {
     icon: '\u25C6',
-    title: 'Electrical Fit-Out',
-    desc: 'Certified RECI electrical installation with consumer unit included.',
-  },
-  {
-    icon: '\u25C6',
-    title: 'Aluminium Windows & Doors',
-    desc: 'Thermally broken, double-glazed aluminium frames in anthracite grey.',
+    title: 'UPVC Windows & Doors',
+    desc: 'Thermally broken, double-glazed UPVC frames in anthracite grey.',
   },
   {
     icon: '\u25C6',
     title: 'Composite Cladding',
-    desc: 'Low maintenance external cladding with a 25-year colour guarantee.',
+    desc: 'Low maintenance external cladding for a modern contemporary desgin.',
+  },
+  {
+    icon: '\u25C6',
+    title: 'Electric Package',
+    desc: 'Full consumer unit ready electric package.',
   },
 ];
 
@@ -451,9 +451,9 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
 
 export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
   { years: '25', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
-  { years: '15', label: 'Cladding Guarantee', sub: 'Colour & weather resistance' },
-  { years: '10', label: 'Roof Membrane', sub: 'Watertight assurance' },
-  { years: '10', label: 'Windows & Doors', sub: 'Thermal & mechanical' },
+  //{ years: '15', label: 'Cladding Guarantee', sub: 'Colour & weather resistance' },
+  //{ years: '10', label: 'Roof Membrane', sub: 'Watertight assurance' },
+  //{ years: '10', label: 'Windows & Doors', sub: 'Thermal & mechanical' },
 ];
 
 

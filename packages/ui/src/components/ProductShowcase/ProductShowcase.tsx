@@ -250,7 +250,7 @@ export function ProductShowcase({
             ))}
           </div>
 
-          {/* Warranties */}
+          {/* Warranties 
           <div className="product-showcase__warranty-section">
             <h4 className="product-showcase__eyebrow">
               {warrantyEyebrow}
@@ -276,7 +276,7 @@ export function ProductShowcase({
                 </div>
               ))}
             </div>
-          </div>
+          </div>*/}
         </div>
       </div>
     </section>

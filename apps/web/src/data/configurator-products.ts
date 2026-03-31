@@ -579,7 +579,7 @@ const LIVING_35: ConfiguratorProduct = {
     alt:  'The Living 35m\u00B2 steel frame garden room',
   },
 
-  available: false,
+  available: true,
   planningPermission: true,
   leadTime: '10\u201312 weeks',
   displayOrder: 3,
@@ -747,7 +747,7 @@ const GRAND_45: ConfiguratorProduct = {
     alt:  'The Grand 45m\u00B2 steel frame garden room',
   },
 
-  available: false,
+  available: true,
   planningPermission: true,
   leadTime: '12\u201316 weeks',
   displayOrder: 4,

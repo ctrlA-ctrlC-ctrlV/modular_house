@@ -108,8 +108,8 @@ export function ProductShowcase({
   legislationNote,
   featuresEyebrow = 'Included as Standard',
   features,
-  warrantyEyebrow = 'Warranty Coverage',
-  warranties,
+  //warrantyEyebrow = 'Warranty Coverage',
+  //warranties,
   onProductClick,
 }: ProductShowcaseProps): React.ReactElement {
   const scrollToTarget = (): void => {

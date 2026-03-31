@@ -367,7 +367,7 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
             <div className="product-range-card__meta-row">
               {price && (
                 <div className="product-range-card__price-block">
-                  <span className="product-range-card__price-from">Starting from</span>
+                  <span className="product-range-card__price-from">Turnkey price from</span>
                   <span className="product-range-card__price">{price}</span>
                 </div>
               )}

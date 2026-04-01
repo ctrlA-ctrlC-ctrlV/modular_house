@@ -292,6 +292,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       roof: 'EPDM long life roof',
       floor: 'Laminated flooring',
       electrics: 'Full consumer unit ready',
+      'ground work': 'Foundation included',
     },
   }),
 
@@ -322,6 +323,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       roof: 'EPDM long life roof',
       floor: 'Laminated flooring',
       plumbing: 'Included when select options with bathroom & kitchen',
+      'ground work': 'Foundation included',
     },
   }),
 
@@ -351,6 +353,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       roof: 'EPDM long life roof',
       floor: 'Laminated flooring',
       plumbing: 'Furnished kitchen and bathroom, plumbing connection included',
+      'ground work': 'Foundation included',
     },
   }),
 
@@ -380,7 +383,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
       roof: 'EPDM long life roof',
       floor: 'Laminated flooring',
       plumbing: 'Furnished kitchen and bathroom, plumbing connection included',
-      //'ground work': ''
+      'ground work': 'Foundation included',
     },
   }),
 ];

@@ -282,7 +282,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     quickViewUseCases: ['Home Office', 'Art Studio', 'Yoga & Wellness Room', 'Music Practice'],
 
     description:
-      'Compact yet generous, the Compact Studio is precision-engineered for focused work and creative pursuits. Floor-to-ceiling glazing floods the space with natural light, while our thermally broken steel frame ensures year-round comfort. Perfect for those who need a dedicated space without the footprint.',
+      'At 15m\u00B2, The Compact is the fastest way to a dedicated workspace in your garden \u2014 built in just 6\u20138 weeks with no planning permission required. Our Dublin-manufactured steel frame and high-performance insulation keep the space warm and quiet year-round, so whether you use it as a home office, art studio, or personal retreat, it feels like a proper room from day one. Designed for focus, engineered for comfort, and priced to make the spare-bedroom compromise a thing of the past.',
     technicalSpecs: {
       height: '2.45m internal',
       frame: 'LGS frame',
@@ -312,7 +312,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     quickViewUseCases: ['Office + Meeting Room', 'Guest Suite', 'Therapy Room', 'Design Studio'],
 
     description:
-      'The Studio offers the flexibility of a dual-zone layout \u2014 partition your space for a private office and client-facing meeting area, or configure an open-plan studio that breathes. At 25m\u00B2, it sits at the maximum size for exempted development, giving you the most space without the paperwork.',
+      'Our most popular garden room for good reason \u2014 at 25m\u00B2, The Studio gives you the maximum floor area allowed without planning permission in Ireland. Choose from two footprint options and three layout configurations: an open-plan studio, a self-contained en suite, or a partitioned bedroom with kitchen and bathroom. Whether it\u2019s a home office with a meeting area, a music studio, a home gym, or a guest room with its own front door, The Studio adapts to how you actually want to use the space. Same Dublin-built steel frame, same turnkey finish \u2014 just more room to work with.',
     technicalSpecs: {
       height: '2.45m internal',
       frame: 'LGS frame',
@@ -342,7 +342,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     quickViewUseCases: ['Multi-Desk Workspace', 'Home Gym + Office', 'Family Room', 'Content Studio'],
 
     description:
-      'Garden Living is built for those who need room to move. Whether it\u2019s a two-person workspace with a breakout area, a home gym with an office nook, or a family media room \u2014 35m\u00B2 gives you genuine flexibility. Our portal steel frame means zero internal columns, so the space is entirely yours to define.',
+      'At 35m\u00B2, The Living is a fully equipped garden room with kitchen and bathroom included as standard \u2014 large enough for a self-contained guest suite, a private retreat for older teenagers, or a rental-ready unit that adds income to your property. The column-free steel frame interior is entirely yours to define: zone it for two desks and a breakout area, set up a home gym alongside an office nook, or create a family media room that keeps the main house peaceful.',
     technicalSpecs: {
       height: '2.45m internal',
       frame: 'LGS frame',
@@ -359,9 +359,9 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
 
   /* ---- 45 m2 -- Grand --------------------------------------------------- */
   buildGardenRoomProduct('grand-45', {
-    dimensionsDisplay: '9.0m \u00D7 5.0m or ',
+    dimensionsDisplay: '9.0m \u00D7 5.0m or 7.5m \u00D7 6.0m',
 
-    name: 'The Studio',
+    name: 'The Grand',
     tagline: 'A building, not just a room',
     //badge: 'Coming Soon',
 
@@ -372,7 +372,7 @@ const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
     quickViewUseCases: ['Full Living Annex', 'Large Studio / Workshop', 'Commercial Suite', 'Granny Flat'],
 
     description:
-      'The Grand Studio blurs the line between garden room and architecture. At 45m\u00B2, this is a genuine self-contained building \u2014 large enough for an open-plan living and working space, a commercial therapy or consulting suite, or an independent annex for family. Designed to the same exacting standards as our smaller models, but with the presence and capability of a permanent structure.',
+      'At 45m\u00B2, The Grand is less a garden room and more a building in its own right \u2014 a self-contained living space with full kitchen, bathroom, and open-plan living area, all finished to the same turnkey standard as a new-build home. Use it as a granny flat, an independent annex for family, a multi-room workspace, or a short-let rental that pays for itself over time. Two footprint options let you work with your site, and every detail from the steel frame to the consumer unit is designed for permanence, not compromise.',
     technicalSpecs: {
       height: '2.45m internal',
       frame: 'LGS frame',

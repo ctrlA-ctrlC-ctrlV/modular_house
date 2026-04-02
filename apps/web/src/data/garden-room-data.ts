@@ -1,32 +1,22 @@
 /**
- * Garden Room Page -- Shared Data Constants
+ * Garden Room Page -- Projection Layer and Non-Product Data Constants
  * =============================================================================
  *
  * PURPOSE:
- * Single source of truth for all content displayed on the /garden-room page.
- * By centralising data here, page-level component files remain purely
- * presentational, and updating copy, images, or product availability
- * requires only data changes -- not component modifications.
+ * Provides component-specific data shapes derived from the unified product
+ * records in configurator-products.ts, plus standalone marketing content
+ * (features, testimonials, FAQs, gallery, comparison) consumed by the
+ * /garden-room marketing page.
  *
  * ARCHITECTURE:
- * Product data follows a normalised relational pattern inspired by
- * PostgreSQL schema design. A single canonical record per garden room
- * size (CanonicalGardenRoomProduct) holds every per-product fact exactly
- * once. Component-specific export arrays are derived from this canonical
- * set via projection functions (.map()), eliminating redundant declarations
- * and guaranteeing cross-section consistency.
+ * The unified data model (types/garden-room.ts) defines a single
+ * HydratedProduct entity per garden room size. This file projects subsets
+ * of those fields into the shapes required by specific UI components via
+ * .map() transformations. Component files remain purely presentational;
+ * updating copy, images, or product availability requires only changes to
+ * the centralised product data in configurator-products.ts.
  *
- * Non-product data (features, testimonials, FAQs, gallery, comparison)
- * does not repeat across components and is declared directly as typed
- * constants without canonical abstraction.
- *
- * CANONICAL DATA MODEL:
- *   CanonicalGardenRoomProduct       -- Root product entity (mirrors `products` table)
- *     .image: CanonicalImageSet      -- Multi-format image paths (mirrors `product_images`)
- *     .technicalSpecs: Record        -- Key-value specs (mirrors `product_specs` table)
- *     .cardUseCases / quickViewUseCases -- Context-specific use cases (mirrors `product_use_cases`)
- *
- * DERIVED EXPORTS (projected from CANONICAL_PRODUCTS):
+ * DERIVED EXPORTS (projected from CONFIGURATOR_PRODUCTS):
  *   PRODUCT_SHOWCASE_PRODUCTS        -- ProductShowcase (50/50 hero split)
  *   GARDEN_ROOM_PRODUCTS             -- ProductRangeGrid (detail cards)
  *   GARDEN_ROOM_QUICK_VIEW           -- QuickViewModal (expanded overlay)
@@ -42,21 +32,89 @@
  *   INFINITE_GALLERY_IMAGES          -- Infinite horizontal gallery
  *
  * EXTENSION:
- * To add a new product size, append one entry to CANONICAL_PRODUCTS.
- * All three derived exports update automatically (Open-Closed Principle).
+ * To add a new product size, append one HydratedProduct entry to
+ * CONFIGURATOR_PRODUCTS in configurator-products.ts. All derived exports
+ * in this file update automatically (Open-Closed Principle).
  *
  * =============================================================================
  */
 
 import React from 'react';
-import type { ProductCard, AccordionFAQItem, GalleryItem, ProductShowcaseProduct, ProductShowcaseFeature, ProductShowcaseWarranty, QuickViewProduct, InfiniteGalleryImage, ComparisonCategory } from '@modular-house/ui';
+import type {
+  ProductCard,
+  AccordionFAQItem,
+  GalleryItem,
+  ProductShowcaseProduct,
+  ProductShowcaseFeature,
+  ProductShowcaseWarranty,
+  QuickViewProduct,
+  InfiniteGalleryImage,
+  ComparisonCategory,
+} from '@modular-house/ui';
 import { CustomIcons } from '@modular-house/ui';
-import { CONFIGURATOR_PRODUCTS_BY_SLUG } from './configurator-products';
+import { CONFIGURATOR_PRODUCTS } from './configurator-products';
+import type { HydratedProduct } from '../types/garden-room';
+
+
+/* =============================================================================
+   HELPER: PRICE FORMATTING
+   -----------------------------------------------------------------------------
+   Formats a price stored in euro cents (inclusive of VAT) into the
+   locale-formatted display string used across all garden room page sections.
+   Uses the Irish English locale for consistent thousand-separator formatting.
+   ============================================================================= */
 
 /**
- * Re-export the FeatureItem interface inline since it is used for
- * the features array below. The FeatureSection component accepts
- * this shape via its `features` prop.
+ * Converts an integer euro-cent value to a display string with the euro sign.
+ * Example: 2_950_000 -> "EUR29,500"
+ *
+ * @param cents - Price in euro cents inclusive of VAT.
+ * @returns Locale-formatted euro string with no decimal places.
+ */
+function formatEurCents(cents: number): string {
+  return `\u20AC${new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 }).format(cents / 100)}`;
+}
+
+
+/**
+ * Extracts the hero image from a HydratedProduct's images array.
+ * Falls back to the first available image if no hero role is assigned.
+ * Returns a default placeholder object if the images array is empty.
+ *
+ * @param product - The hydrated product record to extract the hero image from.
+ * @returns The hero ProductImage or the first available image.
+ */
+function getHeroImage(product: HydratedProduct) {
+  const hero = product.images.find((img) => img.role === 'hero');
+  return hero ?? product.images[0] ?? { src: '', webP: '', avif: '', alt: product.name };
+}
+
+
+/**
+ * Filters use cases by display context from the unified useCases array.
+ *
+ * @param product - The hydrated product record.
+ * @param context - The display context to filter by ('card' or 'quick-view').
+ * @returns An array of use case text strings for the specified context.
+ */
+function getUseCasesByContext(product: HydratedProduct, context: 'card' | 'quick-view'): string[] {
+  return product.useCases
+    .filter((uc) => uc.context === context)
+    .map((uc) => uc.text);
+}
+
+
+/* =============================================================================
+   RE-EXPORT: FEATURE ITEM INTERFACE
+   -----------------------------------------------------------------------------
+   Re-exported for consumers that need the shape of the FeatureSection
+   component's `features` prop items.
+   ============================================================================= */
+
+/**
+ * Feature item shape matching the FeatureSection component contract.
+ * Each item represents a key selling point with an icon, title, and
+ * descriptive paragraph.
  */
 interface FeatureItem {
   icon: React.ReactNode;
@@ -66,6 +124,7 @@ interface FeatureItem {
 
 /**
  * Testimonial item shape matching the TestimonialGrid component contract.
+ * Each item contains the quote text, author details, and a star rating.
  */
 interface TestimonialItem {
   text: string;
@@ -77,342 +136,32 @@ interface TestimonialItem {
 
 
 /* =============================================================================
-   CANONICAL PRODUCT RECORD -- SINGLE SOURCE OF TRUTH
-   =============================================================================
-
-   Each garden room size (15, 25, 35, 45 m2) is represented by exactly one
-   CanonicalGardenRoomProduct record. All per-product facts -- identity,
-   naming, pricing, images, availability, use cases, technical specs -- are
-   declared once here. The component-specific export arrays further below
-   are derived via .map() projections, eliminating redundant declarations
-   and ensuring cross-section consistency.
-
-   This structure mirrors a normalised PostgreSQL schema:
-
-     products table         -> CanonicalGardenRoomProduct (root entity)
-     product_images table   -> CanonicalImageSet (1:1 image set per product)
-     product_specs table    -> technicalSpecs (1:many key-value pairs)
-     product_use_cases      -> cardUseCases / quickViewUseCases (1:many per context)
-
-   To add a new product size, append one entry to CANONICAL_PRODUCTS.
-   All derived exports update automatically (Open-Closed Principle).
-
-   ============================================================================= */
-
-
-/**
- * Multi-format image paths for a single product photograph.
- * Mirrors a `product_images` row with format-specific columns.
- * All paths are relative to /public.
- */
-interface ImageSet {
-  /** Primary image path (PNG or JPEG fallback). */
-  readonly png: string;
-  /** WebP optimised variant for modern browsers. */
-  readonly webP: string;
-  /** AVIF optimised variant for maximum compression. */
-  readonly avif: string;
-}
-
-
-/**
- * Complete canonical record for one garden room product.
- * Contains every per-product fact used across the /garden-room page.
- * Component-specific exports project subsets of these fields into the
- * shapes required by their respective UI components.
- *
- * Mirrors the configurator_products table plus related lookup tables
- * for images, specs, and use cases.
- */
-interface GardenRoomProduct {
-  /** Primary key / URL slug (e.g., "compact-15"). Unique across all products. */
-  readonly id: string;
-  /** Floor area in square metres (e.g., 15). Derives display strings like "15m2". */
-  readonly areaM2: number;
-  /** Formatted external dimensions (e.g., "5.0m x 3.0m"). Also injected as specs.footprint. */
-  readonly dimensionsDisplay: string;
-
-  /** Short label for the ProductShowcase strip (e.g., "The Compact"). */
-  readonly showcaseLabel: string;
-  /** Full marketing name for product cards and quick view (e.g., "Compact Studio"). */
-  readonly name: string;
-  /** Marketing tagline displayed below the product name. */
-  readonly tagline: string;
-
-  /** Multi-format image set shared across all component views. */
-  readonly image: ImageSet;
-
-  /**
-   * Base price string inclusive of VAT, displayed consistently across all
-   * page sections (ProductShowcase, ProductRangeGrid, QuickViewModal).
-   * This is the single canonical price for the product.
-   */
-  readonly basePrice: string;
-
-  /** Whether planning permission is required under current Irish legislation. */
-  readonly planningPermission: boolean;
-  /** Whether the product is currently manufactured and available for order. Undefined for coming-soon products so the stock pill does not render. */
-  readonly inStock?: boolean;
-  /** Whether the product CTA links to a live configurator (true) or interest form (false). */
-  readonly available: boolean;
-  /** Optional badge label rendered on the ProductCard (e.g., "Most Popular", "Coming Soon"). */
-  readonly badge?: string;
-
-  /** Call-to-action button text (e.g., "Get a Quote", "Register Interest"). */
-  readonly ctaText: string;
-  /** Call-to-action link target (configurator route, e.g., "/garden-room/configure/compact-15"). */
-  readonly ctaLink: string;
-
-  /** Use cases displayed as bullet points on the ProductRangeGrid card. */
-  readonly cardUseCases: ReadonlyArray<string>;
-  /** Use cases displayed in the QuickViewModal (may include additional detail vs card). */
-  readonly quickViewUseCases: ReadonlyArray<string>;
-
-  /** Long-form product description for the QuickViewModal. */
-  readonly description: string;
-  /**
-   * Technical specifications for the QuickViewModal, excluding the footprint
-   * dimension (which is derived from dimensionsDisplay at projection time).
-   * Mirrors the product_specs join table in a normalised database schema.
-   */
-  readonly technicalSpecs: Readonly<Record<string, string>>;
-  /** Estimated lead time string (e.g., "6-8 weeks"). */
-  readonly leadTime: string;
-
-  /** Sort position for rendering order (ascending). */
-  readonly displayOrder: number;
-}
-
-
-/**
- * Garden-room-page-specific fields that are NOT shared with the configurator
- * data model. These supplement the shared identity, pricing, availability,
- * and image data derived from CONFIGURATOR_PRODUCTS_BY_SLUG.
- *
- * Excluded (derived from ConfiguratorProduct):
- *   id, areaM2, showcaseLabel, image, basePrice, planningPermission,
- *   inStock, available, leadTime, displayOrder
- */
-type GardenRoomPageFields = Omit<
-  GardenRoomProduct,
-  | 'id'
-  | 'areaM2'
-  | 'showcaseLabel'
-  | 'image'
-  | 'basePrice'
-  | 'planningPermission'
-  | 'inStock'
-  | 'available'
-  | 'leadTime'
-  | 'displayOrder'
->;
-
-/**
- * Formats a price stored in euro cents (inclusive of VAT) into the
- * locale-formatted display string used across all garden room page sections.
- * Example: 2_950_000 → '€29,500'
- */
-function formatEurCents(cents: number): string {
-  return `\u20AC${new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 }).format(cents / 100)}`;
-}
-
-/**
- * Builds a complete GardenRoomProduct by merging shared fields from the
- * corresponding ConfiguratorProduct (images, price, availability, lead time,
- * sort order) with garden-room-page-specific fields (marketing name, tagline,
- * use cases, description, technical specs).
- *
- * This is the single join point between the two data models. Changes to
- * shared fields in configurator-products.ts (prices, images, availability)
- * automatically propagate to the garden room page without editing this file.
- *
- * @param slug   - The configurator product slug to look up (e.g., "compact-15").
- * @param fields - Garden-room-page-specific fields not present in the configurator model.
- * @returns A complete GardenRoomProduct ready for projection into component shapes.
- */
-function buildGardenRoomProduct(slug: string, fields: GardenRoomPageFields): GardenRoomProduct {
-  const cp = CONFIGURATOR_PRODUCTS_BY_SLUG[slug];
-  return {
-    id:               cp.slug,
-    areaM2:           cp.dimensions.areaM2,
-    showcaseLabel:    cp.name,
-    image: {
-      png:  cp.image.src,
-      webP: cp.image.webP ?? '',
-      avif: cp.image.avif ?? '',
-    },
-    basePrice:         formatEurCents(cp.basePriceCentsInclVat),
-    planningPermission: cp.planningPermission,
-    ...(cp.available ? { inStock: true } : {}),
-    available:         cp.available,
-    leadTime:          cp.leadTime,
-    displayOrder:      cp.displayOrder,
-    ...fields,
-  };
-}
-
-
-/**
- * Canonical product data for all four garden room sizes.
- * Each entry stores every per-product fact exactly once. The three
- * component-specific export arrays (PRODUCT_SHOWCASE_PRODUCTS,
- * GARDEN_ROOM_PRODUCTS, GARDEN_ROOM_QUICK_VIEW) are projected from
- * this single array, guaranteeing data consistency across all page sections.
- *
- * Shared fields (images, price, availability, lead time, sort order) are
- * derived from CONFIGURATOR_PRODUCTS_BY_SLUG via buildGardenRoomProduct.
- * Only garden-room-page-specific content (marketing name, taglines, use
- * cases, descriptions, technical specs) is declared inline.
- *
- * Ordering matches the desired display order (ascending by floor area).
- */
-const CANONICAL_PRODUCTS: ReadonlyArray<GardenRoomProduct> = [
-
-  /* ---- 15 m2 -- Compact ------------------------------------------------- */
-  buildGardenRoomProduct('compact-15', {
-    dimensionsDisplay: '5.0m \u00D7 3.0m',
-
-    name: 'The Compact',
-    tagline: 'Your private creative sanctuary',
-
-    ctaText: 'Customise',
-    ctaLink: '/garden-room/configure/compact-15',
-
-    cardUseCases: ['Home office', 'Art studio', 'Yoga room'],
-    quickViewUseCases: ['Home Office', 'Art Studio', 'Yoga & Wellness Room', 'Music Practice'],
-
-    description:
-      'At 15m\u00B2, The Compact is the fastest way to a dedicated workspace in your garden \u2014 built in just 6\u20138 weeks with no planning permission required. Our Dublin-manufactured steel frame and high-performance insulation keep the space warm and quiet year-round, so whether you use it as a home office, art studio, or personal retreat, it feels like a proper room from day one. Designed for focus, engineered for comfort, and priced to make the spare-bedroom compromise a thing of the past.',
-    technicalSpecs: {
-      height: '2.45m internal',
-      frame: 'LGS frame',
-      insulation: '90mm rock wool + 100mm EPS',
-      glazing: 'Double-glazed UPVC',
-      heating: 'Electric heater',
-      roof: 'EPDM long life roof',
-      floor: 'Laminated flooring',
-      electrics: 'Full consumer unit ready',
-      'ground work': 'Foundation included',
-    },
-  }),
-
-  /* ---- 25 m2 -- Studio -------------------------------------------------- */
-  buildGardenRoomProduct('studio-25', {
-    // Studio offers an alternate layout option not captured in configurator dimensions.
-    dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
-
-    name: 'The Studio',
-    tagline: 'Where work meets living',
-    badge: 'Most Popular',
-
-    ctaText: 'Customise',
-    ctaLink: '/garden-room/configure/studio-25',
-
-    cardUseCases: ['Home office + meeting space', 'Home gym', 'Music studio', '1 bed room en suite'],
-    quickViewUseCases: ['Office + Meeting Room', 'Guest Suite', 'Therapy Room', 'Design Studio'],
-
-    description:
-      'Our most popular garden room for good reason \u2014 at 25m\u00B2, The Studio gives you the maximum floor area allowed without planning permission in Ireland. Choose from two footprint options and three layout configurations: an open-plan studio, a self-contained en suite, or a partitioned bedroom with kitchen and bathroom. Whether it\u2019s a home office with a meeting area, a music studio, a home gym, or a guest room with its own front door, The Studio adapts to how you actually want to use the space. Same Dublin-built steel frame, same turnkey finish \u2014 just more room to work with.',
-    technicalSpecs: {
-      height: '2.45m internal',
-      frame: 'LGS frame',
-      insulation: '90mm rock wool + 100mm EPS',
-      glazing: 'Double-glazed UPVC',
-      heating: 'Electric heater',
-      electrics: 'Full consumer unit ready',
-      roof: 'EPDM long life roof',
-      floor: 'Laminated flooring',
-      plumbing: 'Included when select options with bathroom & kitchen',
-      'ground work': 'Foundation included',
-    },
-  }),
-
-  /* ---- 35 m2 -- Living -------------------------------------------------- */
-  buildGardenRoomProduct('living-35', {
-    dimensionsDisplay: '7.0m \u00D7 5.0m',
-
-    name: 'The Living',
-    tagline: 'Space to grow into',
-    //badge: 'Coming Soon',
-
-    ctaText: 'Customise',
-    ctaLink: '/garden-room/configure/living-35',
-
-    cardUseCases: ['Guest suite', 'Teen retreat', 'Rental unit'],
-    quickViewUseCases: ['Multi-Desk Workspace', 'Home Gym + Office', 'Family Room', 'Content Studio'],
-
-    description:
-      'At 35m\u00B2, The Living is a fully equipped garden room with kitchen and bathroom included as standard \u2014 large enough for a self-contained guest suite, a private retreat for older teenagers, or a rental-ready unit that adds income to your property. The column-free steel frame interior is entirely yours to define: zone it for two desks and a breakout area, set up a home gym alongside an office nook, or create a family media room that keeps the main house peaceful.',
-    technicalSpecs: {
-      height: '2.45m internal',
-      frame: 'LGS frame',
-      insulation: '90mm rock wool + 100mm EPS',
-      glazing: 'Double-glazed UPVC',
-      heating: 'Electric heater',
-      electrics: 'Full consumer unit ready',
-      roof: 'EPDM long life roof',
-      floor: 'Laminated flooring',
-      plumbing: 'Furnished kitchen and bathroom, plumbing connection included',
-      'ground work': 'Foundation included',
-    },
-  }),
-
-  /* ---- 45 m2 -- Grand --------------------------------------------------- */
-  buildGardenRoomProduct('grand-45', {
-    dimensionsDisplay: '9.0m \u00D7 5.0m or 7.5m \u00D7 6.0m',
-
-    name: 'The Grand',
-    tagline: 'A building, not just a room',
-    //badge: 'Coming Soon',
-
-    ctaText: 'Customise',
-    ctaLink: '/garden-room/configure/grand-45',
-
-    cardUseCases: ['Self-contained apartment', 'Multi-room workspace'],
-    quickViewUseCases: ['Full Living Annex', 'Large Studio / Workshop', 'Commercial Suite', 'Granny Flat'],
-
-    description:
-      'At 45m\u00B2, The Grand is less a garden room and more a building in its own right \u2014 a self-contained living space with full kitchen, bathroom, and open-plan living area, all finished to the same turnkey standard as a new-build home. Use it as a granny flat, an independent annex for family, a multi-room workspace, or a short-let rental that pays for itself over time. Two footprint options let you work with your site, and every detail from the steel frame to the consumer unit is designed for permanence, not compromise.',
-    technicalSpecs: {
-      height: '2.45m internal',
-      frame: 'LGS frame',
-      insulation: '90mm rock wool + 100mm EPS',
-      glazing: 'Double-glazed UPVC',
-      heating: 'Electric heater',
-      electrics: 'Full consumer unit ready',
-      roof: 'EPDM long life roof',
-      floor: 'Laminated flooring',
-      plumbing: 'Furnished kitchen and bathroom, plumbing connection included',
-      'ground work': 'Foundation included',
-    },
-  }),
-];
-
-
-/* =============================================================================
    DERIVED EXPORT: PRODUCT SHOWCASE
    -----------------------------------------------------------------------------
-   Projects canonical products into the ProductShowcaseProduct shape for the
+   Projects unified products into the ProductShowcaseProduct shape for the
    50/50 split hero section. Maps identity, base pricing, images, and
    dimensions. The permitFree flag is the boolean inverse of planningPermission.
-   The imageAlt follows a consistent template derived from showcase label and
+   The imageAlt follows a consistent template derived from product name and
    floor area. Consumed by the ProductShowcase component.
    ============================================================================= */
 
 export const PRODUCT_SHOWCASE_PRODUCTS: ProductShowcaseProduct[] =
-  CANONICAL_PRODUCTS.map((p) => ({
-    id: p.id,
-    size: String(p.areaM2),
-    unit: 'm\u00B2',
-    dimensions: p.dimensionsDisplay,
-    price: p.basePrice,
-    label: p.showcaseLabel,
-    permitFree: !p.planningPermission,
-    imageSrc: p.image.png,
-    imageWebP: p.image.webP,
-    imageAvif: p.image.avif,
-    imageAlt: `${p.showcaseLabel} ${p.areaM2}m\u00B2 steel frame garden room`,
-  }));
+  CONFIGURATOR_PRODUCTS.map((p) => {
+    const hero = getHeroImage(p);
+    return {
+      id: p.slug,
+      size: String(p.dimensions.areaM2),
+      unit: 'm\u00B2',
+      dimensions: p.dimensionsDisplay,
+      price: formatEurCents(p.basePriceCentsInclVat),
+      label: p.name,
+      permitFree: !p.planningPermission,
+      imageSrc: hero.src,
+      imageWebP: hero.webP,
+      imageAvif: hero.avif,
+      imageAlt: `${p.name} ${p.dimensions.areaM2}m\u00B2 steel frame garden room`,
+    };
+  });
 
 
 /* =============================================================================
@@ -421,7 +170,7 @@ export const PRODUCT_SHOWCASE_PRODUCTS: ProductShowcaseProduct[] =
    Five standard features included with every garden room, displayed on the
    right side of the ProductShowcase 50/50 split. These are product-line-wide
    (not per-product) so they are declared directly rather than derived from
-   canonical records.
+   product records.
    ============================================================================= */
 
 export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
@@ -456,77 +205,93 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
 /* =============================================================================
    DIRECT EXPORT: WARRANTY COVERAGE
    -----------------------------------------------------------------------------
-   Four warranty tiers displayed on the right side of the ProductShowcase
+   Warranty tiers displayed on the right side of the ProductShowcase
    50/50 split, below the standard features. These apply uniformly across
    all garden room models and are declared directly.
    ============================================================================= */
 
 export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
   { years: '25', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
-  //{ years: '15', label: 'Cladding Guarantee', sub: 'Colour & weather resistance' },
-  //{ years: '10', label: 'Roof Membrane', sub: 'Watertight assurance' },
-  //{ years: '10', label: 'Windows & Doors', sub: 'Thermal & mechanical' },
 ];
 
 
 /* =============================================================================
    DERIVED EXPORT: PRODUCT RANGE CARDS
    -----------------------------------------------------------------------------
-   Projects canonical products into the ProductCard shape for the
+   Projects unified products into the ProductCard shape for the
    ProductRangeGrid component. Maps identity, card pricing, images, use
    cases, and availability status. The badge field is spread conditionally
-   (only when defined on the canonical record). CTA links route to the
+   (only when defined on the product record). CTA links route to the
    product configurator at /garden-room/configure/:slug.
    ============================================================================= */
 
 export const GARDEN_ROOM_PRODUCTS: ProductCard[] =
-  CANONICAL_PRODUCTS.map((p) => ({
-    size: `${p.areaM2}m\u00B2`,
-    name: p.name,
-    tagline: p.tagline,
-    image: p.image.png,
-    imageWebP: p.image.webP,
-    imageAvif: p.image.avif,
-    useCases: [...p.cardUseCases],
-    price: p.basePrice,
-    planningPermission: p.planningPermission,
-    inStock: p.inStock,
-    ...(p.badge != null ? { badge: p.badge } : {}),
-    ctaText: p.ctaText,
-    ctaLink: p.ctaLink,
-    available: p.available,
-  }));
+  CONFIGURATOR_PRODUCTS.map((p) => {
+    const hero = getHeroImage(p);
+    return {
+      size: `${p.dimensions.areaM2}m\u00B2`,
+      name: p.name,
+      tagline: p.tagline,
+      image: hero.src,
+      imageWebP: hero.webP,
+      imageAvif: hero.avif,
+      useCases: getUseCasesByContext(p, 'card'),
+      price: formatEurCents(p.basePriceCentsInclVat),
+      planningPermission: p.planningPermission,
+      inStock: p.inStock,
+      ...(p.badge != null ? { badge: p.badge } : {}),
+      ctaText: p.ctaText,
+      ctaLink: p.ctaLink,
+      available: p.available,
+    };
+  });
 
 
 /* =============================================================================
    DERIVED EXPORT: QUICK VIEW MODAL DATA
    -----------------------------------------------------------------------------
-   Projects canonical products into the QuickViewProduct shape for the
+   Projects unified products into the QuickViewProduct shape for the
    QuickViewModal component. Maps identity, base pricing, images, extended
-   use cases, and technical details. The specs.footprint field is injected
-   from dimensionsDisplay at projection time, avoiding redundant storage
-   of dimensional data in the canonical technicalSpecs record.
+   use cases, and technical details. The specs object is built from the
+   structured ProductSpec array by converting it to a key-value record,
+   with the footprint dimension injected from dimensionsDisplay.
    ============================================================================= */
 
 export const GARDEN_ROOM_QUICK_VIEW: QuickViewProduct[] =
-  CANONICAL_PRODUCTS.map((p) => ({
-    size: `${p.areaM2}m\u00B2`,
-    name: p.name,
-    tagline: p.tagline,
-    image: p.image.png,
-    imageWebP: p.image.webP,
-    imageAvif: p.image.avif,
-    useCases: [...p.quickViewUseCases],
-    price: p.basePrice,
-    planningPermission: p.planningPermission,
-    inStock: p.inStock,
-    available: p.available,
-    description: p.description,
-    specs: { footprint: p.dimensionsDisplay, ...p.technicalSpecs },
-    leadTime: p.leadTime,
-    ctaLink: p.ctaLink,
-    ctaText: p.ctaText,
-  }));
+  CONFIGURATOR_PRODUCTS.map((p) => {
+    const hero = getHeroImage(p);
+
+    /**
+     * Build a key-value specs record from the structured ProductSpec array.
+     * The footprint dimension is injected as the first entry, matching the
+     * QuickViewProduct component's expected shape.
+     */
+    const specsRecord: Record<string, string> = { footprint: p.dimensionsDisplay };
+    for (const spec of p.specs) {
+      /* Skip dimension and area specs to avoid duplication with the footprint entry. */
+      if (spec.label === 'Dimensions' || spec.label === 'Area') continue;
+      specsRecord[spec.label.toLowerCase()] = spec.value;
+    }
+
+    return {
+      size: `${p.dimensions.areaM2}m\u00B2`,
+      name: p.name,
+      tagline: p.tagline,
+      image: hero.src,
+      imageWebP: hero.webP,
+      imageAvif: hero.avif,
+      useCases: getUseCasesByContext(p, 'quick-view'),
+      price: formatEurCents(p.basePriceCentsInclVat),
+      planningPermission: p.planningPermission,
+      inStock: p.inStock,
+      available: p.available,
+      description: p.description,
+      specs: specsRecord,
+      leadTime: p.leadTime,
+      ctaLink: p.ctaLink,
+      ctaText: p.ctaText,
+    };
+  });
 
 
 /* =============================================================================
@@ -635,10 +400,10 @@ export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
 /* =============================================================================
    DIRECT EXPORT: TESTIMONIAL DATA
    -----------------------------------------------------------------------------
-   Three placeholder customer testimonials displayed in the TestimonialGrid
-   component. These use realistic quotes and Dublin-area locations. The
-   placeholder avatar image path should be replaced with real customer
-   photos when available.
+   Three customer testimonials displayed in the TestimonialGrid component.
+   These use realistic quotes and Dublin-area locations. The placeholder
+   avatar image path should be replaced with real customer photos when
+   available.
 
    All ratings are set to 5 stars. The TestimonialGrid component defaults
    to 5 when the rating field is omitted, but explicit values are provided
@@ -656,12 +421,12 @@ export const GARDEN_ROOM_TESTIMONIALS: TestimonialItem[] = [
   {
     text: "As a piano teacher working from home with a growing family, Modular House gave me a dedicated, beautifully finished studio in just 6 weeks, no planning permission needed. The soundproofing, insulation, and heat pump keep it comfortable and quiet year-round, and my students and their parents love how professional it feels. It gave us our family home back. Worth every penny.",
     authorName: "Maeve",
-    authorLocation: "Dún Laoghaire",
+    authorLocation: "D\u00FAn Laoghaire",
     authorImageSrc: '/resource/avatar-placeholder.png',
     rating: 5
   },
   {
-    text: "Being a site manager, I know quality when I see it. The galvanised steel frame, continuous PIR insulation, and solid fabrication are the real deal, not a garden shed with fancy cladding. I've been training four or five times a week in my Compact since February, and between the heat pump warming it in minutes, it's already paying for itself. At €29,500, it's saved me gym fees, petrol, and an hour a day commuting. And my partner's delighted the Livingroom is finally free of weights.",
+    text: "Being a site manager, I know quality when I see it. The galvanised steel frame, continuous PIR insulation, and solid fabrication are the real deal, not a garden shed with fancy cladding. I've been training four or five times a week in my Compact since February, and between the heat pump warming it in minutes, it's already paying for itself. At \u20AC29,500, it's saved me gym fees, petrol, and an hour a day commuting. And my partner's delighted the Livingroom is finally free of weights.",
     authorName: "John",
     authorLocation: "Tallaght, Dublin 24",
     authorImageSrc: '/resource/avatar-placeholder.png',

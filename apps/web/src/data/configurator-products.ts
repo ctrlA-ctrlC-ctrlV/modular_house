@@ -1,34 +1,36 @@
 /**
- * Configurator Product Data -- Seed Data for All Four Garden Room Sizes
+ * Unified Garden Room Product Data -- Seed Data for All Four Garden Room Sizes
  * =============================================================================
  *
  * PURPOSE:
- * Single source of truth for all product configuration data consumed by the
- * garden room configurator page. This file represents the seed data that
- * mirrors the contents of the PostgreSQL database tables defined by the
- * configurator schema (see types/configurator.ts for the full ER mapping).
+ * Single source of truth for all garden room product data consumed by both
+ * the configurator page and the marketing (/garden-room) page. This file
+ * contains the complete hydrated product records that were previously split
+ * across configurator-products.ts and garden-room-data.ts.
  *
- * In the current architecture this data is compiled into the frontend bundle.
- * When the API endpoint is implemented, this file will serve as the initial
- * database seed script — the data shapes map 1:1 to the SQL tables.
+ * The consolidation follows the unified data model defined in
+ * `../types/garden-room.ts`. Every product is described by a single
+ * `HydratedProduct` record that carries identity, pricing, dimensions,
+ * availability, images, specs, use cases, layout options, addons, included
+ * features, and finish categories in one cohesive entity.
  *
  * PRODUCTS (4 total):
  * | Slug        | Name         | Area  | Base (incl. VAT) | B&K Policy     | Available |
  * |-------------|--------------|-------|------------------|----------------|-----------|
  * | compact-15  | The Compact  | 15 m2 | EUR 29,500       | not-available  | Yes       |
  * | studio-25   | The Studio   | 25 m2 | EUR 39,500       | layout-bundled | Yes       |
- * | living-35   | The Living   | 35 m2 | EUR 68,500       | included       | No        |
- * | grand-45    | The Grand    | 45 m2 | EUR 83,500       | included       | No        |
+ * | living-35   | The Living   | 35 m2 | EUR 68,500       | included       | Yes       |
+ * | grand-45    | The Grand    | 45 m2 | EUR 83,500       | included       | Yes       |
  *
  * PRICING:
  * All monetary values are stored in euro cents inclusive of 23% VAT,
  * matching the SQL column type (integer cents). The frontend formats
  * cents to display euros using locale-aware formatting.
  *
- * BATHROOM & KITCHEN RULES:
- * - 15 m2: cannot add bathroom & kitchen (bathroomKitchenPolicy = "not-available")
+ * BATHROOM AND KITCHEN RULES:
+ * - 15 m2: cannot add bathroom and kitchen (bathroomKitchenPolicy = "not-available")
  * - 25 m2: determined by the selected layout option (bathroomKitchenPolicy = "layout-bundled")
- * - 35 & 45 m2: included in base price with plumbing (bathroomKitchenPolicy = "included"),
+ * - 35 and 45 m2: included in base price with plumbing (bathroomKitchenPolicy = "included"),
  *   represented via the includedFeatures array
  *
  * FINISH PREVIEW IMAGES:
@@ -36,22 +38,28 @@
  * /public/resource/garden-room/product-config/ (e.g., exterior_finish_black.jpg).
  * Each FinishOption carries an imagePath field pointing to the correct file.
  *
+ * LEGACY REMOVALS:
+ * The programmatic floor plan feature (aperture arrays, wall identifiers,
+ * dimension labels, SVG floor plan image paths) has been retired. Footprint
+ * variant data is preserved for dimensional selection but carries no floor
+ * plan rendering metadata.
+ *
  * =============================================================================
  */
 
 import type {
   FinishOption,
-  FinishCategory,
-  ConfiguratorProduct,
-  FloorPlanVariant,
+  HydratedFinishCategory,
+  HydratedProduct,
+  FootprintVariant,
   LayoutOption,
-} from '../types/configurator';
+} from '../types/garden-room';
 
 
 /* =============================================================================
    SECTION 1: SHARED FINISH OPTIONS
    -----------------------------------------------------------------------------
-   Maps to the configurator_finish_options table.
+   Maps to the finish_options table.
 
    Exterior cladding and interior wall finish options shared across all
    products. Each option includes swatch colours for UI rendering and
@@ -66,29 +74,35 @@ import type {
  * Exterior cladding colour options available for all garden room sizes.
  * Composite cladding with a 25-year colour guarantee.
  *
- * SQL: configurator_finish_options (category_slug = "exterior")
+ * Database: finish_options (category_slug = "exterior")
  */
 const EXTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
   {
     id: 'ef-black',
+    finishCategoryId: 'fc-exterior',
     name: 'Black',
     color: '#1a1a1a',
     accent: '#333333',
     imagePath: '/resource/garden-room/product-config/exterior_finish_black.jpg',
+    displayOrder: 1,
   },
   {
     id: 'ef-teak',
+    finishCategoryId: 'fc-exterior',
     name: 'Teak',
     color: '#B5764C',
     accent: '#9A6340',
     imagePath: '/resource/garden-room/product-config/exterior_finish_teak.jpg',
+    displayOrder: 2,
   },
   {
     id: 'ef-walnut',
+    finishCategoryId: 'fc-exterior',
     name: 'Walnut',
     color: '#5C4033',
     accent: '#4A3228',
     imagePath: '/resource/garden-room/product-config/exterior_finish_walnut.jpg',
+    displayOrder: 3,
   },
 ];
 
@@ -96,22 +110,26 @@ const EXTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
  * Interior wall finish options available for all garden room sizes.
  * Applied to internal plasterboard lining surfaces.
  *
- * SQL: configurator_finish_options (category_slug = "interior")
+ * Database: finish_options (category_slug = "interior")
  */
 const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
   {
     id: 'if-stone',
+    finishCategoryId: 'fc-interior',
     name: 'Stone',
     color: '#C4BFB6',
     accent: '#A8A299',
     imagePath: '/resource/garden-room/product-config/interior_finish_stone.jpg',
+    displayOrder: 1,
   },
   {
     id: 'if-cloth',
+    finishCategoryId: 'fc-interior',
     name: 'Cloth',
     color: '#E8E0D4',
     accent: '#D4CAB8',
     imagePath: '/resource/garden-room/product-config/interior_finish_cloth.jpg',
+    displayOrder: 2,
   },
 ];
 
@@ -123,19 +141,19 @@ const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
    steps. All prices include VAT at the Irish standard rate (23%).
    ============================================================================= */
 
+/** Pricing footnote displayed below the configured total on every product. */
 const PRICING_NOTE = 'Price includes VAT \u00B7 Ts & Cs apply';
 
 
 /* =============================================================================
    SECTION 3: HELPER -- FINISH CATEGORY BUILDER
    -----------------------------------------------------------------------------
-   Constructs a pair of FinishCategory entries (exterior + interior) with
-   product-specific sublabel text. This avoids repeating the finish options
-   array references in every product definition while allowing each product
-   to display its own contextual description.
+   Constructs a pair of HydratedFinishCategory entries (exterior + interior)
+   with product-specific sublabel text. This avoids repeating the finish
+   options array references in every product definition while allowing each
+   product to display its own contextual description.
 
-   Maps to configurator_finish_categories table rows + join table entries
-   in configurator_product_finishes.
+   Maps to finish_categories table rows with eagerly loaded finish_options.
    ============================================================================= */
 
 /**
@@ -145,7 +163,7 @@ const PRICING_NOTE = 'Price includes VAT \u00B7 Ts & Cs apply';
  * @param productName - The marketing name of the product (e.g., "The Studio").
  * @returns A two-element tuple: [exteriorCategory, interiorCategory].
  */
-function buildFinishCategories(productName: string): ReadonlyArray<FinishCategory> {
+function buildFinishCategories(productName: string): ReadonlyArray<HydratedFinishCategory> {
   return [
     {
       id: 'fc-exterior',
@@ -170,12 +188,16 @@ function buildFinishCategories(productName: string): ReadonlyArray<FinishCategor
 /* =============================================================================
    SECTION 4: PRODUCT DEFINITIONS
    -----------------------------------------------------------------------------
-   Each ConfiguratorProduct instance below maps to one row in the
-   configurator_products table plus related child rows in:
-     - configurator_addon_options
-     - configurator_product_specs
-     - configurator_included_features
-     - configurator_product_finishes (join table)
+   Each HydratedProduct instance below represents one row in the products
+   table plus related child rows in:
+     - product_specs
+     - product_use_cases
+     - addons
+     - included_features
+     - footprint_variants
+     - layout_options
+     - finish_categories (with eagerly loaded finish_options)
+     - product_images
 
    Products are listed in ascending order by floor area.
 
@@ -183,9 +205,9 @@ function buildFinishCategories(productName: string): ReadonlyArray<FinishCategor
    All prices are in euro cents inclusive of 23% VAT.
    Example: EUR 26,000 = 2_600_000 cents.
 
-   BATHROOM & KITCHEN:
+   BATHROOM AND KITCHEN:
    - 15 m2: not available (bathroomKitchenPolicy = "not-available")
-   - 25 m2: optional add-on in the addons array
+   - 25 m2: determined by layout option (bathroomKitchenPolicy = "layout-bundled")
    - 35, 45 m2: included in base price via includedFeatures array
    ============================================================================= */
 
@@ -194,27 +216,93 @@ function buildFinishCategories(productName: string): ReadonlyArray<FinishCategor
  *
  * The smallest garden room, designed for focused single-purpose use.
  * Exempt from planning permission under current Irish legislation.
- * Bathroom & kitchen cannot be added to this model.
+ * Bathroom and kitchen cannot be added to this model.
  */
-const COMPACT_15: ConfiguratorProduct = {
+const COMPACT_15: HydratedProduct = {
+  /* --- Identity -------------------------------------------------- */
   id: 'cp-compact-15',
   slug: 'compact-15',
   name: 'The Compact',
-  tagline: '15 m\u00B2 garden room \u2014 manufactured in Dublin',
+  tagline: 'Your private creative sanctuary',
+  description:
+    'At 15m\u00B2, The Compact is the fastest way to a dedicated workspace in your garden \u2014 built in just 6\u20138 weeks with no planning permission required. Our Dublin-manufactured steel frame and high-performance insulation keep the space warm and quiet year-round, so whether you use it as a home office, art studio, or personal retreat, it feels like a proper room from day one. Designed for focus, engineered for comfort, and priced to make the spare-bedroom compromise a thing of the past.',
 
+  /* --- Dimensions ------------------------------------------------ */
   dimensions: {
     widthM: 3.0,
     depthM: 5.0,
     heightM: 2.4,
     areaM2: 15,
   },
+  dimensionsDisplay: '5.0m \u00D7 3.0m',
 
+  /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 2_950_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'not-available',
 
-  finishCategories: buildFinishCategories('The Compact'),
+  /* --- Availability ---------------------------------------------- */
+  available: true,
+  inStock: true,
+  planningPermission: false,
+  leadTime: '6\u20138 weeks',
 
+  /* --- Call to action --------------------------------------------- */
+  ctaText: 'Customise',
+  ctaLink: '/garden-room/configure/compact-15',
+
+  /* --- Sort ------------------------------------------------------ */
+  displayOrder: 1,
+
+  /* --- Optional marketing modifiers ------------------------------ */
+  glazingNote:
+    'Glazing details: 700mm \u00D7 2100mm tilt & turn window + ' +
+    '1200mm \u00D7 2100mm French door.',
+
+  /* --- Images ---------------------------------------------------- */
+  images: [
+    {
+      id: 'img-compact-hero',
+      productId: 'cp-compact-15',
+      src: '/resource/garden-room/garden-room4.png',
+      webP: '/resource/garden-room/garden-room4.webp',
+      avif: '/resource/garden-room/garden-room4.avif',
+      alt: 'The Compact 15m\u00B2 steel frame garden room',
+      role: 'hero',
+      displayOrder: 1,
+    },
+  ],
+
+  /* --- Specifications -------------------------------------------- */
+  specs: [
+    { id: 'sp-compact-01', productId: 'cp-compact-15', label: 'Dimensions',  value: '5.0m \u00D7 3.0m',                displayOrder: 1 },
+    { id: 'sp-compact-02', productId: 'cp-compact-15', label: 'Area',        value: '15 m\u00B2',                       displayOrder: 2 },
+    { id: 'sp-compact-03', productId: 'cp-compact-15', label: 'Structure',   value: 'Light Gauge Steel frame',       displayOrder: 3 },
+    { id: 'sp-compact-04', productId: 'cp-compact-15', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',    displayOrder: 4 },
+    { id: 'sp-compact-05', productId: 'cp-compact-15', label: 'Flooring',    value: 'Laminated flooring',            displayOrder: 5 },
+    { id: 'sp-compact-06', productId: 'cp-compact-15', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
+    { id: 'sp-compact-07', productId: 'cp-compact-15', label: 'Electrics',   value: 'Full consumer unit ready',      displayOrder: 7 },
+    { id: 'sp-compact-08', productId: 'cp-compact-15', label: 'Roof',        value: 'EPDM long life roof',           displayOrder: 8 },
+  ],
+
+  /* --- Use cases ------------------------------------------------- */
+  useCases: [
+    { id: 'uc-compact-c1', productId: 'cp-compact-15', text: 'Home office',    context: 'card',       displayOrder: 1 },
+    { id: 'uc-compact-c2', productId: 'cp-compact-15', text: 'Art studio',     context: 'card',       displayOrder: 2 },
+    { id: 'uc-compact-c3', productId: 'cp-compact-15', text: 'Yoga room',      context: 'card',       displayOrder: 3 },
+    { id: 'uc-compact-q1', productId: 'cp-compact-15', text: 'Home Office',    context: 'quick-view', displayOrder: 4 },
+    { id: 'uc-compact-q2', productId: 'cp-compact-15', text: 'Art Studio',     context: 'quick-view', displayOrder: 5 },
+    { id: 'uc-compact-q3', productId: 'cp-compact-15', text: 'Yoga & Wellness Room', context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-compact-q4', productId: 'cp-compact-15', text: 'Music Practice', context: 'quick-view', displayOrder: 7 },
+  ],
+
+  /* --- Footprint variants ---------------------------------------- */
+  footprintVariants: [],
+
+  /* --- Layout options -------------------------------------------- */
+  layoutOptions: [],
+
+  /* --- Addons ---------------------------------------------------- */
   addons: [
     {
       id: 'ao-compact-triple-glazing',
@@ -238,23 +326,19 @@ const COMPACT_15: ConfiguratorProduct = {
     },
   ],
 
+  /* --- Included features ----------------------------------------- */
   includedFeatures: [],
 
-  specs: [
-    { id: 'sp-compact-01', productId: 'cp-compact-15', label: 'Dimensions',  value: '5.0m \u00D7 3.0m',                displayOrder: 1 },
-    { id: 'sp-compact-02', productId: 'cp-compact-15', label: 'Area',        value: '15 m\u00B2',                       displayOrder: 2 },
-    { id: 'sp-compact-03', productId: 'cp-compact-15', label: 'Structure',   value: 'Light Gauge Steel frame',       displayOrder: 3 },
-    { id: 'sp-compact-04', productId: 'cp-compact-15', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',         displayOrder: 4 },
-    { id: 'sp-compact-05', productId: 'cp-compact-15', label: 'Flooring',    value: 'Laminated flooring',               displayOrder: 5 },
-    { id: 'sp-compact-06', productId: 'cp-compact-15', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
-    { id: 'sp-compact-07', productId: 'cp-compact-15', label: 'Electrics',   value: 'EPDM long life roof',   displayOrder: 7 },
-    { id: 'sp-compact-08', productId: 'cp-compact-15', label: 'Roof',        value: 'Flat roof membrane, included',     displayOrder: 8 },
-  ],
+  /* --- Finish categories ----------------------------------------- */
+  finishCategories: buildFinishCategories('The Compact'),
 
-  glazingNote:
-    'Glazing details: 700mm \u00D7 2100mm tilt & turn window + ' +
-    '1200mm \u00D7 2100mm French door.',
-
+  /* --- Legacy compatibility fields ------------------------------- */
+  image: {
+    src:  '/resource/garden-room/garden-room4.png',
+    webP: '/resource/garden-room/garden-room4.webp',
+    avif: '/resource/garden-room/garden-room4.avif',
+    alt:  'The Compact 15m\u00B2 steel frame garden room',
+  },
   floorPlan: {
     apertures: [
       { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
@@ -262,20 +346,7 @@ const COMPACT_15: ConfiguratorProduct = {
     ],
     dimensionLabels: { width: '5.0m', depth: '3.0m' },
   },
-
   floorPlanImagePath: '/resource/floorplan/3m-x-5m.svg',
-
-  image: {
-    src:  '/resource/garden-room/garden-room4.png',
-    webP: '/resource/garden-room/garden-room4.webp',
-    avif: '/resource/garden-room/garden-room4.avif',
-    alt:  'The Compact 15m\u00B2 steel frame garden room',
-  },
-
-  available: true,
-  planningPermission: false,
-  leadTime: '6\u20138 weeks',
-  displayOrder: 1,
 };
 
 
@@ -283,38 +354,91 @@ const COMPACT_15: ConfiguratorProduct = {
  * 25 m2 -- The Studio
  *
  * The most popular model, sitting at the maximum size for exempted
- * development under current Irish planning legislation. Bathroom &
- * kitchen is offered as an optional paid add-on.
+ * development under current Irish planning legislation. Bathroom and
+ * kitchen availability is determined by the selected layout option.
  */
-const STUDIO_25: ConfiguratorProduct = {
+const STUDIO_25: HydratedProduct = {
+  /* --- Identity -------------------------------------------------- */
   id: 'cp-studio-25',
   slug: 'studio-25',
   name: 'The Studio',
-  tagline: '25 m\u00B2 garden room \u2014 manufactured in Dublin',
+  tagline: 'Where work meets living',
+  description:
+    'Our most popular garden room for good reason \u2014 at 25m\u00B2, The Studio gives you the maximum floor area allowed without planning permission in Ireland. Choose from two footprint options and three layout configurations: an open-plan studio, a self-contained en suite, or a partitioned bedroom with kitchen and bathroom. Whether it\u2019s a home office with a meeting area, a music studio, a home gym, or a guest room with its own front door, The Studio adapts to how you actually want to use the space. Same Dublin-built steel frame, same turnkey finish \u2014 just more room to work with.',
 
+  /* --- Dimensions ------------------------------------------------ */
   dimensions: {
     widthM: 5,
     depthM: 5,
     heightM: 2.7,
     areaM2: 25,
   },
+  dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
 
+  /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 3_950_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'layout-bundled',
 
-  finishCategories: buildFinishCategories('The Studio'),
+  /* --- Availability ---------------------------------------------- */
+  available: true,
+  inStock: true,
+  planningPermission: false,
+  leadTime: '8\u201310 weeks',
 
-  /* --- Floor Plan Variants ------------------------------------ */
+  /* --- Call to action --------------------------------------------- */
+  ctaText: 'Customise',
+  ctaLink: '/garden-room/configure/studio-25',
 
-  /**
-   * Two selectable footprints for The Studio 25m2 product.
-   * Both variants produce approximately 25 m2 of floor area but differ
-   * in shape: the 5x5 is a square, the 4x6 is a landscape rectangle.
-   * Price delta is 0 for both variants -- the distinction is purely
-   * dimensional at this stage.
-   */
-  floorPlanVariants: [
+  /* --- Optional marketing modifiers ------------------------------ */
+  badge: 'Most Popular',
+  glazingNote:
+    '700mm \u00D7 2100mm tilt & turn window + ' +
+    '1600mm \u00D7 2100mm French door. ',
+
+  /* --- Sort ------------------------------------------------------ */
+  displayOrder: 2,
+
+  /* --- Images ---------------------------------------------------- */
+  images: [
+    {
+      id: 'img-studio-hero',
+      productId: 'cp-studio-25',
+      src: '/resource/garden-room/garden-room1.png',
+      webP: '/resource/garden-room/garden-room1.webp',
+      avif: '/resource/garden-room/garden-room1.avif',
+      alt: 'The Studio 25m\u00B2 steel frame garden room',
+      role: 'hero',
+      displayOrder: 1,
+    },
+  ],
+
+  /* --- Specifications -------------------------------------------- */
+  specs: [
+    { id: 'sp-studio-01', productId: 'cp-studio-25', label: 'Dimensions',  value: '5.0m \u00D7 5.0m',                  displayOrder: 1 },
+    { id: 'sp-studio-02', productId: 'cp-studio-25', label: 'Area',        value: '25 m\u00B2',                         displayOrder: 2 },
+    { id: 'sp-studio-03', productId: 'cp-studio-25', label: 'Structure',   value: 'Light Gauge Steel frame',         displayOrder: 3 },
+    { id: 'sp-studio-04', productId: 'cp-studio-25', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',      displayOrder: 4 },
+    { id: 'sp-studio-05', productId: 'cp-studio-25', label: 'Flooring',    value: 'Laminated flooring',              displayOrder: 5 },
+    { id: 'sp-studio-06', productId: 'cp-studio-25', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
+    { id: 'sp-studio-07', productId: 'cp-studio-25', label: 'Electrics',   value: 'Full consumer unit ready',        displayOrder: 7 },
+    { id: 'sp-studio-08', productId: 'cp-studio-25', label: 'Roof',        value: 'EPDM long life roof',             displayOrder: 8 },
+  ],
+
+  /* --- Use cases ------------------------------------------------- */
+  useCases: [
+    { id: 'uc-studio-c1', productId: 'cp-studio-25', text: 'Home office + meeting space', context: 'card',       displayOrder: 1 },
+    { id: 'uc-studio-c2', productId: 'cp-studio-25', text: 'Home gym',                    context: 'card',       displayOrder: 2 },
+    { id: 'uc-studio-c3', productId: 'cp-studio-25', text: 'Music studio',                context: 'card',       displayOrder: 3 },
+    { id: 'uc-studio-c4', productId: 'cp-studio-25', text: '1 bed room en suite',         context: 'card',       displayOrder: 4 },
+    { id: 'uc-studio-q1', productId: 'cp-studio-25', text: 'Office + Meeting Room',       context: 'quick-view', displayOrder: 5 },
+    { id: 'uc-studio-q2', productId: 'cp-studio-25', text: 'Guest Suite',                 context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-studio-q3', productId: 'cp-studio-25', text: 'Therapy Room',                context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-studio-q4', productId: 'cp-studio-25', text: 'Design Studio',               context: 'quick-view', displayOrder: 8 },
+  ],
+
+  /* --- Footprint variants ---------------------------------------- */
+  footprintVariants: [
     {
       id: 'fpv-studio-5x5',
       productId: 'cp-studio-25',
@@ -325,19 +449,6 @@ const STUDIO_25: ConfiguratorProduct = {
       depthM: 5.0,
       areaM2: 25,
       priceDeltaCentsInclVat: 0,
-      floorPlan: {
-        apertures: [
-          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
-          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
-        ],
-        dimensionLabels: { width: '5.0m', depth: '5.0m' },
-      },
-      floorPlanImagePath: '/resource/floorplan/5m-x-5m-box.svg',
-      floorPlanImagesByLayout: {
-        'box':      '/resource/floorplan/5m-x-5m-box.svg',
-        'en-suite': '/resource/floorplan/5m-x-5m-ensuit.svg',
-        'bedroom':  '/resource/floorplan/5m-x-5m-bedroom.svg',
-      },
       displayOrder: 1,
     },
     {
@@ -350,33 +461,11 @@ const STUDIO_25: ConfiguratorProduct = {
       depthM: 6.0,
       areaM2: 24.9,
       priceDeltaCentsInclVat: 0,
-      floorPlan: {
-        apertures: [
-          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
-          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
-        ],
-        dimensionLabels: { width: '6.0m', depth: '4.15m' },
-      },
-      floorPlanImagePath: '/resource/floorplan/6m-x-4.15m-box.svg',
-      floorPlanImagesByLayout: {
-        'box':      '/resource/floorplan/6m-x-4.15m-box.svg',
-        'en-suite': '/resource/floorplan/6m-x-4.15m-ensuit.svg',
-        'bedroom':  '/resource/floorplan/6m-x-4.15m-bedroom.svg',
-      },
       displayOrder: 2,
     },
-  ] satisfies ReadonlyArray<FloorPlanVariant>,
+  ] satisfies ReadonlyArray<FootprintVariant>,
 
-  /* --- Layout Options ----------------------------------------- */
-
-  /**
-   * Three interior layout tiers for The Studio 25m2 product.
-   * The Box layout is an open-plan shell (no internal walls) at no
-   * additional cost. En Suite adds a bathroom and kitchen zone for
-   * EUR 12,000. Bedroom adds a private bedroom partition on top of
-   * the En Suite configuration for EUR 16,000. These tiered prices
-   * replace the previous standalone bathroom-kitchen add-on.
-   */
+  /* --- Layout options -------------------------------------------- */
   layoutOptions: [
     {
       id: 'lo-studio-box',
@@ -416,6 +505,7 @@ const STUDIO_25: ConfiguratorProduct = {
     },
   ] satisfies ReadonlyArray<LayoutOption>,
 
+  /* --- Addons ---------------------------------------------------- */
   addons: [
     {
       id: 'ao-studio-triple-glazing',
@@ -439,23 +529,19 @@ const STUDIO_25: ConfiguratorProduct = {
     },
   ],
 
+  /* --- Included features ----------------------------------------- */
   includedFeatures: [],
 
-  specs: [
-    { id: 'sp-studio-01', productId: 'cp-studio-25', label: 'Dimensions',  value: '5.0m \u00D7 5.0m',                  displayOrder: 1 },
-    { id: 'sp-studio-02', productId: 'cp-studio-25', label: 'Area',        value: '25 m\u00B2',                         displayOrder: 2 },
-    { id: 'sp-studio-03', productId: 'cp-studio-25', label: 'Structure',   value: 'Light Gauge Steel frame',         displayOrder: 3 },
-    { id: 'sp-studio-04', productId: 'cp-studio-25', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',           displayOrder: 4 },
-    { id: 'sp-studio-05', productId: 'cp-studio-25', label: 'Flooring',    value: 'Laminated flooring',                 displayOrder: 5 },
-    { id: 'sp-studio-06', productId: 'cp-studio-25', label: 'Glazing',     value: 'Tilt & turn window + French door',   displayOrder: 6 },
-    { id: 'sp-studio-07', productId: 'cp-studio-25', label: 'Electrics',   value: 'Full consumer unit ready',     displayOrder: 7 },
-    { id: 'sp-studio-08', productId: 'cp-studio-25', label: 'Roof',        value: 'EPDM long life roof',       displayOrder: 8 },
-  ],
+  /* --- Finish categories ----------------------------------------- */
+  finishCategories: buildFinishCategories('The Studio'),
 
-  glazingNote:
-    '700mm \u00D7 2100mm tilt & turn window + ' +
-    '1600mm \u00D7 2100mm French door. ',
-
+  /* --- Legacy compatibility fields ------------------------------- */
+  image: {
+    src:  '/resource/garden-room/garden-room1.png',
+    webP: '/resource/garden-room/garden-room1.webp',
+    avif: '/resource/garden-room/garden-room1.avif',
+    alt:  'The Studio 25m\u00B2 steel frame garden room',
+  },
   floorPlan: {
     apertures: [
       { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
@@ -463,18 +549,58 @@ const STUDIO_25: ConfiguratorProduct = {
     ],
     dimensionLabels: { width: '5.0m', depth: '5.0m' },
   },
-
-  image: {
-    src:  '/resource/garden-room/garden-room1.png',
-    webP: '/resource/garden-room/garden-room1.webp',
-    avif: '/resource/garden-room/garden-room1.avif',
-    alt:  'The Studio 25m\u00B2 steel frame garden room',
-  },
-
-  available: true,
-  planningPermission: false,
-  leadTime: '8\u201310 weeks',
-  displayOrder: 2,
+  floorPlanVariants: [
+    {
+      id: 'fpv-studio-5x5',
+      productId: 'cp-studio-25',
+      slug: '5x5',
+      label: '5.0m x 5.0m',
+      description: 'Square footprint',
+      widthM: 5.0,
+      depthM: 5.0,
+      areaM2: 25,
+      priceDeltaCentsInclVat: 0,
+      displayOrder: 1,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '5.0m', depth: '5.0m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/5m-x-5m-box.svg',
+      floorPlanImagesByLayout: {
+        'box':      '/resource/floorplan/5m-x-5m-box.svg',
+        'en-suite': '/resource/floorplan/5m-x-5m-ensuit.svg',
+        'bedroom':  '/resource/floorplan/5m-x-5m-bedroom.svg',
+      },
+    },
+    {
+      id: 'fpv-studio-4x6',
+      productId: 'cp-studio-25',
+      slug: '4x6',
+      label: '4.15m x 6.0m',
+      description: 'Rectangular footprint',
+      widthM: 4.15,
+      depthM: 6.0,
+      areaM2: 24.9,
+      priceDeltaCentsInclVat: 0,
+      displayOrder: 2,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '6.0m', depth: '4.15m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/6m-x-4.15m-box.svg',
+      floorPlanImagesByLayout: {
+        'box':      '/resource/floorplan/6m-x-4.15m-box.svg',
+        'en-suite': '/resource/floorplan/6m-x-4.15m-ensuit.svg',
+        'bedroom':  '/resource/floorplan/6m-x-4.15m-bedroom.svg',
+      },
+    },
+  ],
 };
 
 
@@ -484,27 +610,93 @@ const STUDIO_25: ConfiguratorProduct = {
  * Mid-range model using a portal steel frame for column-free interiors.
  * Requires planning permission under current legislation. Bathroom,
  * kitchen, and plumbing connections are included in the base price.
- * Currently listed as "Coming Soon".
  */
-const LIVING_35: ConfiguratorProduct = {
+const LIVING_35: HydratedProduct = {
+  /* --- Identity -------------------------------------------------- */
   id: 'cp-living-35',
   slug: 'living-35',
   name: 'The Living',
-  tagline: '35 m\u00B2 garden room \u2014 manufactured in Dublin',
+  tagline: 'Space to grow into',
+  description:
+    'At 35m\u00B2, The Living is a fully equipped garden room with kitchen and bathroom included as standard \u2014 large enough for a self-contained guest suite, a private retreat for older teenagers, or a rental-ready unit that adds income to your property. The column-free steel frame interior is entirely yours to define: zone it for two desks and a breakout area, set up a home gym alongside an office nook, or create a family media room that keeps the main house peaceful.',
 
+  /* --- Dimensions ------------------------------------------------ */
   dimensions: {
     widthM: 7.0,
     depthM: 5.0,
     heightM: 2.7,
     areaM2: 35,
   },
+  dimensionsDisplay: '7.0m \u00D7 5.0m',
 
+  /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 6_850_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 
-  finishCategories: buildFinishCategories('The Living'),
+  /* --- Availability ---------------------------------------------- */
+  available: true,
+  inStock: true,
+  planningPermission: true,
+  leadTime: '10\u201312 weeks',
 
+  /* --- Call to action --------------------------------------------- */
+  ctaText: 'Customise',
+  ctaLink: '/garden-room/configure/living-35',
+
+  /* --- Optional marketing modifiers ------------------------------ */
+  glazingNote:
+    'Glazing details: 2\u00D7 700mm \u00D7 2100mm tilt & turn windows + ' +
+    '2400mm \u00D7 2100mm sliding door.',
+
+  /* --- Sort ------------------------------------------------------ */
+  displayOrder: 3,
+
+  /* --- Images ---------------------------------------------------- */
+  images: [
+    {
+      id: 'img-living-hero',
+      productId: 'cp-living-35',
+      src: '/resource/garden-room/garden-room2.png',
+      webP: '/resource/garden-room/garden-room2.webp',
+      avif: '/resource/garden-room/garden-room2.avif',
+      alt: 'The Living 35m\u00B2 steel frame garden room',
+      role: 'hero',
+      displayOrder: 1,
+    },
+  ],
+
+  /* --- Specifications -------------------------------------------- */
+  specs: [
+    { id: 'sp-living-01', productId: 'cp-living-35', label: 'Dimensions',  value: '7.0m \u00D7 5.0m',                           displayOrder: 1 },
+    { id: 'sp-living-02', productId: 'cp-living-35', label: 'Area',        value: '35 m\u00B2',                                  displayOrder: 2 },
+    { id: 'sp-living-03', productId: 'cp-living-35', label: 'Structure',   value: 'Light Gauge Steel frame',                     displayOrder: 3 },
+    { id: 'sp-living-04', productId: 'cp-living-35', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                  displayOrder: 4 },
+    { id: 'sp-living-05', productId: 'cp-living-35', label: 'Flooring',    value: 'Laminated flooring',                          displayOrder: 5 },
+    { id: 'sp-living-06', productId: 'cp-living-35', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + sliding door',  displayOrder: 6 },
+    { id: 'sp-living-07', productId: 'cp-living-35', label: 'Electrics',   value: 'Full consumer unit ready',                    displayOrder: 7 },
+    { id: 'sp-living-08', productId: 'cp-living-35', label: 'Roof',        value: 'EPDM long life roof',                         displayOrder: 8 },
+    { id: 'sp-living-09', productId: 'cp-living-35', label: 'Plumbing',    value: 'Bathroom + kitchen included',                 displayOrder: 9 },
+  ],
+
+  /* --- Use cases ------------------------------------------------- */
+  useCases: [
+    { id: 'uc-living-c1', productId: 'cp-living-35', text: 'Guest suite',     context: 'card',       displayOrder: 1 },
+    { id: 'uc-living-c2', productId: 'cp-living-35', text: 'Teen retreat',    context: 'card',       displayOrder: 2 },
+    { id: 'uc-living-c3', productId: 'cp-living-35', text: 'Rental unit',     context: 'card',       displayOrder: 3 },
+    { id: 'uc-living-q1', productId: 'cp-living-35', text: 'Multi-Desk Workspace', context: 'quick-view', displayOrder: 4 },
+    { id: 'uc-living-q2', productId: 'cp-living-35', text: 'Home Gym + Office',    context: 'quick-view', displayOrder: 5 },
+    { id: 'uc-living-q3', productId: 'cp-living-35', text: 'Family Room',          context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-living-q4', productId: 'cp-living-35', text: 'Content Studio',       context: 'quick-view', displayOrder: 7 },
+  ],
+
+  /* --- Footprint variants ---------------------------------------- */
+  footprintVariants: [],
+
+  /* --- Layout options -------------------------------------------- */
+  layoutOptions: [],
+
+  /* --- Addons ---------------------------------------------------- */
   addons: [
     {
       id: 'ao-living-triple-glazing',
@@ -528,6 +720,7 @@ const LIVING_35: ConfiguratorProduct = {
     },
   ],
 
+  /* --- Included features ----------------------------------------- */
   includedFeatures: [
     {
       id: 'if-living-bk',
@@ -545,22 +738,16 @@ const LIVING_35: ConfiguratorProduct = {
     },
   ],
 
-  specs: [
-    { id: 'sp-living-01', productId: 'cp-living-35', label: 'Dimensions',  value: '7.0m \u00D7 5.0m',                            displayOrder: 1 },
-    { id: 'sp-living-02', productId: 'cp-living-35', label: 'Area',        value: '35 m\u00B2',                                  displayOrder: 2 },
-    { id: 'sp-living-03', productId: 'cp-living-35', label: 'Structure',   value: 'Light Gauge Steel frame',                     displayOrder: 3 },
-    { id: 'sp-living-04', productId: 'cp-living-35', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                  displayOrder: 4 },
-    { id: 'sp-living-05', productId: 'cp-living-35', label: 'Flooring',    value: 'Laminated flooring',                          displayOrder: 5 },
-    { id: 'sp-living-06', productId: 'cp-living-35', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + sliding door',  displayOrder: 6 },
-    { id: 'sp-living-07', productId: 'cp-living-35', label: 'Electrics',   value: 'Full consumer unit ready',                    displayOrder: 7 },
-    { id: 'sp-living-08', productId: 'cp-living-35', label: 'Roof',        value: 'EPDM long life roof',                         displayOrder: 8 },
-    { id: 'sp-living-09', productId: 'cp-living-35', label: 'Plumbing',    value: 'Bathroom + kitchen included',                 displayOrder: 9 },
-  ],
+  /* --- Finish categories ----------------------------------------- */
+  finishCategories: buildFinishCategories('The Living'),
 
-  glazingNote:
-    'Glazing details: 2\u00D7 700mm \u00D7 2100mm tilt & turn windows + ' +
-    '2400mm \u00D7 2100mm sliding door.',
-
+  /* --- Legacy compatibility fields ------------------------------- */
+  image: {
+    src:  '/resource/garden-room/garden-room2.png',
+    webP: '/resource/garden-room/garden-room2.webp',
+    avif: '/resource/garden-room/garden-room2.avif',
+    alt:  'The Living 35m\u00B2 steel frame garden room',
+  },
   floorPlan: {
     apertures: [
       { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
@@ -569,20 +756,7 @@ const LIVING_35: ConfiguratorProduct = {
     ],
     dimensionLabels: { width: '7.0m', depth: '5.0m' },
   },
-
   floorPlanImagePath: '/resource/floorplan/7m-x-5m-bedroom.svg',
-
-  image: {
-    src:  '/resource/garden-room/garden-room2.png',
-    webP: '/resource/garden-room/garden-room2.webp',
-    avif: '/resource/garden-room/garden-room2.avif',
-    alt:  'The Living 35m\u00B2 steel frame garden room',
-  },
-
-  available: true,
-  planningPermission: true,
-  leadTime: '10\u201312 weeks',
-  displayOrder: 3,
 };
 
 
@@ -592,42 +766,88 @@ const LIVING_35: ConfiguratorProduct = {
  * The largest model, designed as a genuine self-contained building.
  * Uses a portal steel frame with dual-zone heating and extensive glazing.
  * Bathroom, kitchen, and plumbing connections are included in the base price.
- * Requires planning permission. Currently listed as "Coming Soon".
+ * Requires planning permission.
  */
-const GRAND_45: ConfiguratorProduct = {
+const GRAND_45: HydratedProduct = {
+  /* --- Identity -------------------------------------------------- */
   id: 'cp-grand-45',
   slug: 'grand-45',
   name: 'The Grand',
-  tagline: '45 m\u00B2 garden room \u2014 manufactured in Dublin',
+  tagline: 'A building, not just a room',
+  description:
+    'At 45m\u00B2, The Grand is less a garden room and more a building in its own right \u2014 a self-contained living space with full kitchen, bathroom, and open-plan living area, all finished to the same turnkey standard as a new-build home. Use it as a granny flat, an independent annex for family, a multi-room workspace, or a short-let rental that pays for itself over time. Two footprint options let you work with your site, and every detail from the steel frame to the consumer unit is designed for permanence, not compromise.',
 
+  /* --- Dimensions ------------------------------------------------ */
   dimensions: {
     widthM: 9.0,
     depthM: 5.0,
     heightM: 2.8,
     areaM2: 45,
   },
+  dimensionsDisplay: '9.0m \u00D7 5.0m or 7.5m \u00D7 6.0m',
 
+  /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 8_350_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 
-  finishCategories: buildFinishCategories('The Grand'),
+  /* --- Availability ---------------------------------------------- */
+  available: true,
+  inStock: true,
+  planningPermission: true,
+  leadTime: '12\u201316 weeks',
 
-  /* --- Floor Plan Variants ------------------------------------ */
+  /* --- Call to action --------------------------------------------- */
+  ctaText: 'Customise',
+  ctaLink: '/garden-room/configure/grand-45',
 
-  /**
-   * Two selectable external footprints for The Grand 45m2 product.
-   * The 9x5 variant is the original rectangular layout (9.0m x 5.0m).
-   * The 7.5x6 variant is a wider alternative (7.5m x 6.0m) with the
-   * same 45 m2 floor area. Both variants use pre-rendered SVG floor
-   * plan images rather than the programmatic ArchitecturalFloorPlan
-   * renderer, as the Grand does not require layout-specific internal
-   * wall configurations.
-   *
-   * Price delta is 0 for both variants -- the distinction is purely
-   * dimensional at this stage.
-   */
-  floorPlanVariants: [
+  /* --- Optional marketing modifiers ------------------------------ */
+  glazingNote:
+    'Glazing details: 2\u00D7 900mm \u00D7 2100mm tilt & turn windows + ' +
+    '1600mm \u00D7 2100mm French door + 3000mm \u00D7 2100mm sliding door.',
+
+  /* --- Sort ------------------------------------------------------ */
+  displayOrder: 4,
+
+  /* --- Images ---------------------------------------------------- */
+  images: [
+    {
+      id: 'img-grand-hero',
+      productId: 'cp-grand-45',
+      src: '/resource/garden-room/garden-room3.png',
+      webP: '/resource/garden-room/garden-room3.webp',
+      avif: '/resource/garden-room/garden-room3.avif',
+      alt: 'The Grand 45m\u00B2 steel frame garden room',
+      role: 'hero',
+      displayOrder: 1,
+    },
+  ],
+
+  /* --- Specifications -------------------------------------------- */
+  specs: [
+    { id: 'sp-grand-01', productId: 'cp-grand-45', label: 'Dimensions',  value: '9.0m \u00D7 5.0m',                                              displayOrder: 1 },
+    { id: 'sp-grand-02', productId: 'cp-grand-45', label: 'Area',        value: '45 m\u00B2',                                                    displayOrder: 2 },
+    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'Galvanised steel portal frame',                                 displayOrder: 3 },
+    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '150mm PIR (U-value 0.12)',                                      displayOrder: 4 },
+    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Composite flooring',                                            displayOrder: 5 },
+    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door',      displayOrder: 6 },
+    { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit ready',                                      displayOrder: 7 },
+    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'Flat roof membrane, included',                                  displayOrder: 8 },
+    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + full kitchen + WC included',                         displayOrder: 9 },
+  ],
+
+  /* --- Use cases ------------------------------------------------- */
+  useCases: [
+    { id: 'uc-grand-c1', productId: 'cp-grand-45', text: 'Self-contained apartment', context: 'card',       displayOrder: 1 },
+    { id: 'uc-grand-c2', productId: 'cp-grand-45', text: 'Multi-room workspace',     context: 'card',       displayOrder: 2 },
+    { id: 'uc-grand-q1', productId: 'cp-grand-45', text: 'Full Living Annex',        context: 'quick-view', displayOrder: 3 },
+    { id: 'uc-grand-q2', productId: 'cp-grand-45', text: 'Large Studio / Workshop',  context: 'quick-view', displayOrder: 4 },
+    { id: 'uc-grand-q3', productId: 'cp-grand-45', text: 'Commercial Suite',         context: 'quick-view', displayOrder: 5 },
+    { id: 'uc-grand-q4', productId: 'cp-grand-45', text: 'Granny Flat',              context: 'quick-view', displayOrder: 6 },
+  ],
+
+  /* --- Footprint variants ---------------------------------------- */
+  footprintVariants: [
     {
       id: 'fpv-grand-9x5',
       productId: 'cp-grand-45',
@@ -638,16 +858,6 @@ const GRAND_45: ConfiguratorProduct = {
       depthM: 5.0,
       areaM2: 45,
       priceDeltaCentsInclVat: 0,
-      floorPlan: {
-        apertures: [
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-          { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
-          { type: 'sliding-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
-        ],
-        dimensionLabels: { width: '9.0m', depth: '5.0m' },
-      },
-      floorPlanImagePath: '/resource/floorplan/9m-x-5m.svg',
       displayOrder: 1,
     },
     {
@@ -660,20 +870,14 @@ const GRAND_45: ConfiguratorProduct = {
       depthM: 6.0,
       areaM2: 45,
       priceDeltaCentsInclVat: 0,
-      floorPlan: {
-        apertures: [
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-          { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
-          { type: 'sliding-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
-        ],
-        dimensionLabels: { width: '7.5m', depth: '6.0m' },
-      },
-      floorPlanImagePath: '/resource/floorplan/7.5m-x-6m.svg',
       displayOrder: 2,
     },
-  ] satisfies ReadonlyArray<FloorPlanVariant>,
+  ] satisfies ReadonlyArray<FootprintVariant>,
 
+  /* --- Layout options -------------------------------------------- */
+  layoutOptions: [],
+
+  /* --- Addons ---------------------------------------------------- */
   addons: [
     {
       id: 'ao-grand-triple-glazing',
@@ -697,6 +901,7 @@ const GRAND_45: ConfiguratorProduct = {
     },
   ],
 
+  /* --- Included features ----------------------------------------- */
   includedFeatures: [
     {
       id: 'if-grand-bk',
@@ -714,22 +919,16 @@ const GRAND_45: ConfiguratorProduct = {
     },
   ],
 
-  specs: [
-    { id: 'sp-grand-01', productId: 'cp-grand-45', label: 'Dimensions',  value: '9.0m \u00D7 5.0m',                                              displayOrder: 1 },
-    { id: 'sp-grand-02', productId: 'cp-grand-45', label: 'Area',        value: '45 m\u00B2',                                                    displayOrder: 2 },
-    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'Galvanised steel portal frame',                                 displayOrder: 3 },
-    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '150mm PIR (U-value 0.12)',                                      displayOrder: 4 },
-    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Composite flooring',                                            displayOrder: 5 },
-    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door',      displayOrder: 6 },
-    { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit ready',                                      displayOrder: 7 },
-    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'Flat roof membrane, included',                                  displayOrder: 8 },
-    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + full kitchen + WC included',                         displayOrder: 9 },
-  ],
+  /* --- Finish categories ----------------------------------------- */
+  finishCategories: buildFinishCategories('The Grand'),
 
-  glazingNote:
-    'Glazing details: 2\u00D7 900mm \u00D7 2100mm tilt & turn windows + ' +
-    '1600mm \u00D7 2100mm French door + 3000mm \u00D7 2100mm sliding door.',
-
+  /* --- Legacy compatibility fields ------------------------------- */
+  image: {
+    src:  '/resource/garden-room/garden-room3.png',
+    webP: '/resource/garden-room/garden-room3.webp',
+    avif: '/resource/garden-room/garden-room3.avif',
+    alt:  'The Grand 45m\u00B2 steel frame garden room',
+  },
   floorPlan: {
     apertures: [
       { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
@@ -739,18 +938,52 @@ const GRAND_45: ConfiguratorProduct = {
     ],
     dimensionLabels: { width: '9.0m', depth: '5.0m' },
   },
-
-  image: {
-    src:  '/resource/garden-room/garden-room3.png',
-    webP: '/resource/garden-room/garden-room3.webp',
-    avif: '/resource/garden-room/garden-room3.avif',
-    alt:  'The Grand 45m\u00B2 steel frame garden room',
-  },
-
-  available: true,
-  planningPermission: true,
-  leadTime: '12\u201316 weeks',
-  displayOrder: 4,
+  floorPlanVariants: [
+    {
+      id: 'fpv-grand-9x5',
+      productId: 'cp-grand-45',
+      slug: '9x5',
+      label: '9.0m x 5.0m',
+      description: 'Original rectangular footprint',
+      widthM: 9.0,
+      depthM: 5.0,
+      areaM2: 45,
+      priceDeltaCentsInclVat: 0,
+      displayOrder: 1,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '9.0m', depth: '5.0m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/9m-x-5m.svg',
+    },
+    {
+      id: 'fpv-grand-7.5x6',
+      productId: 'cp-grand-45',
+      slug: '7.5x6',
+      label: '7.5m x 6.0m',
+      description: 'Wider rectangular footprint',
+      widthM: 7.5,
+      depthM: 6.0,
+      areaM2: 45,
+      priceDeltaCentsInclVat: 0,
+      displayOrder: 2,
+      floorPlan: {
+        apertures: [
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
+          { type: 'sliding-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
+        ],
+        dimensionLabels: { width: '7.5m', depth: '6.0m' },
+      },
+      floorPlanImagePath: '/resource/floorplan/7.5m-x-6m.svg',
+    },
+  ],
 };
 
 
@@ -763,17 +996,18 @@ const GRAND_45: ConfiguratorProduct = {
       Products are sorted by ascending floor area.
 
    2. CONFIGURATOR_PRODUCTS_BY_SLUG -- slug-keyed record for O(1) lookups.
-      Used by the router to resolve a URL parameter to a product definition.
+      Used by the router to resolve a URL parameter to a product definition,
+      and by garden-room-data.ts to derive marketing page projections.
 
    Both exports reference the same object instances, ensuring referential
    equality for identity checks if needed.
    ============================================================================= */
 
 /**
- * All configurable garden room products in ascending order by floor area.
+ * All garden room products in ascending order by floor area.
  * Used for iteration in product listing views and the configurator router.
  */
-export const CONFIGURATOR_PRODUCTS: ReadonlyArray<ConfiguratorProduct> = [
+export const CONFIGURATOR_PRODUCTS: ReadonlyArray<HydratedProduct> = [
   COMPACT_15,
   STUDIO_25,
   LIVING_35,
@@ -781,13 +1015,13 @@ export const CONFIGURATOR_PRODUCTS: ReadonlyArray<ConfiguratorProduct> = [
 ];
 
 /**
- * Slug-keyed lookup map for resolving a URL parameter to a ConfiguratorProduct.
+ * Slug-keyed lookup map for resolving a URL parameter to a HydratedProduct.
  * Enables O(1) product resolution in the route handler without array scanning.
  *
  * Usage:
  *   const product = CONFIGURATOR_PRODUCTS_BY_SLUG['studio-25'];
  */
-export const CONFIGURATOR_PRODUCTS_BY_SLUG: Readonly<Record<string, ConfiguratorProduct>> = {
+export const CONFIGURATOR_PRODUCTS_BY_SLUG: Readonly<Record<string, HydratedProduct>> = {
   'compact-15': COMPACT_15,
   'studio-25':  STUDIO_25,
   'living-35':  LIVING_35,

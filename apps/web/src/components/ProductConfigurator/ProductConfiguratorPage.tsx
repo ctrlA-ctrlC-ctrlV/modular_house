@@ -237,13 +237,13 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             alt={`Floor plan: ${product.name}`}
             className="configurator__floor-plan-image"
           />
-        ) : (
+        ) : product.floorPlan ? (
           <FloorPlan
-            config={product.floorPlan}
+            config={product.floorPlan as import('../../types/configurator').FloorPlanConfig}
             dimensions={product.dimensions}
             wallColor="#1a1a1a"
           />
-        )}
+        ) : null}
         <div className="configurator__price-display">
           <div className="configurator__price-amount">
             {formatPriceCents(product.basePriceCentsInclVat)}

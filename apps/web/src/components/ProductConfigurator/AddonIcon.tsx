@@ -144,15 +144,22 @@ const ICON_MAP: Record<AddonIconId, React.FC> = {
 
 /** Props accepted by the AddonIcon component. */
 interface AddonIconProps {
-  /** Semantic icon identifier to resolve from the ICON_MAP lookup. */
-  iconId: AddonIconId;
+  /**
+   * Semantic icon identifier to resolve from the ICON_MAP lookup.
+   * Accepts a plain string to remain compatible with the unified schema
+   * where Addon.iconId is typed as string for extensibility. Unknown
+   * identifiers fall back to a neutral placeholder icon.
+   */
+  iconId: string;
 }
 
 /**
- * Resolves an AddonIconId to the matching SVG icon component and renders it.
+ * Resolves an icon identifier to the matching SVG icon component and renders it.
  * The resolved component inherits stroke colour from its parent via currentColor.
+ * Falls back to the GlazingIcon for unrecognised identifiers to prevent runtime
+ * crashes when new icon IDs are added before their SVG components are implemented.
  */
 export const AddonIcon: React.FC<AddonIconProps> = ({ iconId }) => {
-  const IconComponent = ICON_MAP[iconId];
+  const IconComponent = ICON_MAP[iconId as AddonIconId] ?? GlazingIcon;
   return <IconComponent />;
 };

@@ -138,7 +138,10 @@ const GardenRoomConfigurator: React.FC = () => {
     `${product.name} ${product.dimensions.areaM2}m\u00B2 steel frame garden room configurator. ` +
     'Choose finishes, add-ons, and get your instant estimate.';
   const canonicalUrl = `https://modularhouse.ie/garden-room/configure/${product.slug}`;
-  const absoluteImageUrl = `https://modularhouse.ie${product.image.src}`;
+  /** Resolve the hero image URL for OG meta tags, preferring the legacy
+   *  `image` accessor then falling back to the first entry in `images`. */
+  const heroSrc = product.image?.src ?? product.images[0]?.src ?? '';
+  const absoluteImageUrl = `https://modularhouse.ie${heroSrc}`;
 
 
   /* -----------------------------------------------------------------------

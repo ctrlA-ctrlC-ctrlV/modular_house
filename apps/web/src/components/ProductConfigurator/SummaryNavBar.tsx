@@ -167,13 +167,13 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
                 className="configurator__floor-plan-image"
                 loading="lazy"
               />
-            ) : (
+            ) : product.floorPlan ? (
               <FloorPlan
-                config={product.floorPlan}
+                config={product.floorPlan as import('../../types/configurator').FloorPlanConfig}
                 dimensions={product.dimensions}
                 wallColor="#1a1a1a"
               />
-            )}
+            ) : null}
           </div>
           <div className="configurator__summary-floor-plan-dims">
             {displayWidth}m x {displayDepth}m

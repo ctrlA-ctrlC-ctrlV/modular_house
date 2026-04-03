@@ -247,7 +247,7 @@ function Landing() {
 
           Our team handles everything from design to installation, ensuring a smooth, stress-free process. Whether you're after extra space for work, wellness, or weekend lounging, we're here to make it happen, beautifully and efficiently."
           button2Text = "Need more info?"
-          button2Link = "/garden-room"
+          button2Link = "/garden-rooms"
           renderLink={renderLink}
         />
       </div>

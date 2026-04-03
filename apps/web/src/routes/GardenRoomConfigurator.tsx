@@ -99,7 +99,7 @@ const GardenRoomConfigurator: React.FC = () => {
           The garden room configuration you requested could not be found.
         </p>
         <Link
-          to="/garden-room"
+          to="/garden-rooms"
           style={{
             padding: '12px 24px',
             background: '#1a1a1a',
@@ -137,7 +137,7 @@ const GardenRoomConfigurator: React.FC = () => {
   const seoDescription =
     `${product.name} ${product.dimensions.areaM2}m\u00B2 steel frame garden room configurator. ` +
     'Choose finishes, add-ons, and get your instant estimate.';
-  const canonicalUrl = `https://modularhouse.ie/garden-room/configure/${product.slug}`;
+  const canonicalUrl = `https://modularhouse.ie/garden-rooms/configure/${product.slug}`;
   /** Resolve the hero image URL for OG meta tags, preferring the legacy
    *  `image` accessor then falling back to the first entry in `images`. */
   const heroSrc = product.image?.src ?? product.images[0]?.src ?? '';

@@ -17,7 +17,7 @@ import { routesMetadata } from './routes-metadata';
  */
 const componentMap: Record<string, React.ComponentType> = {
   '/': Landing,
-  '/garden-room': GardenRoom,
+  '/garden-rooms': GardenRoom,
   '/house-extension': HouseExtension,
   '/gallery': Gallery,
   '/about': About,

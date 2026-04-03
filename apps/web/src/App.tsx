@@ -24,7 +24,7 @@
  * =============================================================================
  */
 
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { TemplateLayout } from './components/TemplateLayout'
 import { TrailingSlashRedirect } from './components/TrailingSlashRedirect'
 import { routes } from './route-config'
@@ -38,13 +38,19 @@ import AdminSubmissions from './routes/admin/submissions'
 import AdminPages from './routes/admin/pages'
 import AdminGuard from './routes/admin/guard'
 
+/** Redirect helper: forwards /garden-room/configure/:slug to /garden-rooms/configure/:slug */
+function GardenRoomConfigureRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/garden-rooms/configure/${slug}`} replace />;
+}
+
 /**
  * App
  *
  * Root component that configures the application's route hierarchy.
  * All routes are wrapped in TrailingSlashRedirect to enforce URL normalization,
- * ensuring that URLs ending with a trailing slash (e.g., '/garden-room/') are
- * redirected to their canonical form (e.g., '/garden-room') before rendering.
+ * ensuring that URLs ending with a trailing slash (e.g., '/garden-rooms/') are
+ * redirected to their canonical form (e.g., '/garden-rooms') before rendering.
  *
  * @returns The complete route tree for the application.
  */
@@ -68,10 +74,14 @@ function App() {
           {/*
             Garden Room Configurator — dynamic route with :slug parameter.
             Each garden room product (compact-15, studio-25, living-35, grand-45)
-            has its own configurator page at /garden-room/configure/:slug.
+            has its own configurator page at /garden-rooms/configure/:slug.
             The slug is resolved to a ConfiguratorProduct inside the component.
           */}
-          <Route path="/garden-room/configure/:slug" element={<GardenRoomConfigurator />} />
+          <Route path="/garden-rooms/configure/:slug" element={<GardenRoomConfigurator />} />
+
+          {/* SEO: Redirect singular /garden-room to canonical /garden-rooms (plural) */}
+          <Route path="/garden-room" element={<Navigate to="/garden-rooms" replace />} />
+          <Route path="/garden-room/configure/:slug" element={<GardenRoomConfigureRedirect />} />
         </Route>
 
         {/* Admin Routes — also normalized for trailing slash consistency */}

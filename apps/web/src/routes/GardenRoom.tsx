@@ -201,7 +201,7 @@ const GardenRoom: React.FC = () => {
           =================================================================== */}
       <div id="garden_room_hero" className="garden-room__hero">
         <HeroBoldBottomText
-          titleLine1="Steel Frame Garden Rooms"
+          titleLine1="Dublin Manufactured Steel Frame Garden Rooms"
           titleLine2="Built to Last. Designed for Living."
           ctaText="Get a Free Quote"
           ctaLink="#"

@@ -174,7 +174,7 @@ export const routesMetadata: RouteMetadata[] = [
                 name: 'Is my build guaranteed?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Yes. We provide a comprehensive 50-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.',
+                  text: 'Yes. We provide a comprehensive 25-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.',
                 },
               },
             ],
@@ -195,11 +195,11 @@ export const routesMetadata: RouteMetadata[] = [
   // targeting "garden rooms Ireland" and size-specific long-tail queries.
   // ---------------------------------------------------------------------------
   {
-    path: '/garden-room',
+    path: '/garden-rooms',
     seo: {
       title: 'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2',
       description: 'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin. Free quote.',
-      canonicalUrl: 'https://modularhouse.ie/garden-room',
+      canonicalUrl: 'https://modularhouse.ie/garden-rooms',
       robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 
       openGraph: {
@@ -213,7 +213,7 @@ export const routesMetadata: RouteMetadata[] = [
         imageWidth: 1200,
         imageHeight: 630,
         imageType: 'image/png',
-        url: 'https://modularhouse.ie/garden-room',
+        url: 'https://modularhouse.ie/garden-rooms',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
       },
@@ -365,7 +365,7 @@ export const routesMetadata: RouteMetadata[] = [
                 name: 'What is included in the price?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'The quoted price includes the precision-cut steel frame, full PIR insulation, external cladding, internal plasterboard lining, laminate or tile flooring, electrical wiring with LED lighting and sockets, triple-glazed windows and doors, and a 10-year structural warranty. Foundation works, plumbing, and bespoke upgrades (such as underfloor heating or additional power circuits) are quoted separately based on site requirements.',
+                  text: 'The quoted price includes the precision-cut steel frame, full PIR insulation, external cladding, internal plasterboard lining, laminate or tile flooring, electrical wiring with LED lighting and sockets, triple-glazed windows and doors, and a 25-year structural warranty. Foundation works, plumbing, and bespoke upgrades (such as underfloor heating or additional power circuits) are quoted separately based on site requirements.',
                 },
               },
             ],
@@ -374,7 +374,7 @@ export const routesMetadata: RouteMetadata[] = [
 
         // WebPage + BreadcrumbList schemas for this route.
         ...generatePageSchema(
-          '/garden-room',
+          '/garden-rooms',
           'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2',
           'Premium steel-frame garden rooms in 15m\u00B2, 25m\u00B2, 35m\u00B2 & 45m\u00B2 sizes. No planning permission needed up to 25m\u00B2. Built in Dublin. Free quote.',
           BUILD_TIMESTAMP

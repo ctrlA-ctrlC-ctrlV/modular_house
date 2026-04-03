@@ -249,7 +249,7 @@ const COMPACT_15: HydratedProduct = {
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
-  ctaLink: '/garden-room/configure/compact-15',
+  ctaLink: '/garden-rooms/configure/compact-15',
 
   /* --- Sort ------------------------------------------------------ */
   displayOrder: 1,
@@ -388,7 +388,7 @@ const STUDIO_25: HydratedProduct = {
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
-  ctaLink: '/garden-room/configure/studio-25',
+  ctaLink: '/garden-rooms/configure/studio-25',
 
   /* --- Optional marketing modifiers ------------------------------ */
   badge: 'Most Popular',
@@ -642,7 +642,7 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
-  ctaLink: '/garden-room/configure/living-35',
+  ctaLink: '/garden-rooms/configure/living-35',
 
   /* --- Optional marketing modifiers ------------------------------ */
   glazingNote:
@@ -799,7 +799,7 @@ const GRAND_45: HydratedProduct = {
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
-  ctaLink: '/garden-room/configure/grand-45',
+  ctaLink: '/garden-rooms/configure/grand-45',
 
   /* --- Optional marketing modifiers ------------------------------ */
   glazingNote:

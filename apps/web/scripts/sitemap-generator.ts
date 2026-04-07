@@ -109,6 +109,19 @@ export function generateSitemapXml(buildTimestamp?: string): string {
   });
 
   /**
+   * Garden room configurator pages are dynamic routes (/garden-rooms/configure/:slug)
+   * not listed in routesMetadata. Since the product slugs are known at build time,
+   * they are appended here as supplementary sitemap entries so search engines can
+   * discover them without relying solely on internal link crawling.
+   */
+  const configuratorSlugs = ['compact-15', 'studio-25', 'living-35', 'grand-45'];
+  const configuratorEntries = configuratorSlugs.map(slug => ({
+    path: `/garden-rooms/configure/${slug}`,
+    changefreq: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  /**
    * Render each indexable route as a <url> block.
    *
    * The <lastmod> element is placed immediately after <loc> in accordance with
@@ -128,7 +141,18 @@ export function generateSitemapXml(buildTimestamp?: string): string {
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`;
-  }).join('');
+  });
+
+  // Append configurator page entries
+  const configuratorUrlElements = configuratorEntries.map(entry => `
+  <url>
+    <loc>${HOSTNAME}${entry.path}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${entry.changefreq}</changefreq>
+    <priority>${entry.priority}</priority>
+  </url>`);
+
+  const allUrlElements = [...urlElements, ...configuratorUrlElements].join('');
 
   /**
    * Assemble the complete XML document.
@@ -137,7 +161,7 @@ export function generateSitemapXml(buildTimestamp?: string): string {
    */
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urlElements}
+${allUrlElements}
 </urlset>`;
 }
 

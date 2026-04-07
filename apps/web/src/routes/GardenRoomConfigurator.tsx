@@ -3,15 +3,15 @@
  * =============================================================================
  *
  * PURPOSE:
- * Route-level component for the /garden-room/configure/:slug URL pattern.
+ * Route-level component for the /garden-rooms/configure/:slug URL pattern.
  * Resolves the dynamic :slug parameter to a ConfiguratorProduct from the
  * seed data, then renders the ProductConfiguratorPage component.
  *
  * URL EXAMPLES:
- *   /garden-room/configure/compact-15  -> The Compact (15 m2)
- *   /garden-room/configure/studio-25   -> The Studio (25 m2)
- *   /garden-room/configure/living-35   -> The Living (35 m2)
- *   /garden-room/configure/grand-45    -> The Grand (45 m2)
+ *   /garden-rooms/configure/compact-15  -> The Compact (15 m2)
+ *   /garden-rooms/configure/studio-25   -> The Studio (25 m2)
+ *   /garden-rooms/configure/living-35   -> The Living (35 m2)
+ *   /garden-rooms/configure/grand-45    -> The Grand (45 m2)
  *
  * ARCHITECTURE:
  * - Uses react-router-dom's useParams to extract the slug from the URL.

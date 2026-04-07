@@ -222,7 +222,7 @@ export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
    ProductRangeGrid component. Maps identity, card pricing, images, use
    cases, and availability status. The badge field is spread conditionally
    (only when defined on the product record). CTA links route to the
-   product configurator at /garden-room/configure/:slug.
+   product configurator at /garden-rooms/configure/:slug.
    ============================================================================= */
 
 export const GARDEN_ROOM_PRODUCTS: ProductCard[] =

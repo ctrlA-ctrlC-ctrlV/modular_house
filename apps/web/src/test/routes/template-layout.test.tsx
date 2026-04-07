@@ -57,7 +57,7 @@ describe('TemplateLayout Integration', () => {
     ['/contact', 'page-contact'],
     ['/privacy', 'page-privacy'],
     ['/terms', 'page-terms'],
-    ['/garden-room', 'page-garden-room'],
+    ['/garden-rooms', 'page-garden-room'],
     ['/house-extension', 'page-house-extension'],
     ['/unknown-route', 'page-404'],
   ])('renders TemplateLayout for route %s', async (route, testId) => {
@@ -105,7 +105,7 @@ describe('TemplateLayout Integration', () => {
  * querying document.head.
  *
  * Route choices:
- * - /garden-room: has a fully populated openGraph block in routes-metadata.ts.
+ * - /garden-rooms: has a fully populated openGraph block in routes-metadata.ts.
  * - /privacy: is a legal page intentionally configured with no openGraph block.
  */
 describe('TemplateLayout — Open Graph meta tag injection (T015a)', () => {
@@ -115,11 +115,11 @@ describe('TemplateLayout — Open Graph meta tag injection (T015a)', () => {
   });
 
   it('emits og:title into document.head when the matched route has an openGraph configuration', async () => {
-    // Render at /garden-room, which carries a full openGraph block in routes-metadata.ts.
+    // Render at /garden-rooms, which carries a full openGraph block in routes-metadata.ts.
     // The expected og:title value is sourced directly from that metadata entry to ensure
     // the test remains tightly coupled to the data source rather than a hardcoded string
     // that could drift out of sync with the metadata.
-    renderRoute('/garden-room');
+    renderRoute('/garden-rooms');
 
     await waitFor(() => {
       const ogTitleTag = document.querySelector('meta[property="og:title"]');
@@ -129,7 +129,7 @@ describe('TemplateLayout — Open Graph meta tag injection (T015a)', () => {
       expect(ogTitleTag).not.toBeNull();
 
       // Assert the content matches the value declared in routes-metadata.ts for
-      // the /garden-room entry, confirming end-to-end data propagation.
+      // the /garden-rooms entry, confirming end-to-end data propagation.
       expect(ogTitleTag).toHaveAttribute('content', 'Garden Rooms Ireland | Steel Frame from 15m\u00B2 to 45m\u00B2');
     });
   });

@@ -76,7 +76,7 @@ function Landing() {
   // );
   const handleShowcaseProductClick = useCallback(
     (): void => {
-      navigate('/garden-room#product-range');
+      navigate('/garden-rooms#product-range');
     },
     [navigate],
   );

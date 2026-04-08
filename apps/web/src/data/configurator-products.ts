@@ -367,7 +367,7 @@ const COMPACT_15: HydratedProduct = {
   specs: [
     { id: 'sp-compact-01', productId: 'cp-compact-15', label: 'Dimensions',  value: '5.0m \u00D7 3.0m',                displayOrder: 1 },
     { id: 'sp-compact-02', productId: 'cp-compact-15', label: 'Area',        value: '15 m\u00B2',                       displayOrder: 2 },
-    { id: 'sp-compact-03', productId: 'cp-compact-15', label: 'Structure',   value: 'Light Gauge Steel frame',       displayOrder: 3 },
+    { id: 'sp-compact-03', productId: 'cp-compact-15', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',       displayOrder: 3 },
     { id: 'sp-compact-04', productId: 'cp-compact-15', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',    displayOrder: 4 },
     { id: 'sp-compact-05', productId: 'cp-compact-15', label: 'Flooring',    value: 'Laminated flooring',            displayOrder: 5 },
     { id: 'sp-compact-06', productId: 'cp-compact-15', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
@@ -510,7 +510,7 @@ const STUDIO_25: HydratedProduct = {
   specs: [
     { id: 'sp-studio-01', productId: 'cp-studio-25', label: 'Dimensions',  value: '5.0m \u00D7 5.0m',                  displayOrder: 1 },
     { id: 'sp-studio-02', productId: 'cp-studio-25', label: 'Area',        value: '25 m\u00B2',                         displayOrder: 2 },
-    { id: 'sp-studio-03', productId: 'cp-studio-25', label: 'Structure',   value: 'Light Gauge Steel frame',         displayOrder: 3 },
+    { id: 'sp-studio-03', productId: 'cp-studio-25', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',         displayOrder: 3 },
     { id: 'sp-studio-04', productId: 'cp-studio-25', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',      displayOrder: 4 },
     { id: 'sp-studio-05', productId: 'cp-studio-25', label: 'Flooring',    value: 'Laminated flooring',              displayOrder: 5 },
     { id: 'sp-studio-06', productId: 'cp-studio-25', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
@@ -770,7 +770,7 @@ const LIVING_35: HydratedProduct = {
   specs: [
     { id: 'sp-living-01', productId: 'cp-living-35', label: 'Dimensions',  value: '7.0m \u00D7 5.0m',                           displayOrder: 1 },
     { id: 'sp-living-02', productId: 'cp-living-35', label: 'Area',        value: '35 m\u00B2',                                  displayOrder: 2 },
-    { id: 'sp-living-03', productId: 'cp-living-35', label: 'Structure',   value: 'Light Gauge Steel frame',                     displayOrder: 3 },
+    { id: 'sp-living-03', productId: 'cp-living-35', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                     displayOrder: 3 },
     { id: 'sp-living-04', productId: 'cp-living-35', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                  displayOrder: 4 },
     { id: 'sp-living-05', productId: 'cp-living-35', label: 'Flooring',    value: 'Laminated flooring',                          displayOrder: 5 },
     { id: 'sp-living-06', productId: 'cp-living-35', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + sliding door',  displayOrder: 6 },
@@ -930,13 +930,13 @@ const GRAND_45: HydratedProduct = {
   specs: [
     { id: 'sp-grand-01', productId: 'cp-grand-45', label: 'Dimensions',  value: '9.0m \u00D7 5.0m',                                              displayOrder: 1 },
     { id: 'sp-grand-02', productId: 'cp-grand-45', label: 'Area',        value: '45 m\u00B2',                                                    displayOrder: 2 },
-    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'Galvanised steel portal frame',                                 displayOrder: 3 },
-    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '150mm PIR (U-value 0.12)',                                      displayOrder: 4 },
-    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Composite flooring',                                            displayOrder: 5 },
+    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                                 displayOrder: 3 },
+    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                                      displayOrder: 4 },
+    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Laminated flooring',                                            displayOrder: 5 },
     { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door',      displayOrder: 6 },
     { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit ready',                                      displayOrder: 7 },
-    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'Flat roof membrane, included',                                  displayOrder: 8 },
-    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + full kitchen + WC included',                         displayOrder: 9 },
+    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'EPDM long life roof',                                  displayOrder: 8 },
+    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + kitchen included',                         displayOrder: 9 },
   ],
 
   /* --- Use cases ------------------------------------------------- */

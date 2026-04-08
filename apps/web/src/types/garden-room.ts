@@ -610,17 +610,34 @@ interface FinishOption {
   readonly id: string;
   /** Foreign key referencing the parent finish category. */
   readonly finishCategoryId: string;
-  /** Display name of the swatch (e.g., "Black", "Teak", "Stone"). */
+  /** Display name of the swatch (e.g., "Charcoal", "Teak", "Stone"). */
   readonly name: string;
   /** Primary swatch hex colour for UI rendering. */
   readonly color: string;
   /** Secondary / accent swatch hex colour for hover or border states. */
   readonly accent: string;
   /**
-   * Path to the preview photograph displayed when this finish is selected
-   * in the configurator. Relative to /public.
+   * Path to the default preview photograph displayed when this finish is
+   * selected in the configurator. Relative to /public. For products with
+   * multiple footprint variants, this path corresponds to the primary
+   * (first) variant; callers should prefer imagePathByFootprint when a
+   * specific variant is active.
    */
   readonly imagePath: string;
+  /**
+   * Optional mapping from footprint variant slug to the corresponding
+   * exterior finish preview image path. Products with multiple footprint
+   * variants (e.g., Studio 25 offers 5x5 and 4.15x6) use this field so
+   * the configurator UI can resolve the correct preview image when the
+   * customer changes the selected variant.
+   *
+   * Products with a single fixed footprint omit this field; the default
+   * imagePath is used directly.
+   *
+   * PostgreSQL: normalised into a product_variant_finish_images junction
+   * table keyed by (product_id, footprint_variant_slug, finish_option_id).
+   */
+  readonly imagePathByFootprint?: Readonly<Record<string, string>>;
   readonly displayOrder: number;
 }
 

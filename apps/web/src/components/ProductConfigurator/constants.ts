@@ -96,14 +96,14 @@ export function buildConfiguratorSteps(
    selections when no prior session state exists. These names are matched
    case-insensitively against the product's finish category options.
 
-   - Exterior defaults to "Black" composite cladding.
+   - Exterior defaults to "Charcoal" composite cladding.
    - Interior defaults to "Stone" plasterboard finish.
 
    Centralising these values here ensures a single point of change if the
    default aesthetic is updated in the future.
    ============================================================================= */
 
-export const DEFAULT_EXTERIOR_FINISH_NAME = 'Black';
+export const DEFAULT_EXTERIOR_FINISH_NAME = 'Charcoal';
 export const DEFAULT_INTERIOR_FINISH_NAME = 'Stone';
 
 

@@ -104,7 +104,7 @@ export function buildConfiguratorSteps(
    ============================================================================= */
 
 export const DEFAULT_EXTERIOR_FINISH_NAME = 'Charcoal';
-export const DEFAULT_INTERIOR_FINISH_NAME = 'Stone';
+export const DEFAULT_INTERIOR_FINISH_NAME = 'Matt';
 
 
 /**

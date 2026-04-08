@@ -192,14 +192,14 @@ function buildExteriorFinishOptions(
  */
 const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
   {
-    id: 'if-stone',
+    id: 'if-matt',
     finishCategoryId: 'fc-interior',
-    name: 'Stone',
+    name: 'Matt',
     color: '#C4BFB6',
     accent: '#A8A299',
-    imagePath: '/resource/garden-room/product-config/interior_finish_stone.jpg',
-    imageWebP: '/resource/garden-room/product-config/interior_finish_stone.webp',
-    imageAvif: '/resource/garden-room/product-config/interior_finish_stone.avif',
+    imagePath: '/resource/garden-room/product-config/interior_finish_matt.jpg',
+    imageWebP: '/resource/garden-room/product-config/interior_finish_matt.webp',
+    imageAvif: '/resource/garden-room/product-config/interior_finish_matt.avif',
     displayOrder: 1,
   },
   {
@@ -208,7 +208,7 @@ const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
     name: 'Cloth',
     color: '#E8E0D4',
     accent: '#D4CAB8',
-    imagePath: '/resource/garden-room/product-config/interior_finish_cloth.jpg',
+    imagePath: '/resource/garden-room/product-config/interior_finish_cloth.png',
     imageWebP: '/resource/garden-room/product-config/interior_finish_cloth.webp',
     imageAvif: '/resource/garden-room/product-config/interior_finish_cloth.avif',
     displayOrder: 2,

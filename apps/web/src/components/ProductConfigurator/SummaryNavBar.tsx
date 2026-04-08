@@ -202,12 +202,16 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
       <div className="configurator__summary-section-content">
         {exteriorFinish ? (
           <>
-            <img
-              src={exteriorFinish.imagePath}
-              alt={`Exterior finish: ${exteriorFinish.name}`}
-              className="configurator__summary-finish-image"
-              loading="lazy"
-            />
+            <picture>
+              <source srcSet={exteriorFinish.imageAvif} type="image/avif" />
+              <source srcSet={exteriorFinish.imageWebP} type="image/webp" />
+              <img
+                src={exteriorFinish.imagePath}
+                alt={`Exterior finish: ${exteriorFinish.name}`}
+                className="configurator__summary-finish-image"
+                loading="lazy"
+              />
+            </picture>
             <div className="configurator__summary-finish-preview">
               <div
                 className="configurator__summary-swatch"
@@ -241,12 +245,16 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
       <div className="configurator__summary-section-content">
         {interiorFinish ? (
           <>
-            <img
-              src={interiorFinish.imagePath}
-              alt={`Interior finish: ${interiorFinish.name}`}
-              className="configurator__summary-finish-image"
-              loading="lazy"
-            />
+            <picture>
+              <source srcSet={interiorFinish.imageAvif} type="image/avif" />
+              <source srcSet={interiorFinish.imageWebP} type="image/webp" />
+              <img
+                src={interiorFinish.imagePath}
+                alt={`Interior finish: ${interiorFinish.name}`}
+                className="configurator__summary-finish-image"
+                loading="lazy"
+              />
+            </picture>
             <div className="configurator__summary-finish-preview">
               <div
                 className="configurator__summary-swatch"

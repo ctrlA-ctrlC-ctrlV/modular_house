@@ -171,7 +171,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
     const imagePaths: string[] = [];
     for (const category of product.finishCategories) {
       for (const option of category.options) {
-        imagePaths.push(option.imagePath);
+        imagePaths.push(option.imagePath, option.imageWebP, option.imageAvif);
       }
     }
 
@@ -310,17 +310,22 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
          and cause visible jitter while the image loads from the network. */}
       <div className="configurator__hero-visual configurator__hero-visual--compact">
         {exteriorCategory?.options.map((finish) => (
-          <img
+          <picture
             key={finish.id}
-            src={finish.imagePath}
-            alt={`Exterior finish: ${finish.name}`}
             className={
               `configurator__finish-preview` +
               (state.selections.exteriorFinishId === finish.id
                 ? ' configurator__finish-preview--active'
                 : ' configurator__finish-preview--hidden')
             }
-          />
+          >
+            <source srcSet={finish.imageAvif} type="image/avif" />
+            <source srcSet={finish.imageWebP} type="image/webp" />
+            <img
+              src={finish.imagePath}
+              alt={`Exterior finish: ${finish.name}`}
+            />
+          </picture>
         ))}
       </div>
 
@@ -361,17 +366,22 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
          mounting, mirroring the preloading strategy used on the exterior step. */}
       <div className="configurator__hero-visual configurator__hero-visual--compact">
         {interiorCategory?.options.map((finish) => (
-          <img
+          <picture
             key={finish.id}
-            src={finish.imagePath}
-            alt={`Interior finish: ${finish.name}`}
             className={
               `configurator__finish-preview` +
               (state.selections.interiorFinishId === finish.id
                 ? ' configurator__finish-preview--active'
                 : ' configurator__finish-preview--hidden')
             }
-          />
+          >
+            <source srcSet={finish.imageAvif} type="image/avif" />
+            <source srcSet={finish.imageWebP} type="image/webp" />
+            <img
+              src={finish.imagePath}
+              alt={`Interior finish: ${finish.name}`}
+            />
+          </picture>
         ))}
       </div>
 

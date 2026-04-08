@@ -356,9 +356,13 @@
 .configurator__finish-preview {
   width: 100%;
   max-width: 400px;
+  transition: opacity var(--cfg-transition-normal);
+}
+
+.configurator__finish-preview img {
+  width: 100%;
   border-radius: var(--cfg-radius-md);
   object-fit: cover;
-  transition: opacity var(--cfg-transition-normal);
 }
 
 /* Active state: the currently selected finish image is visible and

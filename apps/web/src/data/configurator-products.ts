@@ -197,7 +197,7 @@ const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
     name: 'Matt',
     color: '#C4BFB6',
     accent: '#A8A299',
-    imagePath: '/resource/garden-room/product-config/interior_finish_matt.jpg',
+    imagePath: '/resource/garden-room/product-config/interior_finish_matt.png',
     imageWebP: '/resource/garden-room/product-config/interior_finish_matt.webp',
     imageAvif: '/resource/garden-room/product-config/interior_finish_matt.avif',
     displayOrder: 1,

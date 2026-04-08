@@ -601,10 +601,16 @@ interface IncludedFeature {
 
 /**
  * A single finish swatch option within a finish category
- * (e.g., "Black" exterior cladding, "Stone" interior wall).
+ * (e.g., "Charcoal" exterior cladding, "Stone" interior wall).
+ *
+ * Each option carries three image format paths (src, WebP, AVIF) to
+ * support progressive enhancement via the HTML `<picture>` element.
+ * Modern browsers select the most efficient format automatically;
+ * the `imagePath` (PNG or JPEG) serves as the universal fallback.
  *
  * PostgreSQL: `finish_options` table with a foreign key to
- * `finish_categories.id`.
+ * `finish_categories.id`. The three image columns map to
+ * `image_path`, `image_web_p`, and `image_avif`.
  */
 interface FinishOption {
   readonly id: string;
@@ -617,19 +623,31 @@ interface FinishOption {
   /** Secondary / accent swatch hex colour for hover or border states. */
   readonly accent: string;
   /**
-   * Path to the default preview photograph displayed when this finish is
-   * selected in the configurator. Relative to /public. For products with
-   * multiple footprint variants, this path corresponds to the primary
-   * (first) variant; callers should prefer imagePathByFootprint when a
-   * specific variant is active.
+   * Path to the default preview photograph (PNG or JPEG fallback)
+   * displayed when this finish is selected in the configurator.
+   * Relative to /public. For products with multiple footprint variants,
+   * this path corresponds to the primary (first) variant; callers should
+   * prefer imagePathByFootprint when a specific variant is active.
    */
   readonly imagePath: string;
   /**
+   * WebP-optimised variant of the default preview image for modern
+   * browsers. Used as the preferred `<source>` inside a `<picture>`
+   * element, falling back to imagePath when WebP is unsupported.
+   */
+  readonly imageWebP: string;
+  /**
+   * AVIF-optimised variant of the default preview image for maximum
+   * compression. Used as the highest-priority `<source>` inside a
+   * `<picture>` element when the browser supports AVIF decoding.
+   */
+  readonly imageAvif: string;
+  /**
    * Optional mapping from footprint variant slug to the corresponding
-   * exterior finish preview image path. Products with multiple footprint
-   * variants (e.g., Studio 25 offers 5x5 and 4.15x6) use this field so
-   * the configurator UI can resolve the correct preview image when the
-   * customer changes the selected variant.
+   * exterior finish preview image paths (src fallback). Products with
+   * multiple footprint variants (e.g., Studio 25 offers 5x5 and 4.15x6)
+   * use this field so the configurator UI can resolve the correct preview
+   * image when the customer changes the selected variant.
    *
    * Products with a single fixed footprint omit this field; the default
    * imagePath is used directly.
@@ -638,6 +656,18 @@ interface FinishOption {
    * table keyed by (product_id, footprint_variant_slug, finish_option_id).
    */
   readonly imagePathByFootprint?: Readonly<Record<string, string>>;
+  /**
+   * Optional mapping from footprint variant slug to the WebP-optimised
+   * preview image path. Parallels imagePathByFootprint for progressive
+   * format selection within variant-aware `<picture>` elements.
+   */
+  readonly imageWebPByFootprint?: Readonly<Record<string, string>>;
+  /**
+   * Optional mapping from footprint variant slug to the AVIF-optimised
+   * preview image path. Parallels imagePathByFootprint for progressive
+   * format selection within variant-aware `<picture>` elements.
+   */
+  readonly imageAvifByFootprint?: Readonly<Record<string, string>>;
   readonly displayOrder: number;
 }
 

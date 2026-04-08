@@ -82,30 +82,19 @@ import type {
 const EXTERIOR_IMAGE_DIR = '/resource/garden-room/product-config';
 
 /**
- * Resolves the file extension for an exterior finish image.
+ * Constructs the full public-relative path for an exterior finish image
+ * in the specified format.
  *
- * The majority of exterior finish images are PNG. The charcoal 7.5m
- * variant (exterior_finish_charcoal_7_5m.jpg) was exported as JPEG
- * during the asset preparation pipeline and is handled as an exception.
- *
- * @param colourKey - The lowercase colour identifier (e.g., 'charcoal').
- * @param sizeSuffix - The dimension suffix (e.g., '5m', '7_5m').
- * @returns The file extension without a leading dot.
- */
-function resolveExteriorImageExtension(colourKey: string, sizeSuffix: string): string {
-  if (colourKey === 'charcoal' && sizeSuffix === '7_5m') return 'jpg';
-  return 'png';
-}
-
-/**
- * Constructs the full public-relative path for an exterior finish image.
+ * All exterior finish source images are PNG. The optimise-images script
+ * generates WebP and AVIF siblings with the same stem, so the only
+ * parameter that varies between formats is the file extension.
  *
  * @param colourKey - The lowercase colour identifier (e.g., 'charcoal').
  * @param sizeSuffix - The dimension suffix (e.g., '5m', '7_5m').
+ * @param ext - The target file extension ('png', 'webp', or 'avif').
  * @returns Path relative to /public (e.g., '/resource/.../exterior_finish_charcoal_5m.png').
  */
-function buildExteriorImagePath(colourKey: string, sizeSuffix: string): string {
-  const ext = resolveExteriorImageExtension(colourKey, sizeSuffix);
+function buildExteriorImagePath(colourKey: string, sizeSuffix: string, ext: string = 'png'): string {
   return `${EXTERIOR_IMAGE_DIR}/exterior_finish_${colourKey}_${sizeSuffix}.${ext}`;
 }
 
@@ -148,12 +137,30 @@ function buildExteriorFinishOptions(
   variantSuffixMap?: Readonly<Record<string, string>>,
 ): ReadonlyArray<FinishOption> {
   return EXTERIOR_COLOUR_DEFINITIONS.map((def, index) => {
-    /* Build the per-variant image path lookup when the product offers
-       multiple footprint options (e.g., Studio 5x5 vs 4.15x6). */
+    /* Build the per-variant image path lookups when the product offers
+       multiple footprint options (e.g., Studio 5x5 vs 4.15x6).
+       Three parallel records are generated -- one per image format --
+       mirroring the three columns on the junction table. */
     const imagePathByFootprint = variantSuffixMap
       ? Object.fromEntries(
           Object.entries(variantSuffixMap).map(
             ([slug, suffix]) => [slug, buildExteriorImagePath(def.colourKey, suffix)],
+          ),
+        )
+      : undefined;
+
+    const imageWebPByFootprint = variantSuffixMap
+      ? Object.fromEntries(
+          Object.entries(variantSuffixMap).map(
+            ([slug, suffix]) => [slug, buildExteriorImagePath(def.colourKey, suffix, 'webp')],
+          ),
+        )
+      : undefined;
+
+    const imageAvifByFootprint = variantSuffixMap
+      ? Object.fromEntries(
+          Object.entries(variantSuffixMap).map(
+            ([slug, suffix]) => [slug, buildExteriorImagePath(def.colourKey, suffix, 'avif')],
           ),
         )
       : undefined;
@@ -165,7 +172,11 @@ function buildExteriorFinishOptions(
       color: def.color,
       accent: def.accent,
       imagePath: buildExteriorImagePath(def.colourKey, defaultSizeSuffix),
+      imageWebP: buildExteriorImagePath(def.colourKey, defaultSizeSuffix, 'webp'),
+      imageAvif: buildExteriorImagePath(def.colourKey, defaultSizeSuffix, 'avif'),
       ...(imagePathByFootprint != null ? { imagePathByFootprint } : {}),
+      ...(imageWebPByFootprint != null ? { imageWebPByFootprint } : {}),
+      ...(imageAvifByFootprint != null ? { imageAvifByFootprint } : {}),
       displayOrder: index + 1,
     };
   });
@@ -187,6 +198,8 @@ const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
     color: '#C4BFB6',
     accent: '#A8A299',
     imagePath: '/resource/garden-room/product-config/interior_finish_stone.jpg',
+    imageWebP: '/resource/garden-room/product-config/interior_finish_stone.webp',
+    imageAvif: '/resource/garden-room/product-config/interior_finish_stone.avif',
     displayOrder: 1,
   },
   {
@@ -196,6 +209,8 @@ const INTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
     color: '#E8E0D4',
     accent: '#D4CAB8',
     imagePath: '/resource/garden-room/product-config/interior_finish_cloth.jpg',
+    imageWebP: '/resource/garden-room/product-config/interior_finish_cloth.webp',
+    imageAvif: '/resource/garden-room/product-config/interior_finish_cloth.avif',
     displayOrder: 2,
   },
 ];

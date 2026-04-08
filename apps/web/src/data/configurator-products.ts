@@ -35,8 +35,12 @@
  *
  * FINISH PREVIEW IMAGES:
  * Selecting a finish switches the hero image to a photograph from
- * /public/resource/garden-room/product-config/ (e.g., exterior_finish_black.jpg).
- * Each FinishOption carries an imagePath field pointing to the correct file.
+ * /public/resource/garden-room/product-config/. Each product size has
+ * dedicated exterior finish images that depict the building at its actual
+ * width (e.g., exterior_finish_charcoal_5m.png for 3m x 5m and 5m x 5m).
+ * Products with multiple footprint variants carry an imagePathByFootprint
+ * lookup so the UI can swap the preview when the variant changes.
+ * Interior finish images are shared across all products.
  *
  * LEGACY REMOVALS:
  * The programmatic floor plan feature (aperture arrays, wall identifiers,
@@ -57,58 +61,121 @@ import type {
 
 
 /* =============================================================================
-   SECTION 1: SHARED FINISH OPTIONS
+   SECTION 1: SHARED FINISH OPTIONS AND PRODUCT-SPECIFIC BUILDERS
    -----------------------------------------------------------------------------
-   Maps to the finish_options table.
+   Maps to the finish_options and product_variant_finish_images tables.
 
-   Exterior cladding and interior wall finish options shared across all
-   products. Each option includes swatch colours for UI rendering and
-   an imagePath pointing to the preview photograph displayed when the
-   customer selects that finish.
+   Exterior cladding finish options are product-specific: each garden room
+   size has dedicated exterior finish preview images that accurately depict
+   the building at its actual width. The image file naming convention uses
+   a dimension suffix matching the front-facing width of the product
+   (e.g., _5m, _6m, _7m, _7_5m, _9m).
+
+   Interior wall finish options are shared across all products because the
+   interior appearance does not change with external dimensions.
 
    Image files are located in:
      /public/resource/garden-room/product-config/
    ============================================================================= */
 
+/** Base directory path for all product configurator finish preview images. */
+const EXTERIOR_IMAGE_DIR = '/resource/garden-room/product-config';
+
 /**
- * Exterior cladding colour options available for all garden room sizes.
- * Composite cladding with a 25-year colour guarantee.
+ * Resolves the file extension for an exterior finish image.
  *
- * Database: finish_options (category_slug = "exterior")
+ * The majority of exterior finish images are PNG. The charcoal 7.5m
+ * variant (exterior_finish_charcoal_7_5m.jpg) was exported as JPEG
+ * during the asset preparation pipeline and is handled as an exception.
+ *
+ * @param colourKey - The lowercase colour identifier (e.g., 'charcoal').
+ * @param sizeSuffix - The dimension suffix (e.g., '5m', '7_5m').
+ * @returns The file extension without a leading dot.
  */
-const EXTERIOR_FINISH_OPTIONS: ReadonlyArray<FinishOption> = [
-  {
-    id: 'ef-black',
-    finishCategoryId: 'fc-exterior',
-    name: 'Black',
-    color: '#1a1a1a',
-    accent: '#333333',
-    imagePath: '/resource/garden-room/product-config/exterior_finish_black.jpg',
-    displayOrder: 1,
-  },
-  {
-    id: 'ef-teak',
-    finishCategoryId: 'fc-exterior',
-    name: 'Teak',
-    color: '#B5764C',
-    accent: '#9A6340',
-    imagePath: '/resource/garden-room/product-config/exterior_finish_teak.jpg',
-    displayOrder: 2,
-  },
-  {
-    id: 'ef-walnut',
-    finishCategoryId: 'fc-exterior',
-    name: 'Walnut',
-    color: '#5C4033',
-    accent: '#4A3228',
-    imagePath: '/resource/garden-room/product-config/exterior_finish_walnut.jpg',
-    displayOrder: 3,
-  },
-];
+function resolveExteriorImageExtension(colourKey: string, sizeSuffix: string): string {
+  if (colourKey === 'charcoal' && sizeSuffix === '7_5m') return 'jpg';
+  return 'png';
+}
+
+/**
+ * Constructs the full public-relative path for an exterior finish image.
+ *
+ * @param colourKey - The lowercase colour identifier (e.g., 'charcoal').
+ * @param sizeSuffix - The dimension suffix (e.g., '5m', '7_5m').
+ * @returns Path relative to /public (e.g., '/resource/.../exterior_finish_charcoal_5m.png').
+ */
+function buildExteriorImagePath(colourKey: string, sizeSuffix: string): string {
+  const ext = resolveExteriorImageExtension(colourKey, sizeSuffix);
+  return `${EXTERIOR_IMAGE_DIR}/exterior_finish_${colourKey}_${sizeSuffix}.${ext}`;
+}
+
+/**
+ * Colour metadata for exterior cladding finish options.
+ *
+ * Each entry defines a single finish colour with its swatch values and
+ * the lowercase key used in image file names. Adding a new colour requires
+ * appending one entry here and supplying the corresponding image assets.
+ */
+const EXTERIOR_COLOUR_DEFINITIONS = [
+  { id: 'ef-charcoal', name: 'Charcoal', colourKey: 'charcoal', color: '#36454F', accent: '#2B3840' },
+  { id: 'ef-teak',     name: 'Teak',     colourKey: 'teak',     color: '#B5764C', accent: '#9A6340' },
+  { id: 'ef-walnut',   name: 'Walnut',   colourKey: 'walnut',   color: '#5C4033', accent: '#4A3228' },
+] as const;
+
+/**
+ * Builds product-specific exterior finish options by resolving the correct
+ * image file for a given product's front-facing dimension.
+ *
+ * For products with a single footprint (Compact 15, Living 35), only the
+ * defaultSizeSuffix is needed. For products with multiple footprint variants
+ * (Studio 25, Grand 45), the optional variantSuffixMap provides a slug-keyed
+ * lookup that the configurator UI uses to swap the preview image when the
+ * customer changes the selected footprint.
+ *
+ * Database mapping: each generated FinishOption maps to one row in
+ * finish_options; each entry in imagePathByFootprint maps to one row in
+ * the product_variant_finish_images junction table.
+ *
+ * @param defaultSizeSuffix - The dimension suffix for the product's primary
+ *   or only footprint (e.g., '5m', '7m', '9m').
+ * @param variantSuffixMap - Optional record mapping footprint variant slugs
+ *   to their corresponding dimension suffixes, enabling per-variant image
+ *   resolution for products with multiple footprints.
+ * @returns An ordered array of FinishOption records for exterior cladding.
+ */
+function buildExteriorFinishOptions(
+  defaultSizeSuffix: string,
+  variantSuffixMap?: Readonly<Record<string, string>>,
+): ReadonlyArray<FinishOption> {
+  return EXTERIOR_COLOUR_DEFINITIONS.map((def, index) => {
+    /* Build the per-variant image path lookup when the product offers
+       multiple footprint options (e.g., Studio 5x5 vs 4.15x6). */
+    const imagePathByFootprint = variantSuffixMap
+      ? Object.fromEntries(
+          Object.entries(variantSuffixMap).map(
+            ([slug, suffix]) => [slug, buildExteriorImagePath(def.colourKey, suffix)],
+          ),
+        )
+      : undefined;
+
+    return {
+      id: def.id,
+      finishCategoryId: 'fc-exterior',
+      name: def.name,
+      color: def.color,
+      accent: def.accent,
+      imagePath: buildExteriorImagePath(def.colourKey, defaultSizeSuffix),
+      ...(imagePathByFootprint != null ? { imagePathByFootprint } : {}),
+      displayOrder: index + 1,
+    };
+  });
+}
 
 /**
  * Interior wall finish options available for all garden room sizes.
- * Applied to internal plasterboard lining surfaces.
+ * Applied to internal plasterboard lining surfaces. Interior appearance
+ * is independent of external dimensions, so these options are shared
+ * across all products.
  *
  * Database: finish_options (category_slug = "interior")
  */
@@ -149,21 +216,29 @@ const PRICING_NOTE = 'Price includes VAT \u00B7 Ts & Cs apply';
    SECTION 3: HELPER -- FINISH CATEGORY BUILDER
    -----------------------------------------------------------------------------
    Constructs a pair of HydratedFinishCategory entries (exterior + interior)
-   with product-specific sublabel text. This avoids repeating the finish
-   options array references in every product definition while allowing each
-   product to display its own contextual description.
+   for a given product. The exterior options are product-specific (generated
+   by buildExteriorFinishOptions), while interior options are shared across
+   all products. The sublabel text is personalised with the product marketing
+   name to provide contextual guidance in the configurator UI.
 
    Maps to finish_categories table rows with eagerly loaded finish_options.
    ============================================================================= */
 
 /**
  * Builds the standard two-category finish configuration for a given product.
- * The sublabel text is personalised with the product marketing name.
+ * The sublabel text is personalised with the product marketing name, and
+ * the exterior options are resolved from the product's dimension suffix.
  *
  * @param productName - The marketing name of the product (e.g., "The Studio").
+ * @param exteriorOptions - Product-specific exterior finish options generated
+ *   by buildExteriorFinishOptions with the correct image paths for this
+ *   product's footprint dimensions.
  * @returns A two-element tuple: [exteriorCategory, interiorCategory].
  */
-function buildFinishCategories(productName: string): ReadonlyArray<HydratedFinishCategory> {
+function buildFinishCategories(
+  productName: string,
+  exteriorOptions: ReadonlyArray<FinishOption>,
+): ReadonlyArray<HydratedFinishCategory> {
   return [
     {
       id: 'fc-exterior',
@@ -171,7 +246,7 @@ function buildFinishCategories(productName: string): ReadonlyArray<HydratedFinis
       label: 'Exterior Finish',
       sublabel: `Choose the cladding colour for your ${productName}`,
       displayOrder: 1,
-      options: EXTERIOR_FINISH_OPTIONS,
+      options: exteriorOptions,
     },
     {
       id: 'fc-interior',
@@ -329,8 +404,11 @@ const COMPACT_15: HydratedProduct = {
   /* --- Included features ----------------------------------------- */
   includedFeatures: [],
 
-  /* --- Finish categories ----------------------------------------- */
-  finishCategories: buildFinishCategories('The Compact'),
+  /* --- Finish categories -----------------------------------------
+     Compact 15 base footprint: 3m x 5m -> uses the '5m' image set.
+     No footprint variants, so imagePathByFootprint is omitted.
+     ---------------------------------------------------------------- */
+  finishCategories: buildFinishCategories('The Compact', buildExteriorFinishOptions('5m')),
 
   /* --- Legacy compatibility fields ------------------------------- */
   image: {
@@ -532,8 +610,15 @@ const STUDIO_25: HydratedProduct = {
   /* --- Included features ----------------------------------------- */
   includedFeatures: [],
 
-  /* --- Finish categories ----------------------------------------- */
-  finishCategories: buildFinishCategories('The Studio'),
+  /* --- Finish categories -----------------------------------------
+     Studio 25 offers two footprints: 5m x 5m (default) and 6m x 4.15m.
+     The default imagePath points to the '5m' set; imagePathByFootprint
+     maps each variant slug to the correct dimension-specific image.
+     ---------------------------------------------------------------- */
+  finishCategories: buildFinishCategories(
+    'The Studio',
+    buildExteriorFinishOptions('5m', { '5x5': '5m', '4x6': '6m' }),
+  ),
 
   /* --- Legacy compatibility fields ------------------------------- */
   image: {
@@ -738,8 +823,11 @@ const LIVING_35: HydratedProduct = {
     },
   ],
 
-  /* --- Finish categories ----------------------------------------- */
-  finishCategories: buildFinishCategories('The Living'),
+  /* --- Finish categories -----------------------------------------
+     Living 35 base footprint: 7m x 5m -> uses the '7m' image set.
+     No footprint variants, so imagePathByFootprint is omitted.
+     ---------------------------------------------------------------- */
+  finishCategories: buildFinishCategories('The Living', buildExteriorFinishOptions('7m')),
 
   /* --- Legacy compatibility fields ------------------------------- */
   image: {
@@ -919,8 +1007,15 @@ const GRAND_45: HydratedProduct = {
     },
   ],
 
-  /* --- Finish categories ----------------------------------------- */
-  finishCategories: buildFinishCategories('The Grand'),
+  /* --- Finish categories -----------------------------------------
+     Grand 45 offers two footprints: 9m x 5m (default) and 7.5m x 6m.
+     The default imagePath points to the '9m' set; imagePathByFootprint
+     maps each variant slug to the correct dimension-specific image.
+     ---------------------------------------------------------------- */
+  finishCategories: buildFinishCategories(
+    'The Grand',
+    buildExteriorFinishOptions('9m', { '9x5': '9m', '7.5x6': '7_5m' }),
+  ),
 
   /* --- Legacy compatibility fields ------------------------------- */
   image: {

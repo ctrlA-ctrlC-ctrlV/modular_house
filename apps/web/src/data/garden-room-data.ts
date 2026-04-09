@@ -335,21 +335,21 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
     number: '04',
     title: 'How is the garden room insulated and heated?',
     description:
-      'Every garden room features high-performance PIR insulation panels in the walls, floor, and roof, achieving an A-rated BER (Building Energy Rating). Triple-glazed, thermally broken windows and doors minimise heat loss. Heating options include electric underfloor heating, wall-mounted panel heaters, or connection to your home heating system via an insulated supply pipe.',
+      'Every garden room is insulated with a 90mm rock wool and 100mm EPS system. Double-glazed UPVC windows and doors are fitted as standard, with a triple glazing upgrade available for enhanced thermal and acoustic performance. A full consumer-unit-ready electrical package is included supporting electric panel heaters, the space will be warm and comfortable to use year-round.',
   },
   {
     id: 'faq-5',
     number: '05',
     title: 'Can I use the garden room as a home office year-round?',
     description:
-      'Yes. Our steel-frame construction combined with A-rated insulation, triple glazing, and integrated heating maintains a comfortable working temperature throughout all four seasons. The structures are designed to the same thermal performance standards as a permanent dwelling, ensuring year-round comfort whether used as a home office, studio, or living space.',
+      'Yes. Our steel-frame construction combined with near 200mm of insulation, double-glazed UPVC windows and doors (with a triple-glazing upgrade available), and a full consumer-unit-ready electrical package maintains a comfortable temperature throughout all four seasons. The structures are designed to the same thermal performance standards as a permanent dwelling, ensuring year-round comfort whether used as a home office, studio, or living space.',
   },
   {
     id: 'faq-6',
     number: '06',
     title: 'What is included in the price?',
     description:
-      'The quoted price includes the precision-cut steel frame, full PIR insulation, external cladding, internal plasterboard lining, laminate or tile flooring, electrical wiring with LED lighting and sockets, triple-glazed windows and doors, and a 25-year structural warranty. Foundation works, plumbing, and bespoke upgrades (such as underfloor heating or additional power circuits) are quoted separately based on site requirements.',
+      'The quoted price for all four models includes the EN1090 steel frame, approximately 200mm of insulation, composite external cladding, laminated flooring, internal electrical wiring with lighting and sockets, double-glazed UPVC windows and doors, foundation works, and a 25-year structural warranty. A triple-glazing upgrade is available as an optional add-on. For The Living (35 m²), The Grand (45 m²), and The Studio en-suite and bedroom layouts, a fully plumbed kitchen and bathroom are also included as standard — appliances are not included. Full pricing details and optional extras can be customised through our online product configurator.',
   },
 ];
 

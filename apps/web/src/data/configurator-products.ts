@@ -594,7 +594,7 @@ const STUDIO_25: HydratedProduct = {
       slug: 'bedroom',
       name: 'Bedroom',
       description: 'Separate bedroom with wall and door, plus bathroom and kitchen.',
-      priceDeltaCentsInclVat: 1_600_000,
+      priceDeltaCentsInclVat: 1_400_000,
       includesBathroom: true,
       includesKitchen: true,
       includesBedroomWall: true,

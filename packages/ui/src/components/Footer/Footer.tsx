@@ -157,7 +157,8 @@ const SOCIAL_LINKS: SocialLink[] = [
 const NAV_LINKS: NavLink[] = [
   { id: 'home', label: 'Home', url: '/' },
   { id: 'garden-rooms', label: 'Garden Rooms', url: '/garden-rooms' },
-  { id: 'house-extensions', label: 'House Extensions', url: '/house-extension' },
+  /* Canonical plural URL — matches the /house-extensions route defined in routes-metadata.ts */
+  { id: 'house-extensions', label: 'House Extensions', url: '/house-extensions' },
   { id: 'gallery', label: 'Gallery', url: '/gallery' },
   { id: 'about', label: 'About Us', url: '/about' },
   { id: 'contact', label: 'Contact Us', url: '/contact' },

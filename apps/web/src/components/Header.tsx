@@ -57,7 +57,7 @@ function Header({ variant = 'dark', positionOver = true }: HeaderProps) {
   const menuItems: MenuItem[] = [
     { label: 'Home', href: '/' }, // Standard practice is usually Logo = Home, but can be added back if needed
     { label: 'Garden Room', href: '/garden-rooms' },
-    { label: 'House Extension', href: '/house-extension' },
+    { label: 'House Extensions', href: '/house-extensions' },
     //{ label: 'Gallery', href: '/gallery' },
     //{ label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' }

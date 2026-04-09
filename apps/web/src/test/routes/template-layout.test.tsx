@@ -58,7 +58,7 @@ describe('TemplateLayout Integration', () => {
     ['/privacy', 'page-privacy'],
     ['/terms', 'page-terms'],
     ['/garden-rooms', 'page-garden-room'],
-    ['/house-extension', 'page-house-extension'],
+    ['/house-extensions', 'page-house-extension'],
     ['/unknown-route', 'page-404'],
   ])('renders TemplateLayout for route %s', async (route, testId) => {
     renderRoute(route);

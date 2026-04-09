@@ -314,7 +314,7 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
     number: '01',
     title: 'Do I need planning permission for a garden room?',
     description:
-      'Under current Irish planning legislation, garden rooms up to 25 square metres are generally exempt from planning permission, provided they comply with conditions such as maximum height (4 m for a pitched roof, 3 m for a flat roof), boundary setbacks, and aggregate floor area limits for exempted structures. Our 15 and 25 square metre models fall within these thresholds. The 35 and 45 square metre sizes are subject to pending legislation that may extend the exemption limit. We handle all planning paperwork on your behalf.',
+      'Under current Irish planning legislation, garden rooms up to 25 square metres are generally exempt from planning permission, provided they comply with conditions such as maximum height (4 m for a pitched roof, 3 m for a flat roof), boundary setbacks, and aggregate floor area limits for exempted structures. Our 15 and 25 square metre models fall within these thresholds. The 35 and 45 square metre sizes are subject to pending legislation that may extend the exemption limit.',
   },
   {
     id: 'faq-2',
@@ -366,7 +366,7 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
    - measureTape  -> Made in Our Dublin Factory (measurement / precision)
    - tiles        -> Faster, Cleaner Installation (modular construction)
    - bioEnergy    -> Built for Irish Weather (sustainability / energy)
-   - keyCircle    -> A Long-Term Space, Not a Shed (durability / warranty)
+   - keyCircle    -> A Long-Term Space (durability / warranty)
    ============================================================================= */
 
 export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
@@ -390,7 +390,7 @@ export const GARDEN_ROOM_FEATURES: FeatureItem[] = [
   },
   {
     icon: React.createElement(CustomIcons, { name: 'keyCircle', size: 48 }),
-    title: 'A Long-Term Space, Not a Shed',
+    title: 'A Long-Term Space',
     description:
       'Our steel-framed garden rooms are engineered as permanent-feeling spaces for work, guests, fitness, or daily living, with none of the rot, warp, or maintenance concerns associated with timber-heavy alternatives.',
   },

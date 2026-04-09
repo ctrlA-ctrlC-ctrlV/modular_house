@@ -413,7 +413,7 @@ export function ComparisonSection({
   categories,
   materials = DEFAULT_MATERIALS,
   ctaEyebrow = 'The Bottom Line',
-  ctaHeading = 'Every method has its place. But when you weigh the full picture \u2014 <em>one method consistently leads.</em>',
+  ctaHeading = 'Every method has its place. But when you weigh up the full picture \u2014 <em>our method consistently leads.</em>',
   ctaText = 'Our LGS frames are precision-manufactured right here in Dublin, delivering factory-level quality with none of the on-site guesswork.',
   ctaButtonLabel = 'Get a Free Quote',
   onCtaClick,

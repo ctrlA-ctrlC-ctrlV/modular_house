@@ -273,7 +273,7 @@ function Landing() {
             
             From consultation to completion, our experienced team guides you every step of the way. We’re here to help you create a space that works for how you live today and tomorrow."
             button2Text = "Need more info?"
-            button2Link = "/house-extension"
+            button2Link = "/house-extensions"
             renderLink={renderLink}
           />   
       </div>

@@ -34,7 +34,7 @@ const HouseExtension: React.FC = () => {
 
   return (
     <div className="l-container py-16">
-      {/** /house-extension hero Section */}
+      {/** /house-extensions hero Section */}
       <div id='garden_room_hero'>
         <HeroBoldBottomText 
           titleLine1 = "Expand your living space with a seamless home extension."

@@ -388,14 +388,16 @@ export const routesMetadata: RouteMetadata[] = [
   },
 
   // ---------------------------------------------------------------------------
-  // House Extension — primary product page; full social + structured data coverage
+  // House Extensions — primary product page; full social + structured data coverage
+  // The canonical URL uses the plural form (/house-extensions) for consistency
+  // with /garden-rooms and standard SEO conventions for category pages.
   // ---------------------------------------------------------------------------
   {
-    path: '/house-extension',
+    path: '/house-extensions',
     seo: {
       title: 'Modular House Extensions',
       description: 'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
-      canonicalUrl: 'https://modularhouse.ie/house-extension',
+      canonicalUrl: 'https://modularhouse.ie/house-extensions',
       robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 
       openGraph: {
@@ -410,7 +412,7 @@ export const routesMetadata: RouteMetadata[] = [
         imageWidth: 1200,
         imageHeight: 630,
         imageType: 'image/png',
-        url: 'https://modularhouse.ie/house-extension',
+        url: 'https://modularhouse.ie/house-extensions',
         siteName: 'Modular House Construction',
         article_modified_time: BUILD_TIMESTAMP,
       },
@@ -468,7 +470,7 @@ export const routesMetadata: RouteMetadata[] = [
 
         // WebPage + BreadcrumbList schemas for this route.
         ...generatePageSchema(
-          '/house-extension',
+          '/house-extensions',
           'Modular House Extensions',
           'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
           BUILD_TIMESTAMP

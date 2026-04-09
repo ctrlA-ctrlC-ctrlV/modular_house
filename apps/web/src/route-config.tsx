@@ -18,7 +18,8 @@ import { routesMetadata } from './routes-metadata';
 const componentMap: Record<string, React.ComponentType> = {
   '/': Landing,
   '/garden-rooms': GardenRoom,
-  '/house-extension': HouseExtension,
+  /* Canonical plural URL — singular /house-extension is redirected in App.tsx */
+  '/house-extensions': HouseExtension,
   '/gallery': Gallery,
   '/about': About,
   '/contact': Contact,

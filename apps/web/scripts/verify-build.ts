@@ -37,7 +37,7 @@ const minimalRoutesToVerify = [
   '/about',
   '/contact',
   '/garden-room', // Added for JSON-LD check
-  '/house-extension',
+  '/house-extensions',
   '/gallery'
 ];
 
@@ -94,7 +94,7 @@ function verifyRoute(routePath: string): void {
   }
 
   // Check 3: JSON-LD for specific routes
-  if (routePath === '/garden-room' || routePath === '/house-extension') {
+  if (routePath === '/garden-room' || routePath === '/house-extensions') {
     if (!content.includes('application/ld+json')) {
        console.error(`[FAIL] Missing JSON-LD script in ${routePath}`);
        process.exit(1);

@@ -113,11 +113,11 @@ function Landing() {
           subtitle="DISCOVER MODULAR LIVING"
           title={
             <>
-              Premium extensions built 
-              rapid, <span className="text-highlight">robust and refined</span>          
+              Steel frame garden rooms &  
+              extensions, <span className="text-highlight">built fast, built to last</span>          
             </>
           }
-          description="Expand your lifestyle with bespoke steel frame garden rooms and extensions."
+          description="Expand your lifestyle with a bespoke steel frame garden rooms and extensions."
           button1Text="Get a Free Quote"
           button1Link="/contact"
           exploreText="Explore"
@@ -220,7 +220,7 @@ function Landing() {
                       className="text-blue-500"
                     />,
               title: "Turnkey Project Delivery",
-              description: "We handle everything. From the initial ground screws to the final plaster, one team manages your entire build journey"
+              description: "We handle everything. From the initial ground work to the final interior finish, one team manages your entire build journey"
             },
           ]}
         />

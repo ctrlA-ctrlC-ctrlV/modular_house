@@ -377,13 +377,15 @@ const COMPACT_15: HydratedProduct = {
 
   /* --- Use cases ------------------------------------------------- */
   useCases: [
-    { id: 'uc-compact-c1', productId: 'cp-compact-15', text: 'Home office',    context: 'card',       displayOrder: 1 },
-    { id: 'uc-compact-c2', productId: 'cp-compact-15', text: 'Art studio',     context: 'card',       displayOrder: 2 },
-    { id: 'uc-compact-c3', productId: 'cp-compact-15', text: 'Yoga room',      context: 'card',       displayOrder: 3 },
-    { id: 'uc-compact-q1', productId: 'cp-compact-15', text: 'Home Office',    context: 'quick-view', displayOrder: 4 },
-    { id: 'uc-compact-q2', productId: 'cp-compact-15', text: 'Art Studio',     context: 'quick-view', displayOrder: 5 },
-    { id: 'uc-compact-q3', productId: 'cp-compact-15', text: 'Yoga & Wellness Room', context: 'quick-view', displayOrder: 6 },
-    { id: 'uc-compact-q4', productId: 'cp-compact-15', text: 'Music Practice', context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-compact-c1', productId: 'cp-compact-15', text: 'Home office',           context: 'card',       displayOrder: 1 },
+    { id: 'uc-compact-c2', productId: 'cp-compact-15', text: 'Art studio',            context: 'card',       displayOrder: 2 },
+    { id: 'uc-compact-c3', productId: 'cp-compact-15', text: 'Yoga room',             context: 'card',       displayOrder: 3 },
+    { id: 'uc-compact-c4', productId: 'cp-compact-15', text: 'Gym',                   context: 'card',       displayOrder: 4 },
+    { id: 'uc-compact-q1', productId: 'cp-compact-15', text: 'Home Office',           context: 'quick-view', displayOrder: 5 },
+    { id: 'uc-compact-q2', productId: 'cp-compact-15', text: 'Art Studio',            context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-compact-q3', productId: 'cp-compact-15', text: 'Yoga & Wellness Room',  context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-compact-q4', productId: 'cp-compact-15', text: 'Music Practice',        context: 'quick-view', displayOrder: 8 },
+    { id: 'uc-compact-q5', productId: 'cp-compact-15', text: 'Home Gym',              context: 'quick-view', displayOrder: 9 },
   ],
 
   /* --- Footprint variants ---------------------------------------- */
@@ -520,14 +522,16 @@ const STUDIO_25: HydratedProduct = {
 
   /* --- Use cases ------------------------------------------------- */
   useCases: [
-    { id: 'uc-studio-c1', productId: 'cp-studio-25', text: 'Home office + meeting space', context: 'card',       displayOrder: 1 },
+    { id: 'uc-studio-c1', productId: 'cp-studio-25', text: 'Home office',                 context: 'card',       displayOrder: 1 },
     { id: 'uc-studio-c2', productId: 'cp-studio-25', text: 'Home gym',                    context: 'card',       displayOrder: 2 },
     { id: 'uc-studio-c3', productId: 'cp-studio-25', text: 'Music studio',                context: 'card',       displayOrder: 3 },
     { id: 'uc-studio-c4', productId: 'cp-studio-25', text: '1 bed room en suite',         context: 'card',       displayOrder: 4 },
-    { id: 'uc-studio-q1', productId: 'cp-studio-25', text: 'Office + Meeting Room',       context: 'quick-view', displayOrder: 5 },
-    { id: 'uc-studio-q2', productId: 'cp-studio-25', text: 'Guest Suite',                 context: 'quick-view', displayOrder: 6 },
-    { id: 'uc-studio-q3', productId: 'cp-studio-25', text: 'Therapy Room',                context: 'quick-view', displayOrder: 7 },
-    { id: 'uc-studio-q4', productId: 'cp-studio-25', text: 'Design Studio',               context: 'quick-view', displayOrder: 8 },
+    { id: 'uc-studio-c5', productId: 'cp-studio-25', text: 'Kitchen Optional',            context: 'card',       displayOrder: 5 },
+    { id: 'uc-studio-q1', productId: 'cp-studio-25', text: 'Office + Meeting Room',       context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-studio-q2', productId: 'cp-studio-25', text: 'Guest Suite',                 context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-studio-q3', productId: 'cp-studio-25', text: 'Sauna Getaway',               context: 'quick-view', displayOrder: 8 },
+    { id: 'uc-studio-q4', productId: 'cp-studio-25', text: 'Design Studio',               context: 'quick-view', displayOrder: 9 },
+    { id: 'uc-studio-q5', productId: 'cp-studio-25', text: 'Home Cinema',                 context: 'quick-view', displayOrder: 10 },
   ],
 
   /* --- Footprint variants ---------------------------------------- */
@@ -781,13 +785,16 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Use cases ------------------------------------------------- */
   useCases: [
-    { id: 'uc-living-c1', productId: 'cp-living-35', text: 'Guest suite',     context: 'card',       displayOrder: 1 },
-    { id: 'uc-living-c2', productId: 'cp-living-35', text: 'Teen retreat',    context: 'card',       displayOrder: 2 },
-    { id: 'uc-living-c3', productId: 'cp-living-35', text: 'Rental unit',     context: 'card',       displayOrder: 3 },
-    { id: 'uc-living-q1', productId: 'cp-living-35', text: 'Multi-Desk Workspace', context: 'quick-view', displayOrder: 4 },
-    { id: 'uc-living-q2', productId: 'cp-living-35', text: 'Home Gym + Office',    context: 'quick-view', displayOrder: 5 },
-    { id: 'uc-living-q3', productId: 'cp-living-35', text: 'Family Room',          context: 'quick-view', displayOrder: 6 },
-    { id: 'uc-living-q4', productId: 'cp-living-35', text: 'Content Studio',       context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-living-c1', productId: 'cp-living-35', text: 'Guest suite',                  context: 'card',       displayOrder: 1 },
+    { id: 'uc-living-c2', productId: 'cp-living-35', text: 'Teen retreat',                 context: 'card',       displayOrder: 2 },
+    { id: 'uc-living-c3', productId: 'cp-living-35', text: 'Rental unit',                  context: 'card',       displayOrder: 3 },
+    { id: 'uc-living-c4', productId: 'cp-studio-25', text: '1 bed room en suite',          context: 'card',       displayOrder: 4 },
+    { id: 'uc-living-c5', productId: 'cp-studio-25', text: 'Kitchen & Bathroom Included',  context: 'card',       displayOrder: 5 },
+    { id: 'uc-living-q1', productId: 'cp-living-35', text: 'Multi-Desk Workspace',         context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-living-q2', productId: 'cp-living-35', text: 'Home Gym + Office',            context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-living-q3', productId: 'cp-living-35', text: 'Teen retreat',                 context: 'quick-view', displayOrder: 8 },
+    { id: 'uc-living-q4', productId: 'cp-living-35', text: 'Family Room',                  context: 'quick-view', displayOrder: 9 },
+    { id: 'uc-living-q5', productId: 'cp-living-35', text: 'Rental unit',                  context: 'quick-view', displayOrder: 10 },
   ],
 
   /* --- Footprint variants ---------------------------------------- */
@@ -928,25 +935,27 @@ const GRAND_45: HydratedProduct = {
 
   /* --- Specifications -------------------------------------------- */
   specs: [
-    { id: 'sp-grand-01', productId: 'cp-grand-45', label: 'Dimensions',  value: '9.0m \u00D7 5.0m',                                              displayOrder: 1 },
-    { id: 'sp-grand-02', productId: 'cp-grand-45', label: 'Area',        value: '45 m\u00B2',                                                    displayOrder: 2 },
-    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                                 displayOrder: 3 },
-    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                                      displayOrder: 4 },
-    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Laminated flooring',                                            displayOrder: 5 },
-    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door',      displayOrder: 6 },
-    { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit ready',                                      displayOrder: 7 },
-    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'EPDM long life roof',                                  displayOrder: 8 },
-    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + kitchen included',                         displayOrder: 9 },
+    { id: 'sp-grand-01', productId: 'cp-grand-45', label: 'Dimensions',  value: '9.0m \u00D7 5.0m',                                         displayOrder: 1 },
+    { id: 'sp-grand-02', productId: 'cp-grand-45', label: 'Area',        value: '45 m\u00B2',                                               displayOrder: 2 },
+    { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                           displayOrder: 3 },
+    { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                               displayOrder: 4 },
+    { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Laminated flooring',                                       displayOrder: 5 },
+    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + sliding door', displayOrder: 6 },
+    { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit ready',                                 displayOrder: 7 },
+    { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'EPDM long life roof',                                      displayOrder: 8 },
+    { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + kitchen included',                              displayOrder: 9 },
   ],
 
   /* --- Use cases ------------------------------------------------- */
   useCases: [
-    { id: 'uc-grand-c1', productId: 'cp-grand-45', text: 'Self-contained apartment', context: 'card',       displayOrder: 1 },
-    { id: 'uc-grand-c2', productId: 'cp-grand-45', text: 'Multi-room workspace',     context: 'card',       displayOrder: 2 },
-    { id: 'uc-grand-q1', productId: 'cp-grand-45', text: 'Full Living Annex',        context: 'quick-view', displayOrder: 3 },
-    { id: 'uc-grand-q2', productId: 'cp-grand-45', text: 'Large Studio / Workshop',  context: 'quick-view', displayOrder: 4 },
-    { id: 'uc-grand-q3', productId: 'cp-grand-45', text: 'Commercial Suite',         context: 'quick-view', displayOrder: 5 },
-    { id: 'uc-grand-q4', productId: 'cp-grand-45', text: 'Granny Flat',              context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-grand-c1', productId: 'cp-grand-45', text: 'Self-contained apartment',    context: 'card',       displayOrder: 1 },
+    { id: 'uc-grand-c2', productId: 'cp-grand-45', text: 'Multi-room workspace',        context: 'card',       displayOrder: 2 },
+    { id: 'uc-grand-c3', productId: 'cp-grand-45', text: '2 bedrooms',                  context: 'card',       displayOrder: 3 },
+    { id: 'uc-grand-c4', productId: 'cp-grand-45', text: 'Kitchen & Bathroom Included', context: 'card',       displayOrder: 4 },
+    { id: 'uc-grand-q1', productId: 'cp-grand-45', text: 'Full Living Annex',           context: 'quick-view', displayOrder: 5 },
+    { id: 'uc-grand-q2', productId: 'cp-grand-45', text: 'Large Studio / Workshop',     context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-grand-q3', productId: 'cp-grand-45', text: 'Commercial Suite',            context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-grand-q4', productId: 'cp-grand-45', text: 'Granny Flat',                 context: 'quick-view', displayOrder: 8 },
   ],
 
   /* --- Footprint variants ---------------------------------------- */

@@ -177,7 +177,7 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
   {
     icon: '\u25C6',
     title: 'Steel Frame Construction',
-    desc: 'Light Gauge steel for unmatched durability and longevity.',
+    desc: 'EN1090 Light Gauge steel for unmatched durability and longevity.',
   },
   {
     icon: '\u25C6',
@@ -187,7 +187,7 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
   {
     icon: '\u25C6',
     title: 'UPVC Windows & Doors',
-    desc: 'Thermally broken, double-glazed UPVC frames in anthracite grey.',
+    desc: 'Double-glazed UPVC frames in anthracite grey.',
   },
   {
     icon: '\u25C6',

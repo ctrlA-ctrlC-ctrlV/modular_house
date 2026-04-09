@@ -156,8 +156,8 @@ const SOCIAL_LINKS: SocialLink[] = [
  */
 const NAV_LINKS: NavLink[] = [
   { id: 'home', label: 'Home', url: '/' },
-  { id: 'garden-room', label: 'Garden Room', url: '/garden-room' },
-  { id: 'house-extension', label: 'House Extension', url: '/house-extension' },
+  { id: 'garden-rooms', label: 'Garden Rooms', url: '/garden-rooms' },
+  { id: 'house-extensions', label: 'House Extensions', url: '/house-extension' },
   { id: 'gallery', label: 'Gallery', url: '/gallery' },
   { id: 'about', label: 'About Us', url: '/about' },
   { id: 'contact', label: 'Contact Us', url: '/contact' },

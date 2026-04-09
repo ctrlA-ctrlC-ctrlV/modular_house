@@ -328,7 +328,7 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
     number: '03',
     title: 'What sizes of garden rooms do you offer?',
     description:
-      'We currently offer four standard sizes: 15 square metres (Compact Studio), 25 square metres (Garden Suite), 35 square metres (Garden Living), and 45 square metres (Grand Studio). Each model can be customised with different layouts, window configurations, and interior finishes to suit your specific needs.',
+      'We currently offer four standard sizes: 15 square metres (The Compact), 25 square metres (The Studio), 35 square metres (The Living), and 45 square metres (The Grand). Each model can be customised with different layouts and exterior/interior finishes to suit your specific needs. If you have a bespoke size or specification in mind, simply get in touch through our contact form and our design team will tailor a solution to match your vision.',
   },
   {
     id: 'faq-4',

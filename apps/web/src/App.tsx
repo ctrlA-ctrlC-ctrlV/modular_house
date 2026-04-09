@@ -82,6 +82,9 @@ function App() {
           {/* SEO: Redirect singular /garden-room to canonical /garden-rooms (plural) */}
           <Route path="/garden-room" element={<Navigate to="/garden-rooms" replace />} />
           <Route path="/garden-room/configure/:slug" element={<GardenRoomConfigureRedirect />} />
+
+          {/* SEO: Redirect singular /house-extension to canonical /house-extensions (plural) */}
+          <Route path="/house-extension" element={<Navigate to="/house-extensions" replace />} />
         </Route>
 
         {/* Admin Routes — also normalized for trailing slash consistency */}

@@ -246,8 +246,8 @@ const GardenRoom: React.FC = () => {
       <div id="product-range">
         <ProductRangeGrid
           eyebrow="OUR RANGE"
-          title="Choose Your Perfect Size"
-          description="Every garden room is precision-built with CNC-cut steel framing, superior insulation, and architectural-grade finishes."
+          title="Choose Your Garden Room"
+          description="We design, manufacture and install every garden room in-house from our Dublin factory. Built for home offices, studios, gyms, guest suites, and more.<br>We offer free site visit for the greater Dublin Area."
           headerContent={
             <InfoButton
               triggerLabel="Do I need Planning Permission?"

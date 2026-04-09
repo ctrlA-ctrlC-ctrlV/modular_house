@@ -96,8 +96,8 @@ export interface ProductRangeGridProps {
   eyebrow?: string;
   /** Section heading rendered as an h2 with serif typography */
   title?: string;
-  /** Section description paragraph rendered below the title */
-  description?: string;
+  /** Section description rendered below the title. Accepts a plain string or JSX for rich content. */
+  description?: React.ReactNode;
   /**
    * Optional content rendered after the description and before the product grid.
    * Useful for inserting banners, notices, or supplementary information.

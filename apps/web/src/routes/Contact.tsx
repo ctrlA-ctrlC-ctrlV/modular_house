@@ -157,7 +157,7 @@ function Contact() {
         heading="We'd love to hear from you"
         description={
           <>
-            If you want to build a garden room or house extensions, visit us at our factory in Dublin 12. <strong>No appointment needed.</strong>
+            If you want to build a garden room or house extensions, visit us at our factory in Dublin 12. <strong>Please contact us for an appointment.</strong>
             <span className="text-contact__subheading">Opening Hours</span>
               Monday - Friday: 9:00am - 5:00pm
             {'\n'}<span className='text-contact__smallprint'>Please be aware that our opening times are subject to change on bank holidays.</span>

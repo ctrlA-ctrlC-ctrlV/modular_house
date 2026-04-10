@@ -252,10 +252,12 @@ interface Product {
    */
   readonly badge?: string;
   /**
-   * Glazing summary note displayed in the configurator detail view.
-   * Provides a human-readable list of window and door specifications.
+   * Structured glazing specification entries displayed in the configurator
+   * detail view. Each entry describes a single window or door unit with
+   * its type label and nominal dimensions. Rendered as label/value rows
+   * in the same layout pattern used by the Warranty Coverage section.
    */
-  readonly glazingNote?: string;
+  readonly glazingDetails?: ReadonlyArray<GlazingDetail>;
 
   // -- Sort -------------------------------------------------------------
   /** Ascending sort key controlling the rendering order of products. */
@@ -757,6 +759,26 @@ interface WarrantyCoverage {
   readonly displayOrder: number;
 }
 
+/**
+ * A single glazing aperture specification displayed in the product
+ * configurator and summary views.
+ *
+ * Each entry represents one window or door type included in the
+ * base product. The label identifies the aperture style
+ * (e.g., "Front window", "French door") and the dimensions string
+ * provides the nominal width and height in millimetres.
+ *
+ * Multiple entries of the same type (e.g., two tilt & turn windows)
+ * are represented as separate records so that the quantity is explicit
+ * in the data rather than encoded in a display string.
+ */
+interface GlazingDetail {
+  /** Aperture type label (e.g., "Tilt & turn window", "French door"). */
+  readonly label: string;
+  /** Nominal dimensions formatted as width x height (e.g., "700mm x 2100mm"). */
+  readonly dimensions: string;
+}
+
 
 // ---------------------------------------------------------------------------
 // MARKETING PAGE-WIDE: SELLING POINTS ("WHY STEEL FRAME")
@@ -1005,6 +1027,7 @@ export type {
   // Product-line-wide
   StandardFeature,
   WarrantyCoverage,
+  GlazingDetail,
 
   // Marketing page
   SellingPoint,

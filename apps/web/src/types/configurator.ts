@@ -61,6 +61,7 @@ export type {
   /* Product-line-wide */
   StandardFeature,
   WarrantyCoverage,
+  GlazingDetail,
 
   /* Marketing page */
   SellingPoint,

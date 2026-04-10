@@ -35,6 +35,7 @@ import { ArchitecturalFloorPlan } from './ArchitecturalFloorPlan';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
 import { formatPriceCents } from './utils';
 import { PRODUCT_SHOWCASE_WARRANTIES } from '../../data/garden-room-data';
+import { HoverButton } from '@modular-house/ui';
 
 
 /* =============================================================================
@@ -349,13 +350,30 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
           return (
             <>
               <div className="configurator__summary-detail-row">
-                <span className="configurator__summary-detail-label">Bathroom</span>
+                <span className="configurator__summary-detail-label">
+                  Bathroom &nbsp;
+                  <HoverButton
+                    ariaLabel='More information about Bathroom'
+                    placement="top"
+                  >
+                    <b>Included</b> - toilet, basin, shower, electric boiler, plumbing connection
+                  </HoverButton>
+                </span>
                 <span className="configurator__summary-detail-value">
-                  {selectedLayout?.includesBathroom ? 'Included' : 'Not included'}
+                  {selectedLayout?.includesBathroom ? 'Included' : 'Not included'}                  
                 </span>
               </div>
               <div className="configurator__summary-detail-row">
-                <span className="configurator__summary-detail-label">Kitchen</span>
+                <span className="configurator__summary-detail-label">
+                  Kitchen &nbsp;
+                  <HoverButton
+                    ariaLabel='More information about Bathroom'
+                    placement="top"
+                  >
+                    <b>Included</b> - kitchen cabinets, sink, and plumbing connections. <br/>
+                    <b>Not included</b> - kitchen appliances.
+                  </HoverButton>
+                </span>
                 <span className="configurator__summary-detail-value">
                   {selectedLayout?.includesKitchen ? 'Included' : 'Not included'}
                 </span>
@@ -370,11 +388,27 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
           );
 
         case 'included':
+          /* When the product includes bathroom & kitchen features in its base
+             price, each feature is rendered as a detail row. A HoverButton is
+             placed beside the feature name to surface the feature description
+             on hover, without cluttering the summary layout. If no features
+             are defined, a generic fallback row is displayed instead. */
           return product.includedFeatures.length > 0 ? (
             <>
               {product.includedFeatures.map((feature) => (
                 <div key={feature.id} className="configurator__summary-detail-row">
-                  <span className="configurator__summary-detail-label">{feature.name}</span>
+                  <span className="configurator__summary-detail-label">
+                    {feature.name}
+                    {/* Inline info button that reveals the feature description
+                        on hover. Placement is set to "top" to prevent the
+                        popover from overlapping adjacent rows below. */}
+                    <HoverButton
+                      ariaLabel={`More information about ${feature.name}`}
+                      placement="top"
+                    >
+                      {feature.description}
+                    </HoverButton>
+                  </span>
                   <span className="configurator__summary-detail-value">Included</span>
                 </div>
               ))}

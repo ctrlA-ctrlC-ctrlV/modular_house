@@ -398,7 +398,7 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
               {product.includedFeatures.map((feature) => (
                 <div key={feature.id} className="configurator__summary-detail-row">
                   <span className="configurator__summary-detail-label">
-                    {feature.name}
+                    {feature.name}&nbsp;
                     {/* Inline info button that reveals the feature description
                         on hover. Placement is set to "top" to prevent the
                         popover from overlapping adjacent rows below. */}

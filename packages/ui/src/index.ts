@@ -27,5 +27,6 @@ export { InfoBanner, type InfoBannerProps, type InfoBannerStatusItem, type InfoB
 export { InfoButton, type InfoButtonProps } from './components/InfoButton/InfoButton';
 export { GoBespokeBanner, type GoBespokeBannerProps } from './components/GoBespokeBanner/GoBespokeBanner';
 export { EnquiryFormModal, type EnquiryFormData, type EnquiryFormModalProps } from './components/EnquiryFormModal/EnquiryFormModal';
+export { HoverButton, type HoverButtonProps, type HoverButtonPlacement } from './components/HoverButton/HoverButton';
 export * from './types';
 // Add your shared UI components here

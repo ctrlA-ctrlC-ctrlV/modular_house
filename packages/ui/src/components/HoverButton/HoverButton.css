@@ -1,0 +1,406 @@
+/**
+ * HoverButton Component Stylesheet
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides styling for the HoverButton trigger icon, popover card, directional
+ * arrow, and all animation states. Follows the project design system using
+ * brand tokens for colours, typography, shadows, and spacing.
+ *
+ * ARCHITECTURE:
+ * - Component-level CSS custom properties bridge global brand tokens to
+ *   component-specific naming with hardcoded fallbacks for isolated rendering.
+ * - Popover entry/exit animations use CSS @keyframes driven by data-state
+ *   attributes ("open" and "closing") set by the React component.
+ * - Placement (above or below the trigger) is controlled by the
+ *   data-placement attribute ("top" or "bottom"), which adjusts the arrow
+ *   direction and vertical positioning.
+ * - Reduced-motion support disables all transitions and animations per the
+ *   project accessibility standard.
+ *
+ * DEPENDENCIES:
+ * - Requires style.css / tokens.css to be imported in the consuming application
+ *   for brand token resolution.
+ * - Brand tokens: --font-sans, --brand-bg-primary, --brand-ink, --brand-slate,
+ *   --brand-bd-color, --brand-link, --brand-link-hover
+ *
+ * BEM NAMING CONVENTION:
+ * - Block:    .hover-button
+ * - Element:  .hover-button__[element]
+ * - Modifier: .hover-button--[modifier]
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   Bridges global brand tokens to component-specific CSS custom properties.
+   Hardcoded fallback values ensure the component renders correctly when
+   brand tokens are unavailable (e.g., in Storybook isolation).
+   ============================================================================= */
+
+:root {
+  /** Background colour for the popover card. */
+  --hover-button-bg: var(--brand-bg-primary, #FEFEFE);
+
+  /** Border colour for the popover card. */
+  --hover-button-border: var(--brand-bd-color, #E5E7DE);
+
+  /** Primary text colour inside the popover. */
+  --hover-button-ink: var(--brand-ink, #1a1a1a);
+
+  /** Secondary text colour for supplementary content. */
+  --hover-button-muted: var(--brand-slate, #555555);
+
+  /** Trigger icon colour in its default state. */
+  --hover-button-trigger-color: var(--brand-stone, #888888);
+
+  /** Trigger icon colour on hover. */
+  --hover-button-trigger-hover: var(--brand-link, #B55329);
+
+  /** Box shadow for the popover card. */
+  --hover-button-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+                          0 2px 8px rgba(0, 0, 0, 0.06);
+
+  /** Border radius for the popover card. */
+  --hover-button-radius: 8px;
+
+  /** Arrow size (half-width of the arrow triangle). */
+  --hover-button-arrow-size: 7px;
+
+  /** Gap between the trigger and the popover card. */
+  --hover-button-offset: 10px;
+
+  /** Duration of the popover entry animation. */
+  --hover-button-enter-duration: 0.2s;
+
+  /** Duration of the popover exit animation. Must match EXIT_ANIMATION_DURATION in .tsx. */
+  --hover-button-exit-duration: 0.18s;
+}
+
+
+/* =============================================================================
+   SECTION 2: ROOT WRAPPER
+   -----------------------------------------------------------------------------
+   The root <span> element provides a positioning context for the trigger
+   and the absolutely positioned popover card.
+   ============================================================================= */
+
+/**
+ * Root inline wrapper.
+ * Uses position: relative so the popover can be absolutely positioned
+ * relative to the trigger icon.
+ */
+.hover-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+
+/* =============================================================================
+   SECTION 3: TRIGGER BUTTON
+   -----------------------------------------------------------------------------
+   A compact circled "i" icon rendered as a semantic <button>.
+   Designed to be minimal and unobtrusive while remaining discoverable
+   through colour contrast and cursor changes.
+   ============================================================================= */
+
+/**
+ * Trigger button base styles.
+ * Renders the Unicode circled information symbol as an inline icon.
+ * Removes all native button chrome and adds a smooth colour transition.
+ */
+.hover-button__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--hover-button-trigger-color);
+  transition: color 0.2s ease;
+
+  /**
+   * Removes default outline; replaced by :focus-visible style below.
+   */
+  outline: none;
+}
+
+/**
+ * Hover state: transitions to the brand accent colour for visual feedback.
+ */
+.hover-button__trigger:hover {
+  color: var(--hover-button-trigger-hover);
+}
+
+/**
+ * Focus-visible state: applies the project-standard focus ring
+ * for keyboard navigation accessibility.
+ */
+.hover-button__trigger:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+
+/* =============================================================================
+   SECTION 4: POPOVER CARD
+   -----------------------------------------------------------------------------
+   The floating card that appears on hover. Positioned absolutely relative
+   to the root wrapper. Placement (top / bottom) is determined by the
+   data-placement attribute set by the React component.
+   ============================================================================= */
+
+/**
+ * Popover card base styles.
+ * Positioned horizontally centred below or above the trigger.
+ * Uses pointer-events to ensure the popover is interactive
+ * (allowing the user to hover into it).
+ */
+.hover-button__popover {
+  position: absolute;
+  left: 50%;
+  z-index: 1000;
+  width: max-content;
+  max-width: 320px;
+  min-width: 200px;
+  padding: 0;
+  background: var(--hover-button-bg);
+  border: 1px solid var(--hover-button-border);
+  border-radius: var(--hover-button-radius);
+  box-shadow: var(--hover-button-shadow);
+  pointer-events: auto;
+
+  /** Prevents the popover from shifting page layout. */
+  will-change: transform, opacity;
+}
+
+/**
+ * Bottom placement (default).
+ * The popover appears below the trigger with the arrow pointing up.
+ * Transform origin is set to top-centre for the scale animation.
+ */
+.hover-button__popover[data-placement="bottom"] {
+  top: calc(100% + var(--hover-button-offset));
+  transform: translateX(-50%);
+  transform-origin: top center;
+}
+
+/**
+ * Top placement (flipped).
+ * The popover appears above the trigger with the arrow pointing down.
+ * Transform origin is set to bottom-centre for the scale animation.
+ */
+.hover-button__popover[data-placement="top"] {
+  bottom: calc(100% + var(--hover-button-offset));
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+}
+
+
+/* =============================================================================
+   SECTION 5: POPOVER ANIMATIONS
+   -----------------------------------------------------------------------------
+   CSS keyframe animations for smooth entry (scale + fade in) and exit
+   (scale + fade out). Animation state is driven by the data-state
+   attribute ("open" or "closing").
+   ============================================================================= */
+
+/**
+ * Entry animation: scales from 95% to 100% while fading in.
+ */
+@keyframes hover-button-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/**
+ * Exit animation: scales from 100% to 95% while fading out.
+ */
+@keyframes hover-button-exit {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+}
+
+/**
+ * Open state: applies the entry animation.
+ */
+.hover-button__popover[data-state="open"] {
+  animation: hover-button-enter var(--hover-button-enter-duration) ease forwards;
+}
+
+/**
+ * Closing state: applies the exit animation.
+ * pointer-events are disabled during exit to prevent interaction
+ * with a disappearing element.
+ */
+.hover-button__popover[data-state="closing"] {
+  animation: hover-button-exit var(--hover-button-exit-duration) ease forwards;
+  pointer-events: none;
+}
+
+
+/* =============================================================================
+   SECTION 6: DIRECTIONAL ARROW
+   -----------------------------------------------------------------------------
+   A CSS triangle created with border tricks. The arrow direction flips
+   based on the parent popover's data-placement attribute. A secondary
+   pseudo-element creates a 1px border effect matching the card border.
+   ============================================================================= */
+
+/**
+ * Arrow base styles.
+ * Horizontally centred relative to the popover card.
+ */
+.hover-button__arrow {
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  transform: translateX(-50%);
+}
+
+/**
+ * Arrow for bottom placement: points upward toward the trigger.
+ * Positioned at the top edge of the popover card.
+ */
+.hover-button__popover[data-placement="bottom"] .hover-button__arrow {
+  top: calc(-1 * var(--hover-button-arrow-size));
+  border-width: 0 var(--hover-button-arrow-size) var(--hover-button-arrow-size);
+  border-color: transparent transparent var(--hover-button-bg);
+}
+
+/**
+ * Arrow border layer for bottom placement.
+ * Offset by 1px to create a visible border on the arrow triangle.
+ */
+.hover-button__popover[data-placement="bottom"] .hover-button__arrow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 calc(var(--hover-button-arrow-size) + 1px) calc(var(--hover-button-arrow-size) + 1px);
+  border-color: transparent transparent var(--hover-button-border);
+  z-index: -1;
+}
+
+/**
+ * Arrow for top placement: points downward toward the trigger.
+ * Positioned at the bottom edge of the popover card.
+ */
+.hover-button__popover[data-placement="top"] .hover-button__arrow {
+  bottom: calc(-1 * var(--hover-button-arrow-size));
+  border-width: var(--hover-button-arrow-size) var(--hover-button-arrow-size) 0;
+  border-color: var(--hover-button-bg) transparent transparent;
+}
+
+/**
+ * Arrow border layer for top placement.
+ * Offset by 1px to create a visible border on the arrow triangle.
+ */
+.hover-button__popover[data-placement="top"] .hover-button__arrow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: calc(var(--hover-button-arrow-size) + 1px) calc(var(--hover-button-arrow-size) + 1px) 0;
+  border-color: var(--hover-button-border) transparent transparent;
+  z-index: -1;
+}
+
+
+/* =============================================================================
+   SECTION 7: POPOVER CONTENT
+   -----------------------------------------------------------------------------
+   Inner content area with padding and typography defaults.
+   ============================================================================= */
+
+/**
+ * Content wrapper inside the popover card.
+ * Provides consistent padding and inherits the brand sans-serif font.
+ */
+.hover-button__content {
+  padding: 12px 16px;
+  font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  font-size: var(--text-caption, 0.875rem);
+  line-height: var(--lh-body, 1.5);
+  color: var(--hover-button-ink);
+}
+
+/**
+ * Paragraph spacing within the popover content.
+ */
+.hover-button__content p {
+  margin: 0 0 8px;
+}
+
+/**
+ * Removes bottom margin from the last paragraph to avoid
+ * excess whitespace at the bottom of the popover.
+ */
+.hover-button__content p:last-child {
+  margin-bottom: 0;
+}
+
+
+/* =============================================================================
+   SECTION 8: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Disables all animations and transitions when the user has enabled
+   reduced motion in their operating system settings, per the project
+   accessibility standard.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-button__trigger {
+    transition: none;
+  }
+
+  .hover-button__popover[data-state="open"],
+  .hover-button__popover[data-state="closing"] {
+    animation: none;
+  }
+
+  /**
+   * Instant visibility toggle for reduced-motion users.
+   * Open state is fully visible; closing state is fully transparent.
+   */
+  .hover-button__popover[data-state="open"] {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+
+  .hover-button__popover[data-state="closing"] {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+}

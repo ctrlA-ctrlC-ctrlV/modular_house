@@ -345,9 +345,10 @@ const COMPACT_15: HydratedProduct = {
   displayOrder: 1,
 
   /* --- Optional marketing modifiers ------------------------------ */
-  glazingNote:
-    'Glazing details: 700mm \u00D7 2100mm tilt & turn window + ' +
-    '1200mm \u00D7 2100mm French door.',
+  glazingDetails: [
+    { label: 'Front window',   dimensions: '700mm \u00D7 2100mm' },
+    { label: 'French door',   dimensions: '1200mm \u00D7 2100mm' },
+  ],
 
   /* --- Images ---------------------------------------------------- */
   images: [
@@ -465,7 +466,7 @@ const STUDIO_25: HydratedProduct = {
   dimensions: {
     widthM: 5,
     depthM: 5,
-    heightM: 2.7,
+    heightM: 2.4,
     areaM2: 25,
   },
   dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
@@ -487,9 +488,10 @@ const STUDIO_25: HydratedProduct = {
 
   /* --- Optional marketing modifiers ------------------------------ */
   badge: 'Most Popular',
-  glazingNote:
-    '700mm \u00D7 2100mm tilt & turn window + ' +
-    '1600mm \u00D7 2100mm French door. ',
+  glazingDetails: [
+    { label: 'Front window',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+  ],
 
   /* --- Sort ------------------------------------------------------ */
   displayOrder: 2,
@@ -728,7 +730,7 @@ const LIVING_35: HydratedProduct = {
   dimensions: {
     widthM: 7.0,
     depthM: 5.0,
-    heightM: 2.7,
+    heightM: 2.4,
     areaM2: 35,
   },
   dimensionsDisplay: '7.0m \u00D7 5.0m',
@@ -749,9 +751,10 @@ const LIVING_35: HydratedProduct = {
   ctaLink: '/garden-rooms/configure/living-35',
 
   /* --- Optional marketing modifiers ------------------------------ */
-  glazingNote:
-    'Glazing details: 2\u00D7 700mm \u00D7 2100mm tilt & turn windows + ' +
-    '2400mm \u00D7 2100mm sliding door.',
+  glazingDetails: [
+    { label: 'Front window',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+  ],
 
   /* --- Sort ------------------------------------------------------ */
   displayOrder: 3,
@@ -891,7 +894,7 @@ const GRAND_45: HydratedProduct = {
   dimensions: {
     widthM: 9.0,
     depthM: 5.0,
-    heightM: 2.8,
+    heightM: 2.4,
     areaM2: 45,
   },
   dimensionsDisplay: '9.0m \u00D7 5.0m or 7.5m \u00D7 6.0m',
@@ -912,9 +915,10 @@ const GRAND_45: HydratedProduct = {
   ctaLink: '/garden-rooms/configure/grand-45',
 
   /* --- Optional marketing modifiers ------------------------------ */
-  glazingNote:
-    'Glazing details: 2\u00D7 900mm \u00D7 2100mm tilt & turn windows + ' +
-    '1600mm \u00D7 2100mm French door + 3000mm \u00D7 2100mm sliding door.',
+  glazingDetails: [
+    { label: 'Front window',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+  ],
 
   /* --- Sort ------------------------------------------------------ */
   displayOrder: 4,

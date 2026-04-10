@@ -285,16 +285,19 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
   const renderGlazingSection = (): React.ReactNode => (
     <div className="configurator__summary-section">
       <h4 className="configurator__summary-section-title">Glazing</h4>
-      <div className="configurator__summary-section-content">
-        <div className="configurator__summary-detail-row">
-          <span className="configurator__summary-detail-label">Glazing Spec</span>
-          <span className="configurator__summary-detail-value">
-            {product.specs.find((s) => s.label === 'Glazing')?.value ?? 'Standard'}
-          </span>
-        </div>
-        <p className="configurator__summary-glazing-note">
-          {product.glazingNote}
-        </p>
+      <div className="configurator__summary-section-content">               
+        {/* Structured glazing detail rows -- each entry describes a single
+            window or door unit with its type label and nominal dimensions. */}
+        {product.glazingDetails && product.glazingDetails.length > 0 && (
+          <>
+            {product.glazingDetails.map((detail, index) => (
+              <div key={`${detail.label}-${index}`} className="configurator__summary-detail-row">
+                <span className="configurator__summary-detail-label">{detail.label}</span>
+                <span className="configurator__summary-detail-value">{detail.dimensions}</span>
+              </div>
+            ))}
+          </>
+        )}        
       </div>
     </div>
   );

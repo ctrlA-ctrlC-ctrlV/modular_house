@@ -278,10 +278,21 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </div>
       )}
 
-      {/* Glazing note */}
-      <div className="configurator__glazing-note">
-        <strong>Glazing details:</strong> {product.glazingNote}
-      </div>
+      {/* Glazing details -- rendered as label/value detail rows matching
+           the Warranty Coverage section layout for visual consistency. */}
+      {product.glazingDetails && product.glazingDetails.length > 0 && (
+        <div className="configurator__glazing-note">
+          <strong>Glazing Details</strong>
+          <div className="configurator__glazing-details-list">
+            {product.glazingDetails.map((detail, index) => (
+              <div key={`${detail.label}-${index}`} className="configurator__glazing-detail-row">
+                <span className="configurator__glazing-detail-label">{detail.label}</span>
+                <span className="configurator__glazing-detail-value">{detail.dimensions}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 

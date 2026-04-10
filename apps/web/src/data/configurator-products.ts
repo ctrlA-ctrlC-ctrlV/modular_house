@@ -833,18 +833,25 @@ const LIVING_35: HydratedProduct = {
   /* --- Included features ----------------------------------------- */
   includedFeatures: [
     {
-      id: 'if-living-bk',
+      id: 'if-living-bathroom',
       productId: 'cp-living-35',
       name: 'Bathroom + Kitchen',
-      description: 'Full plumbing connection with bathroom, kitchen facilities included',
+      description: 'Toilet, basin, shower, electric boiler, included',
       displayOrder: 1,
+    },
+    {
+      id: 'if-living-kitchen',
+      productId: 'cp-living-35',
+      name: 'Kitchen',
+      description: 'Kitchen cabinets, sink, and plumbing connections. Kitchen appliances not included.',
+      displayOrder: 2,
     },
     {
       id: 'if-living-plumbing',
       productId: 'cp-living-35',
       name: 'Plumbing Connection',
       description: 'Hot and cold water supply, waste drainage, and soil stack connection',
-      displayOrder: 2,
+      displayOrder: 3,
     },
   ],
 
@@ -1020,18 +1027,25 @@ const GRAND_45: HydratedProduct = {
   /* --- Included features ----------------------------------------- */
   includedFeatures: [
     {
-      id: 'if-grand-bk',
-      productId: 'cp-grand-45',
+      id: 'if-living-bathroom',
+      productId: 'cp-living-35',
       name: 'Bathroom + Kitchen',
-      description: 'Full plumbing with bathroom, full kitchen, and WC facilities included',
+      description: 'Toilet, basin, shower, electric boiler, included',
       displayOrder: 1,
     },
     {
-      id: 'if-grand-plumbing',
-      productId: 'cp-grand-45',
+      id: 'if-living-kitchen',
+      productId: 'cp-living-35',
+      name: 'Kitchen',
+      description: 'Kitchen cabinets, sink, and plumbing connections. Kitchen appliances not included.',
+      displayOrder: 2,
+    },
+    {
+      id: 'if-living-plumbing',
+      productId: 'cp-living-35',
       name: 'Plumbing Connection',
       description: 'Hot and cold water supply, waste drainage, and soil stack connection',
-      displayOrder: 2,
+      displayOrder: 3,
     },
   ],
 

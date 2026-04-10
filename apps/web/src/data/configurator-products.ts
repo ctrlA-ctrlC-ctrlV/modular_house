@@ -833,7 +833,7 @@ const LIVING_35: HydratedProduct = {
       id: 'if-living-bk',
       productId: 'cp-living-35',
       name: 'Bathroom + Kitchen',
-      description: 'Full plumbing connection with bathroom, kitchen, and WC facilities included',
+      description: 'Full plumbing connection with bathroom, kitchen facilities included',
       displayOrder: 1,
     },
     {

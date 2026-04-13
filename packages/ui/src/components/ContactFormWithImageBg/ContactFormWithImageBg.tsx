@@ -404,7 +404,8 @@ export const ContactFormWithImageBg: React.FC<ContactFormWithImageBgProps> = ({
                   />
                   <span>
                     I agree that my submitted data is being{' '}
-                    <a href="/privacy-policy/" className="contact-form-bg__consent-link">
+                    {/* Route path must match the /privacy route defined in routes-metadata.ts */}
+                    <a href="/privacy" className="contact-form-bg__consent-link">
                       collected and stored
                     </a>.
                   </span>

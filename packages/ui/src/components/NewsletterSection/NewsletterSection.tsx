@@ -55,7 +55,8 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
             <div className="newsletter-consent-wrapper">
                 <label className="newsletter-consent-label">
                     <input type="checkbox" className="newsletter-checkbox" />
-                    <span>I agree that my submitted data is being <a href="/privacy-policy/" className="newsletter-consent-link">collected and stored</a>.</span>
+                    {/* Route path must match the /privacy route defined in routes-metadata.ts */}
+                    <span>I agree that my submitted data is being <a href="/privacy" className="newsletter-consent-link">collected and stored</a>.</span>
                 </label>
             </div>
           </form>

@@ -189,7 +189,7 @@ function Privacy(): React.ReactElement {
      providing a visually consistent appearance with other content pages.
      --------------------------------------------------------------------------- */
   useEffect(() => {
-    setHeaderConfig({ variant: 'dark', positionOver: true });
+    setHeaderConfig({ variant: 'light', positionOver: false });
   }, [setHeaderConfig]);
 
   return (

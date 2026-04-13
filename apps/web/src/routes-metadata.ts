@@ -674,7 +674,8 @@ export const routesMetadata: RouteMetadata[] = [
     path: '/privacy',
     seo: {
       title: 'Privacy Policy',
-      description: 'Our commitment to protecting your privacy and personal data.',
+      description:
+        'Read the Modular House privacy policy. Learn how we collect, use, and protect your personal data, our cookie practices, and your GDPR and CCPA rights.',
       canonicalUrl: 'https://modularhouse.ie/privacy',
       // Legal pages use the minimal robots directive — they are indexable but
       // do not benefit from the extended preview directives used on product pages.

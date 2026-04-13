@@ -444,3 +444,43 @@
 .footer__credits strong {
   color: var(--footer-heading);
 }
+
+
+/* =============================================================================
+   SECTION 10: LEGAL LINKS
+   -----------------------------------------------------------------------------
+   Privacy Policy and Terms & Conditions links displayed in the bottom bar.
+   Uses inline-flex layout with a pipe separator between items.
+   ============================================================================= */
+
+/**
+ * Legal links container.
+ * Displays links inline with consistent spacing and alignment.
+ */
+.footer__legal-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/**
+ * Individual legal link styling.
+ * Inherits the footer text color and transitions on hover.
+ */
+.footer__legal-link {
+  color: var(--footer-text);
+  text-decoration: none;
+  transition: color var(--footer-transition-speed) var(--footer-transition-easing);
+}
+
+.footer__legal-link:hover {
+  color: var(--footer-heading);
+}
+
+/**
+ * Pipe separator between legal links.
+ * Uses muted text color to avoid visual dominance.
+ */
+.footer__legal-separator {
+  color: var(--footer-border);
+}

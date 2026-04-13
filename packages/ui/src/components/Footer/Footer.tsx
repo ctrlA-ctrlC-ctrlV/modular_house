@@ -328,14 +328,28 @@ export const Footer: React.FC<FooterProps> = ({
       </div>
 
       {/* ===================================================================
-          FOOTER BOTTOM BAR: COPYRIGHT AND CREDITS
+          FOOTER BOTTOM BAR: COPYRIGHT, LEGAL LINKS, AND CREDITS
           Separated from main content with a subtle border divider.
+          Legal links (Privacy Policy, Terms & Conditions) are rendered
+          between the copyright notice and builder credits.
           =================================================================== */}
       <div className="footer__bottom">
         <div className="footer__bottom-container">
           <div className="footer__copyright">
             &copy; {currentYear}. All Rights Reserved.
           </div>
+
+          {/* Legal navigation links for privacy policy and terms pages */}
+          <nav className="footer__legal-links" aria-label="Legal">
+            <LinkItem href="/privacy" className="footer__legal-link">
+              Privacy Policy
+            </LinkItem>
+            <span className="footer__legal-separator" aria-hidden="true">|</span>
+            <LinkItem href="/terms" className="footer__legal-link">
+              Terms &amp; Conditions
+            </LinkItem>
+          </nav>
+
           <div className="footer__credits">
             Built by Zhaoxiang Qiu
           </div>

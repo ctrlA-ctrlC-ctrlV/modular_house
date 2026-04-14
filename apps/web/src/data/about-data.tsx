@@ -46,8 +46,8 @@ import type {
  * which should contain optimised AVIF, WebP, and JPEG/PNG variants.
  */
 export const ABOUT_HERO = {
-  titleLine1: 'About Modular House',
-  titleLine2: 'Crafting premium steel-frame garden rooms and house extensions in Dublin since 2020.',
+  titleLine1: 'Crafting premium steel-frame garden rooms and house extensions',
+  titleLine2: 'in Dublin since 2020.',
   backgroundImage: '/resource/about/about_hero.jpg',
   backgroundImageWebP: '/resource/about/about_hero.webp',
   backgroundImageAvif: '/resource/about/about_hero.avif',

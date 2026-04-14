@@ -183,13 +183,14 @@ const About: React.FC = () => {
           Avatars use a grayscale-to-colour hover effect as specified in the
           component design.
           =================================================================== */}
+      {/*
       <div id="our-team">
         <TeamGrid
           eyebrow="OUR TEAM"
           heading="The People Behind Every Build"
           members={ABOUT_TEAM_MEMBERS}
         />
-      </div>
+      </div>*/}
 
       {/* ===================================================================
           Section 6 -- Stats

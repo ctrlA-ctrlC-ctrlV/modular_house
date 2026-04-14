@@ -1,0 +1,228 @@
+/**
+ * GradientCTA Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the GradientCTA component using BEM
+ * naming methodology and the project's design token system. The section uses
+ * the brand signature gradient (`--gradient-orange-brown`) as its background,
+ * centring white text and a prominent white button.
+ *
+ * LAYOUT STRATEGY:
+ * Single centred column with vertical stacking. The inner container is
+ * narrower than other sections (max-width 1200px) to draw focus toward
+ * the CTA content. Responsive adjustments reduce padding on smaller
+ * viewports and constrain button width on mobile.
+ *
+ * TOKEN USAGE:
+ * No raw hex colour values appear in this file. All visual properties are
+ * derived from the established design token hierarchy. The button focus ring
+ * uses the global focus colour pattern.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens. Centralising them here makes it easy to
+   adjust the component's appearance without modifying individual rules.
+   ============================================================================= */
+
+:root {
+  --gcta-bg: var(--gradient-orange-brown);
+  --gcta-heading-color: var(--brand-bg-primary);
+  --gcta-subtext-color: var(--brand-bg-primary);
+  --gcta-subtext-opacity: 0.8;
+  --gcta-button-bg: var(--brand-bg-primary);
+  --gcta-button-color: var(--brand-title);
+  --gcta-button-radius: 4px;
+  --gcta-button-hover-scale: 1.05;
+  --gcta-button-hover-transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  --gcta-padding-vertical: 64px;
+  --gcta-padding-horizontal: 20px;
+  --gcta-container-max-width: 1200px;
+  --gcta-subtext-max-width: 600px;
+  --gcta-heading-subtext-gap: 32px;
+  --gcta-subtext-button-gap: 48px;
+  --gcta-focus-ring-color: #4f46e5;
+  --gcta-focus-ring-width: 2px;
+  --gcta-focus-ring-offset: 2px;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root section element
+   ============================================================================= */
+
+/**
+ * The root `<section>` element. Applies the brand signature gradient as
+ * the background and sets vertical padding for generous whitespace above
+ * and below the centered content.
+ */
+.gradient-cta {
+  width: 100%;
+  padding-top: var(--gcta-padding-vertical);
+  padding-bottom: var(--gcta-padding-vertical);
+  background: var(--gcta-bg);
+}
+
+/* =============================================================================
+   SECTION 3: INNER CONTAINER -- Max-width constraint and centering
+   ============================================================================= */
+
+/**
+ * Constrains content to a narrower max-width than typical sections, drawing
+ * focus toward the CTA. Centres all child elements horizontally and vertically
+ * via text-align and auto margins.
+ */
+.gradient-cta__inner {
+  max-width: var(--gcta-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--gcta-padding-horizontal);
+  padding-left: var(--gcta-padding-horizontal);
+  text-align: center;
+}
+
+/* =============================================================================
+   SECTION 4: HEADING -- Primary CTA heading
+   ============================================================================= */
+
+/**
+ * Primary heading displayed in white over the gradient background.
+ * Uses the brand serif typeface at the display scale for maximum visual
+ * impact. Bottom margin separates it from the supporting subtext.
+ */
+.gradient-cta__heading {
+  margin: 0 0 var(--gcta-heading-subtext-gap) 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-display);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--gcta-heading-color);
+}
+
+/* =============================================================================
+   SECTION 5: SUBTEXT -- Supporting description below the heading
+   ============================================================================= */
+
+/**
+ * Supporting subtext rendered at a slightly reduced opacity (80%) to
+ * create visual hierarchy beneath the heading. Max-width constrains
+ * line length for comfortable reading. Centred via auto margins.
+ */
+.gradient-cta__subtext {
+  margin: 0 auto var(--gcta-subtext-button-gap) auto;
+  max-width: var(--gcta-subtext-max-width);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-l);
+  line-height: var(--lh-relaxed);
+  color: var(--gcta-subtext-color);
+  opacity: var(--gcta-subtext-opacity);
+}
+
+/* =============================================================================
+   SECTION 6: BUTTON -- CTA button / anchor element
+   -----------------------------------------------------------------------------
+   Shared styles for both the <a> and <button> forms of the CTA. Both
+   render with identical visual appearance; the semantic element differs
+   based on the props provided to the component.
+   ============================================================================= */
+
+/**
+ * CTA button: white background with dark text. Rendered inline-block to
+ * support both <a> and <button> elements seamlessly. The serif typeface
+ * and uppercase treatment match the brand's action-element pattern.
+ */
+.gradient-cta__button {
+  display: inline-block;
+  padding: 20px 40px;
+  background-color: var(--gcta-button-bg);
+  color: var(--gcta-button-color);
+  font-family: var(--font-serif);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-none);
+  text-decoration: none;
+  border: none;
+  border-radius: var(--gcta-button-radius);
+  cursor: pointer;
+  transition: var(--gcta-button-hover-transition);
+}
+
+/**
+ * Hover state: scale the button up slightly and add a subtle shadow
+ * to lift it off the gradient background. Background shifts to pure
+ * white for a subtle brightness increase.
+ */
+.gradient-cta__button:hover {
+  transform: scale(var(--gcta-button-hover-scale));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  background-color: #ffffff;
+}
+
+/**
+ * Focus-visible state: applies the global focus ring pattern for keyboard
+ * navigation. Uses a high-contrast indigo outline offset from the button
+ * border to remain visible against the gradient background.
+ */
+.gradient-cta__button:focus-visible {
+  outline: var(--gcta-focus-ring-width) solid var(--gcta-focus-ring-color);
+  outline-offset: var(--gcta-focus-ring-offset);
+}
+
+/* =============================================================================
+   SECTION 7: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Tablet (768px - 992px): Reduced vertical padding.
+   Mobile (< 768px): Button width constrained for one-handed interaction.
+   ============================================================================= */
+
+/**
+ * Tablet breakpoint: reduce vertical padding to maintain visual balance
+ * on narrower viewports.
+ */
+@media (max-width: 992px) {
+  .gradient-cta {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+}
+
+/**
+ * Mobile breakpoint: constrain button width to a maximum of 320px or
+ * the full viewport width (whichever is smaller) for comfortable
+ * thumb-reach interaction on small screens.
+ */
+@media (max-width: 767px) {
+  .gradient-cta__heading {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+
+  .gradient-cta__button {
+    width: min(100%, 320px);
+    box-sizing: border-box;
+  }
+}
+
+/* =============================================================================
+   SECTION 8: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Disables the scale transform animation when the user has requested
+   reduced motion. The background-color and box-shadow changes still apply
+   instantaneously on hover, preserving the visual feedback without the
+   motion component.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-cta__button {
+    transition: none;
+  }
+
+  .gradient-cta__button:hover {
+    transform: none;
+  }
+}

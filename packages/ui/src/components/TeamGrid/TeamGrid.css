@@ -1,0 +1,338 @@
+/**
+ * TeamGrid Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the TeamGrid component and its child
+ * TeamMemberCard elements using BEM naming methodology and the project's
+ * design token system. All colour, typography, and spacing values reference
+ * CSS custom properties defined in the global token files.
+ *
+ * LAYOUT STRATEGY:
+ * Desktop-first CSS Grid layout with 4 columns that reflows to 2 columns
+ * on tablet (768-992px) and a single centered column on mobile (< 768px).
+ * The section uses a dark background (`--brand-bg-dark`) to contrast with
+ * adjacent light sections.
+ *
+ * TOKEN USAGE:
+ * No raw hex colour values appear in this file except within transparency
+ * overlays applied to brand tokens. All other visual properties are derived
+ * from the established design token hierarchy.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens. Centralising them here makes it easy to
+   adjust the component's appearance without modifying individual rules.
+   ============================================================================= */
+
+:root {
+  --tg-bg: var(--brand-bg-dark);
+  --tg-eyebrow-color: var(--brand-link);
+  --tg-heading-color: var(--brand-bg-primary);
+  --tg-name-color: var(--brand-bg-primary);
+  --tg-role-color: var(--brand-link);
+  --tg-bio-color: var(--brand-stone);
+  --tg-avatar-size: 192px;
+  --tg-avatar-ring-color: rgb(181 83 41 / 0.2);
+  --tg-avatar-ring-width: 2px;
+  --tg-avatar-inner-padding: 4px;
+  --tg-grid-gap: 48px;
+  --tg-header-spacing: 96px;
+  --tg-padding-vertical: 96px;
+  --tg-padding-horizontal: 20px;
+  --tg-container-max-width: 1320px;
+  --tg-grayscale-transition: filter 0.3s ease;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root section element
+   ============================================================================= */
+
+/**
+ * The root `<section>` element. Sets the dark background, vertical padding,
+ * and default text colour for the entire team section.
+ */
+.team-grid {
+  width: 100%;
+  padding-top: var(--tg-padding-vertical);
+  padding-bottom: var(--tg-padding-vertical);
+  background-color: var(--tg-bg);
+  font-family: var(--font-sans);
+}
+
+/* =============================================================================
+   SECTION 3: INNER CONTAINER -- Max-width constraint and horizontal padding
+   ============================================================================= */
+
+/**
+ * Constrains the content to the maximum section width and centres it
+ * within the viewport. Horizontal padding prevents content from touching
+ * the viewport edge on smaller screens.
+ */
+.team-grid__inner {
+  max-width: var(--tg-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--tg-padding-horizontal);
+  padding-left: var(--tg-padding-horizontal);
+}
+
+/* =============================================================================
+   SECTION 4: HEADER BLOCK -- Eyebrow and heading for the team section
+   ============================================================================= */
+
+/**
+ * Header block containing the eyebrow label and section heading.
+ * Bottom margin creates generous whitespace between the heading and the
+ * first row of team member cards.
+ */
+.team-grid__header {
+  margin-bottom: var(--tg-header-spacing);
+}
+
+/**
+ * Eyebrow label: small uppercase text above the heading.
+ * Uses the brand accent colour (copper) for visibility against the dark bg.
+ * Follows the brand's eyebrow pattern (Inter, 0.75rem, semibold, wide tracking).
+ */
+.team-grid__eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-none);
+  color: var(--tg-eyebrow-color);
+}
+
+/**
+ * Section heading: large display text rendered as an `<h2>`.
+ * Uses near-white colour for high contrast against the dark background.
+ * The serif typeface provides a strong editorial presence.
+ */
+.team-grid__heading {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-l);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--tg-heading-color);
+}
+
+/* =============================================================================
+   SECTION 5: MEMBER GRID -- Responsive grid layout
+   ============================================================================= */
+
+/**
+ * Reset default list styles and establish the 4-column CSS Grid.
+ * The grid gap provides consistent spacing between team member cards.
+ */
+.team-grid__list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--tg-grid-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/**
+ * Individual list items serve as grid cells. No additional styling is needed;
+ * the contained `<article>` (TeamMemberCard) handles visual presentation.
+ */
+.team-grid__item {
+  display: flex;
+}
+
+/* =============================================================================
+   SECTION 6: TEAM MEMBER CARD -- Individual member styling
+   ============================================================================= */
+
+/**
+ * Team member card container. Uses flex layout with column direction
+ * to stack the avatar, name, role, and bio vertically.
+ */
+.team-member {
+  flex-grow: 1;
+}
+
+/**
+ * Avatar container: enforces a fixed square dimension and applies
+ * the circular clip via border-radius. An accent-coloured ring border
+ * is created using `border` and inner `padding`, with the image
+ * itself clipped to a circle via `border-radius` on the
+ * `team-member__image` class.
+ *
+ * The grayscale filter is applied here so it covers the entire avatar
+ * container, including the ring. Transitions are defined for the hover
+ * interaction specified in the design.
+ */
+.team-member__avatar {
+  width: var(--tg-avatar-size);
+  height: var(--tg-avatar-size);
+  margin-bottom: 24px;
+  border-radius: 50%;
+  border: var(--tg-avatar-ring-width) solid var(--tg-avatar-ring-color);
+  padding: var(--tg-avatar-inner-padding);
+  overflow: hidden;
+  filter: grayscale(1);
+  transition: var(--tg-grayscale-transition);
+  box-sizing: content-box;
+}
+
+/**
+ * Hover state: remove the grayscale filter to reveal the full-colour avatar.
+ * This provides a subtle interactive cue that draws attention to the
+ * currently hovered member.
+ */
+.team-member__avatar:hover {
+  filter: grayscale(0);
+}
+
+/**
+ * Focus-within state: mirrors the hover behaviour for keyboard navigation.
+ * If a focusable descendant is added within the card (e.g., a link),
+ * the avatar will transition to full colour on focus as well.
+ */
+.team-grid__item:focus-within .team-member__avatar {
+  filter: grayscale(0);
+}
+
+/**
+ * Avatar image: fills the circular container and clips to a circle.
+ * The OptimizedImage component renders a `<picture>` element wrapping
+ * the actual `<img>` — the imgClassName prop targets this inner element.
+ */
+.team-member__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/**
+ * Member name: medium heading using the brand serif typeface.
+ * White on dark background for maximum legibility.
+ */
+.team-member__name {
+  margin: 0 0 4px 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-s);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-snug);
+  letter-spacing: 0.05em;
+  color: var(--tg-name-color);
+}
+
+/**
+ * Role label: small uppercase text styled identically to the eyebrow pattern.
+ * Uses the brand accent colour (copper) for contrast against the dark bg.
+ */
+.team-member__role {
+  margin: 0 0 12px 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-none);
+  color: var(--tg-role-color);
+}
+
+/**
+ * Biography text: muted stone colour with relaxed line-height for comfortable
+ * reading. Font size is kept at caption level (0.875rem / 14px) which is the
+ * minimum required to maintain AA contrast against the dark background.
+ */
+.team-member__bio {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--lh-relaxed);
+  color: var(--tg-bio-color);
+}
+
+/* =============================================================================
+   SECTION 7: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Tablet (768px - 992px): 2-column grid with reduced spacing.
+   Mobile (< 768px): Single column with centered content and avatars.
+   ============================================================================= */
+
+/**
+ * Tablet breakpoint: reduce to 2 columns and tighten vertical padding
+ * and header spacing to fit the narrower viewport.
+ */
+@media (max-width: 992px) {
+  .team-grid {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .team-grid__header {
+    margin-bottom: 64px;
+  }
+
+  .team-grid__list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+/**
+ * Mobile breakpoint: collapse to a single column. Centre all content
+ * and avatars horizontally for balanced visual weight on narrow screens.
+ */
+@media (max-width: 767px) {
+  .team-grid__header {
+    text-align: center;
+  }
+
+  .team-grid__list {
+    grid-template-columns: 1fr;
+  }
+
+  /**
+   * Centre the avatar horizontally on mobile.
+   * margin-left/right auto combined with block display centres the element
+   * within the single-column grid cell.
+   */
+  .team-member__avatar {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /**
+   * Centre text content beneath the avatar on mobile.
+   */
+  .team-member {
+    text-align: center;
+  }
+
+  .team-grid__heading {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+}
+
+/* =============================================================================
+   SECTION 8: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Disables the grayscale transition when the user has requested reduced
+   motion. The grayscale toggle still applies on hover (instantaneously),
+   but the animated transition is removed so the effect remains accessible
+   while honouring the user's preference.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .team-member__avatar {
+    transition: none;
+  }
+}

@@ -1,0 +1,294 @@
+/**
+ * ContentWithImage Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the ContentWithImage component using
+ * BEM naming methodology and the project's design token system. All colour,
+ * typography, and spacing values reference CSS custom properties defined in
+ * the global `tokens.css` / `style.css` to ensure brand consistency.
+ *
+ * LAYOUT STRATEGY:
+ * Desktop-first two-column CSS Grid layout that collapses to a single column
+ * at the 768px breakpoint. Column ordering is controlled via the
+ * `--image-first` modifier class, which swaps the grid `order` values.
+ *
+ * TOKEN USAGE:
+ * No raw hex colour values appear in this file. All visual properties are
+ * derived from the established design token hierarchy.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens. Centralising them here makes it easy to
+   adjust the component's appearance without hunting through individual rules.
+   ============================================================================= */
+
+:root {
+  --cwi-bg-primary: var(--brand-bg-primary);
+  --cwi-bg-secondary: var(--brand-bg-secondary);
+  --cwi-eyebrow-color: var(--brand-slate);
+  --cwi-heading-color: var(--brand-title);
+  --cwi-body-color: var(--brand-slate);
+  --cwi-image-radius: 4px;
+  --cwi-image-shadow: var(--shadow-natural);
+  --cwi-grid-gap: 48px;
+  --cwi-padding-vertical: 96px;
+  --cwi-padding-horizontal: 20px;
+  --cwi-container-max-width: 1320px;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK — Root section element
+   ============================================================================= */
+
+/**
+ * The root `<section>` element. Sets vertical padding, background colour,
+ * and overflow containment for any internal decorative elements.
+ */
+.content-with-image {
+  width: 100%;
+  padding-top: var(--cwi-padding-vertical);
+  padding-bottom: var(--cwi-padding-vertical);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* =============================================================================
+   SECTION 3: BLOCK MODIFIERS — Background variants
+   ============================================================================= */
+
+/**
+ * Primary background variant (near-white). Used for standard sections.
+ */
+.content-with-image--bg-primary {
+  background-color: var(--cwi-bg-primary);
+}
+
+/**
+ * Secondary background variant (warm beige). Used for alternate sections
+ * to create visual rhythm between consecutive content blocks.
+ */
+.content-with-image--bg-secondary {
+  background-color: var(--cwi-bg-secondary);
+}
+
+/* =============================================================================
+   SECTION 4: INNER CONTAINER — Grid layout wrapper
+   ============================================================================= */
+
+/**
+ * Constrains content to the maximum section width and establishes the
+ * two-column CSS Grid layout. Horizontal padding provides breathing room
+ * on smaller viewports.
+ */
+.content-with-image__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cwi-grid-gap);
+  align-items: center;
+  max-width: var(--cwi-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--cwi-padding-horizontal);
+  padding-left: var(--cwi-padding-horizontal);
+}
+
+/* =============================================================================
+   SECTION 5: COLUMN ORDER MODIFIER — Image-first layout
+   -----------------------------------------------------------------------------
+   When the `--image-first` modifier is applied, the media column is visually
+   placed before the text column using CSS `order`. This avoids DOM reordering
+   and preserves a consistent reading order for assistive technologies.
+   ============================================================================= */
+
+/**
+ * Default order: text column first (order 1), media column second (order 2).
+ */
+.content-with-image__text {
+  order: 1;
+}
+
+.content-with-image__media {
+  order: 2;
+}
+
+/**
+ * Reversed order: media column first (order 1), text column second (order 2).
+ * Activated by the `imageFirst` prop on the component.
+ */
+.content-with-image--image-first .content-with-image__text {
+  order: 2;
+}
+
+.content-with-image--image-first .content-with-image__media {
+  order: 1;
+}
+
+/* =============================================================================
+   SECTION 6: TEXT ELEMENTS — Eyebrow, heading, and body
+   ============================================================================= */
+
+/**
+ * Eyebrow label: small uppercase text above the heading.
+ * Follows the brand's eyebrow pattern (Inter, 0.75rem, semibold, wide tracking).
+ */
+.content-with-image__eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-none);
+  color: var(--cwi-eyebrow-color);
+}
+
+/**
+ * Section heading: large display text rendered as an `<h2>`.
+ * Uses the brand's serif display typeface with tight line-height.
+ */
+.content-with-image__heading {
+  margin: 0 0 32px 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-l);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--cwi-heading-color);
+}
+
+/**
+ * Body content wrapper: contains the multi-paragraph editorial prose.
+ * Child `<p>` elements receive vertical spacing via the gap between them.
+ */
+.content-with-image__body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-l);
+  line-height: var(--lh-relaxed);
+  color: var(--cwi-body-color);
+}
+
+/**
+ * Remove default paragraph margins within the body slot.
+ * Spacing is handled by the parent flexbox gap to ensure consistency.
+ */
+.content-with-image__body p {
+  margin: 0;
+}
+
+/* =============================================================================
+   SECTION 7: MEDIA ELEMENTS — Image container and aspect ratios
+   ============================================================================= */
+
+/**
+ * Media container: wraps the `<picture>` element and applies overflow
+ * clipping with a subtle border-radius and shadow.
+ */
+.content-with-image__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--cwi-image-radius);
+  box-shadow: var(--cwi-image-shadow);
+}
+
+/**
+ * Aspect ratio modifiers control the container's proportions.
+ * Using the CSS `aspect-ratio` property reserves layout space before the
+ * image loads, preventing Cumulative Layout Shift (CLS).
+ */
+.content-with-image__media--ratio-1-1 {
+  aspect-ratio: 1 / 1;
+}
+
+.content-with-image__media--ratio-4-5 {
+  aspect-ratio: 4 / 5;
+}
+
+.content-with-image__media--ratio-3-4 {
+  aspect-ratio: 3 / 4;
+}
+
+.content-with-image__media--ratio-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+/**
+ * The `<picture>` element fills the media container entirely.
+ */
+.content-with-image__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/**
+ * The `<img>` element covers the container using object-fit, ensuring the
+ * image fills the aspect-ratio box without distortion.
+ */
+.content-with-image__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =============================================================================
+   SECTION 8: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Tablet (768px - 992px): Maintains two-column layout with reduced spacing.
+   Mobile (< 768px): Collapses to single-column stack.
+   ============================================================================= */
+
+/**
+ * Tablet breakpoint: narrower gap and reduced vertical padding to
+ * accommodate the smaller viewport without losing the two-column layout.
+ */
+@media (max-width: 992px) {
+  .content-with-image {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .content-with-image__inner {
+    gap: 32px;
+  }
+}
+
+/**
+ * Mobile breakpoint: collapses the grid into a single-column stack.
+ * When `imageFirst` is active, the image naturally appears above the text.
+ * When `imageFirst` is inactive, the text appears first (default DOM order).
+ */
+@media (max-width: 767px) {
+  .content-with-image__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .content-with-image__heading {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+}
+
+/* =============================================================================
+   SECTION 9: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Future-proofing: disables any transitions or animations that may be added
+   to this component, respecting the user's motion preferences.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .content-with-image,
+  .content-with-image__media,
+  .content-with-image__image {
+    transition: none;
+    animation: none;
+  }
+}

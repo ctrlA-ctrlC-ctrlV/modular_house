@@ -1,0 +1,23 @@
+/* =============================================================================
+   About Route — Page-Level Styles
+   =============================================================================
+
+   Styles specific to the /about route layout. Component-level styles
+   (e.g. TeamGrid, GradientCTA, ContentWithImage) live in the
+   @modular-house/ui package. This file handles only page composition
+   concerns unique to the route.
+
+   BEM naming: block = "about-page".
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Page Container
+   ---------------------------------------------------------------------------
+   The top-level wrapper ensures that stacked full-width sections don't
+   introduce any unintentional margin collapse or overflow issues.
+   --------------------------------------------------------------------------- */
+
+.about-page {
+  overflow-x: hidden;
+}

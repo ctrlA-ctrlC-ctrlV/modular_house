@@ -28,5 +28,11 @@ export { InfoButton, type InfoButtonProps } from './components/InfoButton/InfoBu
 export { GoBespokeBanner, type GoBespokeBannerProps } from './components/GoBespokeBanner/GoBespokeBanner';
 export { EnquiryFormModal, type EnquiryFormData, type EnquiryFormModalProps } from './components/EnquiryFormModal/EnquiryFormModal';
 export { HoverButton, type HoverButtonProps, type HoverButtonPlacement } from './components/HoverButton/HoverButton';
+export { ContentWithImage, type ContentWithImageProps, type ContentWithImageAspectRatio, type ContentWithImageBackground } from './components/ContentWithImage/ContentWithImage';
+export { ValueCardGrid, type ValueCardGridProps, type ValueCardItem, type ValueCardGridBackground } from './components/ValueCardGrid/ValueCardGrid';
+export { FeatureChecklist, type FeatureChecklistProps, type ChecklistItem, type FeatureChecklistBackground } from './components/FeatureChecklist/FeatureChecklist';
+export { StatsBar, type StatsBarProps, type StatItem, type StatsBarBackground } from './components/StatsBar/StatsBar';
+export { TeamGrid, type TeamGridProps, type TeamMember } from './components/TeamGrid/TeamGrid';
+export { GradientCTA, type GradientCTAProps } from './components/GradientCTA/GradientCTA';
 export * from './types';
 // Add your shared UI components here

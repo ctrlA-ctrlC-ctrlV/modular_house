@@ -1,0 +1,291 @@
+/**
+ * ValueCardGrid Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the ValueCardGrid component and its
+ * child ValueCard elements using BEM naming methodology and the project's
+ * design token system. All colour, typography, and spacing values reference
+ * CSS custom properties defined in the global token files.
+ *
+ * LAYOUT STRATEGY:
+ * Desktop-first CSS Grid layout with 3 columns that reflows to 2 columns
+ * on tablet (768-992px) and a single column on mobile (< 768px). The header
+ * block is always centered above the grid.
+ *
+ * TOKEN USAGE:
+ * No raw hex colour values appear in this file. All visual properties are
+ * derived from the established design token hierarchy.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens. Centralising them here makes it easy to
+   adjust the component's appearance without modifying individual rules.
+   ============================================================================= */
+
+:root {
+  --vcg-bg-primary: var(--brand-bg-primary);
+  --vcg-bg-secondary: var(--brand-bg-secondary);
+  --vcg-eyebrow-color: var(--brand-slate);
+  --vcg-heading-color: var(--brand-title);
+  --vcg-card-bg: var(--brand-bg-primary);
+  --vcg-card-title-color: var(--brand-title);
+  --vcg-card-description-color: var(--brand-slate);
+  --vcg-icon-color: var(--brand-link);
+  --vcg-card-radius: 4px;
+  --vcg-card-shadow-hover: var(--shadow-natural);
+  --vcg-card-padding: 48px;
+  --vcg-grid-gap: 48px;
+  --vcg-header-spacing: 96px;
+  --vcg-padding-vertical: 96px;
+  --vcg-padding-horizontal: 20px;
+  --vcg-container-max-width: 1320px;
+  --vcg-icon-size: 48px;
+  --vcg-card-hover-transition: box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root section element
+   ============================================================================= */
+
+/**
+ * The root `<section>` element. Sets vertical padding, background colour,
+ * and font family for the entire grid section.
+ */
+.value-card-grid {
+  width: 100%;
+  padding-top: var(--vcg-padding-vertical);
+  padding-bottom: var(--vcg-padding-vertical);
+  font-family: var(--font-sans);
+}
+
+/* =============================================================================
+   SECTION 3: BLOCK MODIFIERS -- Background variants
+   ============================================================================= */
+
+/**
+ * Primary background variant (near-white).
+ */
+.value-card-grid--bg-primary {
+  background-color: var(--vcg-bg-primary);
+}
+
+/**
+ * Secondary background variant (warm beige). Used for the "Mission & Values"
+ * section on the About page to create visual contrast with adjacent sections.
+ */
+.value-card-grid--bg-secondary {
+  background-color: var(--vcg-bg-secondary);
+}
+
+/* =============================================================================
+   SECTION 4: INNER CONTAINER -- Max-width constraint and horizontal padding
+   ============================================================================= */
+
+/**
+ * Constrains the content to the maximum section width and centres it
+ * within the viewport. Horizontal padding prevents content from touching
+ * the viewport edge on smaller screens.
+ */
+.value-card-grid__inner {
+  max-width: var(--vcg-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--vcg-padding-horizontal);
+  padding-left: var(--vcg-padding-horizontal);
+}
+
+/* =============================================================================
+   SECTION 5: HEADER BLOCK -- Centered eyebrow and heading
+   ============================================================================= */
+
+/**
+ * The header block is centered above the card grid. Bottom margin creates
+ * generous whitespace between the heading and the first row of cards.
+ */
+.value-card-grid__header {
+  text-align: center;
+  margin-bottom: var(--vcg-header-spacing);
+}
+
+/**
+ * Eyebrow label: small uppercase text above the heading.
+ * Follows the brand's eyebrow pattern (Inter, 0.75rem, semibold, wide tracking).
+ */
+.value-card-grid__eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-none);
+  color: var(--vcg-eyebrow-color);
+}
+
+/**
+ * Section heading: large display text rendered as an `<h2>`.
+ * Uses the brand's serif display typeface with tight line-height.
+ */
+.value-card-grid__heading {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-l);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--vcg-heading-color);
+}
+
+/* =============================================================================
+   SECTION 6: CARD GRID -- Responsive grid layout
+   ============================================================================= */
+
+/**
+ * Reset default list styles and establish the 3-column CSS Grid.
+ * The grid gap provides consistent spacing between cards.
+ */
+.value-card-grid__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--vcg-grid-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/**
+ * Individual list items serve as grid cells. No additional styling is needed;
+ * the contained `<article>` (ValueCard) handles visual presentation.
+ */
+.value-card-grid__item {
+  display: flex;
+}
+
+/* =============================================================================
+   SECTION 7: VALUE CARD -- Individual card styling
+   ============================================================================= */
+
+/**
+ * Card container: white background with padding, border-radius, and a
+ * shadow transition on hover. Flex-grow ensures cards stretch to equal
+ * height within their grid row.
+ */
+.value-card {
+  flex-grow: 1;
+  padding: var(--vcg-card-padding);
+  background-color: var(--vcg-card-bg);
+  border-radius: var(--vcg-card-radius);
+  transition: var(--vcg-card-hover-transition);
+}
+
+/**
+ * Hover state: elevate the card with a natural shadow.
+ * The transition timing follows the spec's cubic-bezier curve for a smooth,
+ * decelerating motion that feels tactile without being distracting.
+ */
+.value-card:hover {
+  box-shadow: var(--vcg-card-shadow-hover);
+}
+
+/**
+ * Icon wrapper: fixed-size container that centres the icon visually.
+ * The colour is set to the brand accent so icons using `currentColor`
+ * automatically inherit the correct hue.
+ */
+.value-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--vcg-icon-size);
+  height: var(--vcg-icon-size);
+  margin-bottom: 32px;
+  color: var(--vcg-icon-color);
+}
+
+/**
+ * Card title: medium heading using the brand's serif typeface.
+ */
+.value-card__title {
+  margin: 0 0 16px 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-m);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-snug);
+  color: var(--vcg-card-title-color);
+}
+
+/**
+ * Card description: body text with comfortable line-height for readability.
+ */
+.value-card__description {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--lh-relaxed);
+  color: var(--vcg-card-description-color);
+}
+
+/* =============================================================================
+   SECTION 8: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Tablet (768px - 992px): 2-column grid with reduced spacing.
+   Mobile (< 768px): Single column with reduced card padding.
+   ============================================================================= */
+
+/**
+ * Tablet breakpoint: reduce to 2 columns and tighten vertical padding
+ * and header spacing to fit the narrower viewport.
+ */
+@media (max-width: 992px) {
+  .value-card-grid {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .value-card-grid__header {
+    margin-bottom: 64px;
+  }
+
+  .value-card-grid__list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+/**
+ * Mobile breakpoint: collapse to a single column and reduce card padding
+ * to maintain comfortable content density on small screens.
+ */
+@media (max-width: 767px) {
+  .value-card-grid__list {
+    grid-template-columns: 1fr;
+  }
+
+  .value-card {
+    padding: 32px;
+  }
+
+  .value-card-grid__heading {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+}
+
+/* =============================================================================
+   SECTION 9: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Disables the hover shadow transition when the user has requested reduced
+   motion. The shadow itself still applies on hover (instantaneously), but
+   the animation is removed.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .value-card {
+    transition: none;
+  }
+}

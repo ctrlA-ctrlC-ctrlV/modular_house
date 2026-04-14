@@ -19,7 +19,6 @@
  * =============================================================================
  */
 
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { TeamGrid } from './TeamGrid';
 import type { TeamMember } from './TeamGrid';

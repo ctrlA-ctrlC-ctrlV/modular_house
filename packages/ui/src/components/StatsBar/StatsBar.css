@@ -1,0 +1,187 @@
+/**
+ * StatsBar Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the StatsBar component using BEM
+ * naming methodology and the project's design token system. All colour,
+ * typography, and spacing values reference CSS custom properties defined
+ * in the global token files.
+ *
+ * LAYOUT STRATEGY:
+ * CSS Grid with 4 equal columns on desktop that reflows to a 2x2 grid
+ * on mobile (< 768px). Each cell is centered text containing a large
+ * fluid numeral and a small uppercase caption.
+ *
+ * TOKEN USAGE:
+ * No raw hex colour values appear in this file. All visual properties are
+ * derived from the established design token hierarchy.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens. Centralising them here simplifies future
+   adjustments to the component's appearance.
+   ============================================================================= */
+
+:root {
+  --sb-bg-primary: var(--brand-bg-primary);
+  --sb-bg-secondary: var(--brand-bg-secondary);
+  --sb-value-color: var(--brand-link);
+  --sb-label-color: var(--brand-slate);
+  --sb-padding-vertical: 64px;
+  --sb-padding-horizontal: 20px;
+  --sb-container-max-width: 1320px;
+  --sb-grid-gap: 48px;
+  --sb-value-label-gap: 8px;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root section element
+   ============================================================================= */
+
+/**
+ * The root `<section>` element. Sets vertical padding and background colour
+ * for the entire stats bar. Padding is intentionally lighter than full
+ * content sections (64px vs 96px) to maintain its bar-like visual weight.
+ */
+.stats-bar {
+  width: 100%;
+  padding-top: var(--sb-padding-vertical);
+  padding-bottom: var(--sb-padding-vertical);
+  font-family: var(--font-sans);
+}
+
+/* =============================================================================
+   SECTION 3: BLOCK MODIFIERS -- Background variants
+   ============================================================================= */
+
+/**
+ * Primary background variant (near-white).
+ */
+.stats-bar--bg-primary {
+  background-color: var(--sb-bg-primary);
+}
+
+/**
+ * Secondary background variant (warm beige). Default for the About page
+ * stats section to create visual contrast with adjacent sections.
+ */
+.stats-bar--bg-secondary {
+  background-color: var(--sb-bg-secondary);
+}
+
+/* =============================================================================
+   SECTION 4: INNER CONTAINER -- Max-width constraint
+   ============================================================================= */
+
+/**
+ * Constrains the content to the maximum section width and centres it
+ * within the viewport.
+ */
+.stats-bar__inner {
+  max-width: var(--sb-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--sb-padding-horizontal);
+  padding-left: var(--sb-padding-horizontal);
+}
+
+/* =============================================================================
+   SECTION 5: STATS GRID -- Responsive 4-column layout
+   ============================================================================= */
+
+/**
+ * Reset default list styles and establish a 4-column CSS Grid.
+ * All cells are centered so the numerals and captions align neatly
+ * across the full width.
+ */
+.stats-bar__list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sb-grid-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+/* =============================================================================
+   SECTION 6: STAT ITEM -- Individual metric cell
+   ============================================================================= */
+
+/**
+ * Each list item stacks its value and label vertically with a small gap.
+ */
+.stats-bar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sb-value-label-gap);
+}
+
+/**
+ * Stat value: large fluid numeral in the brand accent colour.
+ * Uses `clamp()` to scale smoothly between mobile and desktop sizes
+ * without requiring a separate media query. The serif display typeface
+ * gives the numbers an editorial, architectural feel.
+ */
+.stats-bar__value {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-none);
+  color: var(--sb-value-color);
+}
+
+/**
+ * Stat label: small uppercase caption beneath the numeral.
+ * Follows the brand's eyebrow pattern for consistency with other section
+ * labels throughout the site.
+ */
+.stats-bar__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-body);
+  color: var(--sb-label-color);
+}
+
+/* =============================================================================
+   SECTION 7: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Mobile (< 768px): Reflows to a 2-column grid for a compact 2x2 layout.
+   ============================================================================= */
+
+/**
+ * Mobile breakpoint: switch from 4 columns to 2 columns.
+ * The gap is reduced slightly to prevent the items from feeling too
+ * spread out on narrow viewports.
+ */
+@media (max-width: 767px) {
+  .stats-bar__list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+/* =============================================================================
+   SECTION 8: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Future-proofing: disables any transitions or animations that may be added
+   to this component (e.g. counter-animation), respecting the user's motion
+   preferences.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-bar,
+  .stats-bar__value {
+    transition: none;
+    animation: none;
+  }
+}

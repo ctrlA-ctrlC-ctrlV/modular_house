@@ -34,7 +34,7 @@ import {
   ContentWithImage,
   ValueCardGrid,
   FeatureChecklist,
-  TeamGrid,
+  //TeamGrid,
   StatsBar,
   GradientCTA,
   type LinkRenderer,
@@ -47,7 +47,7 @@ import {
   ABOUT_VALUES,
   ABOUT_STEEL_FRAME,
   ABOUT_STEEL_FRAME_IMAGE,
-  ABOUT_TEAM_MEMBERS,
+  //ABOUT_TEAM_MEMBERS,
   ABOUT_STATS,
   ABOUT_CTA,
 } from '../data/about-data.js';

@@ -1,0 +1,357 @@
+/**
+ * FeatureChecklist Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the FeatureChecklist component using
+ * BEM naming methodology and the project's design token system. All colour,
+ * typography, and spacing values reference CSS custom properties defined in
+ * the global token files.
+ *
+ * LAYOUT STRATEGY:
+ * Desktop-first two-column CSS Grid layout (50/50 split) that collapses to
+ * a single column at the 768px breakpoint. The `--image-first` modifier
+ * controls column ordering via CSS `order`. On mobile, the image column is
+ * forced to appear first regardless of the modifier state.
+ *
+ * TOKEN USAGE:
+ * No raw hex colour values appear in this file. All visual properties are
+ * derived from the established design token hierarchy.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens. Centralising them here simplifies future
+   adjustments to the component's appearance.
+   ============================================================================= */
+
+:root {
+  --fcl-bg-primary: var(--brand-bg-primary);
+  --fcl-bg-secondary: var(--brand-bg-secondary);
+  --fcl-eyebrow-color: var(--brand-slate);
+  --fcl-heading-color: var(--brand-title);
+  --fcl-icon-color: var(--brand-link);
+  --fcl-icon-size: 24px;
+  --fcl-item-title-color: var(--brand-title);
+  --fcl-item-description-color: var(--brand-slate);
+  --fcl-image-radius: 4px;
+  --fcl-grid-gap: 96px;
+  --fcl-list-gap: 24px;
+  --fcl-icon-title-gap: 16px;
+  --fcl-padding-vertical: 96px;
+  --fcl-padding-horizontal: 20px;
+  --fcl-container-max-width: 1320px;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root section element
+   ============================================================================= */
+
+/**
+ * The root `<section>` element. Sets vertical padding, background colour,
+ * and font family for the entire checklist section.
+ */
+.feature-checklist {
+  width: 100%;
+  padding-top: var(--fcl-padding-vertical);
+  padding-bottom: var(--fcl-padding-vertical);
+  font-family: var(--font-sans);
+}
+
+/* =============================================================================
+   SECTION 3: BLOCK MODIFIERS -- Background variants
+   ============================================================================= */
+
+/**
+ * Primary background variant (near-white). Default for the "Why Steel Frame"
+ * section on the About page.
+ */
+.feature-checklist--bg-primary {
+  background-color: var(--fcl-bg-primary);
+}
+
+/**
+ * Secondary background variant (warm beige). Used when the section needs
+ * visual contrast with adjacent primary-background sections.
+ */
+.feature-checklist--bg-secondary {
+  background-color: var(--fcl-bg-secondary);
+}
+
+/* =============================================================================
+   SECTION 4: INNER CONTAINER -- Grid layout wrapper
+   ============================================================================= */
+
+/**
+ * Constrains content to the maximum section width and establishes the
+ * two-column CSS Grid layout. The generous gap (96px) provides breathing
+ * room between the image and checklist columns.
+ */
+.feature-checklist__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fcl-grid-gap);
+  align-items: center;
+  max-width: var(--fcl-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--fcl-padding-horizontal);
+  padding-left: var(--fcl-padding-horizontal);
+}
+
+/* =============================================================================
+   SECTION 5: COLUMN ORDER MODIFIER -- Image-first layout
+   -----------------------------------------------------------------------------
+   Controls which column appears first using CSS `order`. The default state
+   places the text column first (order 1) and media second (order 2). The
+   `--image-first` modifier reverses this arrangement.
+   ============================================================================= */
+
+/**
+ * Default order: text first, media second.
+ */
+.feature-checklist__text {
+  order: 2;
+}
+
+.feature-checklist__media {
+  order: 1;
+}
+
+/**
+ * Reversed order: media first, text second.
+ * This is the default for the About page "Why Steel Frame" section where
+ * the image sits on the left.
+ */
+.feature-checklist--image-first .feature-checklist__media {
+  order: 1;
+}
+
+.feature-checklist--image-first .feature-checklist__text {
+  order: 2;
+}
+
+/**
+ * When image-first is not applied, the text column leads and the media
+ * column follows. These explicit `order` values ensure correct stacking
+ * regardless of DOM source order.
+ */
+.feature-checklist:not(.feature-checklist--image-first) .feature-checklist__text {
+  order: 1;
+}
+
+.feature-checklist:not(.feature-checklist--image-first) .feature-checklist__media {
+  order: 2;
+}
+
+/* =============================================================================
+   SECTION 6: MEDIA ELEMENTS -- Image container
+   ============================================================================= */
+
+/**
+ * Media container: wraps the `<picture>` element and applies a 1:1 square
+ * aspect ratio. The `aspect-ratio` property reserves layout space before
+ * the image loads, preventing Cumulative Layout Shift (CLS).
+ */
+.feature-checklist__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--fcl-image-radius);
+  aspect-ratio: 1 / 1;
+}
+
+/**
+ * The `<picture>` element fills the media container entirely.
+ */
+.feature-checklist__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/**
+ * The `<img>` element covers the container using object-fit, ensuring
+ * the image fills the square aspect-ratio box without distortion.
+ */
+.feature-checklist__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =============================================================================
+   SECTION 7: TEXT ELEMENTS -- Eyebrow and heading
+   ============================================================================= */
+
+/**
+ * Eyebrow label: small uppercase text above the heading.
+ * Follows the brand's eyebrow pattern (Inter, 0.75rem, semibold, wide tracking).
+ */
+.feature-checklist__eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--lh-none);
+  color: var(--fcl-eyebrow-color);
+}
+
+/**
+ * Section heading: large display text rendered as an `<h2>`.
+ * Uses the brand's serif display typeface with tight line-height.
+ * `text-wrap: balance` distributes text evenly across lines.
+ */
+.feature-checklist__heading {
+  margin: 0 0 32px 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-heading-l);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fcl-heading-color);
+  text-wrap: balance;
+}
+
+/* =============================================================================
+   SECTION 8: CHECKLIST LIST -- Items layout
+   ============================================================================= */
+
+/**
+ * Reset default list styles and establish vertical spacing between items.
+ */
+.feature-checklist__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fcl-list-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/**
+ * Each list item is a flex row with the icon aligned to the top-start
+ * of the item body content.
+ */
+.feature-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fcl-icon-title-gap);
+}
+
+/**
+ * Icon bullet: fixed-size container aligned to the top of the row.
+ * The colour is set to the brand accent so icons using `currentColor`
+ * automatically inherit the correct hue. The top margin aligns the icon
+ * vertically with the first line of the title text.
+ */
+.feature-checklist__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--fcl-icon-size);
+  height: var(--fcl-icon-size);
+  margin-top: 2px;
+  color: var(--fcl-icon-color);
+}
+
+/**
+ * Item body container: holds the title and description.
+ * Flex-grow ensures the text takes up the remaining horizontal space.
+ */
+.feature-checklist__item-body {
+  flex-grow: 1;
+}
+
+/**
+ * Item title: bold label displayed beside the icon.
+ * Rendered as a `<span>` rather than a heading to maintain correct
+ * heading hierarchy (these are short labels, not navigable sub-sections).
+ */
+.feature-checklist__item-title {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  line-height: var(--lh-body);
+  color: var(--fcl-item-title-color);
+}
+
+/**
+ * Item description: supporting text beneath the title.
+ */
+.feature-checklist__item-description {
+  margin: 4px 0 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--lh-relaxed);
+  color: var(--fcl-item-description-color);
+}
+
+/* =============================================================================
+   SECTION 9: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Tablet (768px - 992px): Maintains two-column layout with reduced gap.
+   Mobile (< 768px): Single column with image always first.
+   ============================================================================= */
+
+/**
+ * Tablet breakpoint: narrower gap and reduced vertical padding to
+ * accommodate the smaller viewport while retaining the two-column layout.
+ */
+@media (max-width: 992px) {
+  .feature-checklist {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .feature-checklist__inner {
+    gap: 48px;
+  }
+}
+
+/**
+ * Mobile breakpoint: collapses to a single-column stack.
+ * The media column is forced to `order: -1` so the image always appears
+ * above the text content, regardless of the `imageFirst` prop value.
+ */
+@media (max-width: 767px) {
+  .feature-checklist__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-checklist__media {
+    order: -1;
+  }
+
+  .feature-checklist__text {
+    order: 1;
+  }
+
+  .feature-checklist__heading {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+}
+
+/* =============================================================================
+   SECTION 10: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Future-proofing: disables any transitions or animations that may be added
+   to this component, respecting the user's motion preferences.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-checklist,
+  .feature-checklist__media,
+  .feature-checklist__image {
+    transition: none;
+    animation: none;
+  }
+}

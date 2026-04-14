@@ -30,5 +30,6 @@ export { EnquiryFormModal, type EnquiryFormData, type EnquiryFormModalProps } fr
 export { HoverButton, type HoverButtonProps, type HoverButtonPlacement } from './components/HoverButton/HoverButton';
 export { ContentWithImage, type ContentWithImageProps, type ContentWithImageAspectRatio, type ContentWithImageBackground } from './components/ContentWithImage/ContentWithImage';
 export { ValueCardGrid, type ValueCardGridProps, type ValueCardItem, type ValueCardGridBackground } from './components/ValueCardGrid/ValueCardGrid';
+export { FeatureChecklist, type FeatureChecklistProps, type ChecklistItem, type FeatureChecklistBackground } from './components/FeatureChecklist/FeatureChecklist';
 export * from './types';
 // Add your shared UI components here

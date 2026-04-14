@@ -623,18 +623,18 @@ export const routesMetadata: RouteMetadata[] = [
   {
     path: '/about',
     seo: {
-      title: 'About Us',
-      description: 'Learn about our mission to revolutionize home expansion with sustainable, modular construction technology.',
+      title: 'About Us — Steel Frame Modular Construction Experts',
+      description:
+        'Meet the team behind Modular House. Specialists in steel-frame modular construction across Ireland — precision-engineered extensions, garden rooms, and new builds delivered in weeks, not months.',
       canonicalUrl: 'https://modularhouse.ie/about',
       robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 
       openGraph: {
         type: 'website',
-        title: 'About Us | Modular House',
-        description: 'Learn about our mission to revolutionize home expansion with sustainable, modular construction technology.',
-        // landing_hero.jpg is the deployed JPEG; landing_hero.png does not
-        // exist in public/resource.
-        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
+        title: 'About Us — Steel Frame Modular Construction Experts | Modular House',
+        description:
+          'Meet the team behind Modular House. Specialists in steel-frame modular construction across Ireland — precision-engineered extensions, garden rooms, and new builds.',
+        image: 'https://modularhouse.ie/resource/about/hero.jpg',
         imageWidth: 1200,
         imageHeight: 630,
         imageType: 'image/jpeg',
@@ -646,17 +646,17 @@ export const routesMetadata: RouteMetadata[] = [
       twitter: {
         cardType: 'summary_large_image',
         site: '@ModularHouse',
-        title: 'About Us | Modular House',
-        image: 'https://modularhouse.ie/resource/landing_hero.jpg',
-        imageAlt: 'Modular House team and office',
+        title: 'About Us — Steel Frame Modular Construction | Modular House',
+        image: 'https://modularhouse.ie/resource/about/hero.jpg',
+        imageAlt: 'Modular House team building steel-frame modular structures',
       },
 
       schema: [
         // WebPage + BreadcrumbList schemas for this route.
         ...generatePageSchema(
           '/about',
-          'About Us',
-          'Learn about our mission to revolutionize home expansion with sustainable, modular construction technology.',
+          'About Us — Steel Frame Modular Construction Experts',
+          'Meet the team behind Modular House. Specialists in steel-frame modular construction across Ireland — precision-engineered extensions, garden rooms, and new builds delivered in weeks, not months.',
           BUILD_TIMESTAMP
         ),
       ],

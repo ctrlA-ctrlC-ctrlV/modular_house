@@ -64,10 +64,10 @@ const PROJECTS_PATH = '/gallery';
 const NotFound: React.FC = () => {
   const { setHeaderConfig } = useHeaderConfig();
   useEffect(() => {
-    setHeaderConfig({ variant: 'dark', positionOver: true });
+    setHeaderConfig({ variant: 'dark', positionOver: false});
 
     return () => {
-      setHeaderConfig({ variant: 'dark', positionOver: true });
+      setHeaderConfig({ variant: 'dark', positionOver: false });
     };
   }, [setHeaderConfig]);
 

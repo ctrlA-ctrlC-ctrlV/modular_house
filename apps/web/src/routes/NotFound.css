@@ -1,0 +1,254 @@
+/* =============================================================================
+   NotFound Route -- Page-Level Styles
+   =============================================================================
+
+   Styles specific to the 404 Not Found route. This file follows the same
+   pattern as other route-level stylesheets (About.css, GardenRoom.css),
+   handling only page-composition concerns unique to this route.
+
+   DESIGN REFERENCE:
+   Implements the visual design from .template/misc/notfound_prototype.html.
+   Typography uses the brand serif font (Special Gothic Condensed One) for
+   display elements and Inter for body text, consistent with the brand
+   guidelines documented in .docs/design/brand-guidelines.md.
+
+   TOKEN DEPENDENCIES:
+   All colour, font, and spacing values reference CSS custom properties
+   defined in apps/web/src/styles/style.css and tokens.css:
+   - --font-serif, --font-sans
+   - --brand-link, --brand-link-hover, --brand-title, --brand-slate
+   - --brand-bd-color
+   - --gradient-orange-brown (from-[#4F2412] to-[#B55329])
+
+   BEM naming: block = "not-found".
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Page Container
+   ---------------------------------------------------------------------------
+   Flexbox column layout centres the 404 content both vertically and
+   horizontally within the viewport. top padding accounts for the fixed
+   site header (80px) plus additional breathing room; bottom padding
+   provides balanced whitespace below the content block.
+   --------------------------------------------------------------------------- */
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  padding: 8rem 1.5rem 6rem;
+  text-align: center;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Content Wrapper
+   ---------------------------------------------------------------------------
+   Constrains the inner content to a readable width (42rem / 672px) and
+   stacks child elements with consistent vertical rhythm via gap.
+   --------------------------------------------------------------------------- */
+
+.not-found__content {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+
+/* ---------------------------------------------------------------------------
+   404 Typography Element
+   ---------------------------------------------------------------------------
+   Large display numeral styled with the brand serif font. The relative
+   positioning establishes a stacking context for the gradient accent line
+   pseudo-element positioned beneath it.
+   --------------------------------------------------------------------------- */
+
+.not-found__code {
+  position: relative;
+}
+
+.not-found__code-text {
+  font-family: var(--font-serif);
+  font-size: clamp(6rem, 15vw, 8.75rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight, -0.02em);
+  color: var(--brand-link);
+  opacity: 0.9;
+  user-select: none;
+}
+
+/* Gradient accent line rendered beneath the 404 numeral.
+   Uses the brand gradient (deep brown to copper) for visual continuity
+   with CTA buttons and other brand accent elements across the site. */
+.not-found__accent-line {
+  position: absolute;
+  bottom: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6rem;
+  height: 0.25rem;
+  background: linear-gradient(to right, #4F2412, #B55329);
+  opacity: 0.7;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Heading and Body Text
+   ---------------------------------------------------------------------------
+   The heading uses the brand serif font at a responsive size for
+   editorial impact. Body text uses the sans-serif font in the secondary
+   (slate) colour for comfortable readability.
+   --------------------------------------------------------------------------- */
+
+.not-found__text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.not-found__heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: var(--lh-tight, 1.2);
+  letter-spacing: var(--tracking-tight, -0.02em);
+  color: var(--brand-title);
+}
+
+.not-found__description {
+  font-family: var(--font-sans);
+  font-size: var(--text-body, 1rem);
+  color: var(--brand-slate);
+  font-weight: var(--weight-regular, 400);
+  line-height: var(--lh-body, 1.5);
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Action Buttons
+   ---------------------------------------------------------------------------
+   Two side-by-side CTA buttons on tablet/desktop that stack vertically on
+   mobile. Both follow the 4px border-radius and brand interaction patterns
+   documented in .docs/design/motion-interaction.md.
+   --------------------------------------------------------------------------- */
+
+.not-found__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
+  width: 100%;
+}
+
+/* Shared base styles for both primary and secondary action buttons */
+.not-found__action-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.875rem 2rem;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold, 600);
+  font-size: var(--text-caption, 0.875rem);
+  border-radius: 4px;
+  min-width: 11.25rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Lift effect and shadow enhancement on hover, per motion guidelines */
+.not-found__action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Primary button: solid copper-brown background with white text */
+.not-found__action-btn--primary {
+  background-color: var(--brand-link);
+  color: #ffffff;
+  border: none;
+}
+
+.not-found__action-btn--primary:hover {
+  background-color: var(--brand-link-hover);
+}
+
+/* Secondary button: transparent with copper-brown border and text */
+.not-found__action-btn--secondary {
+  background-color: transparent;
+  border: 2px solid var(--brand-link);
+  color: var(--brand-link);
+}
+
+.not-found__action-btn--secondary:hover {
+  background-color: rgba(181, 83, 41, 0.05);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Decorative Icon
+   ---------------------------------------------------------------------------
+   A subtle architectural icon rendered below the action buttons. Uses the
+   border/divider colour for a muted, non-distracting decorative element
+   that reinforces the construction/architecture brand identity.
+   --------------------------------------------------------------------------- */
+
+.not-found__decorative-icon {
+  padding-top: 3rem;
+  color: var(--brand-bd-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-found__decorative-icon svg {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Responsive Layout -- Tablet and Above (>= 640px)
+   ---------------------------------------------------------------------------
+   Switches the action buttons from vertical stack to horizontal row for
+   wider viewports where there is sufficient horizontal space.
+   --------------------------------------------------------------------------- */
+
+@media (min-width: 640px) {
+  .not-found__actions {
+    flex-direction: row;
+    justify-content: center;
+    width: auto;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Reduced Motion Preference
+   ---------------------------------------------------------------------------
+   Disables hover transforms and transitions when the user has enabled
+   reduced motion in their operating system settings, per the project
+   accessibility guidelines in .docs/design/accessibility.md.
+   --------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .not-found__action-btn {
+    transition: none;
+  }
+
+  .not-found__action-btn:hover {
+    transform: none;
+  }
+}

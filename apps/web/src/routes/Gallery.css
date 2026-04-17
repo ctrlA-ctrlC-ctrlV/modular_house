@@ -1,0 +1,123 @@
+/* =============================================================================
+   Gallery Route — Page-Level Styles
+   =============================================================================
+
+   Styles specific to the /gallery route layout. Component-level styles
+   (e.g. FullMassonryGallery, GradientCTA, HeroBoldBottomText) live in the
+   @modular-house/ui package. This file handles only page-level composition
+   concerns unique to the route.
+
+   BEM naming: block = "gallery-page".
+   ============================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   Page Container
+   ---------------------------------------------------------------------------
+   The top-level wrapper ensures stacked full-width sections do not introduce
+   any unintentional margin collapse or horizontal overflow issues.
+   --------------------------------------------------------------------------- */
+
+.gallery-page {
+  overflow-x: hidden;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Category Filter Bar
+   ---------------------------------------------------------------------------
+   A horizontally centered row of filter buttons allowing visitors to narrow
+   the gallery by project category. Positioned between the hero and the
+   masonry grid with consistent vertical spacing.
+   --------------------------------------------------------------------------- */
+
+.gallery-page__filter-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 20px 0;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.gallery-page__filter-btn {
+  padding: 10px 24px;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  border: 1px solid var(--brand-bd-color);
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--brand-slate);
+  cursor: pointer;
+  transition: background-color 0.2s ease,
+              color 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.gallery-page__filter-btn:hover {
+  border-color: var(--brand-link);
+  color: var(--brand-link);
+}
+
+.gallery-page__filter-btn:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Active Filter State
+   ---------------------------------------------------------------------------
+   The currently selected filter button uses the brand accent colour to
+   indicate the active state clearly against its siblings.
+   --------------------------------------------------------------------------- */
+
+.gallery-page__filter-btn--active {
+  background-color: var(--brand-link);
+  border-color: var(--brand-link);
+  color: #fff;
+}
+
+.gallery-page__filter-btn--active:hover {
+  background-color: var(--brand-link-hover);
+  border-color: var(--brand-link-hover);
+  color: #fff;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Responsive Adjustments
+   ---------------------------------------------------------------------------
+   On smaller viewports the filter buttons wrap and reduce padding to avoid
+   horizontal overflow while maintaining touch-friendly tap targets.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 649px) {
+  .gallery-page__filter-bar {
+    flex-wrap: wrap;
+    padding: 32px 16px 0;
+    gap: 8px;
+  }
+
+  .gallery-page__filter-btn {
+    padding: 8px 16px;
+    font-size: var(--text-tiny);
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Reduced Motion
+   ---------------------------------------------------------------------------
+   Disables all transitions when the user prefers reduced motion.
+   --------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-page__filter-btn {
+    transition: none;
+  }
+}

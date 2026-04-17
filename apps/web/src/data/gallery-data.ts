@@ -110,7 +110,7 @@ export const GALLERY_IMAGES: GalleryItem[] = [
     title: 'Garden Office Studio',
     category: 'garden-room',
   },
-  {
+  /*{
     imageUrl: '/resource/garden-room/garden-room6.jpg',
     imageWebP: '/resource/garden-room/garden-room6.webp',
     imageAvif: '/resource/garden-room/garden-room6.avif',
@@ -123,7 +123,7 @@ export const GALLERY_IMAGES: GalleryItem[] = [
     imageAvif: '/resource/garden-room/garden-room7.avif',
     title: 'Luxury Garden Room',
     category: 'garden-room',
-  },
+  },*/
   {
     imageUrl: '/resource/garden-room/garden-room-sauna1.jpg',
     imageWebP: '/resource/garden-room/garden-room-sauna1.webp',
@@ -150,9 +150,9 @@ export const GALLERY_IMAGES: GalleryItem[] = [
      House Extension Projects
      ------------------------------------------------------------------------- */
   {
-    imageUrl: '/resource/garden-room/hosue-extension1.png',
-    imageWebP: '/resource/garden-room/hosue-extension1.webp',
-    imageAvif: '/resource/garden-room/hosue-extension1.avif',
+    imageUrl: '/resource/house-extension/house-extension1.png',
+    imageWebP: '/resource/house-extension/house-extension1.webp',
+    imageAvif: '/resource/house-extension/house-extension1.avif',
     title: 'Modern House Extension',
     category: 'house-extension',
   },
@@ -160,6 +160,19 @@ export const GALLERY_IMAGES: GalleryItem[] = [
     imageUrl: '/resource/house-extension/house-extension2.png',
     imageWebP: '/resource/house-extension/house-extension2.webp',
     imageAvif: '/resource/house-extension/house-extension2.avif',
+    title: 'Rear House Extension',
+    category: 'house-extension',
+  },{
+    imageUrl: '/resource/house-extension/house-extension3.png',
+    imageWebP: '/resource/house-extension/house-extension3.webp',
+    imageAvif: '/resource/house-extension/house-extension3.avif',
+    title: 'Modern House Extension',
+    category: 'house-extension',
+  },
+  {
+    imageUrl: '/resource/house-extension/house-extension4.png',
+    imageWebP: '/resource/house-extension/house-extension4.webp',
+    imageAvif: '/resource/house-extension/house-extension4.avif',
     title: 'Rear House Extension',
     category: 'house-extension',
   },

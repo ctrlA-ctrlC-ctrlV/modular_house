@@ -29,23 +29,49 @@ const LayoutContent: React.FC = () => {
   const scrollPositions = useRef<Record<string, number>>({});
 
   /**
+   * Tracks the previous pathname to distinguish full page navigations from
+   * search-parameter-only updates (e.g., gallery category filter changes).
+   * When only the search string changes, scroll position is preserved so the
+   * user is not unexpectedly returned to the top of the page.
+   */
+  const previousPathname = useRef<string>(location.pathname);
+
+  /**
    * Layout Effect: Scroll Restoration Logic
-   * Handles restoring scroll position on back/forward navigation ('POP')
-   * and resetting scroll to top on new navigation ('PUSH'/'REPLACE').
-   * 
-   * Runs synchronously after all DOM mutations to prevent visual scroll jump.
+   *
+   * Determines the appropriate scroll behaviour after every navigation event:
+   *
+   * - POP (browser back / forward): Restores the previously saved scroll
+   *   position for the target history entry, providing native-like
+   *   back/forward navigation.
+   *
+   * - PUSH / REPLACE with pathname change: Resets scroll to the top of the
+   *   page, which is the expected behaviour when landing on a new route.
+   *
+   * - PUSH / REPLACE without pathname change (search-parameter-only update):
+   *   Preserves the current scroll position. This covers in-page filtering
+   *   (e.g., the gallery category filter bar) where resetting scroll would
+   *   be disorienting for the user.
+   *
+   * Runs synchronously via useLayoutEffect after all DOM mutations to
+   * prevent a visible scroll jump before the browser paints.
    */
   useLayoutEffect(() => {
     if (!scrollRef.current) return;
 
+    const isPathChange = previousPathname.current !== location.pathname;
+    previousPathname.current = location.pathname;
+
     if (navigationType === 'POP') {
-      // Attempt to restore saved position for this location key
+      // Restore saved scroll position for browser back/forward navigation
       const savedPosition = scrollPositions.current[location.key];
       if (typeof savedPosition === 'number') {
         scrollRef.current.scrollTop = savedPosition;
       }
-    } else {
-      // Reset scroll to top for new pages
+    } else if (isPathChange) {
+      // Reset scroll to top only when the route pathname changes.
+      // Search-parameter-only changes (same pathname, different query string)
+      // retain the current scroll position to avoid disrupting the user.
       scrollRef.current.scrollTop = 0;
     }
   }, [location.pathname, location.key, navigationType]);

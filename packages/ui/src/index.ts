@@ -34,5 +34,6 @@ export { FeatureChecklist, type FeatureChecklistProps, type ChecklistItem, type 
 export { StatsBar, type StatsBarProps, type StatItem, type StatsBarBackground } from './components/StatsBar/StatsBar';
 export { TeamGrid, type TeamGridProps, type TeamMember } from './components/TeamGrid/TeamGrid';
 export { GradientCTA, type GradientCTAProps } from './components/GradientCTA/GradientCTA';
+export { TextIntroSection, type TextIntroSectionProps } from './components/TextIntroSection/TextIntroSection';
 export * from './types';
 // Add your shared UI components here

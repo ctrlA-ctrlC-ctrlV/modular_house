@@ -50,8 +50,8 @@ export type GalleryCategory = 'garden-room' | 'house-extension';
  * establish the visual context of the portfolio.
  */
 export const GALLERY_HERO = {
-  titleLine1: 'Our Work Speaks',
-  titleLine2: 'For Itself.',
+  titleLine1: 'Modular House,',
+  titleLine2: 'Modular Living.',
   bigText: 'Gallery',
   backgroundImage: '/resource/garden-room/garden-room1.png',
   backgroundImageWebP: '/resource/garden-room/garden-room1.webp',

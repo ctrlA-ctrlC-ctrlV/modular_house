@@ -395,15 +395,15 @@ export const routesMetadata: RouteMetadata[] = [
   {
     path: '/house-extensions',
     seo: {
-      title: 'Modular House Extensions',
-      description: 'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
+      title: 'House Extensions Dublin | Steel Frame Home Extensions | Modular House',
+      description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 25-year structural warranty. Get a free quote today.',
       canonicalUrl: 'https://modularhouse.ie/house-extensions',
       robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 
       openGraph: {
         type: 'website',
-        title: 'House Extensions | Modular House',
-        description: 'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
+        title: 'House Extensions Dublin | Steel Frame Extensions | Modular House',
+        description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 25-year structural warranty. Get a free quote today.',
         // hosue-extension1.png is the only available house-extension image in
         // public/resource/house-extension/. Note the filename contains a typo
         // ("hosue") — the reference below matches the actual deployed filename
@@ -420,9 +420,9 @@ export const routesMetadata: RouteMetadata[] = [
       twitter: {
         cardType: 'summary_large_image',
         site: '@ModularHouse',
-        title: 'House Extensions | Modular House',
+        title: 'House Extensions Dublin | Modular House',
         image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
-        imageAlt: 'Steel frame house extension exterior',
+        imageAlt: 'Steel frame house extension in Dublin by Modular House',
       },
 
       schema: [
@@ -447,8 +447,8 @@ export const routesMetadata: RouteMetadata[] = [
         {
           type: 'Product',
           data: {
-            name: 'Modular House Extension',
-            description: 'Expand your living space with a high-quality modular extension.',
+            name: 'House Extension Dublin — Steel Frame Extensions',
+            description: 'Premium steel frame house extensions in Dublin. Fixed-price contracts, A-rated insulation, and 25-year structural warranty.',
             // IMAGE PROPERTY (REQUIRED)
             // Google Search Console requires an image for Product rich results.
             // This URL matches the Open Graph image used for social sharing.
@@ -471,8 +471,8 @@ export const routesMetadata: RouteMetadata[] = [
         // WebPage + BreadcrumbList schemas for this route.
         ...generatePageSchema(
           '/house-extensions',
-          'Modular House Extensions',
-          'Expand your living space with a high-quality modular extension. Minimal disruption, cost-effective, and architecturally stunning.',
+          'House Extensions Dublin | Steel Frame Home Extensions | Modular House',
+          'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 25-year structural warranty.',
           BUILD_TIMESTAMP
         ),
       ],

@@ -52,13 +52,13 @@ import type {
    ============================================================================= */
 
 export const HERO_CONFIG = {
-  titleLine1: 'Expand your living space with a seamless home extension.',
+  titleLine1: 'Steel Frame House Extensions in Dublin — Built to Last.',
   ctaText: 'Get a Free Quote',
   ctaLink: '/contact',
   backgroundImage: '/resource/house-extension/house-extension1.png',
   backgroundImageWebP: '/resource/house-extension/house-extension1.webp',
   backgroundImageAvif: '/resource/house-extension/house-extension1.avif',
-  bigText: 'House Extension',
+  bigText: 'House Extensions',
 } as const;
 
 
@@ -72,11 +72,11 @@ export const HERO_CONFIG = {
    ============================================================================= */
 
 export const TEXT_INTRO = {
-  eyebrow: 'WHY HOUSE EXTENSIONS',
-  title: 'Your Space. Your Vision.',
+  eyebrow: 'HOUSE EXTENSIONS DUBLIN',
+  title: "Dublin's Trusted House Extension Specialists",
   paragraphs: [
-    'Whether you are envisioning a light-filled open-plan kitchen, a dedicated home office, or an expansive master suite, a well-executed house extension is the ultimate way to transform your living experience without the upheaval of moving.',
-    'In Dublin, where architectural heritage meets modern living demands, our extensions are meticulously designed to respect the original structure while injecting contemporary functionality and cutting-edge energy efficiency.',
+    'Whether you are envisioning a light-filled open-plan kitchen, a dedicated home office, or an expansive master suite, a house extension in Dublin is the smartest way to add space and value to your home — without the upheaval of moving.',
+    'At Modular House, we design and build house extensions across Dublin that respect your home\u2019s original character while delivering contemporary open-plan living, industry best energy efficiency, and exceptional structural integrity.',
   ],
 } as const;
 
@@ -90,12 +90,12 @@ export const TEXT_INTRO = {
    ============================================================================= */
 
 export const BESPOKE_BANNER = {
-  eyebrow: 'BESPOKE EXTENSIONS',
+  eyebrow: 'BESPOKE HOUSE EXTENSIONS',
   /** Heading line parts — composed into JSX with a <br /> in the route component. */
   headingLine1: 'Every home is unique.',
   headingLine2: 'Your extension should be too.',
   subtext:
-    "We don't do off-the-shelf. Every modular extension is engineered to order, utilizing premium steel-frame construction for unmatched durability and design flexibility.",
+    "Every house extension is engineered to order using premium steel-frame construction, delivering unmatched durability, design flexibility, and industry best thermal performance.",
   ctaLabel: 'Start Your Project',
 } as const;
 
@@ -111,7 +111,7 @@ export const BESPOKE_BANNER = {
 export const QUALITY_FEATURES: FeatureShowcaseItem[] = [
   {
     icon: 'thermostat',
-    title: 'Fully Insulated & A-Rated',
+    title: 'Fully Insulated Roof & Walls',
     description:
       'Exceeding building regulations for thermal performance, reducing energy bills and maximizing comfort year-round.',
   },
@@ -123,9 +123,9 @@ export const QUALITY_FEATURES: FeatureShowcaseItem[] = [
   },
   {
     icon: 'verified',
-    title: '10-Year Structural Warranty',
+    title: '25-Year Structural Warranty',
     description:
-      'Peace of mind comes standard. Our steel-frame extensions are backed by a comprehensive decade-long guarantee.',
+      'Peace of mind comes standard. Every steel-frame house extension we build in Dublin is backed by a comprehensive 25-year structural guarantee.',
   },
 ];
 
@@ -142,7 +142,7 @@ export const QUALITY_IMAGE = {
   src: '/resource/house-extension/house-extension2.png',
   webP: '/resource/house-extension/house-extension2.webp',
   avif: '/resource/house-extension/house-extension2.avif',
-  alt: 'Modern architectural house extension exterior with black timber cladding and large sliding glass doors',
+  alt: 'Steel frame house extension in Dublin with black timber cladding and large sliding glass doors',
 } as const;
 
 
@@ -184,7 +184,7 @@ export const PRICING_IMAGE = {
   src: '/resource/house-extension/house-extension3.jpg',
   webP: '/resource/house-extension/house-extension3.webp',
   avif: '/resource/house-extension/house-extension3.avif',
-  alt: 'Bright modern interior of a house extension with open plan kitchen flooded by natural light',
+  alt: 'Bright modern interior of a Dublin house extension with open plan kitchen flooded by natural light',
 } as const;
 
 
@@ -249,7 +249,7 @@ export const HOUSE_EXTENSION_GALLERY: InfiniteGalleryImage[] = [
     src: '/resource/house-extension/house-extension1.png',
     srcWebP: '/resource/house-extension/house-extension1.webp',
     srcAvif: '/resource/house-extension/house-extension1.avif',
-    alt: 'Modern house extension exterior with large glass panels at dusk',
+    alt: 'Modern house extension in Dublin with large glass panels at dusk',
     orientation: 'landscape',
   },
   {
@@ -257,7 +257,7 @@ export const HOUSE_EXTENSION_GALLERY: InfiniteGalleryImage[] = [
     src: '/resource/house-extension/house-extension2.png',
     srcWebP: '/resource/house-extension/house-extension2.webp',
     srcAvif: '/resource/house-extension/house-extension2.avif',
-    alt: 'House extension with black timber cladding and sliding glass doors',
+    alt: 'Dublin house extension with black timber cladding and sliding glass doors',
     orientation: 'portrait',
   },
   {
@@ -265,7 +265,7 @@ export const HOUSE_EXTENSION_GALLERY: InfiniteGalleryImage[] = [
     src: '/resource/house-extension/house-extension3.jpg',
     srcWebP: '/resource/house-extension/house-extension3.webp',
     srcAvif: '/resource/house-extension/house-extension3.avif',
-    alt: 'Open plan kitchen interior in a modern house extension',
+    alt: 'Open plan kitchen interior in a Dublin house extension by Modular House',
     orientation: 'landscape',
   },
   {
@@ -273,7 +273,7 @@ export const HOUSE_EXTENSION_GALLERY: InfiniteGalleryImage[] = [
     src: '/resource/house-extension/house-extension4.png',
     srcWebP: '/resource/house-extension/house-extension4.webp',
     srcAvif: '/resource/house-extension/house-extension4.avif',
-    alt: 'Contemporary house extension with steel frame construction',
+    alt: 'Contemporary steel frame house extension built by Modular House in Dublin',
     orientation: 'landscape',
   },
 ];
@@ -296,16 +296,16 @@ export const HOUSE_EXTENSION_FAQS: AccordionFAQItem[] = [
   {
     id: 'he-faq-1',
     number: '01',
-    title: 'Do I need planning permission for a house extension?',
+    title: 'Do I need planning permission for a house extension in Dublin?',
     description:
-      'In Ireland, certain house extensions may qualify as exempted development under the Planning and Development Act. Generally, single-storey rear extensions up to 40 square metres are exempt, subject to conditions on height, boundary setbacks, and site coverage. Our team assesses your property and handles the full planning process if a formal application is required.',
+      'In Ireland, certain house extensions may qualify as exempted development under the Planning and Development Act. Generally, single-storey rear extensions up to 40 square metres are exempt, subject to conditions on height, boundary setbacks, and site coverage. Our Dublin-based team assesses your property and handles the full planning process if a formal application is required.',
   },
   {
     id: 'he-faq-2',
     number: '02',
-    title: 'How long does a house extension take to build?',
+    title: 'How long does a house extension in Dublin take to build?',
     description:
-      'A typical Modular House extension takes 10 to 16 weeks from groundbreaking to handover, depending on size and complexity. This includes 2 to 3 weeks of foundation and structural steelwork, followed by 8 to 13 weeks of envelope, services, and finishing. Our steel-frame system reduces on-site time compared to traditional block construction.',
+      'A typical Modular House extension in Dublin takes 6 to 10 weeks from groundbreaking to handover, depending on size and complexity. This includes 1 to 2 weeks of foundation and structural steelwork, followed by 4 to 8 weeks of envelope, services, and finishing. Our steel-frame system reduces on-site time compared to traditional block construction.',
   },
   {
     id: 'he-faq-3',
@@ -317,9 +317,9 @@ export const HOUSE_EXTENSION_FAQS: AccordionFAQItem[] = [
   {
     id: 'he-faq-4',
     number: '04',
-    title: 'Will an extension add value to my home?',
+    title: 'Will a house extension in Dublin add value to my home?',
     description:
-      'A well-designed house extension typically adds between 5% and 15% to the property value, depending on the size, quality of finish, and local market conditions. Extensions that add a bedroom, bathroom, or open-plan living kitchen tend to deliver the strongest returns. Our A-rated insulation and Building Energy Rating compliance further enhance resale appeal.',
+      'A well-designed house extension in Dublin typically adds between 5% and 15% to the property value, depending on the size, quality of finish, and local market conditions. Extensions that add a bedroom, bathroom, or open-plan living kitchen tend to deliver the strongest returns. Our A-rated insulation and Building Energy Rating compliance further enhance resale appeal.',
   },
   {
     id: 'he-faq-5',
@@ -347,9 +347,9 @@ export const HOUSE_EXTENSION_FAQS: AccordionFAQItem[] = [
    ============================================================================= */
 
 export const FOOTER_CTA_CONFIG = {
-  title: 'Ready to Extend Your Home?',
+  title: 'Ready to Start Your House Extension in Dublin?',
   subtitle:
-    'Contact our Dublin-based team to discuss your vision and arrange a complimentary site survey.',
+    'Contact our Dublin-based team today to discuss your project and arrange a complimentary site survey.',
 } as const;
 
 export const FOOTER_CTA_ACTIONS: FooterCTAAction[] = [

@@ -214,7 +214,7 @@ const HouseExtension: React.FC = () => {
         <FeatureShowcase
           eyebrow="QUALITY & TRUST"
           title={<>Built to the Highest Standard</>}
-          description="Our commitment to architectural integrity means we sweat the details. From structural engineering to the final coat of paint, quality is non-negotiable."
+          description="Our commitment to architectural integrity means we sweat the details. From structural engineering to the final coat of paint, every house extension we deliver is built to last."
           features={QUALITY_FEATURES}
           imageSrc={QUALITY_IMAGE.src}
           imageWebP={QUALITY_IMAGE.webP}
@@ -239,8 +239,8 @@ const HouseExtension: React.FC = () => {
       <div id="transparent-pricing">
         <FeatureShowcase
           eyebrow="TRANSPARENT PRICING"
-          title={<>Competitive Pricing.<br />No Hidden Costs.</>}
-          description="We believe in total transparency. Building an extension is a significant investment, and you deserve clarity from day one."
+          title={<>Competitive House Extension Pricing.<br />No Hidden Costs.</>}
+          description="We believe in total transparency. A house extension is a significant investment, and you deserve clarity on every cost from day one."
           features={PRICING_FEATURES}
           imageSrc={PRICING_IMAGE.src}
           imageWebP={PRICING_IMAGE.webP}

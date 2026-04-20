@@ -36,5 +36,6 @@ export { TeamGrid, type TeamGridProps, type TeamMember } from './components/Team
 export { GradientCTA, type GradientCTAProps } from './components/GradientCTA/GradientCTA';
 export { TextIntroSection, type TextIntroSectionProps } from './components/TextIntroSection/TextIntroSection';
 export { FeatureShowcase, type FeatureShowcaseProps, type FeatureShowcaseItem, type FeatureShowcaseBadge, type FeatureShowcaseBg } from './components/FeatureShowcase/FeatureShowcase';
+export { FooterCTA, type FooterCTAProps, type FooterCTAAction } from './components/FooterCTA/FooterCTA';
 export * from './types';
 // Add your shared UI components here

@@ -25,6 +25,8 @@ Redesign the `/house-extensions` page from its current 2-section layout (hero + 
 
 ### 1.2 Text Intro Section — `TextIntroSection` (NEW)
 
+> **Full contract**: [contracts/text-intro-section.md](./contracts/text-intro-section.md)
+
 | Field | Detail |
 |-------|--------|
 | **Purpose** | Centred editorial introduction with an eyebrow label, heading, one or more body paragraphs, and a decorative divider. Sets the narrative tone before feature sections. |
@@ -45,6 +47,8 @@ Redesign the `/house-extensions` page from its current 2-section layout (hero + 
 | **Reuse potential** | Already used on Garden Room page. |
 
 ### 1.4 Quality & Trust — `FeatureShowcase` (NEW)
+
+> **Full contract**: [contracts/feature-showcase.md](./contracts/feature-showcase.md)
 
 | Field | Detail |
 |-------|--------|
@@ -122,6 +126,8 @@ export interface FeatureShowcaseProps {
 | **Data source** | Hardcoded constants in `house-extension-data.ts` |
 
 ### 1.9 Footer CTA — `FooterCTA` (NEW)
+
+> **Full contract**: [contracts/footer-cta.md](./contracts/footer-cta.md)
 
 | Field | Detail |
 |-------|--------|
@@ -332,9 +338,9 @@ Build new components first since the page depends on them. Each component includ
 
 | Step | Task | Depends On | Estimated Files |
 |------|------|------------|-----------------|
-| 1.1 | **TextIntroSection** — component + CSS + unit test | — | 3 new files |
-| 1.2 | **FeatureShowcase** — component + CSS + unit test (covers both "Quality" and "Pricing" variants) | — | 3 new files |
-| 1.3 | **FooterCTA** — component + CSS + unit test | — | 3 new files |
+| 1.1 | **TextIntroSection** — component + CSS + unit test ([contract](./contracts/text-intro-section.md)) | — | 3 new files |
+| 1.2 | **FeatureShowcase** — component + CSS + unit test ([contract](./contracts/feature-showcase.md)) | — | 3 new files |
+| 1.3 | **FooterCTA** — component + CSS + unit test ([contract](./contracts/footer-cta.md)) | — | 3 new files |
 | 1.4 | **Export new components** from `packages/ui/src/index.ts` | 1.1, 1.2, 1.3 | 1 modified file |
 
 > Steps 1.1–1.3 are independent and can be built in parallel.
@@ -372,6 +378,10 @@ Build new components first since the page depends on them. Each component includ
 ```text
 specs/010-house-extensions-redesign/
 ├── plan.md              # This file
+└── contracts/           # Detailed component implementation contracts
+    ├── text-intro-section.md   # TextIntroSection — steps, BEM classes, tests, HTML
+    ├── feature-showcase.md     # FeatureShowcase — steps, variants, tests, HTML
+    └── footer-cta.md           # FooterCTA — steps, LinkItem helper, tests, HTML
 ```
 
 ### Source Code (new & modified files)

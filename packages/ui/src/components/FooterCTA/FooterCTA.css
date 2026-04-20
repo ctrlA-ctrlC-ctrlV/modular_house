@@ -1,0 +1,273 @@
+/**
+ * FooterCTA Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the FooterCTA component using BEM
+ * naming methodology and the project's design token system. The section
+ * renders on `--brand-bg-dark` (#1A1714) with near-white text, creating a
+ * high-contrast closing conversion strip at the bottom of marketing pages.
+ *
+ * LAYOUT STRATEGY:
+ * Single centred column with vertical stacking. The inner container is
+ * constrained to 42rem (672px) for comfortable reading. Action buttons
+ * render as a horizontal flex row on desktop (sm+) and a vertical stack
+ * on mobile viewports.
+ *
+ * BUTTON VARIANTS:
+ * - `primary`  -- Solid brand-accent background with near-white text.
+ * - `ghost`    -- Transparent background with a subtle white border.
+ *
+ * TOKEN USAGE:
+ * No raw hex values appear outside the component-level custom properties
+ * block. All visual properties are derived from the established design
+ * token hierarchy defined in the project's global stylesheet.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global design tokens. Centralising them here enables
+   quick visual adjustments without modifying individual rules throughout
+   the stylesheet.
+   ============================================================================= */
+
+:root {
+  /* -- Background & section spacing ---------------------------------------- */
+  --fcta-bg: var(--brand-bg-dark);
+  --fcta-padding-vertical: 6rem;
+  --fcta-padding-horizontal: 1.5rem;
+
+  /* -- Container ----------------------------------------------------------- */
+  --fcta-container-max-width: 42rem;
+
+  /* -- Title --------------------------------------------------------------- */
+  --fcta-title-color: #fefefe;
+  --fcta-title-font: var(--font-serif);
+  --fcta-title-size: var(--text-heading-l);
+  --fcta-title-weight: 700;
+  --fcta-title-margin-bottom: 1.5rem;
+
+  /* -- Subtitle ------------------------------------------------------------ */
+  --fcta-subtitle-color: #fefefe;
+  --fcta-subtitle-opacity: 0.8;
+  --fcta-subtitle-font: var(--font-sans);
+  --fcta-subtitle-size: var(--text-body-l);
+  --fcta-subtitle-weight: 400;
+  --fcta-subtitle-margin-bottom: 3rem;
+
+  /* -- Action buttons (shared) --------------------------------------------- */
+  --fcta-action-font: var(--font-sans);
+  --fcta-action-size: var(--text-body);
+  --fcta-action-weight: 600;
+  --fcta-action-padding: 1rem 2rem;
+  --fcta-action-radius: 0.25rem;
+  --fcta-action-transition: background-color 0.3s ease, border-color 0.3s ease;
+  --fcta-action-gap: 1rem;
+
+  /* -- Primary variant ----------------------------------------------------- */
+  --fcta-primary-bg: var(--brand-link);
+  --fcta-primary-color: #fefefe;
+  --fcta-primary-hover-bg: var(--brand-link-hover);
+
+  /* -- Ghost variant ------------------------------------------------------- */
+  --fcta-ghost-bg: transparent;
+  --fcta-ghost-color: #fefefe;
+  --fcta-ghost-border: 1px solid rgba(227, 227, 222, 0.3);
+  --fcta-ghost-hover-bg: rgba(227, 227, 222, 0.1);
+
+  /* -- Focus ring ---------------------------------------------------------- */
+  --fcta-focus-ring-color: #4f46e5;
+  --fcta-focus-ring-width: 2px;
+  --fcta-focus-ring-offset: 2px;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root <section> element
+   -----------------------------------------------------------------------------
+   Full-width dark background with generous vertical padding. The dark
+   colour (`--brand-bg-dark` / #1A1714) is the component's sole visual
+   identity and is not configurable via props.
+   ============================================================================= */
+
+.footer-cta {
+  width: 100%;
+  padding: var(--fcta-padding-vertical) var(--fcta-padding-horizontal);
+  background-color: var(--fcta-bg);
+  text-align: center;
+}
+
+/* =============================================================================
+   SECTION 3: CONTAINER -- Centred max-width wrapper
+   -----------------------------------------------------------------------------
+   Constrains content to 42rem (672px) to maintain comfortable line lengths
+   for the heading and subtitle. Horizontally centred via auto margins.
+   ============================================================================= */
+
+.footer-cta__container {
+  max-width: var(--fcta-container-max-width);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* =============================================================================
+   SECTION 4: TITLE -- Primary heading (h2)
+   -----------------------------------------------------------------------------
+   Uses the brand serif/display typeface at the heading-large scale for
+   visual impact. Near-white colour (#FEFEFE) ensures high contrast against
+   the dark background.
+   ============================================================================= */
+
+.footer-cta__title {
+  margin: 0 0 var(--fcta-title-margin-bottom) 0;
+  font-family: var(--fcta-title-font);
+  font-size: var(--fcta-title-size);
+  font-weight: var(--fcta-title-weight);
+  line-height: var(--lh-tight);
+  color: var(--fcta-title-color);
+}
+
+/* =============================================================================
+   SECTION 5: SUBTITLE -- Supporting paragraph
+   -----------------------------------------------------------------------------
+   Body-large text at reduced opacity (80%) to establish visual hierarchy
+   below the heading. Bottom margin creates separation from the actions row.
+   ============================================================================= */
+
+.footer-cta__subtitle {
+  margin: 0 0 var(--fcta-subtitle-margin-bottom) 0;
+  font-family: var(--fcta-subtitle-font);
+  font-size: var(--fcta-subtitle-size);
+  font-weight: var(--fcta-subtitle-weight);
+  line-height: var(--lh-relaxed);
+  color: var(--fcta-subtitle-color);
+  opacity: var(--fcta-subtitle-opacity);
+}
+
+/* =============================================================================
+   SECTION 6: ACTIONS ROW -- Button container
+   -----------------------------------------------------------------------------
+   Flex container for the action buttons. Defaults to a vertical stack
+   (mobile-first), switching to a horizontal centred row at the `sm`
+   breakpoint (640px).
+   ============================================================================= */
+
+.footer-cta__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fcta-action-gap);
+}
+
+/* =============================================================================
+   SECTION 7: ACTION -- Individual button/link (shared base)
+   -----------------------------------------------------------------------------
+   Shared styling for both `primary` and `ghost` variants. Inline-block
+   display supports both <a> and router-rendered elements. Text is centred
+   and decoration is removed for anchor semantics.
+   ============================================================================= */
+
+.footer-cta__action {
+  display: inline-block;
+  padding: var(--fcta-action-padding);
+  font-family: var(--fcta-action-font);
+  font-size: var(--fcta-action-size);
+  font-weight: var(--fcta-action-weight);
+  line-height: var(--lh-none);
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--fcta-action-radius);
+  cursor: pointer;
+  transition: var(--fcta-action-transition);
+}
+
+/**
+ * Focus-visible state: applies the global focus ring pattern for keyboard
+ * navigation. Uses a high-contrast indigo outline offset from the button
+ * edge to remain visible against the dark background.
+ */
+.footer-cta__action:focus-visible {
+  outline: var(--fcta-focus-ring-width) solid var(--fcta-focus-ring-color);
+  outline-offset: var(--fcta-focus-ring-offset);
+}
+
+/* =============================================================================
+   SECTION 8: ACTION MODIFIER -- Primary variant
+   -----------------------------------------------------------------------------
+   Solid brand-accent background (`--brand-link`) with near-white text.
+   Hover state darkens the background to `--brand-link-hover` for a
+   subtle interactive feedback.
+   ============================================================================= */
+
+.footer-cta__action--primary {
+  background-color: var(--fcta-primary-bg);
+  color: var(--fcta-primary-color);
+}
+
+.footer-cta__action--primary:hover {
+  background-color: var(--fcta-primary-hover-bg);
+}
+
+/* =============================================================================
+   SECTION 9: ACTION MODIFIER -- Ghost variant
+   -----------------------------------------------------------------------------
+   Transparent background with a subtle semi-transparent white border.
+   Hover state applies a faint white overlay to indicate interactivity
+   without competing with the primary button.
+   ============================================================================= */
+
+.footer-cta__action--ghost {
+  background-color: var(--fcta-ghost-bg);
+  color: var(--fcta-ghost-color);
+  border: var(--fcta-ghost-border);
+}
+
+.footer-cta__action--ghost:hover {
+  background-color: var(--fcta-ghost-hover-bg);
+}
+
+/* =============================================================================
+   SECTION 10: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   sm (640px+): Actions row switches from vertical stack to horizontal
+   row with centred alignment.
+   Mobile (< 640px): Buttons stretch to full container width for
+   comfortable thumb-reach interaction.
+   ============================================================================= */
+
+/**
+ * Desktop/tablet breakpoint (640px+): switch the actions row to a
+ * horizontal flex layout, centring the buttons side by side.
+ */
+@media (min-width: 640px) {
+  .footer-cta__actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/**
+ * Mobile breakpoint (< 640px): stretch action buttons to the full width
+ * of the container for easier tap targets on small screens.
+ */
+@media (max-width: 639px) {
+  .footer-cta__action {
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   SECTION 11: REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Respects the user's `prefers-reduced-motion` system setting by disabling
+   all CSS transitions on interactive elements.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-cta__action {
+    transition: none;
+  }
+}

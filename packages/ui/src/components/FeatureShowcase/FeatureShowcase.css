@@ -1,0 +1,443 @@
+/**
+ * FeatureShowcase Styles
+ * =============================================================================
+ *
+ * BEM-structured stylesheet for the FeatureShowcase component. Implements a
+ * responsive two-column layout with a text column (eyebrow, heading, lead
+ * paragraph, icon-led feature list) and an image column (portrait-aspect
+ * image with optional floating stat badge).
+ *
+ * The layout supports directional reversal via the --reversed modifier and
+ * three background colour variants (white, beige, gray) via BEM modifier
+ * classes.
+ *
+ * Design token references:
+ *   --brand-link         : Primary accent colour (#B55329) — eyebrow, icons
+ *   --brand-link-hover   : Hover accent (#9F4017)
+ *   --brand-title        : Heading colour (#121414)
+ *   --brand-slate        : Secondary body text (#555555)
+ *   --brand-bg-primary   : White background (#FEFEFE)
+ *   --brand-bg-secondary : Beige background (#F6F5F0)
+ *   --brand-bd-color     : Gray background / borders (#E5E7DE)
+ *   --font-serif         : Display/heading typeface (Special Gothic Condensed One)
+ *   --font-sans          : Body typeface (Inter)
+ *   --text-heading-l     : Fluid heading size (clamp 1.75rem - 2.5rem)
+ *   --text-body-l        : Lead paragraph size (1.125rem)
+ *   --text-body          : Standard body size (1rem)
+ *   --text-caption       : Feature description size (0.875rem)
+ *   --text-tiny          : Eyebrow label size (0.75rem)
+ *   --text-heading-m     : Badge value size (1.5rem)
+ *   --tracking-wide      : Wide letter spacing for eyebrows (0.12em)
+ *   --lh-snug            : Compact line-height for headings (1.375)
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   Component-level design tokens
+   =============================================================================
+   Local custom properties that fall back to global brand tokens. This ensures
+   the component renders correctly in isolation (e.g. Storybook) while
+   inheriting the real theme when consumed within the application.
+   ============================================================================= */
+:root {
+  --fs-accent: var(--brand-link, #B55329);
+  --fs-title-color: var(--brand-title, #121414);
+  --fs-body-color: var(--brand-slate, #555555);
+  --fs-bg-white: var(--brand-bg-primary, #FEFEFE);
+  --fs-bg-beige: var(--brand-bg-secondary, #F6F5F0);
+  --fs-bg-gray: var(--brand-bd-color, #E5E7DE);
+  --fs-font-serif: var(--font-serif, 'Special Gothic Condensed One', serif);
+  --fs-font-sans: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+  --fs-shadow-soft: 6px 6px 40px rgba(26, 23, 20, 0.08);
+}
+
+
+/* =============================================================================
+   Block: .feature-showcase
+   =============================================================================
+   Root <section> element. Provides vertical and horizontal padding, defaulting
+   to a white background. The background variant is controlled by BEM modifier
+   classes applied via the backgroundColor prop.
+   ============================================================================= */
+.feature-showcase {
+  padding: 6rem 1.5rem;
+}
+
+/* Desktop breakpoint — increased vertical padding for visual breathing room */
+@media (min-width: 768px) {
+  .feature-showcase {
+    padding: 8rem 1.5rem;
+  }
+}
+
+
+/* =============================================================================
+   Modifier: Background Variants
+   =============================================================================
+   Each variant applies the corresponding brand background token to the root
+   section element. The white variant is the default; beige and gray provide
+   visual separation when alternating sections on the same page.
+   ============================================================================= */
+.feature-showcase--bg-white {
+  background-color: var(--fs-bg-white);
+}
+
+.feature-showcase--bg-beige {
+  background-color: var(--fs-bg-beige);
+}
+
+.feature-showcase--bg-gray {
+  background-color: var(--fs-bg-gray);
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__container
+   =============================================================================
+   Max-width grid wrapper that constrains content to 1280px and centres it
+   horizontally. On mobile, children stack in a single column. On desktop
+   (>= 1024px), the container switches to a two-column grid with equal-width
+   columns and vertically centred alignment.
+   ============================================================================= */
+.feature-showcase__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Desktop breakpoint — two-column grid layout */
+@media (min-width: 1024px) {
+  .feature-showcase__container {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+
+/* =============================================================================
+   Column Ordering — Default and Reversed Layouts
+   =============================================================================
+   Default layout (reversed=false): text column on the left (order 1), image
+   column on the right (order 2) on desktop. Text always appears first on
+   mobile to maintain content-priority reading order.
+
+   Reversed layout (reversed=true): image column on the left (order 1), text
+   column on the right (order 2) on desktop. On mobile, text still comes first
+   by retaining its lower order value.
+   ============================================================================= */
+
+/* --- Default ordering (mobile: text first, image second) ------------------- */
+.feature-showcase__text-col {
+  order: 1;
+}
+
+.feature-showcase__image-col {
+  order: 2;
+}
+
+/* --- Desktop default: text left, image right ------------------------------- */
+@media (min-width: 1024px) {
+  .feature-showcase__text-col {
+    order: 1;
+  }
+
+  .feature-showcase__image-col {
+    order: 2;
+  }
+}
+
+/* --- Desktop reversed: image left, text right ------------------------------ */
+@media (min-width: 1024px) {
+  .feature-showcase--reversed .feature-showcase__text-col {
+    order: 2;
+  }
+
+  .feature-showcase--reversed .feature-showcase__image-col {
+    order: 1;
+  }
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__eyebrow
+   =============================================================================
+   Uppercase label rendered above the heading in the brand accent colour.
+   Uses the sans-serif typeface at the smallest type scale with wide letter
+   spacing, matching the project-wide eyebrow pattern.
+   ============================================================================= */
+.feature-showcase__eyebrow {
+  display: block;
+  font-family: var(--fs-font-sans);
+  font-size: var(--text-tiny, 0.75rem);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide, 0.12em);
+  text-transform: uppercase;
+  color: var(--fs-accent);
+  margin-bottom: 1rem;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__title
+   =============================================================================
+   Section heading rendered as an <h2> in the serif display typeface. Uses a
+   fluid font size (--text-heading-l) with a compact line-height suitable for
+   multi-line headings that may include JSX line breaks.
+   ============================================================================= */
+.feature-showcase__title {
+  font-family: var(--fs-font-serif);
+  font-size: var(--text-heading-l, clamp(1.75rem, 4vw, 2.5rem));
+  font-weight: 700;
+  color: var(--fs-title-color);
+  line-height: var(--lh-snug, 1.375);
+  margin: 0 0 1.5rem 0;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__description
+   =============================================================================
+   Lead paragraph below the heading in the sans-serif body typeface. Uses the
+   larger body size (--text-body-l) with secondary text colour. Bottom margin
+   provides visual separation from the feature list that follows.
+   ============================================================================= */
+.feature-showcase__description {
+  font-family: var(--fs-font-sans);
+  font-size: var(--text-body-l, 1.125rem);
+  font-weight: 400;
+  color: var(--fs-body-color);
+  line-height: var(--lh-relaxed, 1.625);
+  margin: 0 0 2.5rem 0;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__feature-list
+   =============================================================================
+   Semantic <ul> container for the feature items. Resets default list styling
+   and uses vertical spacing between items via the gap property.
+   ============================================================================= */
+.feature-showcase__feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__feature-item
+   =============================================================================
+   Individual <li> element containing an icon container and a text group.
+   Laid out as a flex row with top-aligned items so the icon remains pinned
+   to the top of the text block regardless of description length.
+   ============================================================================= */
+.feature-showcase__feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__feature-icon
+   =============================================================================
+   Container for the Material Symbols icon. Base styles set the icon size and
+   brand accent colour. The visual appearance is further refined by the
+   --filled and --outlined modifier classes.
+   ============================================================================= */
+.feature-showcase__feature-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fs-accent);
+  margin-top: 0.125rem;
+}
+
+/* Material Symbols icon sizing within the container */
+.feature-showcase__feature-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+
+/* =============================================================================
+   Modifier: .feature-showcase__feature-icon--filled
+   =============================================================================
+   Renders the icon inside a tinted background box using the beige brand token.
+   The box has padding and rounded corners, creating a contained icon treatment
+   suitable for sections with a clean/white background.
+   ============================================================================= */
+.feature-showcase__feature-icon--filled {
+  background-color: var(--fs-bg-beige);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+
+/* =============================================================================
+   Modifier: .feature-showcase__feature-icon--outlined
+   =============================================================================
+   Renders the icon without a background box, displaying it as a bare icon at
+   a slightly larger size (24px). Suitable for sections with a tinted background
+   where an additional box would create visual noise.
+   ============================================================================= */
+.feature-showcase__feature-icon--outlined {
+  background-color: transparent;
+  padding: 0;
+}
+
+.feature-showcase__feature-icon--outlined .material-symbols-outlined {
+  font-size: 24px;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__feature-text
+   =============================================================================
+   Wrapper for the feature title and description. Provides vertical alignment
+   within the flex-row feature item layout.
+   ============================================================================= */
+.feature-showcase__feature-text {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__feature-title
+   =============================================================================
+   Feature heading rendered as an <h4> in the sans-serif typeface with
+   semi-bold weight. Uses the standard body size for a subtle hierarchical
+   distinction from the <h2> section heading.
+   ============================================================================= */
+.feature-showcase__feature-title {
+  font-family: var(--fs-font-sans);
+  font-size: var(--text-body, 1rem);
+  font-weight: 600;
+  color: var(--fs-title-color);
+  margin: 0 0 0.25rem 0;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__feature-desc
+   =============================================================================
+   Feature description paragraph rendered at the caption size in secondary
+   text colour. Provides supporting detail for each feature item.
+   ============================================================================= */
+.feature-showcase__feature-desc {
+  font-family: var(--fs-font-sans);
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: 400;
+  color: var(--fs-body-color);
+  line-height: var(--lh-body, 1.5);
+  margin: 0;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__image-col
+   =============================================================================
+   Container for the image wrapper. No additional styling beyond the grid
+   ordering defined above. Serves as the grid child for the image side.
+   ============================================================================= */
+
+
+/* =============================================================================
+   Element: .feature-showcase__image-wrapper
+   =============================================================================
+   Relative container that wraps the image and the optional badge overlay.
+   The relative positioning establishes the coordinate system for the
+   absolutely-positioned badge.
+   ============================================================================= */
+.feature-showcase__image-wrapper {
+  position: relative;
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__image
+   =============================================================================
+   Styles applied to the <picture> element rendered by OptimizedImage. Ensures
+   the image fills its container and maintains the 4:5 portrait aspect ratio
+   with rounded corners and a subtle shadow.
+   ============================================================================= */
+.feature-showcase__image {
+  display: block;
+  width: 100%;
+}
+
+.feature-showcase__image-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  box-shadow: var(--fs-shadow-soft);
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__badge
+   =============================================================================
+   Floating stat overlay positioned at the bottom-left corner of the image.
+   Rendered as a white card with subtle shadow. Hidden on mobile to prevent
+   layout conflicts in the single-column stack.
+   ============================================================================= */
+.feature-showcase__badge {
+  display: none;
+  position: absolute;
+  bottom: -1.5rem;
+  left: -1.5rem;
+  background-color: var(--fs-bg-white);
+  padding: 1.5rem;
+  border-radius: 0.25rem;
+  box-shadow: var(--fs-shadow-soft);
+}
+
+/* Desktop breakpoint — show the badge on medium screens and above */
+@media (min-width: 768px) {
+  .feature-showcase__badge {
+    display: block;
+  }
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__badge-value
+   =============================================================================
+   Large display value within the badge (e.g. "100%"). Rendered in the serif
+   display typeface at the medium heading size with bold weight.
+   ============================================================================= */
+.feature-showcase__badge-value {
+  font-family: var(--fs-font-serif);
+  font-size: var(--text-heading-m, 1.5rem);
+  font-weight: 700;
+  color: var(--fs-title-color);
+  line-height: var(--lh-tight, 1.2);
+}
+
+
+/* =============================================================================
+   Element: .feature-showcase__badge-label
+   =============================================================================
+   Small uppercase label below the badge value (e.g. "STEEL FRAME"). Uses the
+   same eyebrow pattern as the section eyebrow but in secondary text colour.
+   ============================================================================= */
+.feature-showcase__badge-label {
+  font-family: var(--fs-font-sans);
+  font-size: var(--text-tiny, 0.75rem);
+  font-weight: 500;
+  color: var(--fs-body-color);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide, 0.12em);
+  margin-top: 0.25rem;
+}

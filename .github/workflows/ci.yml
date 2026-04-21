@@ -13,6 +13,8 @@ on:
       - '**-admin-panel-redesign'
       - '**-seo-improvement'
       - '**-garden-room-redesign'
+      - '**-about-page'
+      - '**-house-extensions-redesign'
   pull_request:
     branches:
       - main

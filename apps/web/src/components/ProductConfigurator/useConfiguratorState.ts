@@ -66,6 +66,23 @@ export interface ConfiguratorStateAPI {
   selections: ConfiguratorSelections;
   /** Total configured price in euro cents (base + selected add-ons). */
   totalPriceCents: number;
+  /**
+   * Total configured price in euro cents using the product's pre-sale
+   * ("original") base price instead of the live sale base price.
+   *
+   * The value is computed with the *same* add-on, floor-plan, and layout
+   * deltas as `totalPriceCents`; only the base component differs. This
+   * matches the campaign brief that discounts apply to the base price
+   * only — add-ons and variant deltas are identical pre- and post-sale.
+   *
+   * Resolved to `undefined` when the active product does not carry any
+   * promotional original price (neither the scalar
+   * `originalBasePriceCentsInclVat` field nor a layout-specific entry in
+   * `originalPriceCentsInclVatByLayoutId`). Consumers should treat
+   * `undefined` as "no strikethrough renderable" and fall back to the
+   * standard single-price layout.
+   */
+  originalTotalPriceCents: number | undefined;
   /** Whether the user has made the required selections to advance from the current step. */
   canProceed: boolean;
   /** Whether the consultation form overlay is visible on the summary step. */
@@ -340,6 +357,42 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     selections.layoutOptionId,
   );
 
+  /* -----------------------------------------------------------------------
+     Original (Pre-Sale) Total
+     -----------------------------------------------------------------------
+     Resolves the effective pre-sale base price for the current selections
+     and feeds it through the shared total calculator with the same add-on,
+     floor-plan, and layout deltas as the live total. The lookup order
+     matches plan §5.3.1 (Option A):
+
+       1. Per-layout original: `originalPriceCentsInclVatByLayoutId[layoutId]`
+          when both the map and an active layout selection are available.
+       2. Scalar fallback: the product-level `originalBasePriceCentsInclVat`.
+       3. No promotional price: resolve to `undefined`, signalling the
+          consuming UI to suppress the strikethrough layout.
+     ----------------------------------------------------------------------- */
+  const resolvedOriginalBaseCents: number | undefined = (() => {
+    const perLayoutMap = product.originalPriceCentsInclVatByLayoutId;
+    const activeLayoutId = selections.layoutOptionId;
+    if (perLayoutMap && activeLayoutId && perLayoutMap[activeLayoutId] !== undefined) {
+      return perLayoutMap[activeLayoutId];
+    }
+    return product.originalBasePriceCentsInclVat;
+  })();
+
+  const originalTotalPriceCents: number | undefined =
+    resolvedOriginalBaseCents === undefined
+      ? undefined
+      : calculateTotalPriceCents(
+          resolvedOriginalBaseCents,
+          product.addons,
+          selections.selectedAddonIds,
+          product.floorPlanVariants,
+          selections.floorPlanVariantId,
+          product.layoutOptions,
+          selections.layoutOptionId,
+        );
+
   /** Determines whether the current step has all required selections. */
   const canProceed = (() => {
     const currentStep = steps[stepIndex];
@@ -613,6 +666,7 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     animationKey,
     selections,
     totalPriceCents,
+    originalTotalPriceCents,
     canProceed,
     showConsultation,
     formData,

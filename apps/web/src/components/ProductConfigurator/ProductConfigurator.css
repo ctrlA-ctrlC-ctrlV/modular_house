@@ -144,6 +144,43 @@
   gap: 6px;
 }
 
+/* ---------------------------------------------------------------------------
+   Sticky Sub-Header -- Sale Mode Grouping
+   ---------------------------------------------------------------------------
+   When the sticky sub-header enters sale mode the price group switches to
+   a two-row stack so the "Original price" and "Sale price" rows can align
+   their labels and values beside each other. The base group keeps its
+   inline layout in default mode.
+
+   Per PM feedback the sale rows are anchored to a shared LEFT edge inside
+   the right-aligned price slot: both the label column and the value
+   column begin at the same inline offset, producing a clean two-column
+   comparison instead of a jagged right-anchored stack.
+   --------------------------------------------------------------------------- */
+.configurator__sub-header-price-group--sale {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.configurator__sub-header-price-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.configurator__sub-header-price-row-label {
+  display: inline-block;
+  min-width: 88px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .configurator__sub-header-vat-label {
   font-size: 12px;
   color: var(--cfg-color-text-secondary);
@@ -157,6 +194,51 @@
   color: var(--cfg-color-surface);
   padding: 4px 14px;
   border-radius: 20px;
+}
+
+/* ---------------------------------------------------------------------------
+   Sticky Sub-Header -- Sale Mode Extensions
+   ---------------------------------------------------------------------------
+   Styling for the opt-in strikethrough presentation used when the
+   configurator receives `showOriginalPrice=true` and a resolved
+   `originalTotalPriceCents`. The original total is rendered as a muted
+   line-through value preceding the emphasised live sale price. An inline
+   "Turnkey price from" label replaces the strikethrough in default mode.
+   --------------------------------------------------------------------------- */
+
+.configurator__sub-header-price-label {
+  font-size: 12px;
+  color: var(--cfg-color-text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.configurator__sub-header-price-old {
+  font-size: 13px;
+  color: var(--cfg-color-text-secondary);
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.configurator__sub-header-price-old s {
+  text-decoration: line-through;
+}
+
+/**
+ * Screen-reader-only helper scoped to the sticky sub-header. Visually
+ * hidden but announced by assistive technologies to disambiguate the
+ * two numeric values in sale mode ("Original price: ..." / "Sale price: ...").
+ */
+.configurator__sub-header-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 
@@ -397,6 +479,65 @@
   font-size: 44px;
   font-weight: 700;
   font-family: var(--cfg-font-heading);
+  letter-spacing: -0.03em;
+}
+
+/* ---------------------------------------------------------------------------
+   Price Display -- Sale Mode Extensions (Overview Step)
+   ---------------------------------------------------------------------------
+   Two-row strikethrough layout rendered when `showOriginalPrice` is enabled
+   and a resolvable original total is available. The first row shows the
+   customisable "Original price" label beside the muted, struck-through
+   pre-sale total; the second row shows the customisable "Sale price"
+   label beside the large emphasised live total. Labels are left-aligned
+   to each other and values are aligned beside them via a shared minimum
+   label width, matching the sticky sub-header and summary-step treatments.
+   --------------------------------------------------------------------------- */
+
+.configurator__price-display-group {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.configurator__price-display-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.configurator__price-display-row-label {
+  display: inline-block;
+  min-width: 120px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.configurator__price-display-row-value {
+  font-family: var(--cfg-font-heading);
+  letter-spacing: -0.02em;
+}
+
+.configurator__price-display-row-value--original {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  opacity: 0.8;
+}
+
+.configurator__price-display-row-value--original s {
+  text-decoration: line-through;
+}
+
+.configurator__price-display-row-value--sale {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--cfg-color-primary);
   letter-spacing: -0.03em;
 }
 
@@ -1177,6 +1318,85 @@
   font-weight: 700;
   font-family: var(--cfg-font-heading);
   letter-spacing: -0.02em;
+}
+
+/* ---------------------------------------------------------------------------
+   Price Breakdown Total -- Sale Mode Extensions
+   ---------------------------------------------------------------------------
+   Applied to the Summary step's price-breakdown Total row when the
+   configurator is opted into strikethrough pricing. The original total
+   is stacked beside (or above on narrow viewports) the live sale total
+   so the saving is immediately apparent.
+   --------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   Price Breakdown Total -- Sale Mode Row Layout
+   ---------------------------------------------------------------------------
+   Aligns the summary step's sale-mode total into the same label-and-value
+   pair used by the sticky sub-header and the Overview step. The group is
+   promoted to an inline grid with two auto-sized columns (label | value)
+   so that every label shares a common left edge regardless of how wide
+   each value is, and every value shares a common right edge flush with
+   the breakdown column. Rows use `display: contents` so their children
+   participate directly in the grid, giving us label-column alignment
+   without having to fix the row width.
+   --------------------------------------------------------------------------- */
+.configurator__price-total-amount-group {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: baseline;
+  justify-content: end;
+  justify-items: end;
+}
+
+.configurator__price-total-amount-row {
+  display: contents;
+}
+
+.configurator__price-total-amount-row-label {
+  justify-self: start;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.configurator__price-total-amount-old {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cfg-color-text-muted, var(--cfg-color-text-secondary));
+  font-family: var(--cfg-font-heading);
+  letter-spacing: -0.01em;
+  opacity: 0.8;
+}
+
+.configurator__price-total-amount-old s {
+  text-decoration: line-through;
+}
+
+.configurator__price-total--on-sale .configurator__price-total-amount {
+  color: var(--cfg-color-primary);
+}
+
+/**
+ * Screen-reader-only helper scoped to the price-total row. Mirrors the
+ * sticky sub-header implementation so the two strikethrough call-sites
+ * remain self-contained and do not depend on a global utility class.
+ */
+.configurator__price-total-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .configurator__price-disclaimer {

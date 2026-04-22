@@ -147,6 +147,11 @@ const meta: Meta<typeof ProductShowcase> = {
       control: 'text',
       description: 'Eyebrow text above the warranties grid.',
     },
+    showOriginalPrice: {
+      control: 'boolean',
+      description:
+        'When true, rows whose data carries an `originalPrice` render it as a strikethrough above the current sale price.',
+    },
   },
 };
 
@@ -221,5 +226,89 @@ export const CustomEyebrows: Story = {
     features: sampleFeatures,
     warranties: sampleWarranties,
     legislationNote: sampleLegislationNote,
+  },
+};
+
+/* =============================================================================
+   STRIKETHROUGH / SALE-MODE STORIES
+   -----------------------------------------------------------------------------
+   Exercise the opt-in pre-sale price strikethrough behaviour added alongside
+   the 011-sales-discount feature. These stories confirm that:
+     1. Rows with an `originalPrice` render the strikethrough layout when
+        `showOriginalPrice` is true.
+     2. Rows without an `originalPrice` transparently fall back to the
+        standard "Turnkey price from" layout even in sale mode.
+     3. The component renders identically to the default when the flag
+        is toggled off, regardless of per-row data.
+   ============================================================================= */
+
+/**
+ * Sample products carrying both sale and pre-sale prices, mirroring the
+ * production dataset shape for Garden Room products during an active
+ * campaign. Every row defines `originalPrice` in addition to `price`.
+ */
+const saleProducts: ProductShowcaseProduct[] = sampleProducts.map((p) => {
+  switch (p.id) {
+    case 'compact-15':
+      return { ...p, originalPrice: '€40,000' };
+    case 'studio-25':
+      return { ...p, originalPrice: '€58,000' };
+    case 'living-35':
+      return { ...p, originalPrice: '€81,221' };
+    case 'grand-45':
+      return { ...p, originalPrice: '€106,981' };
+    default:
+      return p;
+  }
+});
+
+/**
+ * With Strikethrough Story
+ *
+ * Displays the full showcase in sale mode with original prices struck
+ * through above the current discounted figures.
+ */
+export const WithStrikethrough: Story = {
+  args: {
+    products: saleProducts,
+    features: sampleFeatures,
+    warranties: sampleWarranties,
+    legislationNote: sampleLegislationNote,
+    showOriginalPrice: true,
+  },
+};
+
+/**
+ * Mixed Strikethrough Story
+ *
+ * Verifies the graceful fallback behaviour when some rows lack an
+ * `originalPrice`: sale-mode is active at the component level, but only
+ * rows with sufficient data render the strikethrough layout. The
+ * remaining rows render the standard "Turnkey price from" label.
+ */
+export const MixedStrikethrough: Story = {
+  args: {
+    products: saleProducts.map((p, i) => (i % 2 === 0 ? p : { ...p, originalPrice: undefined })),
+    features: sampleFeatures,
+    warranties: sampleWarranties,
+    legislationNote: sampleLegislationNote,
+    showOriginalPrice: true,
+  },
+};
+
+/**
+ * Strikethrough Disabled Story
+ *
+ * Confirms that setting `showOriginalPrice={false}` suppresses the
+ * strikethrough layout on every row, even when the underlying data
+ * carries an `originalPrice`.
+ */
+export const StrikethroughDisabled: Story = {
+  args: {
+    products: saleProducts,
+    features: sampleFeatures,
+    warranties: sampleWarranties,
+    legislationNote: sampleLegislationNote,
+    showOriginalPrice: false,
   },
 };

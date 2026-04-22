@@ -5,10 +5,15 @@ declare global {
     /**
      * Google Analytics dataLayer array.
      * Used to push events and configuration to Google Tag Manager and Google Analytics.
-     * We use unknown[] to comply with strict typing (no 'any') while acknowledging 
-     * the dynamic nature of the data layer.
+     * Accepts the three shapes emitted by the application:
+     *   - `IArguments` from legacy `gtag(...)` calls.
+     *   - `unknown[]` tuples pushed by bespoke integrations.
+     *   - `Record<string, unknown>` objects for named GTM events
+     *     (e.g. `{ event: 'promo_banner_view', ... }`).
+     * We avoid `any` while acknowledging the intentionally dynamic nature of
+     * the GTM data-layer contract.
      */
-    dataLayer: (IArguments | unknown[])[];
+    dataLayer: (IArguments | unknown[] | Record<string, unknown>)[];
 
     /**
      * Google Analytics gtag function.

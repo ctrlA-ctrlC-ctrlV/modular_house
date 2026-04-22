@@ -77,6 +77,24 @@ function formatEurCents(cents: number): string {
 
 
 /**
+ * Undefined-tolerant wrapper around `formatEurCents`.
+ *
+ * Propagates `undefined` through the projection pipeline so that
+ * optional pre-sale "original" prices (`originalBasePriceCentsInclVat`)
+ * become `undefined` display strings when the product carries no
+ * promotional price. Consumers then render the strikethrough branch
+ * only when the formatted value is a string, avoiding a separate
+ * "has-original" boolean flag on the projected object.
+ *
+ * @param cents - Price in euro cents inclusive of VAT, or undefined.
+ * @returns Formatted euro string, or undefined when input is undefined.
+ */
+export function formatEurCentsOrUndefined(cents: number | undefined): string | undefined {
+  return cents === undefined ? undefined : formatEurCents(cents);
+}
+
+
+/**
  * Extracts the hero image from a HydratedProduct's images array.
  * Falls back to the first available image if no hero role is assigned.
  * Returns a default placeholder object if the images array is empty.
@@ -154,6 +172,12 @@ export const PRODUCT_SHOWCASE_PRODUCTS: ProductShowcaseProduct[] =
       unit: 'm\u00B2',
       dimensions: p.dimensionsDisplay,
       price: formatEurCents(p.basePriceCentsInclVat),
+      // Optional pre-sale "original" price, formatted only when the
+      // source product carries `originalBasePriceCentsInclVat`. The
+      // field is propagated as `undefined` otherwise; ProductShowcase
+      // treats `undefined` as "no strikethrough available" regardless
+      // of the `showOriginalPrice` prop on the component.
+      originalPrice: formatEurCentsOrUndefined(p.originalBasePriceCentsInclVat),
       label: p.name,
       permitFree: !p.planningPermission,
       imageSrc: hero.src,
@@ -237,6 +261,10 @@ export const GARDEN_ROOM_PRODUCTS: ProductCard[] =
       imageAvif: hero.avif,
       useCases: getUseCasesByContext(p, 'card'),
       price: formatEurCents(p.basePriceCentsInclVat),
+      // Optional pre-sale "original" price surfaced on the product
+      // range grid. See PRODUCT_SHOWCASE_PRODUCTS above for the full
+      // rationale on the `formatEurCentsOrUndefined` projection.
+      originalPrice: formatEurCentsOrUndefined(p.originalBasePriceCentsInclVat),
       planningPermission: p.planningPermission,
       inStock: p.inStock,
       ...(p.badge != null ? { badge: p.badge } : {}),

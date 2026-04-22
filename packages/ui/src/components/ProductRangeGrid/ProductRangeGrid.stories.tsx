@@ -124,6 +124,11 @@ const meta: Meta<typeof ProductRangeGrid> = {
         type: { summary: 'LinkRenderer' },
       },
     },
+    showOriginalPrice: {
+      control: 'boolean',
+      description:
+        'When true, cards whose data carries an `originalPrice` render it as a strikethrough next to the current sale price.',
+    },
   },
 };
 
@@ -309,5 +314,93 @@ export const WithImageVariants: Story = {
         available: true,
       },
     ],
+  },
+};
+
+/* =============================================================================
+   STRIKETHROUGH / SALE-MODE STORIES
+   -----------------------------------------------------------------------------
+   Exercise the opt-in pre-sale price strikethrough behaviour added alongside
+   the 011-sales-discount feature. These stories confirm that:
+     1. Cards with an `originalPrice` render the strikethrough layout when
+        `showOriginalPrice` is true.
+     2. Cards without an `originalPrice` transparently fall back to the
+        standard "Turnkey price from" layout even in sale mode.
+     3. The component renders identically to the default when the flag
+        is toggled off, regardless of per-card data.
+   ============================================================================= */
+
+/**
+ * Sample products carrying both sale and pre-sale prices. Mirrors the
+ * production dataset shape for Garden Room products during an active
+ * campaign: every card defines `originalPrice` in addition to `price`.
+ */
+const saleProducts: ProductCard[] = sampleProducts.map((p) => {
+  switch (p.size) {
+    case '15m²':
+      return { ...p, originalPrice: '€40,000' };
+    case '20m²':
+      return { ...p, originalPrice: '€48,000' };
+    case '25m²':
+      return { ...p, originalPrice: '€58,000' };
+    case '30m²':
+      return { ...p, originalPrice: '€81,221' };
+    default:
+      return p;
+  }
+});
+
+/**
+ * With Strikethrough Story
+ *
+ * Displays the full grid in sale mode with original prices struck through
+ * beside the current discounted figures. Demonstrates the default opt-in
+ * path a marketing campaign would ship.
+ */
+export const WithStrikethrough: Story = {
+  args: {
+    eyebrow: 'Spring Sale',
+    title: 'Limited Time Offer',
+    description:
+      'Every size in the range is discounted for the duration of the campaign. Original prices shown struck through.',
+    products: saleProducts,
+    showOriginalPrice: true,
+  },
+};
+
+/**
+ * Mixed Strikethrough Story
+ *
+ * Verifies the graceful fallback behaviour when some cards lack an
+ * `originalPrice`: sale-mode is active at the grid level, but only the
+ * cards with sufficient data render the strikethrough layout. The
+ * remaining cards render the standard "Turnkey price from" label.
+ */
+export const MixedStrikethrough: Story = {
+  args: {
+    eyebrow: 'Partial Sale',
+    title: 'Selected Sizes Reduced',
+    description:
+      'Only the first two cards in this grid carry an `originalPrice`; the rest fall back to the default label layout.',
+    products: saleProducts.map((p, i) => (i < 2 ? p : { ...p, originalPrice: undefined })),
+    showOriginalPrice: true,
+  },
+};
+
+/**
+ * Strikethrough Disabled Story
+ *
+ * Confirms that setting `showOriginalPrice={false}` suppresses the
+ * strikethrough layout on every card, even when the underlying data
+ * carries an `originalPrice`. Used to verify the opt-in semantics.
+ */
+export const StrikethroughDisabled: Story = {
+  args: {
+    eyebrow: 'Standard View',
+    title: 'No Discount Applied',
+    description:
+      'Product data contains `originalPrice` fields but `showOriginalPrice` is false, so the standard layout is rendered.',
+    products: saleProducts,
+    showOriginalPrice: false,
   },
 };

@@ -15,6 +15,7 @@ on:
       - '**-garden-room-redesign'
       - '**-about-page'
       - '**-house-extensions-redesign'
+      - '**-sales-discount'
   pull_request:
     branches:
       - main

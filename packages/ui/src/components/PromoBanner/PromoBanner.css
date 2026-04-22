@@ -1,0 +1,205 @@
+/**
+ * PromoBanner Component Stylesheet
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the site-wide promotional banner.
+ * The banner occupies a thin horizontal strip directly beneath the header
+ * and adapts to light or dark header variants via the `--variant-*` modifier.
+ *
+ * ARCHITECTURE:
+ * - BEM naming under the `.promo-banner` block.
+ * - Component-level tokens are defined as CSS custom properties, derived
+ *   from global brand tokens in `style.css` with inline fallbacks for
+ *   isolated use (for example inside Storybook).
+ * - Layout uses flexbox; the banner wraps gracefully on narrow viewports.
+ * - Countdown digits are rendered with `font-variant-numeric: tabular-nums`
+ *   to prevent horizontal jitter as values change every second.
+ *
+ * DEPENDENCIES:
+ * Requires the consuming application to import the brand token stylesheet
+ * (for example `apps/web/src/styles/style.css`) so the `--brand-*` variables
+ * resolve. Fallback colours keep the banner legible without those tokens.
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   Bridge global brand tokens to component-local variables. Variants swap
+   only these locals, leaving structural rules untouched.
+   ============================================================================= */
+
+.promo-banner {
+  /* Default (dark) palette: light text on dark surface. */
+  --promo-banner-bg: var(--brand-ink, #1a1a1a);
+  --promo-banner-fg: var(--brand-bg-primary, #fefefe);
+  --promo-banner-muted: var(--brand-meta, #acafb2);
+  --promo-banner-accent: var(--brand-link, #b55329);
+  --promo-banner-separator: var(--brand-meta, #acafb2);
+  --promo-banner-border: rgba(255, 255, 255, 0.08);
+}
+
+.promo-banner--variant-light {
+  /* Light palette: dark text on warm neutral surface. */
+  --promo-banner-bg: var(--brand-bg-secondary, #f6f5f0);
+  --promo-banner-fg: var(--brand-title, #121414);
+  --promo-banner-muted: var(--brand-slate, #555555);
+  --promo-banner-accent: var(--brand-link, #b55329);
+  --promo-banner-separator: var(--brand-stone, #888888);
+  --promo-banner-border: var(--brand-bd-color, #e5e7de);
+}
+
+
+/* =============================================================================
+   SECTION 2: CONTAINER
+   -----------------------------------------------------------------------------
+   Full-bleed strip rendered directly beneath the header. `position: relative`
+   keeps the banner in normal document flow even when the header uses the
+   overlay `position-over` variant so the banner always sits visually below
+   the header content.
+   ============================================================================= */
+
+.promo-banner {
+  position: relative;
+  z-index: 900;
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: var(--promo-banner-bg);
+  color: var(--promo-banner-fg);
+  border-top: 1px solid var(--promo-banner-border);
+  border-bottom: 1px solid var(--promo-banner-border);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: var(--text-caption, 0.875rem);
+  line-height: 1.2;
+}
+
+/**
+ * Inner flex row. Max-width matches the header container so the banner
+ * aligns with adjacent layout edges on wide viewports.
+ */
+.promo-banner__inner {
+  max-width: 1650px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+
+/* =============================================================================
+   SECTION 3: HEADLINE BLOCK (EYEBROW + NAME)
+   ============================================================================= */
+
+.promo-banner__headline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.promo-banner__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.08em);
+  font-size: var(--text-tiny, 0.75rem);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--promo-banner-muted);
+}
+
+.promo-banner__name {
+  font-weight: var(--weight-semibold, 600);
+  color: var(--promo-banner-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =============================================================================
+   SECTION 4: COUNTDOWN BLOCK
+   -----------------------------------------------------------------------------
+   Fixed-width digits prevent horizontal jitter on each tick. Long-form unit
+   labels (`Days`, `Hours`, ...) are shown on wide viewports and collapse to
+   short glyphs (`d`, `h`, ...) below 640 px.
+   ============================================================================= */
+
+.promo-banner__countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--promo-banner-fg);
+}
+
+.promo-banner__countdown-segment {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  color: var(--promo-banner-fg);
+}
+
+.promo-banner__countdown-value {
+  font-weight: var(--weight-semibold, 600);
+  font-size: var(--text-body, 1rem);
+  color: var(--promo-banner-accent);
+}
+
+.promo-banner__countdown-label {
+  font-size: var(--text-tiny, 0.75rem);
+  color: var(--promo-banner-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide, 0.04em);
+}
+
+/**
+ * Short label (`d`, `h`, `m`, `s`) is hidden by default and swapped in on
+ * compact viewports via the breakpoint below.
+ */
+.promo-banner__countdown-short-label {
+  display: none;
+  font-size: var(--text-tiny, 0.75rem);
+  color: var(--promo-banner-muted);
+}
+
+.promo-banner__countdown-separator {
+  color: var(--promo-banner-separator);
+  font-weight: var(--weight-semibold, 600);
+  opacity: 0.6;
+}
+
+
+/* =============================================================================
+   SECTION 5: RESPONSIVE BEHAVIOUR
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .promo-banner {
+    padding: 0.4rem 0.75rem;
+  }
+
+  .promo-banner__inner {
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .promo-banner__countdown-label {
+    display: none;
+  }
+
+  .promo-banner__countdown-short-label {
+    display: inline;
+  }
+
+  .promo-banner__countdown-separator {
+    display: none;
+  }
+
+  .promo-banner__countdown {
+    gap: 0.5rem;
+  }
+}

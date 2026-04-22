@@ -328,6 +328,11 @@ const COMPACT_15: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 2_950_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. Rendered as
+  // a strikethrough alongside `basePriceCentsInclVat` when a consuming
+  // component opts in via the `showOriginalPrice` prop. Omit this field
+  // to retire the promotional pricing without touching component code.
+  originalBasePriceCentsInclVat: 4_000_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'not-available',
 
@@ -473,6 +478,24 @@ const STUDIO_25: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 3_950_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. Studio 25
+  // carries three layout-dependent originals (Box / En Suite / Bedroom);
+  // the scalar field below is the "Box" fallback used when a consumer
+  // cannot resolve a layout-specific original (e.g., product range grid
+  // or product showcase, where no layout has yet been selected). The
+  // configurator resolves the accurate per-layout value through
+  // `originalPriceCentsInclVatByLayoutId` below.
+  originalBasePriceCentsInclVat: 5_800_000,
+  // Layout-specific original prices, keyed by `LayoutOption.id` as used
+  // by the configurator's selections state. Keys intentionally mirror
+  // the `id` field on each LayoutOption in the `layoutOptions` array
+  // below, not the human-readable `slug`, because the configurator's
+  // `selections.layoutOptionId` stores the full entity id.
+  originalPriceCentsInclVatByLayoutId: {
+    'lo-studio-box':      5_800_000,
+    'lo-studio-en-suite': 6_600_000,
+    'lo-studio-bedroom':  6_800_000,
+  },
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'layout-bundled',
 
@@ -737,6 +760,9 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 6_850_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. See the
+  // `compact-15` record for the full rationale on this field.
+  originalBasePriceCentsInclVat: 8_100_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 
@@ -908,6 +934,9 @@ const GRAND_45: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 8_350_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. See the
+  // `compact-15` record for the full rationale on this field.
+  originalBasePriceCentsInclVat: 10_600_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 

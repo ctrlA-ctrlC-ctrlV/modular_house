@@ -338,7 +338,7 @@ Prop surface:
   ```
 - Mirror the prop on `StickySubHeader` and `SummaryNavBar`. Those components receive both `totalPriceCents` and a new optional `originalTotalPriceCents?: number`; they format both via `formatPriceCents` and render the strikethrough only when both are
   present and `showOriginalPrice` is true. 
-- Compute `originalTotalPriceCents` inside `useConfiguratorState` (same place the live total is computed) using the resolved original base price plus the same addon sum. For `studio-25`, the resolver reads `originalPriceCentsInclVatByLayoutId[selections.layoutOptionId]` and falls back to `product.originalBasePriceCentsInclVat` if absent (Option A from §5.3.1).
+- Compute `originalTotalPriceCents` inside `useConfiguratorState` (same place the live total is computed) using the resolved original base price plus the same addon sum. For `studio-25`, the resolver reads `originalPriceCentsInclVatByLayoutId[selections.layoutOptionId]` and falls back to `product. originalBasePriceCentsInclVat` if absent (Option A from §5.3.1).
 - When `showOriginalPrice` is false, the price readouts in `StickySubHeader` and `SummaryNavBar` are prefixed with the visible label **"Turnkey price from"**. When true, the label is omitted and the struck-through original sits beside the live total.
 
 Consumer update: [apps/web/src/routes/GardenRoomConfigurator.tsx](apps/web/src/routes/GardenRoomConfigurator.tsx) passes `showOriginalPrice` based on the page's own flag, independent of `PROMO_CONFIG.enabled`.
@@ -375,29 +375,30 @@ House Extension page (`HouseExtension.tsx`) also consumes `ProductRangeGrid`/`Pr
 
 ### 7.3 Analytics
 
-**What this is.** A tiny, one-line hook into the site's existing Google Tag Manager (GTM) `dataLayer` (already wired via `GoogleTag.tsx`). When the `PromoBanner` mounts, it pushes a single structured event identifying the active campaign. Concretely:
+**Scope.** Emit a single GTM `dataLayer` event, `promo_banner_view`, each time the `PromoBanner` mounts. This event is the attribution hook that lets GA4 segment sessions by active campaign.
 
-```ts
-// inside PromoBanner on mount
-window.dataLayer = window.dataLayer || [];
-window.dataLayer.push({
-  event: 'promo_banner_view',
-  promo_name: PROMO_CONFIG.name,     // e.g. "Spring Sale 2026"
-  promo_ends_at: PROMO_CONFIG.endsAt, // ISO timestamp
-  page_path: location.pathname,
-});
-```
+**Implementation tasks:**
 
-No personal data is captured — only the campaign identifier and the page on which the user saw it.
-
-**Why it matters.** Without this event, we can see *that* traffic and enquiries went up during a sale window, but we cannot attribute them to the campaign inside GA4 / GTM. Adding one named event unlocks:
-
-- **Campaign-scoped funnels.** In GA4 we can filter or segment sessions by `promo_name`, then measure the enquiry-form submission rate against the same segment for non-promo sessions. This is the single cleanest way to answer "did the Spring Sale actually move the needle?".
-- **Per-campaign comparison.** Once more than one campaign has run (Spring, Black Friday, etc.), `promo_name` becomes a dimension we can slice by — conversion rate, average configurator total, most-viewed product size — letting Marketing iterate on what the next sale should emphasise.
-- **Banner-to-enquiry attribution.** Combined with the existing enquiry submit events, we can compute the fraction of converting sessions that saw the banner, a proxy for banner effectiveness separate from the raw price discount.
-- **Zero-cost safety net.** Because the event is pushed only when the banner mounts, it is automatically gated by `PROMO_CONFIG.enabled`. Disabling the sale stops the event. No retention concerns beyond the existing GA4 retention.
-
-**Effort.** Roughly 5 lines inside `PromoBanner.tsx` plus a one-time GTM tag configuration by Marketing (create a GA4 event tag triggered on `promo_banner_view`). Marketing sign-off requested before merge, but the implementation cost is negligible and the ROI is high when the next campaign lands.
+1. In `PromoBanner.tsx`, push the event inside a `useEffect(..., [])` on mount (client-only; guarded with `typeof window !== 'undefined'` for SSR safety):
+   ```ts
+   useEffect(() => {
+     if (typeof window === 'undefined') return;
+     window.dataLayer = window.dataLayer || [];
+     window.dataLayer.push({
+       event: 'promo_banner_view',
+       promo_name: name,
+       promo_ends_at: endsAt,
+       page_path: window.location.pathname,
+     });
+   }, [name, endsAt]);
+   ```
+2. Do **not** re-emit on every route change if the banner stays mounted across routes. If `TemplateLayout` keeps `PromoBanner` mounted while `location.pathname` changes, extend the effect to also push on `page_path` change so each page view inside a campaign is attributable. Decide at implementation time based on actual route-transition behaviour.
+3. Gate is implicit: the banner only mounts when `PROMO_CONFIG.enabled === true`, so disabling the sale stops the event automatically. No extra conditional required.
+4. Do **not** include any user-identifying fields (no email, no form data). Payload is limited to `promo_name`, `promo_ends_at`, and `page_path`.
+5. Add a TypeScript declaration for `window.dataLayer` in a local `.d.ts` (or reuse the one already declared in `GoogleTag.tsx`) so the push type-checks without `any`.
+6. Unit test: render `PromoBanner` with a stubbed `window.dataLayer`; assert exactly one event with the three expected keys is pushed on mount and none on unmount.
+7. Hand off to Marketing for the GTM-side tag: create a GA4 event tag triggered on the `promo_banner_view` custom event, mapping `promo_name`, `promo_ends_at`, and `page_path` to GA4 event parameters. Document the custom event name and parameter list in the PR description so Marketing can configure before the campaign launches.
+8. Mark complete when: (a) the event fires on a preview deployment (verified in GTM Preview mode), (b) GA4 shows the event in DebugView, and (c) the Marketing-owned GA4 tag is published.
 
 ### 7.4 SSR
 
@@ -407,7 +408,7 @@ No personal data is captured — only the campaign identifier and the page on wh
 ### 7.5 Security
 
 - No user input; no XSS surface (banner copy is code-authored).
-- CTA `href` is validated by eye at code-review time.
+- No outbound links in v1 (banner is informational, no CTA).
 
 ---
 
@@ -450,7 +451,7 @@ P1–P3 can be merged without the banner ever rendering in production
 
 ## 10a. Open questions
 
-- **Analytics event** — Marketing to confirm the `promo_banner_view` event name and any additional dimensions they want surfaced (see §7.3).
+- _None outstanding._ Analytics event name and payload approved (see §7.3); Marketing will configure the corresponding GA4 tag in GTM ahead of launch.
 
 ---
 

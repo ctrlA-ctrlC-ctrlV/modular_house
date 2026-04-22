@@ -155,30 +155,35 @@ const LayoutContent: React.FC = () => {
         onScroll={handleScroll}
         className="theme-template h-100 overflow-y-auto"
       >
+        {/*
+          Promotional banner slot.
+
+          Rendered BEFORE the header wrapper (rather than inside it) so the
+          banner always occupies flow space at the very top of the viewport.
+          This placement is required for overlay routes where `<Header>` uses
+          `position-over` (absolute positioning at top:0 of its wrapper). If
+          the banner were nested inside the same wrapper, the absolute header
+          would paint over it. Rendering above keeps a single code path for
+          both overlay and standard header variants: the banner always shows
+          at the top of the page, and the header sits directly beneath it —
+          either in flow (standard) or overlaying the hero (positionOver).
+
+          Visibility is driven by PROMO_CONFIG.enabled in data/promo-config.ts
+          and is intentionally decoupled from strikethrough price display on
+          product surfaces.
+        */}
+        {PROMO_CONFIG.enabled && (
+          <PromoBanner
+            name={PROMO_CONFIG.name}
+            endsAt={PROMO_CONFIG.endsAt}
+            eyebrow={PROMO_CONFIG.eyebrow}
+            variant={config.variant}
+          />
+        )}
+
         {/* Header Wrapper: Relative positioning allows absolute positioned headers (overlays) to work correctly */}
         <div id='template__header-wrapper' className="position-relative w-100">
           <Header variant={config.variant} positionOver={config.positionOver} />
-          {/*
-            Promotional banner slot.
-
-            Renders directly beneath the site header whenever a campaign is
-            active (driven by PROMO_CONFIG.enabled in data/promo-config.ts).
-            The banner participates in the same stacking context as the
-            header via the enclosing wrapper so it always sits visually below
-            the header on both standard and overlay (positionOver) routes.
-
-            Visibility of the banner is intentionally decoupled from the
-            strikethrough price display on product surfaces; flipping this
-            flag does not affect any other part of the UI.
-          */}
-          {PROMO_CONFIG.enabled && (
-            <PromoBanner
-              name={PROMO_CONFIG.name}
-              endsAt={PROMO_CONFIG.endsAt}
-              eyebrow={PROMO_CONFIG.eyebrow}
-              variant={config.variant}
-            />
-          )}
         </div>
         
         {/* Main Content Area: Renders the active route component */}

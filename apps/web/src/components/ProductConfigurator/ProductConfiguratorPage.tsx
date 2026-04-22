@@ -60,8 +60,9 @@ interface ProductConfiguratorPageProps {
    * original price (either `originalBasePriceCentsInclVat` on the product
    * or a layout-specific entry via `originalPriceCentsInclVatByLayoutId`),
    * the configurator renders a strikethrough "original total" alongside
-   * the live total in the sticky sub-header and the summary step's
-   * price breakdown. When false or omitted, the standard single-price
+   * the live total in the sticky sub-header, the first (Overview) step's
+   * hero price block, and the summary step's price-breakdown total.
+   * When false or omitted, the standard single-price
    * "Turnkey price from" layout is rendered on every surface.
    *
    * Decoupled from any site-wide promotional banner so the configurator
@@ -70,6 +71,22 @@ interface ProductConfiguratorPageProps {
    * @default false
    */
   showOriginalPrice?: boolean;
+  /**
+   * Label rendered beside the struck-through original total in sale mode.
+   * Propagates to the sticky sub-header, the Overview step hero price
+   * block, and the Summary step price-breakdown total so the campaign
+   * copy is consistent across every configurator surface.
+   *
+   * @default 'Original price'
+   */
+  originalPriceLabel?: string;
+  /**
+   * Label rendered beside the live sale total in sale mode. Shares the
+   * same propagation path as `originalPriceLabel`.
+   *
+   * @default 'Sale price'
+   */
+  salePriceLabel?: string;
 }
 
 
@@ -80,6 +97,8 @@ interface ProductConfiguratorPageProps {
 export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = ({
   product,
   showOriginalPrice = false,
+  originalPriceLabel = 'Original price',
+  salePriceLabel = 'Sale price',
 }) => {
   const state = useConfiguratorState(product);
 
@@ -261,9 +280,40 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           />
         ) : null}
         <div className="configurator__price-display">
-          <div className="configurator__price-amount">
-            {formatPriceCents(product.basePriceCentsInclVat)}
-          </div>
+          {/* Price block
+              --------------------------------------------------------------
+              In default mode the live base total is rendered alone. In
+              sale mode (opt-in via `showOriginalPrice` and only when the
+              upstream state has resolved an `originalTotalPriceCents`
+              value), the pre-sale total is rendered as a muted
+              strikethrough row above the emphasised live total. Each row
+              pairs a customisable label with its numeric value so the
+              campaign copy can be tuned from the promo config without any
+              component change. */}
+          {showOriginalPrice && state.originalTotalPriceCents !== undefined ? (
+            <div className="configurator__price-display-group configurator__price-display-group--sale">
+              <div className="configurator__price-display-row configurator__price-display-row--original">
+                <span className="configurator__price-display-row-label">
+                  {originalPriceLabel}
+                </span>
+                <span className="configurator__price-display-row-value configurator__price-display-row-value--original">
+                  <s>{formatPriceCents(state.originalTotalPriceCents)}</s>
+                </span>
+              </div>
+              <div className="configurator__price-display-row configurator__price-display-row--sale">
+                <span className="configurator__price-display-row-label">
+                  {salePriceLabel}
+                </span>
+                <span className="configurator__price-display-row-value configurator__price-display-row-value--sale">
+                  {formatPriceCents(state.totalPriceCents)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="configurator__price-amount">
+              {formatPriceCents(product.basePriceCentsInclVat)}
+            </div>
+          )}
           <div className="configurator__price-note">
             {product.pricingNote}
           </div>
@@ -766,10 +816,12 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               In default mode the live `totalPriceCents` is rendered alone.
               In sale mode (opt-in via `showOriginalPrice` and only when an
               `originalTotalPriceCents` value has been resolved upstream),
-              the pre-sale total is rendered as a muted strikethrough beside
-              the accented live total so the saving is visible at a glance.
-              Visually-hidden prefixes disambiguate the two figures for
-              assistive technologies. */}
+              the pre-sale total is rendered as a muted strikethrough row
+              above the emphasised live total. Each row surfaces the
+              customisable `originalPriceLabel` / `salePriceLabel` copy
+              beside its numeric value so the summary is internally
+              consistent with the sticky sub-header and the Overview step
+              hero price block. */}
           <div
             className={
               'configurator__price-total' +
@@ -781,13 +833,21 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
             <span className="configurator__price-total-label">Total</span>
             {showOriginalPrice && state.originalTotalPriceCents !== undefined ? (
               <span className="configurator__price-total-amount-group">
-                <span className="configurator__price-total-amount-old">
-                  <span className="configurator__price-total-sr-only">Original price: </span>
-                  <s>{formatPriceCents(state.originalTotalPriceCents)}</s>
+                <span className="configurator__price-total-amount-row configurator__price-total-amount-row--original">
+                  <span className="configurator__price-total-amount-row-label">
+                    {originalPriceLabel}
+                  </span>
+                  <span className="configurator__price-total-amount-old">
+                    <s>{formatPriceCents(state.originalTotalPriceCents)}</s>
+                  </span>
                 </span>
-                <span className="configurator__price-total-amount">
-                  <span className="configurator__price-total-sr-only">Sale price: </span>
-                  {formatPriceCents(state.totalPriceCents)}
+                <span className="configurator__price-total-amount-row configurator__price-total-amount-row--sale">
+                  <span className="configurator__price-total-amount-row-label">
+                    {salePriceLabel}
+                  </span>
+                  <span className="configurator__price-total-amount">
+                    {formatPriceCents(state.totalPriceCents)}
+                  </span>
                 </span>
               </span>
             ) : (
@@ -1186,6 +1246,8 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         totalPriceCents={state.totalPriceCents}
         originalTotalPriceCents={state.originalTotalPriceCents}
         showOriginalPrice={showOriginalPrice}
+        originalPriceLabel={originalPriceLabel}
+        salePriceLabel={salePriceLabel}
       />
 
       {/* Step progress indicator */}

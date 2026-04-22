@@ -11,9 +11,11 @@
  * Two mutually exclusive render paths govern the price slot:
  *   1. Sale mode -- activated when `showOriginalPrice` is true *and* an
  *      `originalTotalPriceCents` value is supplied. The component renders
- *      a muted strikethrough of the pre-sale total immediately before
- *      the emphasised live total. The conventional "Turnkey price from"
- *      prefix is suppressed to keep the focus on the comparison.
+ *      a two-row key/value block: the first row pairs the
+ *      `originalPriceLabel` with the struck-through pre-sale total, and
+ *      the second row pairs the `salePriceLabel` with the emphasised
+ *      live total. Labels share a common left edge and values share a
+ *      common position beside them for a balanced comparison.
  *   2. Default mode -- the standard single-price layout. The live total
  *      is preceded by the visible "Turnkey price from" label, which
  *      doubles as a screen-reader prefix.
@@ -62,6 +64,20 @@ interface StickySubHeaderProps {
    * @default false
    */
   showOriginalPrice?: boolean;
+  /**
+   * Label rendered beside the struck-through original total in sale mode.
+   * Injected by the parent (typically derived from the promo config) so
+   * marketing can vary the wording without modifying the component.
+   *
+   * @default 'Original price'
+   */
+  originalPriceLabel?: string;
+  /**
+   * Label rendered beside the live sale total in sale mode.
+   *
+   * @default 'Sale price'
+   */
+  salePriceLabel?: string;
 }
 
 
@@ -74,6 +90,8 @@ export const StickySubHeader: React.FC<StickySubHeaderProps> = ({
   totalPriceCents,
   originalTotalPriceCents,
   showOriginalPrice = false,
+  originalPriceLabel = 'Original price',
+  salePriceLabel = 'Sale price',
 }) => {
   /**
    * Resolve whether the sale-mode layout should be rendered.
@@ -90,25 +108,37 @@ export const StickySubHeader: React.FC<StickySubHeaderProps> = ({
       <span className="configurator__sub-header-name">
         {productName}
       </span>
-      <div className="configurator__sub-header-price-group">
+      <div
+        className={
+          'configurator__sub-header-price-group' +
+          (isSaleMode ? ' configurator__sub-header-price-group--sale' : '')
+        }
+      >
         {isSaleMode && originalTotalPriceCents !== undefined ? (
           // --------------------------------------------------------------
           // Sale-mode layout
           // --------------------------------------------------------------
-          // Renders the struck-through original total beside the live
-          // total. Visually-hidden prefixes disambiguate the two values
-          // for assistive technologies without polluting the layout.
+          // Two stacked rows: the first pairs the customisable original
+          // price label with the struck-through pre-sale total, the
+          // second pairs the customisable sale price label with the
+          // emphasised live total. Labels share a fixed minimum width
+          // so the two rows align into a label-and-value column pair.
           <>
-            <span className="configurator__sub-header-price-old">
-              <span className="configurator__sub-header-sr-only">Original price: </span>
-              <s>{formatPriceCents(originalTotalPriceCents)}</s>
+            <span className="configurator__sub-header-price-row configurator__sub-header-price-row--original">
+              <span className="configurator__sub-header-price-row-label">
+                {originalPriceLabel}
+              </span>
+              <span className="configurator__sub-header-price-old">
+                <s>{formatPriceCents(originalTotalPriceCents)}</s>
+              </span>
             </span>
-            <span className="configurator__sub-header-vat-label">
-              (incl. VAT)
-            </span>
-            <span className="configurator__sub-header-price">
-              <span className="configurator__sub-header-sr-only">Sale price: </span>
-              {formatPriceCents(totalPriceCents)}
+            <span className="configurator__sub-header-price-row configurator__sub-header-price-row--sale">
+              <span className="configurator__sub-header-price-row-label">
+                {salePriceLabel}
+              </span>
+              <span className="configurator__sub-header-price">
+                {formatPriceCents(totalPriceCents)}
+              </span>
             </span>
           </>
         ) : (

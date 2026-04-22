@@ -51,8 +51,8 @@ describe('CONFIGURATOR_PRODUCTS — promotional original prices', () => {
     readonly expectedOriginalCents: number;
   }> = [
     { slug: 'compact-15', expectedOriginalCents: 4_000_000 },
-    { slug: 'living-35',  expectedOriginalCents: 8_122_100 },
-    { slug: 'grand-45',   expectedOriginalCents: 10_698_100 },
+    { slug: 'living-35',  expectedOriginalCents: 8_100_000 },
+    { slug: 'grand-45',   expectedOriginalCents: 10_600_000 },
   ];
 
   it.each(singleLayoutExpectations)(
@@ -87,8 +87,8 @@ describe('CONFIGURATOR_PRODUCTS — promotional original prices', () => {
       const studio = getProductBySlug('studio-25');
       expect(studio.originalPriceCentsInclVatByLayoutId).toEqual({
         'lo-studio-box':      5_800_000,
-        'lo-studio-en-suite': 6_588_800,
-        'lo-studio-bedroom':  6_665_400,
+        'lo-studio-en-suite': 6_600_000,
+        'lo-studio-bedroom':  6_800_000,
       });
     });
 

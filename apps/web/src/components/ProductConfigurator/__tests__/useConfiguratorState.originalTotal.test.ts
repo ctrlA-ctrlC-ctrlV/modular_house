@@ -65,8 +65,8 @@ const LAYOUT_BEDROOM_ID   = 'lo-studio-bedroom';
 /** Pre-sale "original" bases, keyed by layout id (mirrors fixture §5.3.1). */
 const ORIGINAL_BASE_BY_LAYOUT: Record<string, number> = {
   [LAYOUT_BOX_ID]:      5_800_000,
-  [LAYOUT_EN_SUITE_ID]: 6_588_800,
-  [LAYOUT_BEDROOM_ID]:  6_665_400,
+  [LAYOUT_EN_SUITE_ID]: 6_600_000,
+  [LAYOUT_BEDROOM_ID]:  6_800_000,
 };
 
 /** Layout price deltas applied to both the live and original totals. */

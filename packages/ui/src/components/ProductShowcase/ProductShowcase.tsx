@@ -37,6 +37,16 @@ export interface ProductShowcaseProduct {
   dimensions: string;
   /** Display price, e.g. "From €24,950" */
   price: string;
+  /**
+   * Optional pre-sale ("original") formatted price string, e.g. "€40,000".
+   *
+   * When provided together with a truthy `showOriginalPrice` flag on the
+   * parent component, the row renders this value as a strikethrough above
+   * the current `price`. When absent — or when `showOriginalPrice` is
+   * false — the field is ignored and the row falls back to the standard
+   * "Turnkey price from" label layout.
+   */
+  originalPrice?: string;
   /** Product name, e.g. "The Compact" */
   label: string;
   /** Whether the product is currently exempt from planning permission */
@@ -90,6 +100,19 @@ export interface ProductShowcaseProps {
   /** Array of warranties */
   warranties: ProductShowcaseWarranty[];
   /**
+   * When true, product rows whose data carries a defined `originalPrice`
+   * render it as a strikethrough above the current sale price, and the
+   * "Turnkey price from" label is suppressed on those rows. When false
+   * or omitted, `originalPrice` values are ignored and every row renders
+   * the standard labelled single-price layout.
+   *
+   * Independent of any site-wide sale banner switch; callers may opt-in
+   * per-page without enabling other campaign surfaces.
+   *
+   * @default false
+   */
+  showOriginalPrice?: boolean;
+  /**
    * Callback invoked when a product row is clicked (modal mode).
    * When provided, clicking a row calls this callback instead of
    * smooth-scrolling to the scrollTargetId element.
@@ -110,6 +133,7 @@ export function ProductShowcase({
   features,
   //warrantyEyebrow = 'Warranty Coverage',
   //warranties,
+  showOriginalPrice = false,
   onProductClick,
 }: ProductShowcaseProps): React.ReactElement {
   const scrollToTarget = (): void => {
@@ -146,11 +170,21 @@ export function ProductShowcase({
         <div className="product-showcase__left">
           <h3 className="product-showcase__eyebrow">{productEyebrow}</h3>
 
-          {products.map((p, index) => (
+          {products.map((p, index) => {
+            /**
+             * Derive the per-row sale-mode flag. A row is considered
+             * "on sale" only when the parent has opted in *and* the row
+             * data carries an `originalPrice`. Rows without an
+             * original price transparently fall back to the standard
+             * labelled single-price layout even when the flag is on.
+             */
+            const rowOnSale: boolean = showOriginalPrice && Boolean(p.originalPrice);
+
+            return (
             <button
               key={p.id}
               type="button"
-              className="product-showcase__row"
+              className={`product-showcase__row${rowOnSale ? ' product-showcase__row--on-sale' : ''}`}
               onClick={() => handleRowClick(p, index)}
               onKeyDown={handleKeyDown(p, index)}
               aria-label={
@@ -203,7 +237,37 @@ export function ProductShowcase({
 
               {/* Right content: price */}
               <div className="product-showcase__price-block">
-                <span className="product-showcase__price">{p.price}</span>
+                {rowOnSale ? (
+                  // ------------------------------------------------------
+                  // Sale-mode layout
+                  // ------------------------------------------------------
+                  // Renders the struck-through original amount above the
+                  // emphasised sale price. Screen readers receive explicit
+                  // "Original price:" / "Sale price:" prefixes via a
+                  // visually-hidden span so the two values cannot be
+                  // confused when announced.
+                  <>
+                    <span className="product-showcase__price-old">
+                      <span className="product-showcase__sr-only">Original price: </span>
+                      <s>{p.originalPrice}</s>
+                    </span>
+                    <span className="product-showcase__price">
+                      <span className="product-showcase__sr-only">Sale price: </span>
+                      {p.price}
+                    </span>
+                  </>
+                ) : (
+                  // ------------------------------------------------------
+                  // Default layout
+                  // ------------------------------------------------------
+                  // The visible "Turnkey price from" label doubles as the
+                  // screen-reader prefix, matching the treatment used on
+                  // ProductRangeGrid for consistency across surfaces.
+                  <>
+                    <span className="product-showcase__price-label">Turnkey price from</span>
+                    <span className="product-showcase__price">{p.price}</span>
+                  </>
+                )}
                 <span className="product-showcase__label">{p.label}</span>
               </div>
 
@@ -215,7 +279,8 @@ export function ProductShowcase({
               {/* Bottom accent line */}
               <div className="product-showcase__row-accent" />
             </button>
-          ))}
+            );
+          })}
 
           {/* Legislation note */}
           {legislationNote && (

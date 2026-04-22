@@ -4,8 +4,9 @@ import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
 import { routes } from '../route-config';
-import { Seo } from '@modular-house/ui';
+import { Seo, PromoBanner } from '@modular-house/ui';
 import { GoogleTag, GA_TRACKING_ID } from './GoogleTag';
+import { PROMO_CONFIG } from '../data/promo-config';
 
 // Import template styles to ensure theme-template variables are applied globally within this layout
 import '../styles/template.css';
@@ -157,6 +158,27 @@ const LayoutContent: React.FC = () => {
         {/* Header Wrapper: Relative positioning allows absolute positioned headers (overlays) to work correctly */}
         <div id='template__header-wrapper' className="position-relative w-100">
           <Header variant={config.variant} positionOver={config.positionOver} />
+          {/*
+            Promotional banner slot.
+
+            Renders directly beneath the site header whenever a campaign is
+            active (driven by PROMO_CONFIG.enabled in data/promo-config.ts).
+            The banner participates in the same stacking context as the
+            header via the enclosing wrapper so it always sits visually below
+            the header on both standard and overlay (positionOver) routes.
+
+            Visibility of the banner is intentionally decoupled from the
+            strikethrough price display on product surfaces; flipping this
+            flag does not affect any other part of the UI.
+          */}
+          {PROMO_CONFIG.enabled && (
+            <PromoBanner
+              name={PROMO_CONFIG.name}
+              endsAt={PROMO_CONFIG.endsAt}
+              eyebrow={PROMO_CONFIG.eyebrow}
+              variant={config.variant}
+            />
+          )}
         </div>
         
         {/* Main Content Area: Renders the active route component */}

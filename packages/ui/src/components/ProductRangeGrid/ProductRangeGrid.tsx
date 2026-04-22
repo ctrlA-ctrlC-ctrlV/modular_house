@@ -128,6 +128,22 @@ export interface ProductRangeGridProps {
    * @default false
    */
   showOriginalPrice?: boolean;
+  /**
+   * Customisable copy rendered beside the struck-through original amount
+   * when a card enters sale mode. Supplied by the consumer (typically
+   * sourced from a central promo config) so marketing can vary the
+   * wording without component changes.
+   *
+   * @default 'Original price'
+   */
+  originalPriceLabel?: string;
+  /**
+   * Customisable copy rendered beside the live sale amount when a card
+   * enters sale mode. Paired with `originalPriceLabel` for balanced copy.
+   *
+   * @default 'Sale price'
+   */
+  salePriceLabel?: string;
   /** Custom link renderer for SPA navigation (e.g., react-router-dom Link) */
   renderLink?: LinkRenderer;
   /** Callback invoked when the "Quick View" button is clicked. When provided, each card renders a secondary Quick View button alongside the primary CTA. */
@@ -177,6 +193,8 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
   headerContent,
   products,
   showOriginalPrice = false,
+  originalPriceLabel = 'Original price',
+  salePriceLabel = 'Sale price',
   renderLink,
   onQuickView,
 }) => {
@@ -223,6 +241,8 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
             product={product}
             index={index}
             showOriginalPrice={showOriginalPrice}
+            originalPriceLabel={originalPriceLabel}
+            salePriceLabel={salePriceLabel}
             renderLink={renderLink}
             onQuickView={onQuickView}
           />
@@ -252,6 +272,13 @@ interface ProductRangeCardInternalProps {
    * `originalPrice`, the card renders a strikethrough comparison layout.
    */
   showOriginalPrice: boolean;
+  /**
+   * Inherited label rendered alongside the strikethrough original price
+   * in sale mode.
+   */
+  originalPriceLabel: string;
+  /** Inherited label rendered alongside the live sale price in sale mode. */
+  salePriceLabel: string;
   /** Custom link renderer inherited from the parent grid */
   renderLink?: LinkRenderer;
   /** Quick View callback inherited from the parent grid */
@@ -273,6 +300,8 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
   product,
   index,
   showOriginalPrice,
+  originalPriceLabel,
+  salePriceLabel,
   renderLink,
   onQuickView,
 }) => {
@@ -420,19 +449,30 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
                     // Sale-mode layout
                     // ----------------------------------------------------
                     // Renders the pre-sale "original" amount as a
-                    // strikethrough sibling next to the current price.
-                    // The <s> element carries the semantic meaning of
-                    // "no longer applicable"; visually-hidden spans
-                    // disambiguate the two figures for screen readers
-                    // without duplicating visible copy.
+                    // strikethrough row above the current sale price.
+                    // Each row displays a customisable label beside its
+                    // value; the labels are left-aligned across rows and
+                    // the numeric values are aligned beside them so the
+                    // pair forms a two-column micro-grid. Labels default
+                    // to plain-English copy but are intentionally exposed
+                    // as props (sourced upstream from the promo config)
+                    // so marketing can vary the wording per campaign.
                     <>
                       <span className="product-range-card__price-old">
-                        <span className="product-range-card__sr-only">Original price: </span>
-                        <s>{originalPrice}</s>
+                        <span className="product-range-card__price-row-label">
+                          {originalPriceLabel}
+                        </span>
+                        <s className="product-range-card__price-row-value">
+                          {originalPrice}
+                        </s>
                       </span>
                       <span className="product-range-card__price">
-                        <span className="product-range-card__sr-only">Sale price: </span>
-                        {price}
+                        <span className="product-range-card__price-row-label">
+                          {salePriceLabel}
+                        </span>
+                        <span className="product-range-card__price-row-value">
+                          {price}
+                        </span>
                       </span>
                     </>
                   ) : (

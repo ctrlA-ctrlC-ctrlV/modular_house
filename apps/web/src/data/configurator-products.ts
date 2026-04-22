@@ -493,8 +493,8 @@ const STUDIO_25: HydratedProduct = {
   // `selections.layoutOptionId` stores the full entity id.
   originalPriceCentsInclVatByLayoutId: {
     'lo-studio-box':      5_800_000,
-    'lo-studio-en-suite': 6_588_800,
-    'lo-studio-bedroom':  6_665_400,
+    'lo-studio-en-suite': 6_600_000,
+    'lo-studio-bedroom':  6_800_000,
   },
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'layout-bundled',
@@ -762,7 +762,7 @@ const LIVING_35: HydratedProduct = {
   basePriceCentsInclVat: 6_850_000,
   // Pre-sale "original" base price in euro cents incl. VAT. See the
   // `compact-15` record for the full rationale on this field.
-  originalBasePriceCentsInclVat: 8_122_100,
+  originalBasePriceCentsInclVat: 8_100_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 
@@ -936,7 +936,7 @@ const GRAND_45: HydratedProduct = {
   basePriceCentsInclVat: 8_350_000,
   // Pre-sale "original" base price in euro cents incl. VAT. See the
   // `compact-15` record for the full rationale on this field.
-  originalBasePriceCentsInclVat: 10_698_100,
+  originalBasePriceCentsInclVat: 10_600_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 

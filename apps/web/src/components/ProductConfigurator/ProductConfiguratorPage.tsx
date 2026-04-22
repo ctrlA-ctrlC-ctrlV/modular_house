@@ -569,6 +569,33 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
     const variantBasePriceCents: number =
       product.basePriceCentsInclVat + (selectedVariant?.priceDeltaCentsInclVat ?? 0);
 
+    /* -----------------------------------------------------------------
+       Floor Plan Step -- Pre-sale "Original" Variant Price
+       -----------------------------------------------------------------
+       Mirrors `variantBasePriceCents` but uses the product's pre-sale
+       `originalBasePriceCentsInclVat` (or the per-layout entry from
+       `originalPriceCentsInclVatByLayoutId` when available, using the
+       currently selected layout seeded by `buildDefaultSelections`).
+       The variant price delta is added on top so the struck-through
+       total stays line-for-line comparable with the live base shown
+       beside it. Resolves to `undefined` for products that do not
+       carry a seeded original price, which naturally collapses the
+       UI back to the default single-price layout.
+       ----------------------------------------------------------------- */
+    const resolvedOriginalBaseCents: number | undefined = (() => {
+      const perLayoutMap = product.originalPriceCentsInclVatByLayoutId;
+      const activeLayoutId = state.selections.layoutOptionId;
+      if (perLayoutMap && activeLayoutId && perLayoutMap[activeLayoutId] !== undefined) {
+        return perLayoutMap[activeLayoutId];
+      }
+      return product.originalBasePriceCentsInclVat;
+    })();
+
+    const originalVariantBasePriceCents: number | undefined =
+      resolvedOriginalBaseCents === undefined
+        ? undefined
+        : resolvedOriginalBaseCents + (selectedVariant?.priceDeltaCentsInclVat ?? 0);
+
     return (
       <>
         {/* Step heading */}
@@ -625,11 +652,35 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           {/* Base price display for the selected floor plan variant.
               Mirrors the Overview step's price block. The amount reacts
               to variant changes because priceDeltaCentsInclVat is summed
-              with the product base price above. */}
+              with the product base price above. In sale mode (opt-in via
+              `showOriginalPrice` and only when an original base price is
+              defined on the product) the block switches to the two-row
+              label-and-value comparison used across the configurator. */}
           <div className="configurator__price-display">
-            <div className="configurator__price-amount">
-              {formatPriceCents(variantBasePriceCents)}
-            </div>
+            {showOriginalPrice && originalVariantBasePriceCents !== undefined ? (
+              <div className="configurator__price-display-group configurator__price-display-group--sale">
+                <div className="configurator__price-display-row configurator__price-display-row--original">
+                  <span className="configurator__price-display-row-label">
+                    {originalPriceLabel}
+                  </span>
+                  <span className="configurator__price-display-row-value configurator__price-display-row-value--original">
+                    <s>{formatPriceCents(originalVariantBasePriceCents)}</s>
+                  </span>
+                </div>
+                <div className="configurator__price-display-row configurator__price-display-row--sale">
+                  <span className="configurator__price-display-row-label">
+                    {salePriceLabel}
+                  </span>
+                  <span className="configurator__price-display-row-value configurator__price-display-row-value--sale">
+                    {formatPriceCents(variantBasePriceCents)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="configurator__price-amount">
+                {formatPriceCents(variantBasePriceCents)}
+              </div>
+            )}
             <div className="configurator__price-note">
               {product.pricingNote}
             </div>

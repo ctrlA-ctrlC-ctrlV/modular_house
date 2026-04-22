@@ -36,6 +36,41 @@ import './PromoBanner.css';
 
 
 /* =============================================================================
+   SECTION 0: GLOBAL TYPE AUGMENTATION
+   =============================================================================
+
+   Declares the minimum shape of the Google Tag Manager `dataLayer` queue
+   consumed by this component. The declaration is merged with any equivalent
+   augmentation supplied by the host application (e.g. `GoogleTag.tsx` or an
+   ambient `google-analytics.d.ts` in the web app) thanks to TypeScript's
+   declaration-merging rules. Using `unknown[]` preserves strict typing while
+   acknowledging GTM's intentionally dynamic event schema.
+*/
+
+declare global {
+  interface Window {
+    /**
+     * Google Tag Manager data layer queue. Items are pushed onto this array
+     * by this component (and by the host application's bootstrap snippet)
+     * and consumed asynchronously by the GTM container script.
+     *
+     * The signature intentionally mirrors the ambient declaration shipped by
+     * the consuming web application (`apps/web/src/types/google-analytics.d.ts`)
+     * so TypeScript declaration-merging succeeds with identical modifiers.
+     */
+    dataLayer: (IArguments | unknown[] | Record<string, unknown>)[];
+  }
+}
+
+/**
+ * Custom event name pushed to `window.dataLayer` whenever the banner mounts.
+ * Extracted as a named constant so GTM trigger configuration and tests can
+ * reference a single source of truth.
+ */
+const PROMO_BANNER_VIEW_EVENT = 'promo_banner_view' as const;
+
+
+/* =============================================================================
    SECTION 1: TYPE DEFINITIONS
    ============================================================================= */
 
@@ -209,6 +244,36 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
 
   // After hydration, a `null` value from the hook means the campaign ended.
   // Removing the node from the tree is the correct behaviour per plan §4.3.
+  // The dataLayer side-effect below is intentionally declared above this
+  // early-return guard so the hook order remains stable across renders.
+
+  // -------------------------------------------------------------------------
+  // Analytics: GTM `promo_banner_view` event
+  // -------------------------------------------------------------------------
+  // Pushes a single attribution event onto `window.dataLayer` each time the
+  // banner mounts (or the campaign identity changes). The effect is guarded
+  // against SSR by a `typeof window` check so the server render remains a
+  // pure function of its props. The payload is deliberately scoped to
+  // non-identifying campaign metadata per plan §7.3 step 4.
+  //
+  // Re-emission policy (plan §7.3 step 2): `TemplateLayout` keeps the banner
+  // mounted across client-side route transitions, so only `name` / `endsAt`
+  // changes (i.e. a campaign swap) should trigger a fresh push. Per-route
+  // page-view attribution is delegated to the existing GA4 `page_view`
+  // instrumentation rather than duplicated here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Initialise lazily so the first push works even before GTM's bootstrap
+    // snippet has executed.
+    window.dataLayer = window.dataLayer ?? [];
+    window.dataLayer.push({
+      event: PROMO_BANNER_VIEW_EVENT,
+      promo_name: name,
+      promo_ends_at: endsAt,
+      page_path: window.location.pathname,
+    });
+  }, [name, endsAt]);
+
   if (hasHydrated && parts === null) {
     return null;
   }

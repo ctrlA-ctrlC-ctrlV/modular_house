@@ -77,4 +77,37 @@ describe('PromoBanner', () => {
     const root = container.querySelector('.promo-banner');
     expect(root?.classList.contains('custom-class')).toBe(true);
   });
+
+  /**
+   * GTM `dataLayer` attribution event.
+   *
+   * Validates the analytics contract described in plan §7.3: a single
+   * `promo_banner_view` event is pushed on mount with exactly the three
+   * campaign-attribution keys, and no further events are pushed on unmount
+   * or on unrelated state transitions.
+   */
+  describe('dataLayer analytics', () => {
+    it('pushes a single promo_banner_view event on mount with the expected payload', () => {
+      const endsAt = new Date(NOW + 60_000).toISOString();
+      // Reset to a known empty queue so the assertion below is unambiguous.
+      window.dataLayer = [];
+
+      const { unmount } = render(
+        <PromoBanner name="Spring Sale 2026" endsAt={endsAt} eyebrow="Limited time" />,
+      );
+
+      expect(window.dataLayer?.length).toBe(1);
+      const event = window.dataLayer?.[0] as Record<string, unknown>;
+      expect(event).toEqual({
+        event: 'promo_banner_view',
+        promo_name: 'Spring Sale 2026',
+        promo_ends_at: endsAt,
+        page_path: window.location.pathname,
+      });
+
+      // Unmount must not emit any additional events.
+      unmount();
+      expect(window.dataLayer?.length).toBe(1);
+    });
+  });
 });

@@ -478,6 +478,24 @@ const STUDIO_25: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 3_950_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. Studio 25
+  // carries three layout-dependent originals (Box / En Suite / Bedroom);
+  // the scalar field below is the "Box" fallback used when a consumer
+  // cannot resolve a layout-specific original (e.g., product range grid
+  // or product showcase, where no layout has yet been selected). The
+  // configurator resolves the accurate per-layout value through
+  // `originalPriceCentsInclVatByLayoutId` below.
+  originalBasePriceCentsInclVat: 5_800_000,
+  // Layout-specific original prices, keyed by `LayoutOption.id` as used
+  // by the configurator's selections state. Keys intentionally mirror
+  // the `id` field on each LayoutOption in the `layoutOptions` array
+  // below, not the human-readable `slug`, because the configurator's
+  // `selections.layoutOptionId` stores the full entity id.
+  originalPriceCentsInclVatByLayoutId: {
+    'lo-studio-box':      5_800_000,
+    'lo-studio-en-suite': 6_588_800,
+    'lo-studio-bedroom':  6_665_400,
+  },
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'layout-bundled',
 

@@ -79,7 +79,7 @@ interface ProductConfiguratorPageProps {
 
 export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = ({
   product,
-  showOriginalPrice = true,
+  showOriginalPrice = false,
 }) => {
   const state = useConfiguratorState(product);
 

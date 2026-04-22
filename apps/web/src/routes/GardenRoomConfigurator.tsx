@@ -49,7 +49,7 @@ import { BUILD_TIMESTAMP } from '../build-timestamp';
    independent from `PROMO_CONFIG.enabled` so the promotional banner and
    strikethrough pricing can be toggled separately (see spec 011 §6.3 / §4).
    --------------------------------------------------------------------------- */
-const SHOW_SALE_PRICES = true;
+const SHOW_SALE_PRICES = false;
 
 
 /* =============================================================================

@@ -73,7 +73,7 @@ export const StickySubHeader: React.FC<StickySubHeaderProps> = ({
   productName,
   totalPriceCents,
   originalTotalPriceCents,
-  showOriginalPrice = true,
+  showOriginalPrice = false,
 }) => {
   /**
    * Resolve whether the sale-mode layout should be rendered.

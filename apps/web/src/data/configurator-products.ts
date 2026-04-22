@@ -328,6 +328,11 @@ const COMPACT_15: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 2_950_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. Rendered as
+  // a strikethrough alongside `basePriceCentsInclVat` when a consuming
+  // component opts in via the `showOriginalPrice` prop. Omit this field
+  // to retire the promotional pricing without touching component code.
+  originalBasePriceCentsInclVat: 4_000_000,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'not-available',
 
@@ -737,6 +742,9 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 6_850_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. See the
+  // `compact-15` record for the full rationale on this field.
+  originalBasePriceCentsInclVat: 8_122_100,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 
@@ -908,6 +916,9 @@ const GRAND_45: HydratedProduct = {
 
   /* --- Pricing --------------------------------------------------- */
   basePriceCentsInclVat: 8_350_000,
+  // Pre-sale "original" base price in euro cents incl. VAT. See the
+  // `compact-15` record for the full rationale on this field.
+  originalBasePriceCentsInclVat: 10_698_100,
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'included',
 

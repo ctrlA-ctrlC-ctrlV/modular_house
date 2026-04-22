@@ -60,16 +60,18 @@ export interface PromoConfig {
 }
 
 /**
- * Default-disabled promotional configuration.
+ * Active promotional configuration.
  *
- * Placeholder values are supplied so the module is safe to import anywhere
- * without runtime errors. Keeping `enabled` set to `false` at rest ensures
- * the production bundle ships without an active campaign until Marketing
- * explicitly flips this constant for a launch.
+ * This constant is the single runtime switch that enables or disables the
+ * site-wide `PromoBanner`. Enabling the banner pushes a `promo_banner_view`
+ * event onto the GTM `dataLayer` on every mount for downstream GA4
+ * attribution. `endsAt` uses the Irish local timezone offset (`+01:00`
+ * during Irish Summer Time) so the countdown reaches zero at midnight local
+ * time on the campaign's final day.
  */
 export const PROMO_CONFIG: PromoConfig = {
   enabled: true,
   name: '2026 Spring Sale',
-  endsAt: '2026-05-31T23:59:59+00:00',
-  eyebrow: '',
+  endsAt: '2026-05-31T23:59:59+01:00',
+  eyebrow: 'Limited time',
 };

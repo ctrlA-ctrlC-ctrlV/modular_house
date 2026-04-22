@@ -210,6 +210,38 @@ interface Product {
   /** Base price in euro cents inclusive of 23% Irish VAT. */
   readonly basePriceCentsInclVat: number;
   /**
+   * Pre-sale "original" base price in euro cents inclusive of 23% Irish VAT.
+   *
+   * When present, consuming components may render this value as a
+   * strikethrough alongside `basePriceCentsInclVat` (the current sale
+   * price) to advertise a discount. When absent, no promotional pricing
+   * is surfaced for this product and components fall back to the single
+   * sale-price presentation.
+   *
+   * The field is optional so that enabling or disabling a promotional
+   * campaign reduces to authoring (or removing) a single seed value per
+   * product, preserving the Open-Closed Principle: existing consumers
+   * compile unchanged.
+   */
+  readonly originalBasePriceCentsInclVat?: number;
+  /**
+   * Optional lookup of pre-sale "original" base prices keyed by
+   * `LayoutOption.id`, enabling products whose original price differs
+   * across interior layout tiers (e.g., the Studio 25 "Box", "En Suite",
+   * and "Bedroom" variants) to expose a layout-accurate strikethrough
+   * in the configurator.
+   *
+   * Resolution order (for consumers that advertise a strikethrough):
+   *   1. If this map is defined and contains the active layout id, use it.
+   *   2. Otherwise fall back to `originalBasePriceCentsInclVat`.
+   *   3. If neither is defined, no original price is rendered.
+   *
+   * The map is declared `Readonly<Record<string, number>>` so both the
+   * outer record and its entries are immutable at the type level,
+   * matching the `readonly` posture of the surrounding interface.
+   */
+  readonly originalPriceCentsInclVatByLayoutId?: Readonly<Record<string, number>>;
+  /**
    * Footnote displayed below the price in the configurator
    * (e.g., "Price includes VAT . Ts & Cs apply").
    */

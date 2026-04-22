@@ -75,3 +75,33 @@ export const PROMO_CONFIG: PromoConfig = {
   endsAt: '2026-05-31T23:59:59+01:00',
   eyebrow: 'Limited time',
 };
+
+/* =============================================================================
+   DEVELOPMENT-ONLY STALE CONFIGURATION GUARD
+   =============================================================================
+
+   Emits a single `console.warn` at module load time when a developer boots
+   the Vite dev server with `enabled: true` but an `endsAt` that has already
+   elapsed. The warning is an early-feedback signal that the campaign copy in
+   this file is stale relative to the current system clock — a state that
+   would otherwise manifest only at runtime as a mysteriously absent banner.
+
+   The check is gated by `import.meta.env.DEV` so it is tree-shaken out of
+   production builds, and by a module-scoped flag so the warning is emitted
+   at most once per process even if the module graph is re-evaluated by HMR.
+*/
+
+let hasWarnedStaleEndsAt = false;
+
+if (import.meta.env.DEV && PROMO_CONFIG.enabled && !hasWarnedStaleEndsAt) {
+  const endsAtMs = new Date(PROMO_CONFIG.endsAt).getTime();
+  if (Number.isFinite(endsAtMs) && endsAtMs <= Date.now()) {
+    hasWarnedStaleEndsAt = true;
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[promo-config] PROMO_CONFIG.enabled is true but endsAt (${PROMO_CONFIG.endsAt}) is in the past. ` +
+        'The PromoBanner will not render on the client. ' +
+        'Update apps/web/src/data/promo-config.ts to disable the campaign or extend endsAt.',
+    );
+  }
+}

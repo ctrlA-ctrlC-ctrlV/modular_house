@@ -37,5 +37,6 @@ export { GradientCTA, type GradientCTAProps } from './components/GradientCTA/Gra
 export { TextIntroSection, type TextIntroSectionProps } from './components/TextIntroSection/TextIntroSection';
 export { FeatureShowcase, type FeatureShowcaseProps, type FeatureShowcaseItem, type FeatureShowcaseBadge, type FeatureShowcaseBg } from './components/FeatureShowcase/FeatureShowcase';
 export { FooterCTA, type FooterCTAProps, type FooterCTAAction } from './components/FooterCTA/FooterCTA';
+export { PromoBanner, type PromoBannerProps, type PromoBannerVariant } from './components/PromoBanner/PromoBanner';
 export * from './types';
 // Add your shared UI components here

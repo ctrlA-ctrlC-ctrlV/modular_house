@@ -68,8 +68,8 @@ export interface PromoConfig {
  * explicitly flips this constant for a launch.
  */
 export const PROMO_CONFIG: PromoConfig = {
-  enabled: false,
-  name: 'Sale',
-  endsAt: '2026-6-1T00:00:00+00:00',
-  eyebrow: 'Limited time',
+  enabled: true,
+  name: '2026 Spring Sale',
+  endsAt: '2026-05-31T23:59:59+00:00',
+  eyebrow: '',
 };

@@ -8,11 +8,19 @@
  * editing this file only — no component code changes are required.
  *
  * SCOPE:
- * This module governs the visibility and copy of the `PromoBanner` component.
- * It intentionally does NOT control the strikethrough price display on
- * `ProductRangeGrid`, `ProductShowcase`, or `ProductConfigurator`; those
- * surfaces expose their own `showOriginalPrice` props so banner and price
- * presentation remain independently switchable per plan §4.2.
+ * This module is the single authoritative switch for the entire promotional
+ * campaign surface, covering:
+ *   1. Visibility of the `PromoBanner` beneath the site header.
+ *   2. Strikethrough / sale-price presentation on `ProductRangeGrid`,
+ *      `ProductShowcase`, and `ProductConfigurator`.
+ *   3. The human-readable labels shown beside the original and sale prices
+ *      on every consumer surface (centrally customisable so marketing can
+ *      adjust copy without touching component code).
+ *
+ * The scope was consolidated per the 2026-04-22 product decision: enabling
+ * the banner also enables sale-price presentation sitewide, and disabling
+ * the banner reverts every surface to its neutral "Turnkey price from"
+ * layout.
  *
  * LIFECYCLE:
  * - Enable  : set `enabled: true` and populate `name` / `endsAt` (optionally
@@ -26,15 +34,36 @@
  */
 
 /**
+ * Human-readable labels rendered beside the original and sale price values
+ * wherever the strikethrough comparison layout is shown. Kept separate from
+ * the banner copy so marketing can fine-tune the price presentation (e.g.
+ * "Was" / "Now", or "Normal" / "On Sale") without touching component code.
+ */
+export interface PromoPriceLabels {
+  /**
+   * Label displayed next to the struck-through pre-sale amount.
+   * Example: `"Original price"`, `"Was"`.
+   */
+  readonly original: string;
+
+  /**
+   * Label displayed next to the emphasised live sale amount.
+   * Example: `"Sale price"`, `"Now"`.
+   */
+  readonly sale: string;
+}
+
+/**
  * Configuration contract consumed by the promotional banner integration point
  * in `TemplateLayout`. All fields are read-only so the object is safe to share
  * across modules and cannot be mutated at runtime.
  */
 export interface PromoConfig {
   /**
-   * Master switch for the promotional banner only. When `false`, the
-   * `PromoBanner` does not render. This flag does not influence strikethrough
-   * price display anywhere else in the app.
+   * Master switch for the promotional campaign. When `false`, the
+   * `PromoBanner` does not render *and* every consumer of the sale-price
+   * strikethrough primitive (`ProductRangeGrid`, `ProductShowcase`,
+   * `ProductConfigurator`) falls back to its neutral single-price layout.
    */
   readonly enabled: boolean;
 
@@ -57,6 +86,13 @@ export interface PromoConfig {
    * example `"Limited time"`. Omit to hide the eyebrow slot.
    */
   readonly eyebrow?: string;
+
+  /**
+   * Labels rendered beside the original and sale price values on every
+   * strikethrough-capable component. Treated as a single unit so that the
+   * two labels remain typographically balanced.
+   */
+  readonly priceLabels: PromoPriceLabels;
 }
 
 /**
@@ -74,6 +110,10 @@ export const PROMO_CONFIG: PromoConfig = {
   name: '2026 Spring Sale',
   endsAt: '2026-05-31T23:59:59+01:00',
   eyebrow: 'Limited time',
+  priceLabels: {
+    original: 'Original price',
+    sale: 'Sale price',
+  },
 };
 
 /* =============================================================================

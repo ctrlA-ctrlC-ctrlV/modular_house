@@ -68,6 +68,22 @@ import {
 import './GardenRoom.css';
 
 
+/* ---------------------------------------------------------------------------
+   Page-Level Sale Pricing Flag
+   ---------------------------------------------------------------------------
+   Controls whether strikethrough "original price" markup is rendered on this
+   route. This constant is intentionally decoupled from
+   `PROMO_CONFIG.enabled` (which governs the promotional banner only) so that
+   marketing can toggle sale-price styling on the product range independently
+   of the countdown banner lifecycle (see spec 011 §6 / §4).
+
+   Flip to `false` to revert all range cards on this page to the neutral
+   "Turnkey price from …" presentation without re-deploying the shared UI
+   package.
+   --------------------------------------------------------------------------- */
+const SHOW_SALE_PRICES = false;
+
+
 const GardenRoom: React.FC = () => {
   /* ---------------------------------------------------------------------------
      Header Configuration
@@ -271,6 +287,12 @@ const GardenRoom: React.FC = () => {
           products={GARDEN_ROOM_PRODUCTS}
           renderLink={renderLink}
           onQuickView={handleQuickView}
+          /* Opt this page into the strikethrough sale price presentation.
+             When `SHOW_SALE_PRICES` is true, each card that carries an
+             `originalPrice` renders the struck-through original alongside
+             the current price; otherwise, the grid falls back to the
+             neutral "Turnkey price from" label (see ProductRangeGrid). */
+          showOriginalPrice={SHOW_SALE_PRICES}
         />
 
         {/* Quick View Modal — renders as a full-screen overlay when a user

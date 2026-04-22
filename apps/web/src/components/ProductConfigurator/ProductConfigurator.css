@@ -151,10 +151,15 @@
    a two-row stack so the "Original price" and "Sale price" rows can align
    their labels and values beside each other. The base group keeps its
    inline layout in default mode.
+
+   Per PM feedback the sale rows are anchored to a shared LEFT edge inside
+   the right-aligned price slot: both the label column and the value
+   column begin at the same inline offset, producing a clean two-column
+   comparison instead of a jagged right-anchored stack.
    --------------------------------------------------------------------------- */
 .configurator__sub-header-price-group--sale {
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 2px;
 }
 
@@ -162,7 +167,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .configurator__sub-header-price-row-label {
@@ -1324,33 +1329,34 @@
    so the saving is immediately apparent.
    --------------------------------------------------------------------------- */
 
-.configurator__price-total-amount-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
 /* ---------------------------------------------------------------------------
    Price Breakdown Total -- Sale Mode Row Layout
    ---------------------------------------------------------------------------
    Aligns the summary step's sale-mode total into the same label-and-value
-   pair used by the sticky sub-header and the Overview step. Each row pairs
-   an inline label with its numeric value; the fixed minimum label width
-   anchors the labels to a shared left edge so the values align beside
-   them without manual spacing.
+   pair used by the sticky sub-header and the Overview step. The group is
+   promoted to an inline grid with two auto-sized columns (label | value)
+   so that every label shares a common left edge regardless of how wide
+   each value is, and every value shares a common right edge flush with
+   the breakdown column. Rows use `display: contents` so their children
+   participate directly in the grid, giving us label-column alignment
+   without having to fix the row width.
    --------------------------------------------------------------------------- */
+.configurator__price-total-amount-group {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: baseline;
+  justify-content: end;
+  justify-items: end;
+}
 
 .configurator__price-total-amount-row {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 12px;
-  justify-content: flex-end;
+  display: contents;
 }
 
 .configurator__price-total-amount-row-label {
-  display: inline-block;
-  min-width: 120px;
+  justify-self: start;
   text-align: left;
   font-size: 11px;
   font-weight: 500;

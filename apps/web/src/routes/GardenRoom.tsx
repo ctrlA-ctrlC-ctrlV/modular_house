@@ -65,23 +65,22 @@ import {
   INFINITE_GALLERY_IMAGES,
   GARDEN_ROOM_COMPARISON_CATEGORIES,
 } from '../data/garden-room-data';
+import { PROMO_CONFIG } from '../data/promo-config';
 import './GardenRoom.css';
 
 
 /* ---------------------------------------------------------------------------
    Page-Level Sale Pricing Flag
    ---------------------------------------------------------------------------
-   Controls whether strikethrough "original price" markup is rendered on this
-   route. This constant is intentionally decoupled from
-   `PROMO_CONFIG.enabled` (which governs the promotional banner only) so that
-   marketing can toggle sale-price styling on the product range independently
-   of the countdown banner lifecycle (see spec 011 §6 / §4).
-
-   Flip to `false` to revert all range cards on this page to the neutral
-   "Turnkey price from …" presentation without re-deploying the shared UI
-   package.
+   Strikethrough pricing on this route is now driven centrally by
+   `PROMO_CONFIG.enabled`: enabling the site-wide promotional banner also
+   enables the sale-price presentation on the Product Range grid, and
+   disabling the banner reverts the grid to the neutral "Turnkey price from"
+   layout. The accompanying `priceLabels` object on the promo config
+   supplies the customisable copy rendered beside each price row, so
+   marketing controls the entire campaign surface from a single file.
    --------------------------------------------------------------------------- */
-const SHOW_SALE_PRICES = false;
+const SHOW_SALE_PRICES = PROMO_CONFIG.enabled;
 
 
 const GardenRoom: React.FC = () => {
@@ -288,11 +287,15 @@ const GardenRoom: React.FC = () => {
           renderLink={renderLink}
           onQuickView={handleQuickView}
           /* Opt this page into the strikethrough sale price presentation.
-             When `SHOW_SALE_PRICES` is true, each card that carries an
+             When `SHOW_SALE_PRICES` is true (i.e. the promo campaign is
+             enabled in `promo-config.ts`), each card that carries an
              `originalPrice` renders the struck-through original alongside
-             the current price; otherwise, the grid falls back to the
-             neutral "Turnkey price from" label (see ProductRangeGrid). */
+             the current price with the campaign's customisable labels;
+             otherwise, the grid falls back to the neutral
+             "Turnkey price from" layout. */
           showOriginalPrice={SHOW_SALE_PRICES}
+          originalPriceLabel={PROMO_CONFIG.priceLabels.original}
+          salePriceLabel={PROMO_CONFIG.priceLabels.sale}
         />
 
         {/* Quick View Modal — renders as a full-screen overlay when a user

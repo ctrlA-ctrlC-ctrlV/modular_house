@@ -36,20 +36,22 @@ import { Seo } from '@modular-house/ui';
 import { CONFIGURATOR_PRODUCTS_BY_SLUG } from '../data/configurator-products';
 import { ProductConfiguratorPage } from '../components/ProductConfigurator';
 import { useHeaderConfig } from '../components/HeaderContext';
+import { PROMO_CONFIG } from '../data/promo-config';
 import { BUILD_TIMESTAMP } from '../build-timestamp';
 
 
 /* ---------------------------------------------------------------------------
    Page-Level Sale Pricing Flag
    ---------------------------------------------------------------------------
-   Mirrors the equivalent flag on the Garden Room landing route. When true,
-   the configurator's sticky sub-header and summary nav render the
-   struck-through original total next to the live computed total (provided
-   the resolved product exposes an original price). The flag is intentionally
-   independent from `PROMO_CONFIG.enabled` so the promotional banner and
-   strikethrough pricing can be toggled separately (see spec 011 §6.3 / §4).
+   Strikethrough pricing on this route is now driven centrally by
+   `PROMO_CONFIG.enabled`: enabling the site-wide promotional banner also
+   switches the configurator's sticky sub-header, Overview step hero price
+   block, and Summary step total into the sale comparison layout (provided
+   the resolved product carries a seeded original price). The same config
+   supplies the customisable price row labels, giving marketing a single
+   source of truth for the entire campaign surface.
    --------------------------------------------------------------------------- */
-const SHOW_SALE_PRICES = false;
+const SHOW_SALE_PRICES = PROMO_CONFIG.enabled;
 
 
 /* =============================================================================
@@ -188,11 +190,17 @@ const GardenRoomConfigurator: React.FC = () => {
       <ProductConfiguratorPage
         product={product}
         /* Threads the page-level sale flag down to the configurator, which
-           in turn propagates it to `StickySubHeader` and `SummaryNavBar`.
-           Strikethrough rendering is still gated inside those components by
-           the presence of `originalTotalPriceCents`, so products without
-           seeded originals safely fall back to the neutral label. */
+           in turn propagates it to `StickySubHeader`, the Overview step
+           hero price block, and `SummaryNavBar`. Strikethrough rendering
+           is still gated inside those surfaces by the presence of
+           `originalTotalPriceCents`, so products without seeded originals
+           safely fall back to the neutral label. */
         showOriginalPrice={SHOW_SALE_PRICES}
+        /* Customisable price row labels sourced from the promo config so
+           marketing can adjust wording (e.g. "Was" / "Now") without any
+           component change. */
+        originalPriceLabel={PROMO_CONFIG.priceLabels.original}
+        salePriceLabel={PROMO_CONFIG.priceLabels.sale}
       />
     </>
   );

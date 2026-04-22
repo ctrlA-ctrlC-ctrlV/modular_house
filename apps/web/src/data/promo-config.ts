@@ -137,7 +137,6 @@ if (import.meta.env.DEV && PROMO_CONFIG.enabled && !hasWarnedStaleEndsAt) {
   const endsAtMs = new Date(PROMO_CONFIG.endsAt).getTime();
   if (Number.isFinite(endsAtMs) && endsAtMs <= Date.now()) {
     hasWarnedStaleEndsAt = true;
-    // eslint-disable-next-line no-console
     console.warn(
       `[promo-config] PROMO_CONFIG.enabled is true but endsAt (${PROMO_CONFIG.endsAt}) is in the past. ` +
         'The PromoBanner will not render on the client. ' +

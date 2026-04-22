@@ -108,7 +108,7 @@ describe('useConfiguratorState -- original total across Studio 25 layouts', () =
        * totals collapse to `base + layoutDelta`. */
       const layoutDelta        = LAYOUT_DELTA_BY_ID[layoutId] ?? 0;
       const expectedLiveTotal  = LIVE_BASE_CENTS + layoutDelta;
-      const expectedOriginal   = ORIGINAL_BASE_BY_LAYOUT[layoutId]! + layoutDelta;
+      const expectedOriginal   = ORIGINAL_BASE_BY_LAYOUT[layoutId] + layoutDelta;
 
       expect(result.current.selections.layoutOptionId).toBe(layoutId);
       expect(result.current.totalPriceCents).toBe(expectedLiveTotal);

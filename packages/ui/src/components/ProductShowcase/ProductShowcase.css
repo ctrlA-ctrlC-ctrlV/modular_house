@@ -267,6 +267,45 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Sale-mode two-row label layout
+   ---------------------------------------------------------------------------
+   Aligns the inline `__price-row-label` and `__price-row-value` slots into
+   a consistent two-column block so the "Original price" / "Sale price"
+   labels share a common left edge and the numeric values share a common
+   position beside them. The fixed minimum label width drives the alignment
+   without resorting to explicit grid or table semantics, keeping the row
+   markup flat and screen-reader friendly.
+   --------------------------------------------------------------------------- */
+
+.product-showcase__row--on-sale .product-showcase__price,
+.product-showcase__row--on-sale .product-showcase__price-old {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.product-showcase__price-row-label {
+  display: inline-block;
+  min-width: 82px;
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-light);
+  color: var(--brand-stone);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.product-showcase__price-row-value {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.product-showcase__price-old s.product-showcase__price-row-value {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* ---------------------------------------------------------------------------
    Default-mode price label
    ---------------------------------------------------------------------------
    Rendered in place of the strikethrough when the component is operating

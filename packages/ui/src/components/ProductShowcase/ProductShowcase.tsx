@@ -113,6 +113,21 @@ export interface ProductShowcaseProps {
    */
   showOriginalPrice?: boolean;
   /**
+   * Customisable copy rendered beside the struck-through original amount
+   * when a row enters sale mode. Sourced upstream from the promo config so
+   * marketing can vary the wording without touching component code.
+   *
+   * @default 'Original price'
+   */
+  originalPriceLabel?: string;
+  /**
+   * Customisable copy rendered beside the live sale amount when a row
+   * enters sale mode.
+   *
+   * @default 'Sale price'
+   */
+  salePriceLabel?: string;
+  /**
    * Callback invoked when a product row is clicked (modal mode).
    * When provided, clicking a row calls this callback instead of
    * smooth-scrolling to the scrollTargetId element.
@@ -134,6 +149,8 @@ export function ProductShowcase({
   //warrantyEyebrow = 'Warranty Coverage',
   //warranties,
   showOriginalPrice = false,
+  originalPriceLabel = 'Original price',
+  salePriceLabel = 'Sale price',
   onProductClick,
 }: ProductShowcaseProps): React.ReactElement {
   const scrollToTarget = (): void => {
@@ -242,18 +259,29 @@ export function ProductShowcase({
                   // Sale-mode layout
                   // ------------------------------------------------------
                   // Renders the struck-through original amount above the
-                  // emphasised sale price. Screen readers receive explicit
-                  // "Original price:" / "Sale price:" prefixes via a
-                  // visually-hidden span so the two values cannot be
-                  // confused when announced.
+                  // emphasised sale price. Each row pairs a customisable
+                  // inline label with its numeric value; the labels are
+                  // left-aligned across the two rows via a shared min-width
+                  // so the numeric values align beside them to form a
+                  // compact two-column key/value block. The label copy
+                  // originates upstream in the promo config, never from
+                  // this component.
                   <>
                     <span className="product-showcase__price-old">
-                      <span className="product-showcase__sr-only">Original price: </span>
-                      <s>{p.originalPrice}</s>
+                      <span className="product-showcase__price-row-label">
+                        {originalPriceLabel}
+                      </span>
+                      <s className="product-showcase__price-row-value">
+                        {p.originalPrice}
+                      </s>
                     </span>
                     <span className="product-showcase__price">
-                      <span className="product-showcase__sr-only">Sale price: </span>
-                      {p.price}
+                      <span className="product-showcase__price-row-label">
+                        {salePriceLabel}
+                      </span>
+                      <span className="product-showcase__price-row-value">
+                        {p.price}
+                      </span>
                     </span>
                   </>
                 ) : (

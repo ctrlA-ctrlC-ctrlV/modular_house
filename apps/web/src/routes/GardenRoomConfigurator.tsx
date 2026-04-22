@@ -39,6 +39,19 @@ import { useHeaderConfig } from '../components/HeaderContext';
 import { BUILD_TIMESTAMP } from '../build-timestamp';
 
 
+/* ---------------------------------------------------------------------------
+   Page-Level Sale Pricing Flag
+   ---------------------------------------------------------------------------
+   Mirrors the equivalent flag on the Garden Room landing route. When true,
+   the configurator's sticky sub-header and summary nav render the
+   struck-through original total next to the live computed total (provided
+   the resolved product exposes an original price). The flag is intentionally
+   independent from `PROMO_CONFIG.enabled` so the promotional banner and
+   strikethrough pricing can be toggled separately (see spec 011 §6.3 / §4).
+   --------------------------------------------------------------------------- */
+const SHOW_SALE_PRICES = true;
+
+
 /* =============================================================================
    GardenRoomConfigurator Component
    ============================================================================= */
@@ -172,7 +185,15 @@ const GardenRoomConfigurator: React.FC = () => {
           image: absoluteImageUrl,
         }}
       />
-      <ProductConfiguratorPage product={product} />
+      <ProductConfiguratorPage
+        product={product}
+        /* Threads the page-level sale flag down to the configurator, which
+           in turn propagates it to `StickySubHeader` and `SummaryNavBar`.
+           Strikethrough rendering is still gated inside those components by
+           the presence of `originalTotalPriceCents`, so products without
+           seeded originals safely fall back to the neutral label. */
+        showOriginalPrice={SHOW_SALE_PRICES}
+      />
     </>
   );
 };

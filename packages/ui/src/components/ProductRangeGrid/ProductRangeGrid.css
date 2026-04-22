@@ -401,6 +401,53 @@
 
 
 /* =============================================================================
+   SECTION 12b: SALE-MODE PRICE (strikethrough original + current sale price)
+   -----------------------------------------------------------------------------
+   Activated when the parent grid is configured with `showOriginalPrice`
+   and the individual card data carries an `originalPrice`. The resulting
+   layout pairs a muted, struck-through original value with the standard
+   `__price` node, which is tinted with the brand accent to draw the eye
+   to the discounted figure.
+   ============================================================================= */
+
+.product-range-card__price-old {
+  font-family: var(--prg-font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--prg-color-muted);
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.product-range-card__price-old s {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.product-range-card--on-sale .product-range-card__price {
+  color: var(--prg-color-accent);
+}
+
+/**
+ * Visually-hidden helper used to expose additional context to assistive
+ * technologies (e.g. "Original price:", "Sale price:") without affecting
+ * the rendered layout. Scoped to this component to avoid colliding with
+ * any global utility the host application may define.
+ */
+.product-range-card__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* =============================================================================
    SECTION 13: PLANNING PERMISSION BADGE
    ============================================================================= */
 

@@ -69,6 +69,16 @@ export interface ProductCard {
   useCases: string[];
   /** Formatted price string, e.g., "€26,000" */
   price?: string;
+  /**
+   * Optional pre-sale ("original") formatted price string, e.g. "€40,000".
+   *
+   * When provided together with a truthy `showOriginalPrice` flag on the
+   * parent grid, the card renders this value as a strikethrough alongside
+   * the current `price` (the sale price). Absent this field, or when the
+   * parent opts out via `showOriginalPrice=false`, the card falls back to
+   * the standard "Turnkey price from" label layout.
+   */
+  originalPrice?: string;
   /** Whether planning permission is required (true) or exempt (false) */
   planningPermission?: boolean;
   /** Planning permission status note (legacy — used when planningPermission is undefined) */
@@ -105,6 +115,19 @@ export interface ProductRangeGridProps {
   headerContent?: React.ReactNode;
   /** Product card data array driving the grid content */
   products: ProductCard[];
+  /**
+   * When true, cards whose `ProductCard` carries a defined `originalPrice`
+   * render it as a strikethrough sibling next to the current `price` (the
+   * sale price), and the "Turnkey price from" label is suppressed on those
+   * cards. When false or omitted, `originalPrice` values are ignored and
+   * the component renders the standard single-price layout on every card.
+   *
+   * This flag is intentionally independent of any site-wide sale banner
+   * switch: the two features may be toggled separately per-page.
+   *
+   * @default false
+   */
+  showOriginalPrice?: boolean;
   /** Custom link renderer for SPA navigation (e.g., react-router-dom Link) */
   renderLink?: LinkRenderer;
   /** Callback invoked when the "Quick View" button is clicked. When provided, each card renders a secondary Quick View button alongside the primary CTA. */
@@ -153,6 +176,7 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
   description,
   headerContent,
   products,
+  showOriginalPrice = false,
   renderLink,
   onQuickView,
 }) => {
@@ -198,6 +222,7 @@ export const ProductRangeGrid: React.FC<ProductRangeGridProps> = ({
             key={`${product.size}-${index}`}
             product={product}
             index={index}
+            showOriginalPrice={showOriginalPrice}
             renderLink={renderLink}
             onQuickView={onQuickView}
           />
@@ -222,6 +247,11 @@ interface ProductRangeCardInternalProps {
   product: ProductCard;
   /** Index of this card in the grid (passed to onQuickView) */
   index: number;
+  /**
+   * Inherited sale-mode flag. When true and the product carries a defined
+   * `originalPrice`, the card renders a strikethrough comparison layout.
+   */
+  showOriginalPrice: boolean;
   /** Custom link renderer inherited from the parent grid */
   renderLink?: LinkRenderer;
   /** Quick View callback inherited from the parent grid */
@@ -242,6 +272,7 @@ interface ProductRangeCardInternalProps {
 const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
   product,
   index,
+  showOriginalPrice,
   renderLink,
   onQuickView,
 }) => {
@@ -254,6 +285,7 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
     imageAvif,
     useCases,
     price,
+    originalPrice,
     planningPermission,
     planningNote,
     inStock,
@@ -264,11 +296,27 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
   } = product;
 
   /**
-   * Assemble the card's root class name.
-   * The --coming-soon modifier controls dashed borders, reduced image
-   * opacity, and muted badge colour via CSS.
+   * Resolves whether the strikethrough "sale mode" layout should be used
+   * for this specific card. Both the parent-level opt-in flag and a
+   * non-empty `originalPrice` must be present; either missing piece
+   * collapses the card back to the standard single-price layout.
    */
-  const cardClassName = `product-range-card${!available ? ' product-range-card--coming-soon' : ''}`;
+  const isOnSale: boolean = showOriginalPrice && Boolean(originalPrice) && Boolean(price);
+
+  /**
+   * Assemble the card's root class name.
+   *
+   * - `--coming-soon` modifier: dashed border + muted image for unreleased products.
+   * - `--on-sale` modifier: exposes a CSS hook so downstream styles can accent
+   *   the price block (e.g. tint the sale price) when a strikethrough is present.
+   */
+  const cardClassName = [
+    'product-range-card',
+    !available ? 'product-range-card--coming-soon' : '',
+    isOnSale ? 'product-range-card--on-sale' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   /**
    * Descriptive alt text for the card image.
@@ -367,8 +415,38 @@ const ProductRangeCard: React.FC<ProductRangeCardInternalProps> = ({
             <div className="product-range-card__meta-row">
               {price && (
                 <div className="product-range-card__price-block">
-                  <span className="product-range-card__price-from">Turnkey price from</span>
-                  <span className="product-range-card__price">{price}</span>
+                  {isOnSale ? (
+                    // ----------------------------------------------------
+                    // Sale-mode layout
+                    // ----------------------------------------------------
+                    // Renders the pre-sale "original" amount as a
+                    // strikethrough sibling next to the current price.
+                    // The <s> element carries the semantic meaning of
+                    // "no longer applicable"; visually-hidden spans
+                    // disambiguate the two figures for screen readers
+                    // without duplicating visible copy.
+                    <>
+                      <span className="product-range-card__price-old">
+                        <span className="product-range-card__sr-only">Original price: </span>
+                        <s>{originalPrice}</s>
+                      </span>
+                      <span className="product-range-card__price">
+                        <span className="product-range-card__sr-only">Sale price: </span>
+                        {price}
+                      </span>
+                    </>
+                  ) : (
+                    // ----------------------------------------------------
+                    // Default layout
+                    // ----------------------------------------------------
+                    // Visible "Turnkey price from" label doubles as the
+                    // screen-reader prefix, so no additional hidden copy
+                    // is required in this branch.
+                    <>
+                      <span className="product-range-card__price-from">Turnkey price from</span>
+                      <span className="product-range-card__price">{price}</span>
+                    </>
+                  )}
                 </div>
               )}
               {planningPermission !== undefined ? (

@@ -79,14 +79,82 @@ describe('EventNewsBanner', () => {
       expect(root?.tagName.toLowerCase()).toBe('aside');
     });
 
-    it('applies the background image as an inline style on the root element', () => {
+    it('renders the background image inside a <picture> fallback <img>', () => {
       const { container } = render(
         <EventNewsBanner {...BASE_PROPS} endsAt={endsAt} />,
       );
 
-      const root = container.querySelector<HTMLElement>('.event-news-banner');
-      // Inline `backgroundImage` must contain the supplied path.
-      expect(root?.style.backgroundImage).toContain(BASE_PROPS.backgroundSrc);
+      // The background picture wrapper must exist and contain the fallback
+      // <img> whose src matches the consumer-supplied backgroundSrc. The
+      // <picture> element itself carries `aria-hidden="true"` because the
+      // image is decorative.
+      const picture = container.querySelector(
+        '.event-news-banner__background',
+      );
+      expect(picture).not.toBeNull();
+      expect(picture?.getAttribute('aria-hidden')).toBe('true');
+
+      const bgImage = container.querySelector<HTMLImageElement>(
+        '.event-news-banner__background-image',
+      );
+      expect(bgImage).not.toBeNull();
+      expect(bgImage?.src).toContain(BASE_PROPS.backgroundSrc);
+      // Above-the-fold asset: must be eagerly fetched for LCP.
+      expect(bgImage?.getAttribute('loading')).toBe('eager');
+    });
+
+    it('does not render AVIF or WebP <source> elements when variants are omitted', () => {
+      const { container } = render(
+        <EventNewsBanner {...BASE_PROPS} endsAt={endsAt} />,
+      );
+
+      // When the consumer does not supply modern-format variants the
+      // component must degrade gracefully to a single <img> inside each
+      // <picture> with no redundant <source> elements.
+      const sources = container.querySelectorAll('source');
+      expect(sources.length).toBe(0);
+    });
+
+    it('emits AVIF and WebP <source> elements when variants are supplied', () => {
+      const { container } = render(
+        <EventNewsBanner
+          {...BASE_PROPS}
+          endsAt={endsAt}
+          logoSrcWebP="/test/logo.webp"
+          logoSrcAvif="/test/logo.avif"
+          backgroundSrcWebP="/test/background.webp"
+          backgroundSrcAvif="/test/background.avif"
+        />,
+      );
+
+      // Background picture: AVIF source precedes WebP source in document
+      // order so browsers evaluate the most efficient candidate first.
+      const backgroundSources = container.querySelectorAll<HTMLSourceElement>(
+        '.event-news-banner__background source',
+      );
+      expect(backgroundSources.length).toBe(2);
+      expect(backgroundSources[0].getAttribute('type')).toBe('image/avif');
+      expect(backgroundSources[0].getAttribute('srcset')).toContain(
+        '/test/background.avif',
+      );
+      expect(backgroundSources[1].getAttribute('type')).toBe('image/webp');
+      expect(backgroundSources[1].getAttribute('srcset')).toContain(
+        '/test/background.webp',
+      );
+
+      // Logo picture: same ordering contract.
+      const logoSources = container.querySelectorAll<HTMLSourceElement>(
+        '.event-news-banner__logo-picture source',
+      );
+      expect(logoSources.length).toBe(2);
+      expect(logoSources[0].getAttribute('type')).toBe('image/avif');
+      expect(logoSources[0].getAttribute('srcset')).toContain(
+        '/test/logo.avif',
+      );
+      expect(logoSources[1].getAttribute('type')).toBe('image/webp');
+      expect(logoSources[1].getAttribute('srcset')).toContain(
+        '/test/logo.webp',
+      );
     });
 
     it('renders the partner logo with the supplied src and alt attributes', () => {

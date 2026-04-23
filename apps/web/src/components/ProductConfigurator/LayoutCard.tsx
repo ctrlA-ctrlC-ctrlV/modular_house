@@ -94,6 +94,44 @@ interface LayoutCardProps {
    * the layout's priceDeltaCentsInclVat to compute the absolute display price.
    */
   basePriceCents: number;
+  /**
+   * Opt-in flag that enables the pre-sale / sale two-value price
+   * presentation. When true and `originalPriceCents` is strictly greater
+   * than the computed live price, the card renders the muted
+   * strikethrough original beside the emphasised sale price and applies
+   * the `--on-sale` modifier class. Defaults to `false` to preserve the
+   * single-price presentation for non-promotional surfaces.
+   *
+   * @default false
+   */
+  showOriginalPrice?: boolean;
+  /**
+   * Pre-sale absolute price in euro cents (inclusive of VAT) for this
+   * specific layout option. Resolved by the parent step either from the
+   * product's layout-indexed map (`originalPriceCentsInclVatByLayoutId`)
+   * or, as a fallback for single-layout products, from
+   * `originalBasePriceCentsInclVat` plus the layout's delta. Left
+   * `undefined` for products that carry no seeded original, in which
+   * case the strikethrough branch naturally collapses back to the
+   * default single-price layout.
+   */
+  originalPriceCents?: number;
+  /**
+   * Label rendered beside the struck-through original price in sale
+   * mode. Propagated from `ProductConfiguratorPage` so copy remains
+   * consistent with the sticky sub-header, Overview step hero block,
+   * Floor Plan step price block, and Summary step breakdown.
+   *
+   * @default 'Original price'
+   */
+  originalPriceLabel?: string;
+  /**
+   * Label rendered beside the live sale price in sale mode. Shares the
+   * same propagation path as `originalPriceLabel`.
+   *
+   * @default 'Sale price'
+   */
+  salePriceLabel?: string;
 }
 
 
@@ -111,15 +149,11 @@ export const LayoutCard: React.FC<LayoutCardProps> = ({
   isSelected,
   onSelect,
   basePriceCents,
+  showOriginalPrice = false,
+  originalPriceCents,
+  originalPriceLabel = 'Original price',
+  salePriceLabel = 'Sale price',
 }) => {
-  /* Compose the card's CSS class string with an optional selected modifier. */
-  const cardClass = [
-    'configurator__layout-card',
-    isSelected && 'configurator__layout-card--selected',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   /* Derive feature badge labels from the layout's boolean flags. */
   const badges = buildBadgeLabels(layout);
 
@@ -131,13 +165,49 @@ export const LayoutCard: React.FC<LayoutCardProps> = ({
   const absolutePriceCents = basePriceCents + layout.priceDeltaCentsInclVat;
   const priceText = formatPriceCents(absolutePriceCents);
 
+  /**
+   * Sale-mode guard. The strikethrough branch is only rendered when the
+   * caller has explicitly opted in and a resolvable original is
+   * available that is strictly greater than the live price. A
+   * non-discounted or undefined original collapses the UI back to the
+   * default single-price layout, preserving the contract with existing
+   * non-promotional callers.
+   */
+  const isOnSale =
+    showOriginalPrice &&
+    originalPriceCents !== undefined &&
+    originalPriceCents > absolutePriceCents;
+
+  const originalPriceText = isOnSale
+    ? formatPriceCents(originalPriceCents as number)
+    : undefined;
+
+  /* Compose the card's CSS class string with optional selected and
+     sale-mode modifiers. The `--on-sale` hook allows downstream styling
+     to reserve additional vertical space or adjust typography without
+     mutating the default-state rules. */
+  const cardClass = [
+    'configurator__layout-card',
+    isSelected && 'configurator__layout-card--selected',
+    isOnSale && 'configurator__layout-card--on-sale',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  /* Accessible label variant for sale mode: disambiguates the two
+     monetary values for assistive technologies by prefixing each with
+     a semantic role ("Original price" / "Sale price"). */
+  const ariaLabel = isOnSale
+    ? `${layout.name} layout: original price ${originalPriceText}, sale price ${priceText}${isSelected ? ' (selected)' : ''}`
+    : `${layout.name} layout: ${priceText}${isSelected ? ' (selected)' : ''}`;
+
   return (
     <button
       type="button"
       className={cardClass}
       onClick={() => onSelect(layout.id)}
       aria-pressed={isSelected}
-      aria-label={`${layout.name} layout: ${priceText}${isSelected ? ' (selected)' : ''}`}
+      aria-label={ariaLabel}
     >
       {/* Selection checkmark indicator positioned in the top-right corner */}
       {isSelected && (
@@ -156,10 +226,49 @@ export const LayoutCard: React.FC<LayoutCardProps> = ({
         {layout.description}
       </div>
 
-      {/* Absolute price display (base + layout delta, inclusive of VAT) */}
-      <div className="configurator__layout-card-price">
-        {priceText}
-      </div>
+      {/*
+        Absolute price display (base + layout delta, inclusive of VAT).
+        In sale mode the block expands into a two-value group: a muted,
+        struck-through pre-sale original rendered above (or beside) the
+        emphasised live sale price. The visually-hidden spans provide
+        screen-reader disambiguation between the two numeric values so
+        the comparison remains intelligible without relying on the
+        line-through presentation.
+      */}
+      {isOnSale ? (
+        /*
+          Two-row label-and-value presentation matching the sticky
+          sub-header, Overview step hero block, and Summary breakdown.
+          Row 1 renders the eyebrow "original price" label beside the
+          muted struck-through pre-sale value; Row 2 renders the
+          corresponding "sale price" label beside the emphasised live
+          value. Labels are visible for sighted users and intentionally
+          not duplicated as SR-only text because they already serve as
+          the accessible prefix for each numeric value.
+        */
+        <div className="configurator__layout-card-price configurator__layout-card-price--on-sale">
+          <div className="configurator__layout-card-price-row configurator__layout-card-price-row--original">
+            <span className="configurator__layout-card-price-label">
+              {originalPriceLabel}
+            </span>
+            <span className="configurator__layout-card-price-value configurator__layout-card-price-value--original">
+              <s>{originalPriceText}</s>
+            </span>
+          </div>
+          <div className="configurator__layout-card-price-row configurator__layout-card-price-row--sale">
+            <span className="configurator__layout-card-price-label">
+              {salePriceLabel}
+            </span>
+            <span className="configurator__layout-card-price-value configurator__layout-card-price-value--sale">
+              {priceText}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="configurator__layout-card-price">
+          {priceText}
+        </div>
+      )}
 
       {/* Feature badges indicating included amenities (bathroom, kitchen, etc.) */}
       <div className="configurator__layout-card-badges">

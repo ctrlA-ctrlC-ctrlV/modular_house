@@ -87,8 +87,8 @@ describe('CONFIGURATOR_PRODUCTS — promotional original prices', () => {
       const studio = getProductBySlug('studio-25');
       expect(studio.originalPriceCentsInclVatByLayoutId).toEqual({
         'lo-studio-box':      5_800_000,
-        'lo-studio-en-suite': 6_600_000,
-        'lo-studio-bedroom':  6_800_000,
+        'lo-studio-en-suite': 7_000_000,
+        'lo-studio-bedroom':  7_200_000,
       });
     });
 

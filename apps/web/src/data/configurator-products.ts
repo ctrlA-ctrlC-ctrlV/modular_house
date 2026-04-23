@@ -493,8 +493,8 @@ const STUDIO_25: HydratedProduct = {
   // `selections.layoutOptionId` stores the full entity id.
   originalPriceCentsInclVatByLayoutId: {
     'lo-studio-box':      5_800_000,
-    'lo-studio-en-suite': 6_600_000,
-    'lo-studio-bedroom':  6_800_000,
+    'lo-studio-en-suite': 7_000_000,
+    'lo-studio-bedroom':  7_200_000,
   },
   pricingNote: PRICING_NOTE,
   bathroomKitchenPolicy: 'layout-bundled',

@@ -4,7 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
 import { routes } from '../route-config';
-import { Seo, PromoBanner } from '@modular-house/ui';
+import { Seo, PromoBanner, EventNewsBanner } from '@modular-house/ui';
 import { GoogleTag, GA_TRACKING_ID } from './GoogleTag';
 import { PROMO_CONFIG } from '../data/promo-config';
 
@@ -180,6 +180,22 @@ const LayoutContent: React.FC = () => {
             variant={config.variant}
           />
         )}
+
+        {/*
+          Event news banner slot.
+
+          Rendered immediately under the promo banner so campaign/event
+          announcements maintain a consistent top-of-page placement across the
+          public site. The component self-expires based on its endsAt prop,
+          automatically removing itself without requiring a redeploy.
+        */}
+        <EventNewsBanner
+          logoSrc="/resource/misc/IHS.png"
+          logoAlt="PTSB Ideal Home Show logo"
+          backgroundSrc="/resource/misc/default_banner_bg.png"
+          endsAt="2026-04-26T23:59:59+01:00"
+          badgeLabel="SEE US @"
+        />
 
         {/* Header Wrapper: Relative positioning allows absolute positioned headers (overlays) to work correctly */}
         <div id='template__header-wrapper' className="position-relative w-100">

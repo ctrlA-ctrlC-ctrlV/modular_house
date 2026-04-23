@@ -87,9 +87,9 @@ const MS = {
  */
 export const Default: Story = {
   args: {
-    logoSrc:       '/resource/misc/IHS.png',
+    logoSrc:       'https://modularhouse.ie/resource/misc/IHS.png',
     logoAlt:       'PTSB Ideal Home Show logo',
-    backgroundSrc: '/resource/misc/default_banner_bg.png',
+    backgroundSrc: 'https://modularhouse.ie/resource/misc/default_banner_bg.png',
     endsAt:        fromNow(MS.DAY * 3),
     badgeLabel:    'SEE US @',
   },

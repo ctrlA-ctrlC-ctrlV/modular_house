@@ -4,9 +4,13 @@ import Header from './Header';
 import Footer from './Footer';
 import { HeaderProvider, useHeaderConfig } from './HeaderContext';
 import { routes } from '../route-config';
-import { Seo, PromoBanner, EventNewsBanner } from '@modular-house/ui';
+import {
+          Seo, 
+          //PromoBanner, 
+          EventNewsBanner, 
+        } from '@modular-house/ui';
 import { GoogleTag, GA_TRACKING_ID } from './GoogleTag';
-import { PROMO_CONFIG } from '../data/promo-config';
+//import { PROMO_CONFIG } from '../data/promo-config';
 
 // Import template styles to ensure theme-template variables are applied globally within this layout
 import '../styles/template.css';

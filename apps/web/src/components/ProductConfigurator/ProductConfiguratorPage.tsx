@@ -774,17 +774,48 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </div>
 
         {/* Layout selection cards rendered in a horizontal row, matching
-            the finish-row pattern used by Exterior and Interior steps. */}
+            the finish-row pattern used by Exterior and Interior steps.
+
+            Each card receives an optional `originalPriceCents` value
+            resolved per layout so the strikethrough presentation stays
+            consistent with the sticky sub-header, Overview step hero,
+            Floor Plan step price block, and Summary step breakdown.
+            Resolution order:
+              1. Product-level layout-indexed map
+                 (`originalPriceCentsInclVatByLayoutId[layout.id]`) --
+                 used by Studio 25 where each layout has an accurate
+                 pre-sale total.
+              2. Scalar product-level `originalBasePriceCentsInclVat`
+                 plus the layout's `priceDeltaCentsInclVat` -- used by
+                 single-layout products whose delta is typically zero.
+              3. `undefined` -- products without a seeded original fall
+                 back to the default single-price card presentation. */}
         <div className="configurator__layout-row">
-          {product.layoutOptions?.map((layout) => (
-            <LayoutCard
-              key={layout.id}
-              layout={layout}
-              isSelected={state.selections.layoutOptionId === layout.id}
-              onSelect={state.setLayoutOption}
-              basePriceCents={product.basePriceCentsInclVat}
-            />
-          ))}
+          {product.layoutOptions?.map((layout) => {
+            const perLayoutMap = product.originalPriceCentsInclVatByLayoutId;
+            const mappedOriginal = perLayoutMap?.[layout.id];
+            const scalarOriginal = product.originalBasePriceCentsInclVat;
+            const layoutOriginalCents: number | undefined =
+              mappedOriginal !== undefined
+                ? mappedOriginal
+                : scalarOriginal !== undefined
+                  ? scalarOriginal + layout.priceDeltaCentsInclVat
+                  : undefined;
+
+            return (
+              <LayoutCard
+                key={layout.id}
+                layout={layout}
+                isSelected={state.selections.layoutOptionId === layout.id}
+                onSelect={state.setLayoutOption}
+                basePriceCents={product.basePriceCentsInclVat}
+                showOriginalPrice={showOriginalPrice}
+                originalPriceCents={layoutOriginalCents}
+                originalPriceLabel={originalPriceLabel}
+                salePriceLabel={salePriceLabel}
+              />
+            );
+          })}
         </div>
       </>
     );

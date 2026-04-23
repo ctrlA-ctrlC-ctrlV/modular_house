@@ -171,7 +171,7 @@ const LayoutContent: React.FC = () => {
           Visibility is driven by PROMO_CONFIG.enabled in data/promo-config.ts
           and is intentionally decoupled from strikethrough price display on
           product surfaces.
-        */}
+        
         {PROMO_CONFIG.enabled && (
           <PromoBanner
             name={PROMO_CONFIG.name}
@@ -179,7 +179,7 @@ const LayoutContent: React.FC = () => {
             eyebrow={PROMO_CONFIG.eyebrow}
             variant={config.variant}
           />
-        )}
+        )}*/}
 
         {/*
           Event news banner slot.

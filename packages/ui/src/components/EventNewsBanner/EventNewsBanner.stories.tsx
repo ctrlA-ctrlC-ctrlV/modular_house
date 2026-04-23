@@ -36,12 +36,16 @@ const meta: Meta<typeof EventNewsBanner> = {
   },
   tags: ['autodocs'],
   argTypes: {
-    logoSrc:       { control: 'text' },
-    logoAlt:       { control: 'text' },
-    backgroundSrc: { control: 'text' },
-    endsAt:        { control: 'text' },
-    badgeLabel:    { control: 'text' },
-    className:     { control: 'text' },
+    logoSrc:            { control: 'text' },
+    logoSrcWebP:        { control: 'text' },
+    logoSrcAvif:        { control: 'text' },
+    logoAlt:            { control: 'text' },
+    backgroundSrc:      { control: 'text' },
+    backgroundSrcWebP:  { control: 'text' },
+    backgroundSrcAvif:  { control: 'text' },
+    endsAt:             { control: 'text' },
+    badgeLabel:         { control: 'text' },
+    className:          { control: 'text' },
   },
 };
 
@@ -87,11 +91,15 @@ const MS = {
  */
 export const Default: Story = {
   args: {
-    logoSrc:       'https://modularhouse.ie/resource/misc/IHS.png',
-    logoAlt:       'PTSB Ideal Home Show logo',
-    backgroundSrc: 'https://modularhouse.ie/resource/misc/default_banner_bg.png',
-    endsAt:        fromNow(MS.DAY * 3),
-    badgeLabel:    'SEE US @',
+    logoSrc:            'https://modularhouse.ie/resource/misc/IHS.png',
+    logoSrcWebP:        'https://modularhouse.ie/resource/misc/IHS.webp',
+    logoSrcAvif:        'https://modularhouse.ie/resource/misc/IHS.avif',
+    logoAlt:            'PTSB Ideal Home Show logo',
+    backgroundSrc:      'https://modularhouse.ie/resource/misc/default_banner_bg.png',
+    backgroundSrcWebP:  'https://modularhouse.ie/resource/misc/default_banner_bg.webp',
+    backgroundSrcAvif:  'https://modularhouse.ie/resource/misc/default_banner_bg.avif',
+    endsAt:             fromNow(MS.DAY * 3),
+    badgeLabel:         'SEE US @',
   },
 };
 

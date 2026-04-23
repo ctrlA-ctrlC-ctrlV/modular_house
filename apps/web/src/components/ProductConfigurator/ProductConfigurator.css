@@ -1054,6 +1054,70 @@
   font-family: var(--cfg-font-body);
 }
 
+/* ---------------------------------------------------------------------------
+   Layout Card -- Sale Mode Extensions
+   ---------------------------------------------------------------------------
+   Two-row label-and-value price presentation applied when the parent
+   step resolves a pre-sale original (from
+   `originalPriceCentsInclVatByLayoutId` or the scalar
+   `originalBasePriceCentsInclVat`) and the caller opts into
+   `showOriginalPrice`. Row 1 pairs the eyebrow "original price" label
+   with a muted struck-through pre-sale value; Row 2 pairs the "sale
+   price" label with the emphasised live sale value. The shared
+   minimum label width aligns the value column across both rows and
+   mirrors the treatment used on the sticky sub-header, Overview step
+   hero block, Floor Plan step price block, and Summary breakdown so
+   the promotional semantics are consistent across surfaces.
+   --------------------------------------------------------------------------- */
+
+.configurator__layout-card-price--on-sale {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.configurator__layout-card-price-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.configurator__layout-card-price-label {
+  display: inline-block;
+  min-width: 86px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--cfg-font-body);
+}
+
+.configurator__layout-card-price-value {
+  font-family: var(--cfg-font-body);
+  letter-spacing: -0.01em;
+}
+
+.configurator__layout-card-price-value--original {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cfg-color-text-secondary);
+  opacity: 0.8;
+}
+
+.configurator__layout-card-price-value--original s {
+  text-decoration: line-through;
+}
+
+.configurator__layout-card-price-value--sale {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cfg-color-primary);
+}
+
 .configurator__layout-card-badges {
   display: flex;
   gap: 6px;

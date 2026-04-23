@@ -1,0 +1,270 @@
+/**
+ * EventNewsBanner Component Stylesheet
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the complete visual presentation for the `EventNewsBanner`
+ * component. The banner is a fixed-height, full-bleed strip designed to sit
+ * directly above or below the site header to announce event appearances.
+ *
+ * ARCHITECTURE:
+ * - BEM naming under the `.event-news-banner` block. No modifier classes are
+ *   defined at this stage; the block is intentionally kept closed to avoid
+ *   premature abstraction.
+ * - Component-level design tokens are declared as CSS custom properties on
+ *   the root block selector. Global brand tokens from `style.css` are
+ *   referenced with inline fallback values so the component remains legible
+ *   in isolated contexts such as Storybook.
+ * - Layout is achieved with flexbox. The inner container is centred
+ *   horizontally using `justify-content: center` so the badge and logo appear
+ *   balanced regardless of the viewport width.
+ * - The background image is applied by the component via an inline `style`
+ *   prop; this stylesheet only defines the structural and sizing rules for
+ *   the background rendering.
+ * - `pointer-events: none` on the badge ensures no browser mechanism (focus
+ *   ring, active state, context menu) can make the decorative element appear
+ *   interactive.
+ *
+ * RESPONSIVE STRATEGY:
+ * - Mobile-first: base styles target narrow viewports; a single `min-width`
+ *   breakpoint at 640 px scales up the banner height and logo size for
+ *   wider screens.
+ * - The badge and logo both use `flex-shrink: 0` to prevent them from
+ *   collapsing on very narrow viewports.
+ *
+ * DEPENDENCIES:
+ * The consuming application must import the global brand token stylesheet
+ * (e.g. `apps/web/src/styles/style.css`) for `--brand-*` variables to
+ * resolve. Fallback values ensure baseline legibility without those tokens.
+ *
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   All colours and typographic values used by this component are funnelled
+   through local custom properties. Updating a brand token propagates to this
+   component automatically; a one-off override requires only a single
+   reassignment here rather than scattered changes across rules.
+   ============================================================================= */
+
+.event-news-banner {
+  /* Badge background: uses the primary brand accent colour. */
+  --enb-badge-bg:       var(--brand-link, #b55329);
+
+  /* Badge text: white for maximum contrast against the accent background. */
+  --enb-badge-fg:       #ffffff;
+
+  /* Overlay opacity fraction applied to the background image. */
+  --enb-overlay-alpha:  0.40;
+
+  /* Inner content maximum width, aligned with the site's container width. */
+  --enb-inner-max-w:    1650px;
+
+  /* Spacing between the badge and the logo. */
+  --enb-gap:            clamp(0.75rem, 2vw, 1.5rem);
+
+  /* Height of the banner on mobile viewports. */
+  --enb-height-mobile:  72px;
+
+  /* Height of the banner on desktop viewports. */
+  --enb-height-desktop: 96px;
+
+  /* Logo height on mobile viewports. */
+  --enb-logo-h-mobile:  40px;
+
+  /* Logo height on desktop viewports. */
+  --enb-logo-h-desktop: 60px;
+}
+
+
+/* =============================================================================
+   SECTION 2: ROOT CONTAINER
+   -----------------------------------------------------------------------------
+   The root `<aside>` element establishes a new stacking context and contains
+   both the overlay pseudo-layer and the foreground content. The background
+   image is applied via an inline `style` attribute by the React component;
+   the rules here govern how that image is sized and positioned.
+   ============================================================================= */
+
+.event-news-banner {
+  /* Stacking context: child elements (overlay, inner) are positioned relative
+     to this container. */
+  position: relative;
+  overflow: hidden;
+
+  /* Full-width strip; height is fixed to keep the banner visually compact. */
+  width: 100%;
+  height: var(--enb-height-mobile);
+
+  /* Background image rendering: cover ensures the image fills the strip even
+     if the aspect ratio differs from the banner dimensions. */
+  background-size:     cover;
+  background-position: center;
+  background-repeat:   no-repeat;
+
+  /* Remove any default `<aside>` margin injected by user-agent stylesheets. */
+  margin: 0;
+}
+
+
+/* =============================================================================
+   SECTION 3: DARK OVERLAY
+   -----------------------------------------------------------------------------
+   A full-bleed translucent layer placed directly above the background image.
+   Its purpose is to darken the image sufficiently so that the foreground
+   elements (badge, logo) remain legible across a wide range of photographic
+   content without relying on specific image characteristics.
+   ============================================================================= */
+
+.event-news-banner__overlay {
+  /* Absolute positioning stretches the overlay to cover the entire banner. */
+  position: absolute;
+  inset: 0;
+
+  /* Semi-transparent black layer. The alpha value is controlled by the
+     component-level token so it can be adjusted without touching structural
+     rules. */
+  background-color: rgba(0, 0, 0, var(--enb-overlay-alpha));
+
+  /* The overlay is decorative; it must not intercept pointer events intended
+     for the inner content layer. */
+  pointer-events: none;
+
+  /* z-index: 1 places the overlay above the CSS background but below the
+     inner content container at z-index: 2. */
+  z-index: 1;
+}
+
+
+/* =============================================================================
+   SECTION 4: INNER CONTENT CONTAINER
+   -----------------------------------------------------------------------------
+   A flex row that centres the badge and logo horizontally within the banner.
+   The max-width constraint aligns the content with the site's global layout
+   grid while the side padding prevents elements from touching the viewport
+   edge on narrow screens.
+   ============================================================================= */
+
+.event-news-banner__inner {
+  /* Positioned above the overlay. */
+  position: relative;
+  z-index: 2;
+
+  /* Flex row: badge and logo sit side-by-side, centred on both axes. */
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--enb-gap);
+
+  /* Full height ensures vertical centering works correctly. */
+  height: 100%;
+
+  /* Horizontal padding prevents content from reaching the viewport edge. */
+  padding: 0 clamp(1rem, 3vw, 2rem);
+
+  /* Constrains the content to the site's layout grid width. The `margin:
+     auto` centres the container inside the full-bleed parent. */
+  max-width: var(--enb-inner-max-w);
+  margin-left:  auto;
+  margin-right: auto;
+}
+
+
+/* =============================================================================
+   SECTION 5: BADGE
+   -----------------------------------------------------------------------------
+   The "SEE US @" label is a purely decorative element. It carries the brand
+   accent colour and uses the eyebrow typographic style (uppercase, wide letter
+   spacing) to signal affiliation. All interactive affordances are explicitly
+   disabled so the element cannot be perceived as a button or link.
+   ============================================================================= */
+
+.event-news-banner__badge {
+  /* Layout: inline flex keeps the text vertically centred inside the pill. */
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+
+  /* Sizing: compact padding produces the pill shape visible in the reference
+     design. The element height adapts to its content. */
+  padding: 0.375rem 0.625rem;
+
+  /* Colour: brand accent background with white foreground text. */
+  background-color: var(--enb-badge-bg);
+  color:            var(--enb-badge-fg);
+
+  /* Typography: eyebrow pattern from the design system. */
+  font-family:     var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size:       var(--text-tiny, 0.75rem);
+  font-weight:     var(--weight-semibold, 600);
+  letter-spacing:  var(--tracking-wide, 0.12em);
+  line-height:     1;
+  text-transform:  uppercase;
+  white-space:     nowrap;
+
+  /* Explicitly disable all interactive affordances. `pointer-events: none`
+     prevents the element from receiving click, hover, or focus events.
+     `user-select: none` prevents accidental text selection. The `cursor`
+     declaration is belt-and-suspenders in case pointer-events is overridden
+     by a global reset. */
+  pointer-events: none;
+  user-select:    none;
+  cursor:         default;
+}
+
+
+/* =============================================================================
+   SECTION 6: PARTNER / EVENT LOGO
+   -----------------------------------------------------------------------------
+   The logo image is rendered at a controlled height with automatic width to
+   preserve its original aspect ratio. `object-fit: contain` ensures no part
+   of the logo is clipped regardless of the supplied image's intrinsic
+   dimensions.
+   ============================================================================= */
+
+.event-news-banner__logo {
+  /* Constrain the logo height; width is computed automatically by the browser
+     to preserve the aspect ratio. */
+  height: var(--enb-logo-h-mobile);
+  width:  auto;
+
+  /* Prevent the image from overflowing its flex cell on very narrow
+     viewports by capping it to the available cell width. */
+  max-width: 60vw;
+
+  /* Ensure the image is treated as a block-level element inside the flex
+     container to eliminate the default inline baseline gap. */
+  display: block;
+
+  /* Preserve logo proportions regardless of the image's intrinsic dimensions. */
+  object-fit: contain;
+
+  /* Prevent the logo from shrinking when the flex container is narrow. The
+     max-width above provides a safety cap. */
+  flex-shrink: 0;
+}
+
+
+/* =============================================================================
+   SECTION 7: RESPONSIVE SCALE-UP
+   -----------------------------------------------------------------------------
+   At viewports wider than 640 px (approximately a landscape-oriented phone
+   or a small tablet), the banner and logo are enlarged to fill the additional
+   vertical space with more visual presence.
+   ============================================================================= */
+
+@media (min-width: 640px) {
+  /* Increase banner height on wider viewports. */
+  .event-news-banner {
+    height: var(--enb-height-desktop);
+  }
+
+  /* Scale up the logo to match the increased banner height. */
+  .event-news-banner__logo {
+    height: var(--enb-logo-h-desktop);
+  }
+}

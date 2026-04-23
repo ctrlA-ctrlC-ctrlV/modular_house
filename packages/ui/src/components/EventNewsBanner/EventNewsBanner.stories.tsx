@@ -89,7 +89,7 @@ export const Default: Story = {
   args: {
     logoSrc:       '/resource/misc/IHS.png',
     logoAlt:       'PTSB Ideal Home Show logo',
-    backgroundSrc: '/resource/backgrounds/living-room.jpg',
+    backgroundSrc: '/resource/misc/default_banner_bg.png',
     endsAt:        fromNow(MS.DAY * 3),
     badgeLabel:    'SEE US @',
   },

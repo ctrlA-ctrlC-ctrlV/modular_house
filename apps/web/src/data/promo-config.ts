@@ -28,7 +28,7 @@
  * - Disable : set `enabled: false`. The `PromoBanner` will not mount and the
  *             banner subtree is eliminated from the rendered output.
  * - Expiry  : once `endsAt` has passed, the banner's countdown hook returns
- *             `null` on the client and the banner auto-hides without a deploy.
+ *             `null` on the client and the banner auto-hides without a deploy. 
  *
  * =============================================================================
  */

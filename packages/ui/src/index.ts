@@ -38,5 +38,6 @@ export { TextIntroSection, type TextIntroSectionProps } from './components/TextI
 export { FeatureShowcase, type FeatureShowcaseProps, type FeatureShowcaseItem, type FeatureShowcaseBadge, type FeatureShowcaseBg } from './components/FeatureShowcase/FeatureShowcase';
 export { FooterCTA, type FooterCTAProps, type FooterCTAAction } from './components/FooterCTA/FooterCTA';
 export { PromoBanner, type PromoBannerProps, type PromoBannerVariant } from './components/PromoBanner/PromoBanner';
+export { EventNewsBanner, type EventNewsBannerProps } from './components/EventNewsBanner/EventNewsBanner';
 export * from './types';
 // Add your shared UI components here

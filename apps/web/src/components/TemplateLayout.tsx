@@ -195,8 +195,12 @@ const LayoutContent: React.FC = () => {
         */}
         <EventNewsBanner
           logoSrc="/resource/misc/IHS.png"
+          logoSrcWebP="/resource/misc/IHS.webp"
+          logoSrcAvif="/resource/misc/IHS.avif"
           logoAlt="PTSB Ideal Home Show logo"
           backgroundSrc="/resource/misc/default_banner_bg.png"
+          backgroundSrcWebP="/resource/misc/default_banner_bg.webp"
+          backgroundSrcAvif="/resource/misc/default_banner_bg.avif"
           endsAt="2026-04-26T23:59:59+01:00"
           badgeLabel="SEE US @"
         />

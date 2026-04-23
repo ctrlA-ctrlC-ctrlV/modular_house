@@ -24,6 +24,21 @@
  * - All styling is delegated to the companion BEM CSS file, keeping the JSX
  *   tree declarative and easy to audit.
  *
+ * IMAGE DELIVERY STRATEGY:
+ * - Both the background and the partner logo are rendered through `<picture>`
+ *   elements. Consumers may optionally supply AVIF and WebP variants for each
+ *   asset; when present, the `<source>` elements are emitted in decreasing
+ *   order of compression efficiency (AVIF first, WebP second) and the
+ *   original `*Src` value is used as the universal fallback inside `<img>`.
+ * - The browser evaluates `<source>` candidates in document order and selects
+ *   the first `type` it supports. This yields AVIF on Chrome 85+/Firefox 93+/
+ *   Safari 16.4+, WebP on all other modern browsers, and the original format
+ *   on legacy engines — with zero JavaScript involvement.
+ * - The background `<img>` is marked `loading="eager"` and
+ *   `fetchpriority="high"` because the banner sits above the fold; the logo
+ *   is likewise fetched eagerly, with default priority since it is a small,
+ *   non-LCP asset.
+ *
  * ACCESSIBILITY:
  * - The outer element uses `<aside role="region">` with a descriptive
  *   `aria-label` so screen readers can navigate to or skip the banner
@@ -34,8 +49,8 @@
  * - The partner logo is rendered as an `<img>` with a mandatory `alt` prop
  *   so assistive technologies can convey the event identity to users who
  *   cannot perceive images.
- * - The background image is applied as a CSS `background-image` to avoid
- *   polluting the accessibility tree with a decorative image node.
+ * - The background image carries an empty `alt=""` attribute marking it as
+ *   decorative, so it is omitted from the accessibility tree.
  *
  * EXPIRY BEHAVIOUR:
  * - On mount, the component computes `remaining = endsAt - Date.now()`.
@@ -73,12 +88,34 @@ import './EventNewsBanner.css';
 export interface EventNewsBannerProps {
   /**
    * Path or absolute URL of the event/partner logo displayed inside the banner.
-   * The consuming application is responsible for supplying an appropriately
-   * sized image; the component constrains it to a maximum height via CSS.
+   * This value is used as the universal fallback inside the `<picture>`
+   * element and must therefore point to an asset format that all targeted
+   * browsers can decode (typically PNG or JPEG). The consuming application
+   * is responsible for supplying an appropriately sized image; the component
+   * constrains it to a maximum height via CSS.
    *
    * @example '/resource/misc/IHS.png'
    */
   logoSrc: string;
+
+  /**
+   * Optional WebP variant of the partner logo. When provided, a
+   * `<source type="image/webp">` is emitted inside the `<picture>` element so
+   * browsers with WebP support can download the smaller payload.
+   *
+   * @example '/resource/misc/IHS.webp'
+   */
+  logoSrcWebP?: string;
+
+  /**
+   * Optional AVIF variant of the partner logo. When provided, a
+   * `<source type="image/avif">` is emitted as the first candidate inside
+   * the `<picture>` element so cutting-edge browsers can download the
+   * smallest available payload.
+   *
+   * @example '/resource/misc/IHS.avif'
+   */
+  logoSrcAvif?: string;
 
   /**
    * Accessible text alternative for the partner logo. This value is passed
@@ -91,13 +128,28 @@ export interface EventNewsBannerProps {
 
   /**
    * Path or absolute URL of the image rendered as the banner's full-bleed
-   * background. A semi-transparent overlay is automatically applied by CSS to
-   * ensure adequate contrast for the badge and logo regardless of the image
-   * content.
+   * background. Used as the universal fallback inside the background
+   * `<picture>` element; a semi-transparent overlay is applied on top via CSS
+   * to ensure adequate contrast for the badge and logo regardless of the
+   * image content.
    *
    * @example '/resource/backgrounds/living-room.jpg'
    */
   backgroundSrc: string;
+
+  /**
+   * Optional WebP variant of the background image.
+   *
+   * @example '/resource/misc/default_banner_bg.webp'
+   */
+  backgroundSrcWebP?: string;
+
+  /**
+   * Optional AVIF variant of the background image.
+   *
+   * @example '/resource/misc/default_banner_bg.avif'
+   */
+  backgroundSrcAvif?: string;
 
   /**
    * ISO 8601 date-time string (with timezone offset) representing the instant
@@ -140,8 +192,12 @@ export interface EventNewsBannerProps {
  */
 export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
   logoSrc,
+  logoSrcWebP,
+  logoSrcAvif,
   logoAlt,
   backgroundSrc,
+  backgroundSrcWebP,
+  backgroundSrcAvif,
   endsAt,
   badgeLabel = 'SEE US @',
   className = '',
@@ -198,17 +254,55 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  // The background image is applied as an inline `style` property so the
-  // consuming application can supply any asset path without CSS coupling.
-  // The BEM modifier class pattern is reserved for structural variants should
-  // the component be extended in the future.
+  // The background and logo are each rendered through a `<picture>` element
+  // that negotiates the most efficient format the browser supports (AVIF →
+  // WebP → original fallback) without any JavaScript involvement. The BEM
+  // modifier class pattern is reserved for structural variants should the
+  // component be extended in the future.
   return (
     <aside
       role="region"
       aria-label="Event news banner"
       className={`event-news-banner${className ? ` ${className}` : ''}`}
-      style={{ backgroundImage: `url(${backgroundSrc})` }}
     >
+      {/*
+       * Background image layer.
+       *
+       * Rendered as a `<picture>` with an absolutely positioned `<img>` so
+       * the browser's preload scanner can discover, prioritise, and — where
+       * supported — decode the modern AVIF/WebP variants. This replaces the
+       * previous CSS `background-image` approach, which hid the asset from
+       * the preload scanner and prevented per-browser format negotiation.
+       *
+       * Attributes of note:
+       * - `alt=""`              marks the image as decorative.
+       * - `loading="eager"`     the banner is above the fold; deferring the
+       *                          fetch would harm perceived performance.
+       * - `fetchPriority="high"` hints that this asset should be fetched
+       *                          ahead of non-critical resources.
+       * - `decoding="async"`    keeps the decode step off the main thread.
+       */}
+      <picture className="event-news-banner__background" aria-hidden="true">
+        {backgroundSrcAvif && (
+          <source type="image/avif" srcSet={backgroundSrcAvif} />
+        )}
+        {backgroundSrcWebP && (
+          <source type="image/webp" srcSet={backgroundSrcWebP} />
+        )}
+        <img
+          className="event-news-banner__background-image"
+          src={backgroundSrc}
+          alt=""
+          loading="eager"
+          decoding="async"
+          // `fetchpriority` is a valid HTML attribute but the React typings
+          // in some versions of @types/react do not yet describe it. It is
+          // spread as a lowercase string prop so the attribute is written
+          // verbatim to the DOM regardless of type-definition drift.
+          {...{ fetchpriority: 'high' }}
+        />
+      </picture>
+
       {/*
        * Decorative overlay — darkens the background image to maintain
        * sufficient contrast between the image content and the foreground
@@ -240,18 +334,33 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
 
         {/*
          * Partner / event logo.
-         * Rendered as a standard `<img>` with an explicit `alt` attribute so
-         * the event identity is accessible to all users. `loading="eager"` is
-         * intentional: the banner is above the fold and the image should be
-         * fetched immediately rather than deferred by lazy-loading heuristics.
+         *
+         * Rendered inside a `<picture>` element that offers AVIF and WebP
+         * variants when the consumer supplies them. The inner `<img>` remains
+         * the element queried by assistive technologies and retains the
+         * mandatory `alt` attribute so the event identity is accessible to
+         * all users.
+         *
+         * `loading="eager"` is intentional: the banner is above the fold and
+         * the image should be fetched immediately rather than deferred by
+         * lazy-loading heuristics. `decoding="async"` offloads the decode
+         * step from the main thread to prevent input latency spikes.
          */}
-        <img
-          className="event-news-banner__logo"
-          src={logoSrc}
-          alt={logoAlt}
-          loading="eager"
-          decoding="async"
-        />
+        <picture className="event-news-banner__logo-picture">
+          {logoSrcAvif && (
+            <source type="image/avif" srcSet={logoSrcAvif} />
+          )}
+          {logoSrcWebP && (
+            <source type="image/webp" srcSet={logoSrcWebP} />
+          )}
+          <img
+            className="event-news-banner__logo"
+            src={logoSrc}
+            alt={logoAlt}
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
       </div>
     </aside>
   );

@@ -18,9 +18,13 @@
  * - Layout is achieved with flexbox. The inner container is centred
  *   horizontally using `justify-content: center` so the badge and logo appear
  *   balanced regardless of the viewport width.
- * - The background image is applied by the component via an inline `style`
- *   prop; this stylesheet only defines the structural and sizing rules for
- *   the background rendering.
+ * - The background image is rendered by the React component as a
+ *   `<picture>` element containing AVIF / WebP / fallback sources. This
+ *   stylesheet positions that element absolutely inside the banner and
+ *   constrains its inner `<img>` to `object-fit: cover` so the visual
+ *   output matches the legacy CSS `background-image` behaviour while
+ *   gaining modern format negotiation, preload-scanner visibility, and
+ *   priority-hint control.
  * - `pointer-events: none` on the badge ensures no browser mechanism (focus
  *   ring, active state, context menu) can make the decorative element appear
  *   interactive.
@@ -92,14 +96,14 @@
    SECTION 2: ROOT CONTAINER
    -----------------------------------------------------------------------------
    The root `<aside>` element establishes a new stacking context and contains
-   both the overlay pseudo-layer and the foreground content. The background
-   image is applied via an inline `style` attribute by the React component;
-   the rules here govern how that image is sized and positioned.
+   the background `<picture>`, the overlay pseudo-layer, and the foreground
+   content. All image rendering concerns are delegated to the dedicated
+   `.event-news-banner__background` selector block below.
    ============================================================================= */
 
 .event-news-banner {
-  /* Stacking context: child elements (overlay, inner) are positioned relative
-     to this container. */
+  /* Stacking context: child elements (background, overlay, inner) are
+     positioned relative to this container. */
   position: relative;
   overflow: hidden;
 
@@ -107,14 +111,53 @@
   width: 100%;
   height: var(--enb-height-mobile);
 
-  /* Background image rendering: cover ensures the image fills the strip even
-     if the aspect ratio differs from the banner dimensions. */
-  background-size:     cover;
-  background-position: center;
-  background-repeat:   no-repeat;
-
   /* Remove any default `<aside>` margin injected by user-agent stylesheets. */
   margin: 0;
+}
+
+
+/* =============================================================================
+   SECTION 2A: BACKGROUND PICTURE
+   -----------------------------------------------------------------------------
+   The `<picture>` element is positioned absolutely to fill the banner,
+   replacing the legacy CSS `background-image`. Its inner `<img>` uses
+   `object-fit: cover` so photographs with mismatched aspect ratios are
+   cropped to the banner bounds in the same way the previous
+   `background-size: cover` rule behaved.
+   ============================================================================= */
+
+.event-news-banner__background {
+  /* Stretch to fill the banner. `inset: 0` collapses to the four offset
+     properties, centring the image against the container. */
+  position: absolute;
+  inset: 0;
+
+  /* The picture is purely decorative; it must not intercept pointer events
+     intended for the inner content. */
+  pointer-events: none;
+
+  /* z-index: 0 keeps the background below the overlay (z-index: 1) and the
+     foreground content (z-index: 2). */
+  z-index: 0;
+
+  /* Force the picture element to honour block-level sizing so the inner
+     `<img>` inherits a correctly sized layout box. */
+  display: block;
+}
+
+.event-news-banner__background-image {
+  /* Fill the `<picture>` wrapper in both dimensions. */
+  width:  100%;
+  height: 100%;
+
+  /* Crop to the banner bounds, preserving the source aspect ratio. This
+     reproduces the legacy `background-size: cover` behaviour. */
+  object-fit:       cover;
+  object-position:  center;
+
+  /* Block display prevents the default inline baseline gap inside the
+     `<picture>` wrapper. */
+  display: block;
 }
 
 
@@ -251,11 +294,23 @@
 /* =============================================================================
    SECTION 6: PARTNER / EVENT LOGO
    -----------------------------------------------------------------------------
-   The logo image is rendered at a controlled height with automatic width to
-   preserve its original aspect ratio. `object-fit: contain` ensures no part
-   of the logo is clipped regardless of the supplied image's intrinsic
-   dimensions.
+   The logo image is rendered inside a `<picture>` element that offers AVIF
+   and WebP variants when the consuming application supplies them. The
+   wrapper is kept neutral so the inner `<img>` controls the rendered
+   geometry; `object-fit: contain` ensures no part of the logo is clipped
+   regardless of the supplied image's intrinsic dimensions.
    ============================================================================= */
+
+.event-news-banner__logo-picture {
+  /* Behave as a sizing-neutral block so the inner `<img>` dictates the
+     rendered dimensions while still participating in the flex row. */
+  display: block;
+  flex-shrink: 0;
+
+  /* Cap the picture width on very narrow viewports; mirrors the `<img>`
+     max-width safeguard so no single flex item can overflow the row. */
+  max-width: 60vw;
+}
 
 .event-news-banner__logo {
   /* Constrain the logo height; width is computed automatically by the browser

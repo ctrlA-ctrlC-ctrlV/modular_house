@@ -269,6 +269,21 @@ Three rendering paths exist; the right one is chosen at runtime:
 - Error messages on form fields use a dedicated `configurator__form-field-error` element rendered immediately after the input; the form-level error uses `role="alert"`.
 - All decorative SVGs (checkmarks, addon icons, animated check) carry `aria-hidden="true"`.
 
+### Stable test hooks
+
+The configurator root exposes two attributes for E2E selectors that remain stable across CSS refactors:
+
+- `data-testid="configurator-step"` — anchor for locating the configurator shell.
+- `data-step-id="<step-id>"` — current step id (`overview`, `floor-plan`, `layout`, `exterior`, `interior`, `addons`, `summary`).
+
+Recommended selector pattern. Tests must assert the expected step before waiting on step-specific controls — the bottom-nav `Continue` button, for example, is unmounted on the Summary step and any wait that ignores the step id will hang:
+
+```ts
+// Playwright
+await page.locator('[data-testid="configurator-step"][data-step-id="addons"]').waitFor();
+await page.getByRole('button', { name: /Review Configuration/ }).click();
+```
+
 ---
 
 ## 12. Testing

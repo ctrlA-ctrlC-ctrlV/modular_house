@@ -79,6 +79,46 @@ export function calculateTotalPriceCents(
 
 
 /**
+ * Type-guard that resolves whether the configurator should render in
+ * sale mode for a given pair of inputs.
+ *
+ * Sale rendering across the configurator surfaces (StickySubHeader,
+ * Overview, Floor Plan, Layout, Summary) is gated by the same
+ * dual-condition contract: the caller must have explicitly opted in
+ * via `showOriginalPrice`, AND a numeric pre-sale original must be
+ * available. Either missing piece collapses the UI back to the
+ * default single-price layout.
+ *
+ * Centralising the gate as a helper -- rather than duplicating the
+ * inline ternary at every consumer -- prevents the surfaces from
+ * drifting out of sync when the contract evolves (e.g. if a future
+ * sale flag is added to the policy). The function signature is a
+ * type-guard (`originalCents is number`) so TypeScript narrows the
+ * value at the call site, eliminating the need for a redundant
+ * non-null assertion or a follow-up `!== undefined` check.
+ *
+ * Truth table:
+ *
+ *   showOriginalPrice  originalCents     result
+ *   -----------------  ---------------   -------
+ *   true               number            true
+ *   true               undefined         false
+ *   false              number            false
+ *   false              undefined         false
+ *
+ * @param showOriginalPrice  - The caller's opt-in flag for strikethrough rendering.
+ * @param originalCents      - The pre-sale total or base price in euro cents, if resolved.
+ * @returns `true` only when both gates pass; narrows `originalCents` to `number`.
+ */
+export function isSaleModeActive(
+  showOriginalPrice: boolean,
+  originalCents: number | undefined,
+): originalCents is number {
+  return showOriginalPrice && originalCents !== undefined;
+}
+
+
+/**
  * Resolves the default finish option ID for a given category slug and
  * target finish name from the product's finish category definitions.
  *

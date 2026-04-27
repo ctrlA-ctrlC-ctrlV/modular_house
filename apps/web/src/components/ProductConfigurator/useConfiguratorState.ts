@@ -31,6 +31,28 @@ import { apiClient } from '../../lib/apiClient';
 
 
 /* =============================================================================
+   Layout Coupling -- Scroll Container Selector
+   -----------------------------------------------------------------------------
+   The configurator is rendered inside a custom scroll container (see
+   `apps/web/src/components/TemplateLayout.tsx`) because the document
+   `<html>` and `<body>` elements are styled with `overflow: hidden`. As a
+   result, `window.scrollTo()` cannot move the visible viewport; the actual
+   scrollable element must be located via DOM query.
+
+   This constant is exported so tests and any future refactor can update
+   the coupling in a single place.
+   ============================================================================= */
+
+/**
+ * CSS selector that targets the scrollable shell owned by
+ * `TemplateLayout`. If `TemplateLayout` renames its scroll-container
+ * class, update this selector. `window` cannot scroll because `html` and
+ * `body` have `overflow: hidden` in the global theme stylesheet.
+ */
+export const SCROLL_CONTAINER_SELECTOR = '.theme-template.overflow-y-auto';
+
+
+/* =============================================================================
    Persisted State Shape
    -----------------------------------------------------------------------------
    The shape serialised to sessionStorage. Includes the step index so the
@@ -481,19 +503,46 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
   /**
    * Resets the scroll position to the top of the visible viewport.
    *
-   * The application layout uses a scrollable container
-   * (<div class="theme-template ... overflow-y-auto">) rather than the
-   * native window scroll. The html and body elements have overflow: hidden,
-   * so window.scrollTo() has no effect. This helper locates the actual
-   * scroll container via a DOM query and scrolls it to the origin.
+   * The application layout uses a scrollable container (see
+   * `SCROLL_CONTAINER_SELECTOR`) rather than the native window scroll.
+   * The `html` and `body` elements have `overflow: hidden`, so
+   * `window.scrollTo()` has no effect on the primary container. This
+   * helper locates the actual scroll container via a DOM query and
+   * scrolls it to the origin.
+   *
+   * Fallback behaviour
+   * ------------------
+   * If the selector does not match (for example, when the layout shell
+   * has been renamed or the configurator is rendered outside the
+   * template), the helper falls back to `window.scrollTo(0, 0)` as a
+   * best-effort. A dev-only warning is emitted so the regression is
+   * visible during local development without polluting production
+   * consoles.
    */
   const scrollToTop = useCallback(() => {
     const scrollContainer = document.querySelector<HTMLElement>(
-      '.theme-template.overflow-y-auto',
+      SCROLL_CONTAINER_SELECTOR,
     );
     if (scrollContainer) {
       scrollContainer.scrollTo(0, 0);
+      return;
     }
+
+    /* Surface the missing-container condition during development so a
+       layout refactor that renames the scroll shell is caught quickly.
+       The warning is gated on `import.meta.env.DEV` so it never reaches
+       end-user consoles in production builds. */
+    if (import.meta.env.DEV) {
+      console.warn(
+        '[configurator] scroll container not found; falling back to window scroll',
+      );
+    }
+
+    /* Best-effort fallback. In the current layout this is a no-op
+       because the document scroll is locked, but it keeps the helper
+       resilient against future layout changes that re-enable window
+       scrolling. */
+    window.scrollTo(0, 0);
   }, []);
 
   /**

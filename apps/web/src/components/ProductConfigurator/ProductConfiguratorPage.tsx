@@ -26,8 +26,9 @@
  * =============================================================================
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import type { EnquiryFormData } from '@modular-house/ui';
 import type { DatePreferenceValue } from './types';
@@ -46,6 +47,50 @@ import { BespokeHint } from './BespokeHint';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
 import { formatPriceCents, isSaleModeActive } from './utils';
 import './ProductConfigurator.css';
+
+
+/* =============================================================================
+   Bespoke Enquiry Message Builder
+   -----------------------------------------------------------------------------
+   Co-located with `handleBespokeEnquiry` (T8, see
+   `.docs/product-configurator-gotcha-tasks.md`).
+
+   The bespoke flow must surface the customer's free-text room size to
+   the design team without ever assigning it to the API's
+   `preferredProduct` field, which is validated against a strict
+   backend enum (see `apps/api/src/types/submission.ts`:
+   `PRODUCT_OPTIONS = ['Garden Room', 'House Extension']`). Any widening
+   of `roomSize` into `preferredProduct` would generate 400 responses at
+   runtime.
+
+   By accepting only `productName: string` and `roomSize: string |
+   undefined`, this helper makes it structurally impossible to
+   accidentally pass the value through to the strict-enum field: the
+   helper returns the composed message string, never an enum value.
+   ============================================================================= */
+
+/**
+ * Builds the message body posted to the API for a bespoke enquiry
+ * raised from the configurator.
+ *
+ * @param productName - The display name of the product the customer was
+ *   viewing when they opened the bespoke modal. Always present.
+ * @param roomSize    - Optional free-text room-size note captured by the
+ *   bespoke modal. When omitted (undefined or empty), the resulting
+ *   message contains no `Preferred size:` clause.
+ * @returns A plain-text message safe to embed verbatim in the
+ *   submission payload.
+ */
+export function buildBespokeMessage(
+  productName: string,
+  roomSize: string | undefined,
+): string {
+  /* A populated room size is appended verbatim. An empty string and
+     `undefined` are treated identically so callers do not need to
+     pre-trim before invoking the helper. */
+  const roomSizeNote = roomSize ? ` Preferred size: ${roomSize}.` : '';
+  return `Bespoke enquiry via ${productName} configurator.${roomSizeNote}`;
+}
 
 
 /* =============================================================================
@@ -114,12 +159,12 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      Uses useCallback to maintain a stable reference across re-renders.
      ----------------------------------------------------------------------- */
   const handleBespokeEnquiry = useCallback(async (data: EnquiryFormData): Promise<void> => {
-    /* Maps the EnquiryFormModal payload to the API schema.
-       The roomSize field is free-text and must not be assigned to
-       preferredProduct, which is validated against a strict backend enum
-       ('Garden Room' | 'House Extension'). The room size is appended to
-       the bespoke enquiry message so the design team retains the detail. */
-    const roomSizeNote = data.roomSize ? ` Preferred size: ${data.roomSize}.` : '';
+    /* Compose the message body via `buildBespokeMessage`. The helper's
+       narrow signature (`productName: string`, `roomSize: string |
+       undefined`) makes it structurally impossible to leak the
+       free-text room size into the strict-enum `preferredProduct`
+       field below. */
+    const message = buildBespokeMessage(product.name, data.roomSize);
 
     /* Resolve the currently selected finish names from the product data
        so they can be included in the bespoke submission payload for
@@ -145,8 +190,12 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       email: data.email,
       phone: data.phone,
       address: data.address,
+      /* Strict backend enum -- see apps/api/src/types/submission.ts.
+         Do NOT widen. The free-text `roomSize` from the bespoke modal
+         is carried in `message` (via `buildBespokeMessage`), never
+         here. */
       preferredProduct: 'Garden Room',
-      message: `Bespoke enquiry via ${product.name} configurator.${roomSizeNote}`,
+      message,
       consent: data.consent,
       website: data.website,
       sourcePage: 'bespoke',
@@ -197,30 +246,36 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
   /* -----------------------------------------------------------------------
      Image Preloading
      -----------------------------------------------------------------------
-     Eagerly loads all finish preview images into the browser cache when
-     the component mounts. This eliminates the initial network delay that
-     causes visible jitter when the user first selects each finish option.
-     Subsequent selections serve the image from the disk/memory cache.
+     Declarative preload of the AVIF finish previews via
+     `<link rel="preload" as="image" type="image/avif">`. The previous
+     implementation used imperative `new Image()` calls inside a
+     `useEffect`, which had two drawbacks:
+
+       1. There is no way to abort an in-flight `HTMLImageElement`
+          request, so unmount left the network requests competing with
+          the visible step's resources on slow connections.
+       2. The fetch could not start until React had mounted the
+          component; declarative `<link>` tags emitted into `<head>`
+          are picked up by the browser preload scanner during the
+          initial HTML parse and cancelled automatically when the
+          page navigates away.
+
+     The MIME type `image/avif` is included so the browser silently
+     skips the preload on platforms that do not support AVIF, falling
+     back to the WebP / original assets at render time via the existing
+     `<picture>` markup. Only AVIF is preloaded -- preloading every
+     format would create duplicate downloads on most browsers because
+     the `<picture>` element will otherwise pick a single source per
+     element.
      ----------------------------------------------------------------------- */
-  useEffect(() => {
-    const imagePaths: string[] = [];
+  const finishImagePreloadHrefs = useMemo<ReadonlyArray<string>>(() => {
+    const hrefs: string[] = [];
     for (const category of product.finishCategories) {
       for (const option of category.options) {
-        imagePaths.push(option.imagePath, option.imageWebP, option.imageAvif);
+        hrefs.push(option.imageAvif);
       }
     }
-
-    const preloaded: HTMLImageElement[] = imagePaths.map((src) => {
-      const img = new Image();
-      img.src = src;
-      return img;
-    });
-
-    /* Cleanup: dereference preloaded images when the component unmounts
-       or the product changes, allowing garbage collection. */
-    return () => {
-      preloaded.length = 0;
-    };
+    return hrefs;
   }, [product.finishCategories]);
 
 
@@ -1341,6 +1396,24 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       data-testid="configurator-step"
       data-step-id={currentStep?.id}
     >
+      {/*
+        Declarative finish-image preload. Emitted via `react-helmet-async`
+        so the `<link rel="preload">` tags appear in `<head>` during SSR
+        and are picked up by the browser's preload scanner before React
+        hydrates on the client. See the `finishImagePreloadHrefs` useMemo
+        above for rationale.
+      */}
+      <Helmet>
+        {finishImagePreloadHrefs.map((href) => (
+          <link
+            key={href}
+            rel="preload"
+            as="image"
+            href={href}
+            type="image/avif"
+          />
+        ))}
+      </Helmet>
       {/* Apple-style sticky sub-header with product name and running price */}
       <StickySubHeader
         productName={product.name}

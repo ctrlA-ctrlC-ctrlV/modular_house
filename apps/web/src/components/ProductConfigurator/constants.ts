@@ -50,12 +50,21 @@ export const CONFIGURATOR_STEPS: ReadonlyArray<ConfiguratorStep> = BASE_STEPS;
  *
  * Inspects the product's optional data arrays to determine whether
  * additional steps should be prepended before the base sequence:
- *   - floorPlanVariants present and non-empty: prepends "Floor Plan" step
- *   - layoutOptions present and non-empty:     prepends "Layout" step
+ *   - `floorPlanVariants` present and non-empty: prepends "Floor Plan" step
+ *   - `layoutOptions` present and non-empty:     prepends "Layout" step
  *
- * Products without these arrays receive the unmodified BASE_STEPS (5 steps).
- * The Studio 25m2 product receives the full 7-step sequence:
- *   Floor Plan -> Layout -> Overview -> Exterior -> Interior -> Add-ons -> Summary
+ * Overview replacement rule
+ * -------------------------
+ * Products with `floorPlanVariants` *replace* the Overview step rather
+ * than augmenting it: the floor-plan and layout steps already serve the
+ * orientation role that Overview provides for simpler products.
+ * Consumers must therefore not assume Overview is always present in the
+ * returned step array. Use `steps.find(s => s.id === 'overview')` and
+ * handle the `undefined` case rather than non-null asserting.
+ *
+ * Products without these arrays receive the unmodified `BASE_STEPS`
+ * (5 steps). The Studio 25m2 product receives a 6-step sequence:
+ *   Floor Plan -> Layout -> Exterior -> Interior -> Add-ons -> Summary
  *
  * @param product - The configurator product definition to build steps for.
  * @returns An ordered read-only array of configurator steps.

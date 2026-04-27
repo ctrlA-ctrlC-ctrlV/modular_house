@@ -35,6 +35,35 @@ import { apiClient } from '../../lib/apiClient';
    -----------------------------------------------------------------------------
    The shape serialised to sessionStorage. Includes the step index so the
    user resumes where they left off.
+
+   Allow-list policy
+   -----------------
+   The interface below is an explicit allow-list. Only the following
+   three fields are permitted to cross the sessionStorage boundary:
+
+     1. `stepIndex`                  -- resume position (non-PII).
+     2. `selections`                 -- product configuration choices.
+     3. `highestCompletedStepIndex`  -- progress-bar high-water mark.
+
+   DO NOT add `formData`, `formStatus`, `quoteNumber`, `formError`, or
+   `formValidationErrors` here. Those fields are intentionally
+   session-fresh:
+
+     - `formData` carries personally identifying information (name,
+       email, phone, Eircode, free-text message). Persisting it would
+       leak PII into shared/refreshed browsers and conflict with the
+       privacy stance documented in
+       `apps/web/src/components/ProductConfigurator/README.md`.
+     - `formStatus`, `quoteNumber`, `formError`, and
+       `formValidationErrors` represent in-flight submission state that
+       must not be replayed on a subsequent page load -- a stale
+       success screen or a stale validation error would mislead the
+       user.
+
+   The companion test
+   `apps/web/src/components/ProductConfigurator/__tests__/useConfiguratorState.persistence.test.ts`
+   pins this contract by asserting that the persisted JSON contains
+   exactly the three keys listed above.
    ============================================================================= */
 
 interface PersistedState {

@@ -225,7 +225,7 @@ idle ──submitForm()──▶ submitting ──▶ success ──▶ (termina
 ### Steps performed by `submitForm()`
 
 1. Run [`validateFormData`](./useConfiguratorState.ts) (firstName / email / phone / eircode / conditional selectedDate). Errors map to `formValidationErrors`.
-2. **Honeypot:** if `formData.honeypot !== ''`, fake a successful response (`Q0000000`) and return — no API request issued. This denies bots feedback that they were rejected.
+2. **Honeypot:** if `formData.honeypot !== ''`, fake a successful response (`HONEYPOT_FAKE_QUOTE_NUMBER`, currently `Q0000000`) and return — no API request issued, but a single structured `console.warn` is emitted for operator visibility. This denies bots feedback that they were rejected.
 3. Resolve preferred date (`'asap'` literal or ISO date string).
 4. Resolve selected exterior / interior finish names, comma-joined add-on slugs, optional floor-plan / layout slugs.
 5. POST to `apiClient.submitEnquiry({ … sourcePage: 'configurator', … })`.
@@ -317,7 +317,7 @@ Add a render function to [SummaryNavBar.tsx](./SummaryNavBar.tsx) and call it fr
 - **`canProceed` on Summary is `false`** — the bottom-nav `Continue` button is hidden on the Summary step (`currentStep?.id !== 'summary'` guard), so this is expected and prevents stepping past the terminal step.
 - **Studio 25 has no Overview step.** `buildConfiguratorSteps` removes it because Floor Plan + Layout already introduce the product. Any "always show overview" assumption will break.
 - **Add-on filtering by B&K policy is data-side.** The configurator does not filter add-ons by `bathroomKitchenPolicy`; that is handled in the seed data (Bathroom + Kitchen appear as add-ons only on the 25 m² product). Don't re-filter in the UI.
-- **Honeypot fakes success.** A populated honeypot returns `Q0000000` without an API call. Be careful when debugging — a "successful" submission with quote `Q0000000` indicates spam-detection, not a real request.
+- **Honeypot fakes success.** A populated honeypot returns the `HONEYPOT_FAKE_QUOTE_NUMBER` constant (`Q0000000`, exported from `useConfiguratorState.ts`) without an API call, and emits a single `console.warn('[configurator] honeypot triggered', { slug, ts })` for operator visibility (no PII). Be careful when debugging — a "successful" submission with quote `Q0000000` indicates spam-detection, not a real request.
 - **`showOriginalPrice={true}` alone is not enough.** Sale rendering requires both the flag and a resolvable original base; otherwise components silently fall back. This is intentional — it makes the flag safe to enable globally even for products without seeded originals.
 - **Image preloading on mount** dereferences images on cleanup but does not abort in-flight loads. Acceptable because the URL set is small and stable.
 - **`formData` is intentionally not persisted.** The form starts fresh on every page load by design (privacy + avoiding stale errors). Don't add it to `PersistedState` without product sign-off.

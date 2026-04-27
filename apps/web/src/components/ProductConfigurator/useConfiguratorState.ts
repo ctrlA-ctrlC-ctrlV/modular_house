@@ -139,6 +139,32 @@ export interface ConfiguratorStateAPI {
 
 
 /* =============================================================================
+   Honeypot Spam-Trap Constants
+   -----------------------------------------------------------------------------
+   The honeypot branch in `submitForm` short-circuits the network request
+   when the hidden bait field is populated, but still presents a normal
+   success screen so that automated agents cannot tell their submission
+   was discarded.
+
+   The placeholder quote number below is exported so that operators
+   triaging a "submission marked successful but no email arrived" report
+   can match against a single, well-known literal, and so that unit
+   tests can assert the value without duplicating the magic string.
+
+   See `apps/web/src/components/ProductConfigurator/README.md` section
+   14 ("Gotchas") for the rationale and operator-visible behaviour.
+   ============================================================================= */
+
+/**
+ * Placeholder quote number returned to the UI when a submission is
+ * silently rejected by the honeypot trap. Any production quote follows
+ * the format issued by the API (non-zero numeric suffix), so the
+ * all-zero literal is a safe, recognisable sentinel.
+ */
+export const HONEYPOT_FAKE_QUOTE_NUMBER = 'Q0000000';
+
+
+/* =============================================================================
    Session Storage Helpers
    ============================================================================= */
 
@@ -589,10 +615,34 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
       return;
     }
 
-    /* -- Honeypot check: silently fake success for bots ------------------- */
+    /* -- Honeypot check: silently fake success for bots -------------------
+     *
+     * When the hidden honeypot field carries any value the submission is
+     * almost certainly automated. The user-facing UX is intentionally
+     * indistinguishable from a successful request -- bots that detect a
+     * rejection signal will adapt their attack surface, so denying that
+     * signal is part of the mitigation.
+     *
+     * To preserve operator visibility (a real success and a silently
+     * rejected bot otherwise look identical in production logs) the
+     * branch emits a single structured warning. The log payload is
+     * deliberately minimal: only the product slug and a millisecond
+     * timestamp are reported. Submitting personally identifying form
+     * fields would defeat the privacy stance of the wider configurator
+     * (see PersistedState comment) and is therefore prohibited.
+     *
+     * The placeholder quote number is exported as
+     * HONEYPOT_FAKE_QUOTE_NUMBER so triage tooling and tests can
+     * reference the same literal as the runtime; see also
+     * apps/web/src/components/ProductConfigurator/README.md section 14
+     * "Gotchas". */
     if (formData.honeypot.trim() !== '') {
+      console.warn('[configurator] honeypot triggered', {
+        slug: product.slug,
+        ts: Date.now(),
+      });
       setFormStatus('success');
-      setQuoteNumber('Q0000000');
+      setQuoteNumber(HONEYPOT_FAKE_QUOTE_NUMBER);
       return;
     }
 

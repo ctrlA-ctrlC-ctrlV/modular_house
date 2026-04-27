@@ -1323,7 +1323,24 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      Render
      ----------------------------------------------------------------------- */
   return (
-    <div className="configurator" ref={configuratorRef}>
+    /*
+     * Stable test hooks
+     * -----------------
+     * The `data-testid` and `data-step-id` attributes expose the active
+     * step id to E2E suites without coupling them to internal CSS
+     * classes. Tests should first assert
+     * `[data-testid="configurator-step"][data-step-id="<id>"]` before
+     * waiting on step-specific controls (notably the bottom-nav
+     * Continue button, which is unmounted on the Summary step). See
+     * `apps/web/src/components/ProductConfigurator/README.md` section
+     * 11 (Accessibility / Testing) for the recommended selector.
+     */
+    <div
+      className="configurator"
+      ref={configuratorRef}
+      data-testid="configurator-step"
+      data-step-id={currentStep?.id}
+    >
       {/* Apple-style sticky sub-header with product name and running price */}
       <StickySubHeader
         productName={product.name}

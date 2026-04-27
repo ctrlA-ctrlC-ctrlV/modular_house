@@ -44,7 +44,7 @@ import { LayoutCard } from './LayoutCard';
 import { SummaryNavBar } from './SummaryNavBar';
 import { BespokeHint } from './BespokeHint';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
-import { formatPriceCents } from './utils';
+import { formatPriceCents, isSaleModeActive } from './utils';
 import './ProductConfigurator.css';
 
 
@@ -289,8 +289,10 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               strikethrough row above the emphasised live total. Each row
               pairs a customisable label with its numeric value so the
               campaign copy can be tuned from the promo config without any
-              component change. */}
-          {showOriginalPrice && state.originalTotalPriceCents !== undefined ? (
+              component change. The shared `isSaleModeActive` helper (a
+              type-guard) keeps this gate identical across every
+              configurator surface that renders strikethrough pricing. */}
+          {isSaleModeActive(showOriginalPrice, state.originalTotalPriceCents) ? (
             <div className="configurator__price-display-group configurator__price-display-group--sale">
               <div className="configurator__price-display-row configurator__price-display-row--original">
                 <span className="configurator__price-display-row-label">
@@ -657,7 +659,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
               defined on the product) the block switches to the two-row
               label-and-value comparison used across the configurator. */}
           <div className="configurator__price-display">
-            {showOriginalPrice && originalVariantBasePriceCents !== undefined ? (
+            {isSaleModeActive(showOriginalPrice, originalVariantBasePriceCents) ? (
               <div className="configurator__price-display-group configurator__price-display-group--sale">
                 <div className="configurator__price-display-row configurator__price-display-row--original">
                   <span className="configurator__price-display-row-label">
@@ -907,13 +909,13 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
           <div
             className={
               'configurator__price-total' +
-              (showOriginalPrice && state.originalTotalPriceCents !== undefined
+              (isSaleModeActive(showOriginalPrice, state.originalTotalPriceCents)
                 ? ' configurator__price-total--on-sale'
                 : '')
             }
           >
             <span className="configurator__price-total-label">Total</span>
-            {showOriginalPrice && state.originalTotalPriceCents !== undefined ? (
+            {isSaleModeActive(showOriginalPrice, state.originalTotalPriceCents) ? (
               <span className="configurator__price-total-amount-group">
                 <span className="configurator__price-total-amount-row configurator__price-total-amount-row--original">
                   <span className="configurator__price-total-amount-row-label">

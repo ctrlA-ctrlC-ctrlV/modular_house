@@ -29,7 +29,7 @@
  */
 
 import React from 'react';
-import { formatPriceCents } from './utils';
+import { formatPriceCents, isSaleModeActive } from './utils';
 
 
 /* =============================================================================
@@ -100,8 +100,12 @@ export const StickySubHeader: React.FC<StickySubHeaderProps> = ({
    * required. Either missing piece collapses the component to the
    * default single-price presentation, ensuring the strikethrough never
    * renders without a value to strike through.
+   *
+   * The shared `isSaleModeActive` helper (a TypeScript type-guard) is
+   * used so the two-condition contract remains identical across every
+   * configurator surface that renders sale prices.
    */
-  const isSaleMode: boolean = showOriginalPrice && originalTotalPriceCents !== undefined;
+  const isSaleMode = isSaleModeActive(showOriginalPrice, originalTotalPriceCents);
 
   return (
     <header className="configurator__sub-header">
@@ -114,7 +118,11 @@ export const StickySubHeader: React.FC<StickySubHeaderProps> = ({
           (isSaleMode ? ' configurator__sub-header-price-group--sale' : '')
         }
       >
-        {isSaleMode && originalTotalPriceCents !== undefined ? (
+        {/* Sale-mode branch: `isSaleMode` is a type-guarded boolean
+            (see `isSaleModeActive`) so TypeScript narrows
+            `originalTotalPriceCents` to `number` inside this block,
+            removing the need for a redundant non-null assertion. */}
+        {isSaleMode ? (
           // --------------------------------------------------------------
           // Sale-mode layout
           // --------------------------------------------------------------

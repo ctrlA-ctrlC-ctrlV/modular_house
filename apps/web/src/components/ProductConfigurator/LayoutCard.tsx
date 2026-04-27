@@ -28,7 +28,7 @@
 
 import React from 'react';
 import type { LayoutOption } from '../../types/configurator';
-import { formatPriceCents } from './utils';
+import { formatPriceCents, isSaleModeActive } from './utils';
 
 
 /* =============================================================================
@@ -172,10 +172,14 @@ export const LayoutCard: React.FC<LayoutCardProps> = ({
    * non-discounted or undefined original collapses the UI back to the
    * default single-price layout, preserving the contract with existing
    * non-promotional callers.
+   *
+   * The shared `isSaleModeActive` helper enforces the dual opt-in
+   * gate; the additional strict-greater-than check is local to the
+   * Layout card because identical originals carry no visual signal
+   * worth striking through.
    */
   const isOnSale =
-    showOriginalPrice &&
-    originalPriceCents !== undefined &&
+    isSaleModeActive(showOriginalPrice, originalPriceCents) &&
     originalPriceCents > absolutePriceCents;
 
   const originalPriceText = isOnSale

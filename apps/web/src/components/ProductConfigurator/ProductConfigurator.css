@@ -100,7 +100,25 @@
    --------------------------------------------------------------------------- */
 
 .configurator {
-  min-height: 100vh;
+  /* The configurator must occupy at least the *small* viewport height
+     so that `position: sticky` on the bottom navigation bar has a
+     containing block tall enough to provide a slide range. The small
+     viewport unit (`svh`) corresponds to the viewport size when all
+     mobile browser UA chrome (URL bar, bottom toolbar, home indicator)
+     is visible -- the most conservative measurement. Using `svh`
+     instead of `dvh`/`vh` avoids two cross-browser pitfalls:
+
+       1. iOS Safari `vh` resolves to the *large* viewport (URL bar
+          hidden), pushing the natural sticky position below the
+          visible fold.
+       2. Chrome Android `dvh` does not always shrink while the
+          bottom address bar is showing, leaving the sticky bar
+          clipped behind the toolbar.
+
+     The `100%` declaration is retained as a fallback for browsers
+     without `svh` support. */
+  min-height: 100%;
+  min-height: 100svh;
   background: var(--cfg-color-surface);
   font-family: var(--cfg-font-body);
   color: var(--cfg-color-text);
@@ -361,7 +379,8 @@
    navigation bar. The bottom nav is now sticky within the flex column,
    so standard bottom padding is sufficient. */
 .configurator__content {
-  flex: 1;
+  flex: 1 0 auto;
+  min-height: 0;
   padding: 40px 32px 32px;
   max-width: var(--cfg-content-max-width);
   margin: 0 auto;
@@ -1864,7 +1883,14 @@ select.configurator__form-input {
 
 .configurator__bottom-nav {
   position: sticky;
-  bottom: 0;
+  /* The `bottom` offset is the iOS safe-area inset (home indicator
+     clearance on notched iPhones; 0 on devices and browsers without
+     a safe-area inset). Combined with `min-height: 100svh` on the
+     ancestor scroll container -- which already sizes the scrollport
+     to the viewport with all UA chrome visible -- this offset is
+     sufficient to keep the bar above the home indicator on iOS while
+     remaining flush with the viewport bottom on every other platform. */
+  bottom: env(safe-area-inset-bottom, 0px);
   padding: 16px 32px;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
@@ -2171,6 +2197,17 @@ select.configurator__form-input {
   }
 
   .configurator__bottom-nav {
+    bottom: -19px;
+    /* Mobile breakpoint widens the bar to fill the viewport edge-to-edge
+       and tightens the padding. Position remains `sticky` (inherited from
+       the base rule) so the browser compositor handles the pin without
+       any per-frame JavaScript -- this is what keeps the bar feeling
+       anchored rather than lagging behind scroll. The container's
+       `min-height: 100dvh` ensures the natural sticky position lines up
+       with the visible viewport bottom even while mobile UI chrome is
+       expanded. */
+    margin: auto 0 0;
+    max-width: none;
     padding: 12px 20px;
   }
 

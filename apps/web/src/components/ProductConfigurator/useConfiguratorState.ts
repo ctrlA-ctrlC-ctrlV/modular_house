@@ -172,6 +172,15 @@ export interface ConfiguratorStateAPI {
   toggleAddon: (addonId: string) => void;
   /** Show or hide the consultation form on the summary step. */
   setShowConsultation: (show: boolean) => void;
+  /**
+   * High-level navigation action that opens the consultation form view
+   * from the summary step. Wraps `setShowConsultation(true)` together
+   * with the same scroll-reset behaviour applied by `goToStep`,
+   * `nextStep`, and `previousStep`, so all forward transitions present
+   * the incoming view from its top edge regardless of the outgoing
+   * scroll depth.
+   */
+  openConsultation: () => void;
 
   /* -- Form actions ------------------------------------------------------- */
 
@@ -599,6 +608,21 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     }
   }, [stepIndex, scrollToTop]);
 
+  /**
+   * Reveal the consultation form overlay on the summary step.
+   *
+   * Functionally equivalent to `setShowConsultation(true)` but additionally
+   * resets the scroll position to the top of the configurator container.
+   * This keeps the transition into the consultation view consistent with
+   * the other navigation actions (`goToStep`, `nextStep`, `previousStep`),
+   * which all invoke `scrollToTop` so the incoming view is rendered from
+   * its top edge rather than inheriting the outgoing step's scroll depth.
+   */
+  const openConsultation = useCallback(() => {
+    setShowConsultation(true);
+    scrollToTop();
+  }, [scrollToTop]);
+
 
   /* -----------------------------------------------------------------------
      Selection Actions
@@ -811,6 +835,7 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     setInteriorFinish,
     toggleAddon,
     setShowConsultation,
+    openConsultation,
     updateFormField,
     submitForm,
   };

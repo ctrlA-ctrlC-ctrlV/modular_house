@@ -4,20 +4,35 @@
 
 /**
  * HTML & Body Reset
- * 
- * Sets the document to occupy exactly 100% of the viewport with no
+ *
+ * Sets the document to occupy exactly the visible viewport with no
  * native scroll. The TemplateLayout component provides a dedicated
  * scrollable container (.theme-template.h-100.overflow-y-auto) that
  * handles all vertical scrolling. This architecture:
  *   1. Prevents double scrollbars (body vs inner container)
  *   2. Enables scroll-position restoration per route
  *   3. Allows the header to overlay content without layout shift
+ *
+ * VIEWPORT UNIT NOTE:
+ * `100svh` (small viewport height) is used in preference to `dvh`/`vh`.
+ * `svh` represents the viewport height when *all* mobile browser UI
+ * chrome (top URL bar and bottom toolbar/home indicator) is visible,
+ * which is the smallest possible visible area. Sizing the root scroll
+ * container to `svh` guarantees that descendants pinned with
+ * `position: sticky; bottom: 0` (e.g. the configurator's mobile bottom
+ * navigation bar) are never clipped behind the bottom toolbar -- a
+ * known issue on Chrome Android, where `dvh` does not always shrink
+ * while the bottom address bar is showing.
+ *
+ * The `100%` declarations are retained as a fallback for older browsers
+ * that predate the small-viewport unit.
  */
 html,
 body {
   margin: 0;
   padding: 0;
   height: 100%;
+  height: 100svh;
   overflow: hidden;
 }
 
@@ -28,4 +43,5 @@ body {
 #root {
   width: 100%;
   height: 100%;
+  height: 100svh;
 }

@@ -1002,10 +1002,16 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </div>
 
         {/* CTA button */}
+        {/* Invokes the high-level `openConsultation` action rather than
+            toggling `setShowConsultation` directly. This routes the
+            transition through the same navigation pipeline used by the
+            step buttons, ensuring the incoming consultation view is
+            scrolled to the top of the configurator container instead of
+            inheriting the summary step's scroll depth. */}
         <button
           type="button"
           className="configurator__cta-button"
-          onClick={() => state.setShowConsultation(true)}
+          onClick={state.openConsultation}
         >
           Send me my estimate &rarr;
         </button>

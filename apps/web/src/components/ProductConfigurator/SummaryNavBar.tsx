@@ -290,26 +290,34 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
      Displays the glazing specification from the product specs array and
      the detailed glazing note. The spec label is resolved dynamically
      from the product data to accommodate different spec naming conventions.
+
+     The entire section (card, heading, content) is omitted when the
+     product carries no `glazingDetails`. Rendering an empty card with
+     only the title would imply that data is missing rather than
+     intentionally absent, so the section is removed from the layout
+     entirely instead.
      ----------------------------------------------------------------------- */
-  const renderGlazingSection = (): React.ReactNode => (
-    <div className="configurator__summary-section">
-      <h4 className="configurator__summary-section-title">Glazing</h4>
-      <div className="configurator__summary-section-content">               
-        {/* Structured glazing detail rows -- each entry describes a single
-            window or door unit with its type label and nominal dimensions. */}
-        {product.glazingDetails && product.glazingDetails.length > 0 && (
-          <>
-            {product.glazingDetails.map((detail, index) => (
-              <div key={`${detail.label}-${index}`} className="configurator__summary-detail-row">
-                <span className="configurator__summary-detail-label">{detail.label}</span>
-                <span className="configurator__summary-detail-value">{detail.dimensions}</span>
-              </div>
-            ))}
-          </>
-        )}        
+  const renderGlazingSection = (): React.ReactNode => {
+    if (!product.glazingDetails || product.glazingDetails.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="configurator__summary-section">
+        <h4 className="configurator__summary-section-title">Glazing</h4>
+        <div className="configurator__summary-section-content">
+          {/* Structured glazing detail rows -- each entry describes a single
+              window or door unit with its type label and nominal dimensions. */}
+          {product.glazingDetails.map((detail, index) => (
+            <div key={`${detail.label}-${index}`} className="configurator__summary-detail-row">
+              <span className="configurator__summary-detail-label">{detail.label}</span>
+              <span className="configurator__summary-detail-value">{detail.dimensions}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
 
   /* -----------------------------------------------------------------------
@@ -317,22 +325,25 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
      -----------------------------------------------------------------------
      Renders bathroom and kitchen availability information based on the
      product's bathroomKitchenPolicy discriminated union value:
-       - "not-available"  : explicitly states the feature is unavailable
+       - "not-available"  : the section is omitted entirely (returns null)
+                            so the summary does not advertise a feature
+                            the product cannot offer.
        - "optional-addon" : shows whether the B&K add-on was selected
        - "layout-bundled" : derives availability from the selected layout
        - "included"       : lists all included features from the product data
      ----------------------------------------------------------------------- */
   const renderBathroomKitchenSection = (): React.ReactNode => {
+    /* Suppress the entire section for products that do not offer
+       bathroom or kitchen at any tier (e.g. The Compact 15m2). The
+       caller ignores `null` returns when composing the section list,
+       so the surrounding card chrome and heading are never rendered. */
+    if (product.bathroomKitchenPolicy === 'not-available') {
+      return null;
+    }
+
     /** Resolves the section content based on the product's bathroom & kitchen policy. */
     const renderPolicyContent = (): React.ReactNode => {
       switch (product.bathroomKitchenPolicy) {
-        case 'not-available':
-          return (
-            <span className="configurator__summary-detail-label">
-              Not available for this model
-            </span>
-          );
-
         case 'optional-addon': {
           /* Locate the bathroom & kitchen add-on entry by slug convention.
              The add-on is identified by its slug containing 'bathroom' or 'kitchen'. */

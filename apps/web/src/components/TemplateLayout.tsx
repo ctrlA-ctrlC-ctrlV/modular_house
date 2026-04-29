@@ -195,10 +195,10 @@ const LayoutContent: React.FC = () => {
         */}
         <EventNewsBanner
           layout="badge-logo-details"
-          logoSrc="/resource/misc/bloom_2026.png"
-          logoSrcWebP="/resource/misc/bloom_2026.webp"
-          logoSrcAvif="/resource/misc/bloom_2026.avif"
-          logoAlt="Bloom logo 2026"
+          logoSrc="/resource/misc/bloom.png"
+          logoSrcWebP="/resource/misc/bloom.webp"
+          logoSrcAvif="/resource/misc/bloom.avif"
+          logoAlt="Bloom logo green"
           backgroundSrc="/resource/misc/flower_banner_bg.png"
           backgroundSrcWebP="/resource/misc/flower_banner_bg.webp"
           backgroundSrcAvif="/resource/misc/flower_banner_bg.avif"

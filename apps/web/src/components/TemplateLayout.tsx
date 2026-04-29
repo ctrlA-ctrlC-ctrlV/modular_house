@@ -201,7 +201,7 @@ const LayoutContent: React.FC = () => {
           backgroundSrc="/resource/misc/flower_banner_bg.png"
           backgroundSrcWebP="/resource/misc/flower_banner_bg.webp"
           backgroundSrcAvif="/resource/misc/flower_banner_bg.avif"
-          endsAt="2026-06-01T23:59:59+01:00"
+          endsAt="2026-05-01T23:59:59+01:00"
           badgeLabel="SEE US @"
         />
 

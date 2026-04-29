@@ -70,7 +70,7 @@
    --enb-badge-tracking: 0.08em;
 
   /* Overlay opacity fraction applied to the background image. */
-  --enb-overlay-alpha:  0.40;
+  --enb-overlay-alpha:  0.00; /*.40*/
 
   /* Inner content maximum width, aligned with the site's container width. */
   --enb-inner-max-w:    1650px;
@@ -85,10 +85,10 @@
   --enb-height-desktop: 96px;
 
   /* Logo height on mobile viewports. */
-  --enb-logo-h-mobile:  40px;
+  --enb-logo-h-mobile:  70px;
 
   /* Logo height on desktop viewports. */
-  --enb-logo-h-desktop: 60px;
+  --enb-logo-h-desktop: 90px;
 }
 
 

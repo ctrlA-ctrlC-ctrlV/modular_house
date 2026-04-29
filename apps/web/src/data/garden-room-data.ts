@@ -687,11 +687,11 @@ export const INFINITE_GALLERY_IMAGES: InfiniteGalleryImage[] = [
     orientation: 'landscape',
   },
   {
-    id: 'gr-ext-1',
-    src: '/resource/garden-room/hosue-extension1.png',
-    srcWebP: '/resource/garden-room/hosue-extension1.webp',
-    srcAvif: '/resource/garden-room/hosue-extension1.avif',
-    alt: 'House extension with steel frame construction',
+    id: 'gr-show-1',
+    src: '/resource/garden-room/garden-room-show1.png',
+    srcWebP: '/resource/garden-room/garden-room-show1.webp',
+    srcAvif: '/resource/garden-room/garden-room-show1.avif',
+    alt: 'Garden room at Ideal Home Show',
     orientation: 'landscape',
   },
 ];

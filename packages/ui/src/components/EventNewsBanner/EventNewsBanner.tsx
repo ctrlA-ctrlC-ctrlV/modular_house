@@ -216,20 +216,35 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
   // ---------------------------------------------------------------------------
   // Expiry Timer Effect
   // ---------------------------------------------------------------------------
-  // Registers a single `setTimeout` whose delay is the number of milliseconds
-  // remaining until `endsAt`. When the timer fires, `isVisible` is set to
-  // `false`, causing React to remove the element from the DOM. The cleanup
-  // function cancels the timer if the component unmounts before the deadline
-  // to prevent a state update on an unmounted component.
+  // Reconciles `isVisible` with the current `endsAt` prop and registers a
+  // single `setTimeout` whose delay is the number of milliseconds remaining
+  // until the deadline. When the timer fires, `isVisible` is set to `false`,
+  // causing React to remove the element from the DOM. The cleanup function
+  // cancels the timer if the component unmounts (or `endsAt` changes again)
+  // before the deadline, preventing state updates on an unmounted component.
+  //
+  // The effect explicitly synchronises `isVisible` in BOTH directions on every
+  // `endsAt` change. The lazy `useState` initialiser only executes on the
+  // first render; without an effect that can also flip the flag back to
+  // `true`, a component that was mounted with an already-expired deadline
+  // would remain permanently hidden even after the consumer supplied a new,
+  // future deadline. This scenario occurs in practice during Vite HMR (which
+  // preserves component state across prop edits) and whenever consumers
+  // mutate `endsAt` at runtime to reactivate a campaign.
   useEffect(() => {
     const remaining = new Date(endsAt).getTime() - Date.now();
 
-    // Guard: if the deadline has already passed (or is exactly now), hide
-    // immediately without scheduling a timer.
+    // Branch 1: the deadline has already passed (or is exactly now). Hide
+    // synchronously and skip the timer; no further work is required.
     if (remaining <= 0) {
       setIsVisible(false);
       return;
     }
+
+    // Branch 2: a future deadline. Ensure the banner is visible (covers the
+    // case where it was previously hidden) and schedule a single timer to
+    // hide it once the deadline elapses.
+    setIsVisible(true);
 
     const timerId = window.setTimeout(() => {
       setIsVisible(false);

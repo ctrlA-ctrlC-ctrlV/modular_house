@@ -11,9 +11,45 @@
  * =============================================================================
  */
 
-import type { AddonOption, ConfiguratorProduct, FloorPlanVariant, LayoutOption } from '../../types/configurator';
+import type {
+  AddonOption,
+  BathroomKitchenPolicy,
+  ConfiguratorProduct,
+  FloorPlanVariant,
+  LayoutOption,
+} from '../../types/configurator';
 import type { ConfiguratorSelections } from './types';
 import { DEFAULT_EXTERIOR_FINISH_NAME, DEFAULT_INTERIOR_FINISH_NAME } from './constants';
+
+
+/* =============================================================================
+   Bathroom & Kitchen Add-on Slug Allow-List
+   -----------------------------------------------------------------------------
+   The Bathroom & Kitchen feature is the only add-on whose availability is
+   driven from the unified product schema rather than from manual data
+   curation. Two slugs are reserved for this feature -- one per fixture --
+   and any add-on carrying either slug is gated by the product's
+   `bathroomKitchenPolicy` discriminated union (see
+   `apps/web/src/types/garden-room.ts`).
+
+   Centralising the slugs here keeps the filter contract self-documenting
+   and prevents the runtime gate from drifting out of sync with the seed
+   data (see specs/.docs/product-configurator-gotcha-tasks.md, T7).
+   ============================================================================= */
+
+/**
+ * Reserved add-on slugs that map to the Bathroom & Kitchen feature.
+ *
+ * These slugs are recognised by `filterAddonsByPolicy` and are removed
+ * from the visible add-on list when the product's policy is
+ * `'not-available'`. Adding new fixture-specific slugs (for example,
+ * `'wet-room'`) requires adding them to this tuple AND updating the
+ * filter unit tests.
+ */
+export const BATHROOM_KITCHEN_ADDON_SLUGS: ReadonlyArray<string> = [
+  'bathroom',
+  'kitchen',
+] as const;
 
 
 /**
@@ -115,6 +151,55 @@ export function isSaleModeActive(
   originalCents: number | undefined,
 ): originalCents is number {
   return showOriginalPrice && originalCents !== undefined;
+}
+
+
+/**
+ * Filters a product's add-ons against its Bathroom & Kitchen policy.
+ *
+ * The Bathroom & Kitchen feature has historically been enabled or
+ * disabled by manual data curation in
+ * `apps/web/src/data/configurator-products.ts`. This filter shifts the
+ * gate from data-side curation to a runtime contract derived from the
+ * canonical `bathroomKitchenPolicy` field, eliminating an entire class
+ * of regression in which a future product accidentally exposes (or
+ * duplicates) the B&K add-on.
+ *
+ * Behaviour
+ * ---------
+ * - When `policy === 'not-available'`, add-ons whose slug appears in
+ *   `BATHROOM_KITCHEN_ADDON_SLUGS` are removed from the returned list.
+ *   All other add-ons (e.g. triple-glazing, sauna-room) pass through
+ *   unchanged.
+ * - For every other policy value (`'optional-addon'`,
+ *   `'layout-bundled'`, `'included'`) the input list is returned
+ *   verbatim. The caller (or upstream UI) is responsible for visually
+ *   communicating bundled or included status; this helper deliberately
+ *   does not hide add-ons in those modes.
+ *
+ * The function is pure and runs in O(n) over the add-on list. It is
+ * safe to invoke at every render site (display lists, total
+ * calculation, submission slug builder) without memoisation.
+ *
+ * @param addons - The full add-on list as defined on the product.
+ * @param policy - The product's bathroom & kitchen availability policy.
+ * @returns A list of add-ons that should be exposed to the configurator
+ *   UI and included in price calculations.
+ */
+export function filterAddonsByPolicy(
+  addons: ReadonlyArray<AddonOption>,
+  policy: BathroomKitchenPolicy,
+): ReadonlyArray<AddonOption> {
+  if (policy !== 'not-available') {
+    /* The list passes through untouched. Returning the same reference
+       (rather than `[...addons]`) preserves referential stability for
+       downstream `useMemo` / `React.memo` consumers. */
+    return addons;
+  }
+
+  return addons.filter(
+    (addon) => !BATHROOM_KITCHEN_ADDON_SLUGS.includes(addon.slug),
+  );
 }
 
 

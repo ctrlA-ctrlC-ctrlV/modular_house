@@ -45,7 +45,7 @@ import { LayoutCard } from './LayoutCard';
 import { SummaryNavBar } from './SummaryNavBar';
 import { BespokeHint } from './BespokeHint';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
-import { formatPriceCents, isSaleModeActive } from './utils';
+import { formatPriceCents, filterAddonsByPolicy, isSaleModeActive } from './utils';
 import './ProductConfigurator.css';
 
 
@@ -179,8 +179,11 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
       ?.name ?? '';
 
     /* Build the comma-separated add-on slug list from the current
-       configurator selections. */
-    const addonSlugs = product.addons
+       configurator selections. The add-on collection is funnelled
+       through `filterAddonsByPolicy` so a `'not-available'` policy
+       cannot leak a Bathroom & Kitchen slug into the submission
+       payload, even if the data layer accidentally exposes one. */
+    const addonSlugs = filterAddonsByPolicy(product.addons, product.bathroomKitchenPolicy)
       .filter((a) => state.selections.selectedAddonIds.includes(a.id))
       .map((a) => a.slug)
       .join(',');
@@ -541,7 +544,17 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      selected add-on prices displayed below.
      ----------------------------------------------------------------------- */
   const renderAddonsStep = (): React.ReactNode => {
-    const selectedAddons = product.addons.filter((a) =>
+    /* Apply the policy-driven filter so products with
+       `bathroomKitchenPolicy === 'not-available'` never display a
+       Bathroom or Kitchen add-on, regardless of the product's data
+       definition. The same filter is used for total calculation in
+       `useConfiguratorState`, so the running total and the displayed
+       cards stay in agreement. */
+    const availableAddons = filterAddonsByPolicy(
+      product.addons,
+      product.bathroomKitchenPolicy,
+    );
+    const selectedAddons = availableAddons.filter((a) =>
       state.selections.selectedAddonIds.includes(a.id)
     );
     const addonTotalCents = selectedAddons.reduce(
@@ -559,7 +572,7 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
         </div>
 
         <div className="configurator__addons-list">
-          {product.addons.map((addon) => (
+          {availableAddons.map((addon) => (
             <AddonCard
               key={addon.id}
               addon={addon}
@@ -886,9 +899,12 @@ export const ProductConfiguratorPage: React.FC<ProductConfiguratorPageProps> = (
      a "Book Your Consultation" CTA button.
      ----------------------------------------------------------------------- */
   const renderSummaryStep = (): React.ReactNode => {
-    const selectedAddons = product.addons.filter((a) =>
-      state.selections.selectedAddonIds.includes(a.id)
-    );
+    /* Mirror the policy-driven filter used by the Add-ons step and the
+       price-calculation pipeline so the summary breakdown can never
+       display an add-on line for a product whose policy explicitly
+       suppresses Bathroom & Kitchen. */
+    const selectedAddons = filterAddonsByPolicy(product.addons, product.bathroomKitchenPolicy)
+      .filter((a) => state.selections.selectedAddonIds.includes(a.id));
     const selectedLayout = product.layoutOptions?.find(
       (l) => l.id === state.selections.layoutOptionId
     );

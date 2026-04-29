@@ -26,7 +26,11 @@ import { useState, useCallback, useEffect } from 'react';
 import type { ConfiguratorProduct } from '../../types/configurator';
 import type { ConfiguratorSelections, ConfiguratorFormData, FormStatus, ConfiguratorStep } from './types';
 import { buildConfiguratorSteps, SESSION_STORAGE_KEY_PREFIX } from './constants';
-import { buildDefaultSelections, calculateTotalPriceCents } from './utils';
+import {
+  buildDefaultSelections,
+  calculateTotalPriceCents,
+  filterAddonsByPolicy,
+} from './utils';
 import { apiClient } from '../../lib/apiClient';
 
 
@@ -433,9 +437,20 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
   /* -----------------------------------------------------------------------
      Derived Values
      ----------------------------------------------------------------------- */
+
+  /* Resolve the add-on list once via the policy-driven filter. Every
+     downstream consumer (live total, original total, submission slug
+     list) reads from this single source of truth so price math and
+     payload payloads cannot drift apart -- even if a future product
+     forgets to omit the Bathroom & Kitchen add-on at the data layer. */
+  const visibleAddons = filterAddonsByPolicy(
+    product.addons,
+    product.bathroomKitchenPolicy,
+  );
+
   const totalPriceCents = calculateTotalPriceCents(
     product.basePriceCentsInclVat,
-    product.addons,
+    visibleAddons,
     selections.selectedAddonIds,
     product.floorPlanVariants,
     selections.floorPlanVariantId,
@@ -471,7 +486,7 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
       ? undefined
       : calculateTotalPriceCents(
           resolvedOriginalBaseCents,
-          product.addons,
+          visibleAddons,
           selections.selectedAddonIds,
           product.floorPlanVariants,
           selections.floorPlanVariantId,
@@ -760,8 +775,13 @@ export function useConfiguratorState(product: ConfiguratorProduct): Configurator
     const interiorName =
       interiorCategory?.options.find((o) => o.id === selections.interiorFinishId)?.name ?? '';
 
-    /* -- Build comma-separated add-on slug list --------------------------- */
-    const addonSlugs = product.addons
+    /* -- Build comma-separated add-on slug list ---------------------------
+       The slug list is built from the policy-filtered `visibleAddons`
+       collection rather than `product.addons` directly. This ensures
+       the API submission can never include a slug for an add-on that
+       was hidden in the UI, keeping the persisted enquiry consistent
+       with what the customer actually saw. */
+    const addonSlugs = visibleAddons
       .filter((a) => selections.selectedAddonIds.includes(a.id))
       .map((a) => a.slug)
       .join(',');

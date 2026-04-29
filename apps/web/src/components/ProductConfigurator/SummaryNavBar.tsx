@@ -33,7 +33,7 @@ import type {
 import { FloorPlan } from './FloorPlan';
 import { ArchitecturalFloorPlan } from './ArchitecturalFloorPlan';
 import { getStudioFloorPlanConfig } from '../../data/studio-floor-plans';
-import { formatPriceCents } from './utils';
+import { formatPriceCents, filterAddonsByPolicy } from './utils';
 import { PRODUCT_SHOWCASE_WARRANTIES } from '../../data/garden-room-data';
 import { HoverButton } from '@modular-house/ui';
 
@@ -108,7 +108,15 @@ export const SummaryNavBar: React.FC<SummaryNavBarProps> = ({
     (l) => l.id === layoutOptionId,
   );
 
-  const selectedAddons = product.addons.filter((a) => selectedAddonIds.includes(a.id));
+  /* The add-on summary list reads from the policy-filtered collection
+     so the Summary section stays consistent with the Add-ons step and
+     the configurator's price totals. A `'not-available'` policy cannot
+     surface a Bathroom or Kitchen line here even if the product data
+     incorrectly exposes one. */
+  const selectedAddons = filterAddonsByPolicy(
+    product.addons,
+    product.bathroomKitchenPolicy,
+  ).filter((a) => selectedAddonIds.includes(a.id));
 
 
   /* -----------------------------------------------------------------------

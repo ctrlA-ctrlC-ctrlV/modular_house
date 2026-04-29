@@ -8,7 +8,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T1. 🔴 Make the honeypot bypass observable to operators
+## ~~T1. 🔴 Make the honeypot bypass observable to operators~~
 
 **Problem.** When the honeypot field is populated, `submitForm` sets `formStatus = 'success'` and `quoteNumber = 'Q0000000'` *without* calling the API. A developer triaging "the form says success but no email arrived" cannot distinguish a real success from a silently rejected bot.
 
@@ -25,7 +25,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T2. 🔴 Guard against `formData` accidentally being persisted
+## ~~T2. 🔴 Guard against `formData` accidentally being persisted~~
 
 **Problem.** `formData` is intentionally excluded from `sessionStorage`, but the omission is enforced only by convention. A future contributor adding a field to `PersistedState` could regress privacy.
 
@@ -40,7 +40,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T3. 🔴 Make sale-mode dual-gate self-documenting
+## ~~T3. 🔴 Make sale-mode dual-gate self-documenting~~
 
 **Problem.** Sale rendering requires *both* `showOriginalPrice === true` and a resolvable `originalTotalPriceCents`. Today the gate is duplicated inline (ternary) on five surfaces (StickySubHeader, Overview, Floor Plan, Layout, Summary). A contributor who fixes the gate in only one place will produce inconsistent UI.
 
@@ -60,7 +60,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T4. 🟠 Centralise the scrollable container selector
+## ~~T4. 🟠 Centralise the scrollable container selector~~
 
 **Problem.** `useConfiguratorState.scrollToTop` hard-codes the selector `.theme-template.overflow-y-auto`. If the layout shell is ever renamed (it has been refactored before — see specs/008-garden-room-redesign), step navigation will silently stop scrolling. The CSS coupling is also undocumented at the call sites.
 
@@ -78,7 +78,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T5. 🟠 Explicitly document and enforce the Studio-25 "no Overview" rule
+## ~~T5. 🟠 Explicitly document and enforce the Studio-25 "no Overview" rule~~
 
 **Problem.** `buildConfiguratorSteps` removes the `overview` step when `floorPlanVariants` are present. This product-shape-driven branch is invisible from the type system; new code that does `steps.find(s => s.id === 'overview')!` will crash on Studio-25.
 
@@ -94,7 +94,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T6. 🟠 Add a `data-testid` to the bottom-nav `Continue` button on Summary
+## ~~T6. 🟠 Add a `data-testid` to the bottom-nav `Continue` button on Summary~~
 
 **Problem.** `Continue` is intentionally hidden on the Summary step (the entire `<div className="configurator__bottom-nav">` is unmounted via `currentStep?.id !== 'summary'`). E2E tests that wait on the button without first checking the step will hang. There is currently no stable hook for "I am on the Summary step".
 
@@ -131,7 +131,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T8. 🟢 Tighten Bespoke `roomSize` → API mapping with a type-level guard
+## ~~T8. 🟢 Tighten Bespoke `roomSize` → API mapping with a type-level guard~~
 
 **Problem.** `roomSize` is free text and must **never** be assigned to the API's strict-enum `preferredProduct` field. Today this is enforced by a comment only.
 
@@ -148,7 +148,7 @@ Legend: 🔴 High urgency · 🟠 Medium · 🟢 Low. Each task is independently
 
 ---
 
-## T9. 🟢 Replace eager image preload with `<link rel="preload">` (or scrap it)
+## ~~T9. 🟢 Replace eager image preload with `<link rel="preload">` (or scrap it)~~
 
 **Problem.** The `useEffect` in `ProductConfiguratorPage` instantiates `new Image()` for every finish image on mount. The cleanup only nulls the array — it cannot abort in-flight loads, and on slow connections this competes with the visible step's images.
 

@@ -69,8 +69,17 @@
    --enb-badge-size:     clamp(0.72rem, 1.2vw, 0.86rem);
    --enb-badge-tracking: 0.08em;
 
-  /* Overlay opacity fraction applied to the background image. */
-  --enb-overlay-alpha:  0.00; /*.40*/
+  /* Overlay tint colour applied above the background image, expressed as an
+     RGB triplet so the alpha channel can be controlled independently via
+     `--enb-overlay-alpha`. The triplet form (no `rgb()` wrapper) is required
+     because it is composed into `rgba(R, G, B, A)` at the consumption site;
+     supplying a fully formed colour here would prevent alpha overrides. */
+  --enb-overlay-color:  17, 97, 98;
+
+  /* Overlay opacity fraction applied to the background image. A value of 0
+     disables the tint without removing the layer, which keeps the stacking
+     contract stable while permitting per-page adjustments. */
+  --enb-overlay-alpha:  1;
 
   /* Inner content maximum width, aligned with the site's container width. */
   --enb-inner-max-w:    1650px;
@@ -145,20 +154,6 @@
   display: block;
 }
 
-.event-news-banner__background {
-   position: relative;
-   display: block;
-}
-
-.event-news-banner__background-image::before{
-   content: '';
-   position: absolute;
-   inset: 0;
-   background-color: rgba(17, 97, 98, .5);
-   z-index: 1;
-   pointer-events: none;
-}
-
 .event-news-banner__background-image {
    /* Fill the `<picture>` wrapper in both dimensions. */
    width:  100%;
@@ -190,10 +185,11 @@
   position: absolute;
   inset: 0;
 
-  /* Semi-transparent black layer. The alpha value is controlled by the
-     component-level token so it can be adjusted without touching structural
-     rules. */
-  background-color: rgba(0, 0, 0, var(--enb-overlay-alpha));
+  /* Tinted layer composed from the dedicated colour and alpha tokens.
+     Splitting the colour from the opacity lets consumers override either
+     dimension in isolation — for example raising the alpha for darker
+     background photography without changing the brand tint hue. */
+  background-color: rgba(var(--enb-overlay-color), var(--enb-overlay-alpha));
 
   /* The overlay is decorative; it must not intercept pointer events intended
      for the inner content layer. */
@@ -347,8 +343,6 @@
   /* Prevent the logo from shrinking when the flex container is narrow. The
      max-width above provides a safety cap. */
   flex-shrink: 0;
-
-  border-left: var(--enb-details-divider-w) solid var(--enb-details-divider-fg);
 }
 
 
@@ -389,7 +383,7 @@
 .event-news-banner {
   /* Foreground colour for the details text. White matches the badge label
      and provides maximum contrast over the darkened background. */
-  --enb-details-fg:           #1f1f1f;
+  --enb-details-fg:           #fefefe;
 
   /* Date row typography. Slightly larger and bolder than the location
      row to establish a clear primary/secondary hierarchy. */
@@ -427,8 +421,8 @@
   padding:    0 0 0 clamp(0.6rem, 1.5vw, 1rem);
   margin-left: clamp(0.25rem, 1vw, 0.6rem);
 
-  /* Divider: a single-pixel translucent rule to the left of the block. */
-  border-left: var(--enb-details-divider-w) solid var(--enb-details-divider-fg);
+  /* Divider: a single-pixel translucent rule to the left of the block. 
+  border-left: var(--enb-details-divider-w) solid var(--enb-details-divider-fg);*/
 
   /* Foreground colour cascades to both child rows. */
   color:      var(--enb-details-fg);
@@ -465,8 +459,8 @@
    event identity through the logo and badge alone, so omitting the
    secondary metadata is a graceful degradation rather than a regression. */
 @media (max-width: 480px) {
-  .event-news-banner__inner--badge-logo-details .event-news-banner__details {
-    /*display: none;*/
-  }
+  /*.event-news-banner__inner--badge-logo-details .event-news-banner__details {
+    /*display: none;
+  }*/
 }
 

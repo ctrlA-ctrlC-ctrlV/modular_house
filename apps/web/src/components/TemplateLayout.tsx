@@ -194,14 +194,14 @@ const LayoutContent: React.FC = () => {
           automatically removing itself without requiring a redeploy.
         */}
         <EventNewsBanner
-          logoSrc="/resource/misc/IHS.png"
-          logoSrcWebP="/resource/misc/IHS.webp"
-          logoSrcAvif="/resource/misc/IHS.avif"
-          logoAlt="PTSB Ideal Home Show logo"
-          backgroundSrc="/resource/misc/default_banner_bg.png"
-          backgroundSrcWebP="/resource/misc/default_banner_bg.webp"
-          backgroundSrcAvif="/resource/misc/default_banner_bg.avif"
-          endsAt="2026-04-26T23:59:59+01:00"
+          logoSrc="/resource/misc/bloom_2026.png"
+          logoSrcWebP="/resource/misc/bloom_2026.webp"
+          logoSrcAvif="/resource/misc/bloom_2026.avif"
+          logoAlt="Bloom logo 2026"
+          backgroundSrc="/resource/misc/flower_banner_bg.png"
+          backgroundSrcWebP="/resource/misc/flower_banner_bg.webp"
+          backgroundSrcAvif="/resource/misc/flower_banner_bg.avif"
+          endsAt="2026-06-01T23:59:59+01:00"
           badgeLabel="SEE US @"
         />
 

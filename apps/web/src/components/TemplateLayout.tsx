@@ -194,6 +194,7 @@ const LayoutContent: React.FC = () => {
           automatically removing itself without requiring a redeploy.
         */}
         <EventNewsBanner
+          layout="badge-logo-details"
           logoSrc="/resource/misc/bloom_2026.png"
           logoSrcWebP="/resource/misc/bloom_2026.webp"
           logoSrcAvif="/resource/misc/bloom_2026.avif"
@@ -203,6 +204,10 @@ const LayoutContent: React.FC = () => {
           backgroundSrcAvif="/resource/misc/flower_banner_bg.avif"
           endsAt="2026-05-01T23:59:59+01:00"
           badgeLabel="SEE US @"
+          details={{
+            eventDate: '28 May - 1 Jun 2026',
+            eventLocation: 'Phoenix Park, Dublin',
+          }}
         />
 
         {/* Header Wrapper: Relative positioning allows absolute positioned headers (overlays) to work correctly */}

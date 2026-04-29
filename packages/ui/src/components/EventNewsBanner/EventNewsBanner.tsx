@@ -79,13 +79,60 @@ import './EventNewsBanner.css';
    ============================================================================= */
 
 /**
- * Props accepted by the `EventNewsBanner` component.
+ * Identifier for a banner layout template.
  *
- * Every property maps to one distinct visual concern so the interface is
- * closed to modification but open to targeted extension by sub-classing or
- * prop-spread patterns.
+ * The component currently ships with two layout templates:
+ *
+ * - `'badge-logo'`         — the original two-region layout: a decorative
+ *                            brand badge on the left, followed by the
+ *                            partner/event logo. This value is the default
+ *                            and is preserved for backward compatibility
+ *                            with existing call sites.
+ *
+ * - `'badge-logo-details'` — extends the original layout with a third
+ *                            region containing event metadata (date and
+ *                            location) rendered to the right of the logo.
+ *                            Use when announcing a specific event
+ *                            appearance with concrete time/place details.
+ *
+ * New layout identifiers can be added in the future without breaking
+ * existing consumers because each template is opt-in via this prop.
  */
-export interface EventNewsBannerProps {
+export type EventNewsBannerLayout = 'badge-logo' | 'badge-logo-details';
+
+/**
+ * Event metadata rendered by the `'badge-logo-details'` layout template.
+ *
+ * Both fields are plain strings because the banner displays them verbatim;
+ * any locale-specific formatting (e.g. translating month names, applying
+ * 12/24-hour clocks) is the consumer's responsibility. Keeping the contract
+ * at string level avoids coupling the component to a particular i18n stack
+ * or `Date` representation.
+ */
+export interface EventNewsBannerDetails {
+  /**
+   * Human-readable date or date-range string for the announced event.
+   *
+   * @example '15 - 18 May 2026'
+   */
+  eventDate: string;
+
+  /**
+   * Human-readable venue or location string for the announced event.
+   *
+   * @example 'RDS, Dublin'
+   */
+  eventLocation: string;
+}
+
+/**
+ * Properties shared by every layout template.
+ *
+ * These props describe concerns that are layout-agnostic: imagery, expiry
+ * scheduling, accessibility text, and the optional badge label. Layout-
+ * specific props are introduced by the discriminated union variants below.
+ */
+interface EventNewsBannerBaseProps {
   /**
    * Path or absolute URL of the event/partner logo displayed inside the banner.
    * This value is used as the universal fallback inside the `<picture>`
@@ -178,6 +225,43 @@ export interface EventNewsBannerProps {
   className?: string;
 }
 
+/**
+ * Discriminated union describing the public props of the
+ * `EventNewsBanner` component.
+ *
+ * The `layout` field acts as the discriminator. TypeScript narrows the
+ * remaining props based on its value, which means consumers cannot, for
+ * example, supply `details` to the `'badge-logo'` layout, and they MUST
+ * supply `details` when selecting `'badge-logo-details'`. This gives the
+ * compiler enough information to enforce layout-specific contracts at the
+ * call site without runtime assertions.
+ *
+ * The `'badge-logo'` variant treats the `layout` field as optional so
+ * existing call sites that were written before layout templates existed
+ * continue to compile unchanged.
+ */
+export type EventNewsBannerProps =
+  | (EventNewsBannerBaseProps & {
+      /**
+       * Selects the original badge + logo layout. May be omitted to keep
+       * existing consumers source-compatible.
+       */
+      layout?: 'badge-logo';
+    })
+  | (EventNewsBannerBaseProps & {
+      /**
+       * Selects the badge + logo + details layout.
+       */
+      layout: 'badge-logo-details';
+
+      /**
+       * Event metadata rendered in the third region of the layout. Required
+       * for this variant; the TypeScript compiler will reject call sites
+       * that omit it.
+       */
+      details: EventNewsBannerDetails;
+    });
+
 
 /* =============================================================================
    SECTION 2: COMPONENT IMPLEMENTATION
@@ -190,18 +274,30 @@ export interface EventNewsBannerProps {
  * and a background image. The component automatically removes itself from the
  * DOM when the supplied `endsAt` deadline is reached.
  */
-export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
-  logoSrc,
-  logoSrcWebP,
-  logoSrcAvif,
-  logoAlt,
-  backgroundSrc,
-  backgroundSrcWebP,
-  backgroundSrcAvif,
-  endsAt,
-  badgeLabel = 'SEE US @',
-  className = '',
-}) => {
+export const EventNewsBanner: React.FC<EventNewsBannerProps> = (props) => {
+  // ---------------------------------------------------------------------------
+  // Prop Destructuring
+  // ---------------------------------------------------------------------------
+  // Destructured from the discriminated union argument. The `layout` field is
+  // normalised to `'badge-logo'` when omitted so the rendering logic below
+  // can branch on a definite string. Layout-specific fields (currently
+  // `details`) are pulled from `props` separately because TypeScript narrows
+  // them only inside guarded branches; their values are read explicitly
+  // within each render branch where the discriminator value is known.
+  const {
+    logoSrc,
+    logoSrcWebP,
+    logoSrcAvif,
+    logoAlt,
+    backgroundSrc,
+    backgroundSrcWebP,
+    backgroundSrcAvif,
+    endsAt,
+    badgeLabel = 'SEE US @',
+    className = '',
+  } = props;
+
+  const layout: EventNewsBannerLayout = props.layout ?? 'badge-logo';
   // ---------------------------------------------------------------------------
   // Visibility State
   // ---------------------------------------------------------------------------
@@ -330,8 +426,14 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
        * Inner content container — constrains the layout to a centred flex
        * row and applies horizontal padding. Positioned above the overlay
        * via `position: relative` and a higher `z-index`.
-       */}
-      <div className="event-news-banner__inner">
+
+        A layout-specific BEM modifier class is appended so the stylesheet
+        can adjust spacing, alignment, or composition rules per template
+        without touching shared structural rules.
+      */}
+      <div
+        className={`event-news-banner__inner event-news-banner__inner--${layout}`}
+      >
 
         {/*
          * Decorative brand badge.
@@ -376,6 +478,33 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = ({
             decoding="async"
           />
         </picture>
+
+        {/*
+         * Event details region.
+         *
+         * Rendered exclusively for the `'badge-logo-details'` layout. The
+         * conditional uses the discriminator field and a defensive check on
+         * `props.details` so the JSX subtree is omitted entirely when the
+         * data is not present, preserving the original two-region
+         * composition for the default layout.
+         *
+         * The block is wrapped in a `<div>` rather than an inline element
+         * because it stacks two text rows vertically (date over location)
+         * and benefits from independent line-height control via CSS.
+         */}
+        {layout === 'badge-logo-details' && 'details' in props && (
+          <div
+            className="event-news-banner__details"
+            aria-label="Event details"
+          >
+            <span className="event-news-banner__details-date">
+              {props.details.eventDate}
+            </span>
+            <span className="event-news-banner__details-location">
+              {props.details.eventLocation}
+            </span>
+          </div>
+        )}
       </div>
     </aside>
   );

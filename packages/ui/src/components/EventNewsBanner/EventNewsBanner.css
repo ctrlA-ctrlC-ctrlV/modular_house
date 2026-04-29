@@ -85,10 +85,10 @@
   --enb-height-desktop: 96px;
 
   /* Logo height on mobile viewports. */
-  --enb-logo-h-mobile:  70px;
+  --enb-logo-h-mobile:  40px;
 
   /* Logo height on desktop viewports. */
-  --enb-logo-h-desktop: 90px;
+  --enb-logo-h-desktop: 60px;
 }
 
 
@@ -145,20 +145,35 @@
   display: block;
 }
 
-.event-news-banner__background-image {
-  /* Fill the `<picture>` wrapper in both dimensions. */
-  width:  100%;
-  height: 100%;
-
-  /* Crop to the banner bounds, preserving the source aspect ratio. This
-     reproduces the legacy `background-size: cover` behaviour. */
-  object-fit:       cover;
-  object-position:  center;
-
-  /* Block display prevents the default inline baseline gap inside the
-     `<picture>` wrapper. */
-  display: block;
+.event-news-banner__background {
+   position: relative;
+   display: block;
 }
+
+.event-news-banner__background-image::before{
+   content: '';
+   position: absolute;
+   inset: 0;
+   background-color: rgba(17, 97, 98, .5);
+   z-index: 1;
+   pointer-events: none;
+}
+
+.event-news-banner__background-image {
+   /* Fill the `<picture>` wrapper in both dimensions. */
+   width:  100%;
+   height: 100%;
+
+   /* Crop to the banner bounds, preserving the source aspect ratio. This
+      reproduces the legacy `background-size: cover` behaviour. */
+   object-fit:       cover;
+   object-position:  center;
+
+   /* Block display prevents the default inline baseline gap inside the
+      `<picture>` wrapper. */
+   display: block;
+}
+
 
 
 /* =============================================================================
@@ -332,6 +347,8 @@
   /* Prevent the logo from shrinking when the flex container is narrow. The
      max-width above provides a safety cap. */
   flex-shrink: 0;
+
+  border-left: var(--enb-details-divider-w) solid var(--enb-details-divider-fg);
 }
 
 
@@ -354,3 +371,102 @@
     height: var(--enb-logo-h-desktop);
   }
 }
+
+
+/* =============================================================================
+   SECTION 8: EVENT DETAILS REGION
+   -----------------------------------------------------------------------------
+   Optional third region rendered only by the `'badge-logo-details'` layout
+   template. Composed of two stacked text rows (date over location) with
+   independent typographic emphasis. The block aligns to the start of its
+   flex cell so the date and location appear left-aligned even when the
+   banner content is centred as a whole.
+
+   Tokens introduced here are scoped to the details block, keeping the
+   shared `.event-news-banner` token set lean for the default layout.
+   ============================================================================= */
+
+.event-news-banner {
+  /* Foreground colour for the details text. White matches the badge label
+     and provides maximum contrast over the darkened background. */
+  --enb-details-fg:           #1f1f1f;
+
+  /* Date row typography. Slightly larger and bolder than the location
+     row to establish a clear primary/secondary hierarchy. */
+  --enb-details-date-size:    clamp(0.7rem, 1.5vw, 1rem); /*clamp(0.78rem, 1.5vw, 1rem)*/
+  --enb-details-date-weight:  600;
+
+  /* Location row typography. Lighter weight communicates the secondary
+     role within the date/location pair. */
+  --enb-details-loc-size:     clamp(0.62rem, 1.25vw, 0.85rem);
+  --enb-details-loc-weight:   400;
+
+  /* Vertical gap between the date and location rows. */
+  --enb-details-row-gap:      0.15rem;
+
+  /* Horizontal divider thickness drawn between the logo and the details
+     block. Rendered as a left-side border on the details element. */
+  --enb-details-divider-w:    1px;
+
+  /* Horizontal divider colour. A semi-transparent white separator sits
+     well over the darkened background image without competing with the
+     foreground text. */
+  --enb-details-divider-fg:   rgba(255, 255, 255, 0.45);
+}
+
+.event-news-banner__details {
+  /* Vertical stack of date and location text. */
+  display:        flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink:    0;
+
+  /* Spacing inside the block: the gap separates the two rows; the padding
+     creates breathing room either side of the divider line. */
+  gap:        var(--enb-details-row-gap);
+  padding:    0 0 0 clamp(0.6rem, 1.5vw, 1rem);
+  margin-left: clamp(0.25rem, 1vw, 0.6rem);
+
+  /* Divider: a single-pixel translucent rule to the left of the block. */
+  border-left: var(--enb-details-divider-w) solid var(--enb-details-divider-fg);
+
+  /* Foreground colour cascades to both child rows. */
+  color:      var(--enb-details-fg);
+
+  /* Typography: serif display family used for the badge mirrors the brand
+     voice. Individual rows refine the size/weight below. */
+  font-family: var(--font-serif, 'Special Gothic Condensed One', serif);
+  line-height: 1.15;
+
+  /* Cap to a single line per row: long location names are clipped with
+     an ellipsis instead of forcing a third row that would break the
+     fixed banner height. */
+  white-space: nowrap;
+}
+
+.event-news-banner__details-date {
+  /* Primary row: larger and heavier to draw the eye first. */
+  font-size:   var(--enb-details-date-size);
+  font-weight: var(--enb-details-date-weight);
+  letter-spacing: 0.02em;
+}
+
+.event-news-banner__details-location {
+  /* Secondary row: lighter weight and smaller size establish hierarchy. */
+  font-size:   var(--enb-details-loc-size);
+  font-weight: var(--enb-details-loc-weight);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.92;
+}
+
+/* On the narrowest viewports the details block is hidden so the badge and
+   logo retain comfortable breathing room. The banner still announces the
+   event identity through the logo and badge alone, so omitting the
+   secondary metadata is a graceful degradation rather than a regression. */
+@media (max-width: 480px) {
+  .event-news-banner__inner--badge-logo-details .event-news-banner__details {
+    /*display: none;*/
+  }
+}
+

@@ -108,7 +108,7 @@ export interface PromoConfig {
 export const PROMO_CONFIG: PromoConfig = {
   enabled: true,
   name: '2026 Spring Sale',
-  endsAt: '2026-05-31T23:59:59+01:00',
+  endsAt: '2030-05-31T23:59:59+01:00',
   eyebrow: 'Limited time',
   priceLabels: {
     original: 'Original price',

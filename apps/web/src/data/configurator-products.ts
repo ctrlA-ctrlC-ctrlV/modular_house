@@ -351,8 +351,8 @@ const COMPACT_15: HydratedProduct = {
 
   /* --- Optional marketing modifiers ------------------------------ */
   glazingDetails: [
-    { label: 'Front window',   dimensions: '700mm \u00D7 2100mm' },
-    { label: 'French door',   dimensions: '1200mm \u00D7 2100mm' },
+    { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement',    dimensions: '700mm \u00D7 2100mm' },
   ],
 
   /* --- Images ---------------------------------------------------- */
@@ -512,8 +512,9 @@ const STUDIO_25: HydratedProduct = {
   /* --- Optional marketing modifiers ------------------------------ */
   badge: 'Most Popular',
   glazingDetails: [
-    { label: 'Front window',    dimensions: '700mm \u00D7 2100mm' },
     { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #1',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Bathroom window',    dimensions: '600mm \u00D7 600mm' },
   ],
 
   /* --- Sort ------------------------------------------------------ */
@@ -778,8 +779,11 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Optional marketing modifiers ------------------------------ */
   glazingDetails: [
-    { label: 'Front window',    dimensions: '700mm \u00D7 2100mm' },
     { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #1',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #2',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #3',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Bathroom window',    dimensions: '600mm \u00D7 600mm' },
   ],
 
   /* --- Sort ------------------------------------------------------ */
@@ -952,8 +956,12 @@ const GRAND_45: HydratedProduct = {
 
   /* --- Optional marketing modifiers ------------------------------ */
   glazingDetails: [
-    { label: 'Front window',    dimensions: '700mm \u00D7 2100mm' },
     { label: 'French door',     dimensions: '1600mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #1',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #2',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #3',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Window with top-hung casement #4',    dimensions: '700mm \u00D7 2100mm' },
+    { label: 'Bathroom window',    dimensions: '600mm \u00D7 600mm' },
   ],
 
   /* --- Sort ------------------------------------------------------ */

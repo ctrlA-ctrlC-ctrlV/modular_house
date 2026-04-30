@@ -61,6 +61,15 @@ interface AppConfig {
   logLevel: string;
   customerConfirmEnabled: boolean;
   robotsAllow: boolean;
+  /**
+   * Absolute filesystem path to the directory containing configurator
+   * floor plan SVG assets. Used by the submission pipeline to attach
+   * the selected floor plan to the internal notification email. In
+   * development the default resolves to the web app's public folder;
+   * in production the Dockerfile copies the assets into the API image
+   * and this path is set via the FLOORPLAN_ASSETS_DIR env var.
+   */
+  floorplanAssetsDir: string;
 }
 
 interface AdminConfig{
@@ -115,6 +124,13 @@ export const config: EnvConfig = {
     logLevel: getEnvVar('LOG_LEVEL', 'info'),
     customerConfirmEnabled: getBooleanEnvVar('CUSTOMER_CONFIRM_ENABLED', true),
     robotsAllow: getBooleanEnvVar('ROBOTS_ALLOW', false),
+    // Resolve floor plan assets directory. Honour an explicit override
+    // when supplied (production / Docker), otherwise fall back to the
+    // monorepo location used during local development.
+    floorplanAssetsDir: getEnvVar(
+      'FLOORPLAN_ASSETS_DIR',
+      path.resolve(process.cwd(), '../web/public/resource/floorplan'),
+    ),
   },
   database: {
     url: getRequiredEnvVar('DATABASE_URL'),

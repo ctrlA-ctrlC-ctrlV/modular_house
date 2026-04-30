@@ -15,6 +15,13 @@ COPY packages ./packages
 # Copy app source
 COPY apps/api ./apps/api
 
+# Copy floor plan SVG assets shipped from the web app's public folder.
+# The submission service reads these files at runtime and attaches the
+# appropriate floor plan to the internal notification email. Keeping the
+# assets inside the API image keeps the container self-contained and
+# avoids cross-service filesystem coupling.
+COPY apps/web/public/resource/floorplan ./apps/api/assets/floorplans
+
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
@@ -51,6 +58,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+# Carry over the floor plan SVG assets bundled in the builder stage so
+# the runtime image can attach them to outgoing emails.
+COPY --from=builder /app/apps/api/assets ./apps/api/assets
 # Copy local node_modules if they exist (Prisma client often lives here or in root)
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
@@ -67,5 +77,10 @@ RUN if [ ! -f dist/server.js ]; then \
 
 # API runs on port 8080 by default (see config/env.ts)
 EXPOSE 8080
+
+# Point the submission service at the floor plan asset directory
+# bundled into the image. The application falls back to a monorepo
+# relative path during local development when this variable is unset.
+ENV FLOORPLAN_ASSETS_DIR=/app/apps/api/assets/floorplans
 
 CMD ["node", "dist/server.js"]

@@ -1,9 +1,12 @@
 import { PrismaClient, Submission, Prisma } from '@prisma/client';
+import path from 'path';
+import { promises as fs } from 'fs';
 import { logger } from '../middleware/logger.js';
 import { SubmissionPayload, EmailLog, EmailResultLog } from '../types/submission.js';
-import { mailer, EmailResult } from './mailer.js';
+import { mailer, EmailResult, EmailAttachment } from './mailer.js';
 import { config } from '../config/env.js';
 import { CONFIGURATOR_PRODUCT_LOOKUP } from '../data/configurator-products.js';
+import { resolveFloorPlanFilename } from '../data/configurator-floor-plans.js';
 import {
   buildConfiguratorInternalEmail,
   type ConfiguratorAddonItem,
@@ -340,6 +343,61 @@ export class SubmissionsService {
   }
 
   /**
+   * Loads the floor plan SVG asset associated with a configurator
+   * submission and converts it into an `EmailAttachment` ready to be
+   * shipped with the internal notification email.
+   *
+   * The asset directory is sourced from `config.app.floorplanAssetsDir`,
+   * which makes the attachment pipeline portable across local
+   * development and production deployments. Any I/O or resolution
+   * failure is logged and swallowed so an asset issue cannot block the
+   * notification email itself.
+   *
+   * @returns The resolved attachment plus its filename, or `null` when
+   *          no floor plan could be resolved or read.
+   */
+  private static async loadFloorPlanAttachment(payload: SubmissionPayload): Promise<{
+    attachment: EmailAttachment;
+    fileName: string;
+  } | null> {
+    const fileName = resolveFloorPlanFilename(
+      payload.configuratorProductSlug,
+      payload.configuratorFloorPlan,
+      payload.configuratorLayout,
+    );
+
+    if (!fileName) {
+      logger.info({
+        productSlug: payload.configuratorProductSlug,
+        floorPlan: payload.configuratorFloorPlan,
+        layout: payload.configuratorLayout,
+      }, 'No floor plan asset mapped for configurator selection - skipping attachment');
+      return null;
+    }
+
+    const absolutePath = path.join(config.app.floorplanAssetsDir, fileName);
+
+    try {
+      const content = await fs.readFile(absolutePath);
+      return {
+        fileName,
+        attachment: {
+          filename: fileName,
+          content,
+          contentType: 'image/svg+xml',
+        },
+      };
+    } catch (error) {
+      logger.warn({
+        error: error instanceof Error ? error.message : 'Unknown error',
+        absolutePath,
+        fileName,
+      }, 'Failed to read floor plan asset - email will be sent without attachment');
+      return null;
+    }
+  }
+
+  /**
    * Send internal notification email for a submission
    */
   static async sendInternalNotification(
@@ -374,6 +432,12 @@ export class SubmissionsService {
       let subject: string;
       let textContent: string;
       let htmlContent: string;
+      // Attachments collected during template selection. Currently only
+      // the configurator branch produces attachments (the customer's
+      // selected floor plan), but the variable is hoisted here so future
+      // branches can extend the behaviour without restructuring the
+      // surrounding control flow (Open-Closed Principle).
+      let attachments: EmailAttachment[] | undefined;
 
       if (isBespoke && quoteNumber) {
         // Bespoke enquiry: customer used the configurator but wants a custom
@@ -417,6 +481,15 @@ export class SubmissionsService {
           payload.configuratorProductSlug,
         );
 
+        // Resolve and load the customer's selected floor plan SVG so it
+        // can be attached to the internal notification. Failure here
+        // does not abort sending - the email is still useful without
+        // the attachment.
+        const floorPlan = await this.loadFloorPlanAttachment(payload);
+        if (floorPlan) {
+          attachments = [floorPlan.attachment];
+        }
+
         const templateResult = buildConfiguratorInternalEmail({
           quoteNumber,
           submittedAt: submission.createdAt.toISOString(),
@@ -433,6 +506,7 @@ export class SubmissionsService {
           totalCents: payload.configuratorTotalCents ?? 0,
           preferredDate: payload.preferredDate ?? 'asap',
           message: payload.message ?? '',
+          floorPlanFileName: floorPlan?.fileName,
         });
 
         subject = templateResult.subject;
@@ -526,7 +600,7 @@ export class SubmissionsService {
             `.trim();
       }
 
-      const result = await mailer.sendInternalNotification(subject, textContent, htmlContent);
+      const result = await mailer.sendInternalNotification(subject, textContent, htmlContent, attachments);
 
       if (result.success) {
         logger.info({

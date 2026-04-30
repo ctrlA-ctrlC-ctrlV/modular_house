@@ -309,4 +309,128 @@ describe('EventNewsBanner', () => {
       // thrown error constitutes the implicit assertion.
     });
   });
+
+
+  /* -------------------------------------------------------------------------
+     GROUP: Activation behaviour (startsAt)
+     -------------------------------------------------------------------------
+     Verifies that the optional `startsAt` lower bound suppresses the banner
+     until the activation instant is reached, that long horizons exceeding
+     the platform `setTimeout` 32-bit cap are honoured via timer re-arming,
+     and that the activation timer is cleaned up on unmount.
+     -------------------------------------------------------------------------- */
+
+  describe('activation behaviour (startsAt)', () => {
+    it('renders nothing when startsAt is in the future', () => {
+      // Activation 10 seconds away; expiry comfortably beyond.
+      const startsAt = new Date(BASELINE_NOW + 10_000).toISOString();
+      const endsAt   = new Date(BASELINE_NOW + 60_000).toISOString();
+
+      const { container } = render(
+        <EventNewsBanner
+          {...BASE_PROPS}
+          startsAt={startsAt}
+          endsAt={endsAt}
+        />,
+      );
+
+      expect(container.firstChild).toBeNull();
+    });
+
+    it('reveals the banner once startsAt is reached during a live session', () => {
+      const startsAt = new Date(BASELINE_NOW + 5_000).toISOString();
+      const endsAt   = new Date(BASELINE_NOW + 60_000).toISOString();
+
+      const { container } = render(
+        <EventNewsBanner
+          {...BASE_PROPS}
+          startsAt={startsAt}
+          endsAt={endsAt}
+        />,
+      );
+
+      // Pre-activation: nothing rendered.
+      expect(container.firstChild).toBeNull();
+
+      // Advance time past the activation instant; the activation timer
+      // fires and visibility flips on. `vi.advanceTimersByTime` is used in
+      // place of `runAllTimers` so the expiry timer is left pending.
+      act(() => {
+        vi.advanceTimersByTime(5_001);
+      });
+
+      expect(container.querySelector('.event-news-banner')).not.toBeNull();
+    });
+
+    it('renders immediately when startsAt is in the past and endsAt is in the future', () => {
+      // The activation bound is omitted from the timer chain entirely
+      // because it has already elapsed; only the expiry timer is armed.
+      const startsAt = new Date(BASELINE_NOW - 60_000).toISOString();
+      const endsAt   = new Date(BASELINE_NOW + 60_000).toISOString();
+
+      const { container } = render(
+        <EventNewsBanner
+          {...BASE_PROPS}
+          startsAt={startsAt}
+          endsAt={endsAt}
+        />,
+      );
+
+      expect(container.querySelector('.event-news-banner')).not.toBeNull();
+    });
+
+    it('honours startsAt deadlines beyond the 32-bit setTimeout cap', () => {
+      // Activation in 60 days; expiry in 120 days. Both exceed the
+      // platform `setTimeout` ceiling of ~24.8 days, exercising the
+      // chained re-arm logic inside the internal scheduler.
+      const sixtyDaysMs    = 60 * 24 * 60 * 60 * 1_000;
+      const onehundredDays = 120 * 24 * 60 * 60 * 1_000;
+      const startsAt       = new Date(BASELINE_NOW + sixtyDaysMs).toISOString();
+      const endsAt         = new Date(BASELINE_NOW + onehundredDays).toISOString();
+
+      const { container } = render(
+        <EventNewsBanner
+          {...BASE_PROPS}
+          startsAt={startsAt}
+          endsAt={endsAt}
+        />,
+      );
+
+      // Pre-activation: nothing rendered.
+      expect(container.firstChild).toBeNull();
+
+      // Advance past the activation instant. `runAllTimers` would also
+      // fire the expiry timer; `advanceTimersByTime` walks the clock so
+      // the chained re-arms unfold deterministically and only the
+      // activation boundary is crossed.
+      act(() => {
+        vi.advanceTimersByTime(sixtyDaysMs + 1_000);
+      });
+
+      expect(container.querySelector('.event-news-banner')).not.toBeNull();
+    });
+
+    it('cancels the activation timer when the component unmounts before activation', () => {
+      const startsAt = new Date(BASELINE_NOW + 60_000).toISOString();
+      const endsAt   = new Date(BASELINE_NOW + 120_000).toISOString();
+
+      const { unmount, container } = render(
+        <EventNewsBanner
+          {...BASE_PROPS}
+          startsAt={startsAt}
+          endsAt={endsAt}
+        />,
+      );
+
+      expect(container.firstChild).toBeNull();
+
+      unmount();
+
+      // No timer callback should run after unmount; the absence of a
+      // thrown "update on unmounted component" warning is the assertion.
+      act(() => {
+        vi.runAllTimers();
+      });
+    });
+  });
 });

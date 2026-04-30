@@ -79,6 +79,17 @@ export interface ConfiguratorInternalEmailData {
   readonly preferredDate: string;
   /** Optional free-text message from the customer. */
   readonly message: string;
+
+  /* -- Attachments -------------------------------------------------------- */
+  /**
+   * Optional filename of the floor plan attachment that the mailer will
+   * include alongside this email. When provided, the rendered email
+   * surfaces a "Floor Plan" section that references the attachment by
+   * name so the recipient knows where to look. Setting this value does
+   * not itself attach the file; the actual attachment is added by the
+   * mailer at send time.
+   */
+  readonly floorPlanFileName?: string;
 }
 
 /** Return type for all template builder functions. */
@@ -191,6 +202,7 @@ export function buildConfiguratorInternalEmail(
     totalCents,
     preferredDate,
     message,
+    floorPlanFileName,
   } = data;
 
   /* -- Subject line ------------------------------------------------------- */
@@ -239,6 +251,34 @@ export function buildConfiguratorInternalEmail(
 
   const messageTextBlock = message
     ? `\nCUSTOMER MESSAGE\n${'-'.repeat(40)}\n${message}\n`
+    : '';
+
+  /* -- Floor plan attachment section (conditional) ------------------------ */
+  // Rendered only when the mailer is shipping a floor plan SVG with the
+  // email. The block surfaces the attachment's filename so the recipient
+  // can locate it in their mail client without opening the attachments
+  // panel separately.
+  const floorPlanHtmlBlock = floorPlanFileName
+    ? `
+      <tr>
+        <td style="padding: 0 24px;">
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0;">
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 20px 24px 0 24px;">
+          <h3 style="margin: 0 0 8px 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #111827; text-transform: uppercase; letter-spacing: 0.5px;">Floor Plan</h3>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 24px 20px 24px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #374151;">
+          The selected floor plan is attached to this email as <strong>${escapeHtml(floorPlanFileName)}</strong>.
+        </td>
+      </tr>`
+    : '';
+
+  const floorPlanTextBlock = floorPlanFileName
+    ? `\nFLOOR PLAN\n${'-'.repeat(40)}\nAttached: ${floorPlanFileName}\n`
     : '';
 
   /* -- HTML body ---------------------------------------------------------- */
@@ -391,6 +431,9 @@ export function buildConfiguratorInternalEmail(
           <!-- Customer Message (conditional) -->
           ${messageHtmlBlock}
 
+          <!-- Floor Plan Attachment Notice (conditional) -->
+          ${floorPlanHtmlBlock}
+
           <!-- Footer -->
           <tr>
             <td style="padding: 16px 24px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
@@ -437,7 +480,7 @@ TOTAL CONFIGURED PRICE: ${formattedTotal}
 PREFERRED DATE
 ${'-'.repeat(40)}
 ${formattedDate}
-${messageTextBlock}
+${messageTextBlock}${floorPlanTextBlock}
 ${'='.repeat(60)}
 This is an automated notification from the Modular House configurator.`;
 

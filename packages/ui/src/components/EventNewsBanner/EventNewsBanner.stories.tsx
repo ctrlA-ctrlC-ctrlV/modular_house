@@ -16,7 +16,9 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ComponentType } from 'react';
 import { EventNewsBanner } from './EventNewsBanner';
+import type { EventNewsBannerProps } from './EventNewsBanner';
 
 
 /* =============================================================================
@@ -26,11 +28,25 @@ import { EventNewsBanner } from './EventNewsBanner';
    `layout: 'fullscreen'` renders the banner without padding so it spans the
    canvas width as it will in production, making it easier to review the
    full-bleed background and layout.
+
+   The `Meta` generic is anchored to a single variant of the
+   `EventNewsBannerProps` discriminated union (`'badge-logo'`). Without this
+   narrowing, Storybook's type inference would intersect both union members
+   and resolve the `args` property to `never`, blocking every story
+   declaration. The component reference is widened with a `ComponentType`
+   cast because `React.FC` of a discriminated union is structurally
+   incompatible with a `ComponentType` of either variant; the cast is safe
+   at runtime since the underlying component accepts either prop shape.
    ============================================================================= */
 
-const meta: Meta<typeof EventNewsBanner> = {
+type EventNewsBannerStoryArgs = Extract<
+  EventNewsBannerProps,
+  { layout?: 'badge-logo' }
+>;
+
+const meta: Meta<EventNewsBannerStoryArgs> = {
   title: 'Components/EventNewsBanner',
-  component: EventNewsBanner,
+  component: EventNewsBanner as ComponentType<EventNewsBannerStoryArgs>,
   parameters: {
     layout: 'fullscreen',
   },
@@ -43,6 +59,7 @@ const meta: Meta<typeof EventNewsBanner> = {
     backgroundSrc:      { control: 'text' },
     backgroundSrcWebP:  { control: 'text' },
     backgroundSrcAvif:  { control: 'text' },
+    startsAt:           { control: 'text' },
     endsAt:             { control: 'text' },
     badgeLabel:         { control: 'text' },
     className:          { control: 'text' },
@@ -125,6 +142,39 @@ export const NearExpiry: Story = {
   args: {
     ...Default.args,
     endsAt: fromNow(MS.MINUTE * 4 + MS.SECOND * 30),
+  },
+};
+
+/**
+ * Scheduled — banner activation deferred until a future `startsAt`.
+ *
+ * Demonstrates the deferred-launch capability: the banner is mounted but
+ * remains invisible until the activation instant has elapsed, at which point
+ * it appears automatically without any consumer intervention. The expiry
+ * instant is set comfortably in the future so reviewers can observe the
+ * full activation transition during a single Storybook session.
+ */
+export const Scheduled: Story = {
+  args: {
+    ...Default.args,
+    startsAt: fromNow(MS.SECOND * 10),
+    endsAt:   fromNow(MS.HOUR * 1),
+  },
+};
+
+/**
+ * NotYetStarted — `startsAt` is far enough in the future that the banner
+ * does not appear during the lifetime of a typical review session.
+ *
+ * The canvas should be entirely empty: the component renders `null` whenever
+ * the current instant precedes `startsAt`, mirroring the post-expiry
+ * behaviour. Acts as a visual regression guard against premature activation.
+ */
+export const NotYetStarted: Story = {
+  args: {
+    ...Default.args,
+    startsAt: fromNow(MS.DAY * 30),
+    endsAt:   fromNow(MS.DAY * 60),
   },
 };
 

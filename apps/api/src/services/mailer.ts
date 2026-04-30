@@ -18,12 +18,32 @@ const GREETING_TIMEOUT_MS = 10000;
 /** Socket inactivity timeout (milliseconds) */
 const SOCKET_TIMEOUT_MS = 30000;
 
+/**
+ * Describes a single email attachment. The structure intentionally mirrors
+ * the subset of `nodemailer.Attachment` that the application uses, which
+ * keeps the mailer interface decoupled from the underlying transport library
+ * while remaining trivially convertible.
+ */
+export interface EmailAttachment {
+  /** Display filename shown to the recipient (e.g. "floor-plan.svg"). */
+  filename: string;
+  /** Raw attachment content. Buffers are preferred for binary safety. */
+  content: Buffer | string;
+  /** Optional MIME content type (e.g. "image/svg+xml"). */
+  contentType?: string;
+}
+
 export interface EmailOptions {
   to: string;
   subject: string;
   text?: string;
   html?: string;
   from?: string;
+  /**
+   * Optional list of files to attach. Each entry is forwarded to the
+   * underlying SMTP transport as a regular MIME attachment.
+   */
+  attachments?: EmailAttachment[];
 }
 
 export interface EmailResult {
@@ -244,20 +264,34 @@ export class MailerService {
       subject: options.subject,
       text: options.text,
       html: options.html,
+      // Attachments are passed through verbatim. Nodemailer accepts any
+      // shape compatible with its `Attachment` type, of which our
+      // `EmailAttachment` is a strict subset.
+      attachments: options.attachments,
     };
 
     return this.sendWithRetry(mailOptions);
   }
 
   /**
-   * Send internal notification email (e.g., for form submissions)
+   * Send internal notification email (e.g., for form submissions).
+   *
+   * Accepts an optional `attachments` array so callers (such as the
+   * configurator submission pipeline) can ship supplementary files like
+   * the customer's selected floor plan alongside the notification.
    */
-  async sendInternalNotification(subject: string, content: string, htmlContent?: string): Promise<EmailResult> {
+  async sendInternalNotification(
+    subject: string,
+    content: string,
+    htmlContent?: string,
+    attachments?: EmailAttachment[],
+  ): Promise<EmailResult> {
     return this.sendEmail({
       to: config.mail.internalTo,
       subject: `[Modular House] ${subject}`,
       text: content,
       html: htmlContent,
+      attachments,
     });
   }
 

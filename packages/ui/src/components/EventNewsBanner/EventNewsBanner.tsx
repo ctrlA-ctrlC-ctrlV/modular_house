@@ -52,15 +52,28 @@
  * - The background image carries an empty `alt=""` attribute marking it as
  *   decorative, so it is omitted from the accessibility tree.
  *
- * EXPIRY BEHAVIOUR:
- * - On mount, the component computes `remaining = endsAt - Date.now()`.
- * - If `remaining <= 0` the component sets its visibility state to `false`
- *   synchronously and renders nothing.
- * - If `remaining > 0` a single `setTimeout` is scheduled; when it fires,
- *   visibility is set to `false`, which causes React to remove the element
- *   from the DOM without a page reload or server intervention.
- * - The timer is cancelled in the effect's cleanup function so it does not
- *   fire if the component unmounts before the deadline.
+ * VISIBILITY WINDOW BEHAVIOUR:
+ * - The component supports an optional `startsAt` lower bound and a required
+ *   `endsAt` upper bound. The banner is rendered if and only if
+ *   `startsAt <= now < endsAt`. When `startsAt` is omitted the lower bound
+ *   collapses to negative infinity, preserving the legacy "show immediately
+ *   until expiry" contract.
+ * - On mount, both bounds are evaluated against `Date.now()` to derive the
+ *   initial visibility synchronously.
+ * - At most two timers are armed for the lifetime of a mounted instance:
+ *   one for the activation instant (if it is still in the future) and one
+ *   for the expiry instant. Each timer fires a shared `evaluate()` callback
+ *   that recomputes visibility from the current clock; this means at most
+ *   two React state writes occur across the entire visibility lifecycle.
+ * - Because the platform `setTimeout` delay parameter is a signed 32-bit
+ *   integer (~24.8 days), longer scheduling horizons are split into
+ *   chained re-arms by the internal `scheduleAt` helper. This allows the
+ *   banner to support visibility windows of up to one year (or more) with
+ *   negligible runtime overhead — fewer than ~16 timer wake-ups across a
+ *   full 365-day window — and no polling.
+ * - All scheduled timers are cancelled in the effect's cleanup function so
+ *   they cannot fire after the component unmounts or after the bounds
+ *   change.
  *
  * =============================================================================
  */
@@ -199,6 +212,27 @@ interface EventNewsBannerBaseProps {
   backgroundSrcAvif?: string;
 
   /**
+   * Optional ISO 8601 date-time string (with timezone offset) representing
+   * the instant at which the banner should become visible. Until this
+   * moment is reached, the component renders nothing — exactly as it does
+   * after `endsAt` has elapsed. When omitted, the banner is considered
+   * active immediately upon mount, preserving backward compatibility with
+   * the original API.
+   *
+   * Pairing `startsAt` with `endsAt` defines a closed-open visibility
+   * window `[startsAt, endsAt)` that may span up to one year (or more);
+   * the internal scheduler chains `setTimeout` calls as needed to honour
+   * arbitrary durations without polling.
+   *
+   * If `startsAt` is greater than or equal to `endsAt` the banner will
+   * never appear; this is treated as a configuration error by the caller
+   * rather than something the component attempts to recover from.
+   *
+   * @example '2026-05-15T00:00:00+01:00'
+   */
+  startsAt?: string;
+
+  /**
    * ISO 8601 date-time string (with timezone offset) representing the instant
    * after which the banner is no longer relevant and should be hidden.
    * The component uses this value to schedule a single client-side timer;
@@ -267,6 +301,121 @@ export type EventNewsBannerProps =
    SECTION 2: COMPONENT IMPLEMENTATION
    ============================================================================= */
 
+/* -----------------------------------------------------------------------------
+   Internal scheduling primitives
+   -----------------------------------------------------------------------------
+   The following module-level helpers are not exported. They isolate the
+   non-trivial timing logic from the React component so the render path
+   remains a thin orchestration layer over typed primitives.
+   -------------------------------------------------------------------------- */
+
+/**
+ * Maximum delay accepted by the platform `setTimeout` implementation.
+ *
+ * The HTML specification stores the delay parameter as a 32-bit signed
+ * integer. Delays larger than `2^31 - 1` milliseconds (~24.8 days) are
+ * coerced to `1`, which would cause arbitrarily distant deadlines to fire
+ * almost immediately. The scheduler below clamps each individual
+ * `setTimeout` call to this ceiling and re-arms in chunks until the target
+ * instant is reached, allowing visibility windows of arbitrary length to be
+ * scheduled with a single deterministic primitive.
+ */
+const MAX_SET_TIMEOUT_MS = 2_147_483_647;
+
+/**
+ * Sentinel cleanup function used when no timer was actually registered.
+ * Centralising the no-op simplifies the call sites that conditionally arm
+ * timers and keeps the overall control flow free of `undefined` checks.
+ */
+const NO_OP: () => void = () => undefined;
+
+/**
+ * Schedules a one-shot callback to fire at — or as close as possible to —
+ * the absolute clock instant `targetMs`.
+ *
+ * The function chains successive `setTimeout` calls when the remaining
+ * duration exceeds `MAX_SET_TIMEOUT_MS`, so callers may pass deadlines that
+ * are weeks or months in the future without triggering the platform's
+ * 32-bit overflow behaviour. Each chained timer wakes once and immediately
+ * re-arms; the worst-case wake count for a one-year horizon is therefore
+ * approximately `Math.ceil(365 / 24.8) ≈ 15`, which is negligible.
+ *
+ * The returned function cancels any timer that is currently pending. It is
+ * safe to invoke after the callback has already fired.
+ *
+ * @param targetMs Absolute Unix-epoch instant (milliseconds) at which the
+ *                 callback should be invoked.
+ * @param callback Function to invoke once the target instant has elapsed.
+ * @returns A teardown function that cancels the pending timer, if any.
+ */
+const scheduleAt = (targetMs: number, callback: () => void): (() => void) => {
+  let timerId: number | undefined;
+
+  const tick = (): void => {
+    const remaining = targetMs - Date.now();
+    if (remaining <= 0) {
+      callback();
+      return;
+    }
+    timerId = window.setTimeout(tick, Math.min(remaining, MAX_SET_TIMEOUT_MS));
+  };
+
+  tick();
+
+  return () => {
+    if (typeof timerId === 'number') {
+      window.clearTimeout(timerId);
+    }
+  };
+};
+
+/**
+ * Parses an optional ISO 8601 timestamp string into milliseconds since the
+ * Unix epoch. Empty / undefined inputs and unparseable values fall back to
+ * the supplied `fallback` so the caller can collapse missing boundaries to
+ * `Number.NEGATIVE_INFINITY` (open lower bound) or `Number.POSITIVE_INFINITY`
+ * (open upper bound) without conditional logic.
+ */
+const parseBoundary = (
+  value: string | undefined,
+  fallback: number,
+): number => {
+  if (typeof value !== 'string' || value.length === 0) {
+    return fallback;
+  }
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+/**
+ * Determines whether the supplied instant falls inside the closed-open
+ * window `[startMs, endMs)`. Encapsulating the boundary comparison in a
+ * single function ensures consistent semantics across both the lazy
+ * `useState` initialiser and the runtime `evaluate()` callback.
+ */
+const isWithinWindowMs = (
+  startMs: number,
+  endMs: number,
+  nowMs: number,
+): boolean => nowMs >= startMs && nowMs < endMs;
+
+/**
+ * String-input convenience wrapper around `isWithinWindowMs` used by the
+ * lazy state initialiser. Keeps the component-level call site free of
+ * boundary-parsing boilerplate.
+ */
+const isWithinWindow = (
+  startsAt: string | undefined,
+  endsAt: string,
+  nowMs: number,
+): boolean =>
+  isWithinWindowMs(
+    parseBoundary(startsAt, Number.NEGATIVE_INFINITY),
+    parseBoundary(endsAt, Number.POSITIVE_INFINITY),
+    nowMs,
+  );
+
+
 /**
  * EventNewsBanner — a self-expiring event news strip.
  *
@@ -292,6 +441,7 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = (props) => {
     backgroundSrc,
     backgroundSrcWebP,
     backgroundSrcAvif,
+    startsAt,
     endsAt,
     badgeLabel = 'SEE US @',
     className = '',
@@ -302,56 +452,51 @@ export const EventNewsBanner: React.FC<EventNewsBannerProps> = (props) => {
   // Visibility State
   // ---------------------------------------------------------------------------
   // Initialised lazily to avoid computing Date arithmetic on every render.
-  // The initial value is `true` only when the deadline has not yet been
-  // reached; this means an expired `endsAt` value produces no DOM output at
-  // all, even before the first effect runs.
-  const [isVisible, setIsVisible] = useState<boolean>(
-    () => new Date(endsAt).getTime() > Date.now(),
+  // The initial value is derived from a single `isWithinWindow` evaluation so
+  // the banner emits zero DOM output before the activation instant or after
+  // the expiry instant — even before the first effect runs.
+  const [isVisible, setIsVisible] = useState<boolean>(() =>
+    isWithinWindow(startsAt, endsAt, Date.now()),
   );
 
   // ---------------------------------------------------------------------------
-  // Expiry Timer Effect
+  // Visibility Window Effect
   // ---------------------------------------------------------------------------
-  // Reconciles `isVisible` with the current `endsAt` prop and registers a
-  // single `setTimeout` whose delay is the number of milliseconds remaining
-  // until the deadline. When the timer fires, `isVisible` is set to `false`,
-  // causing React to remove the element from the DOM. The cleanup function
-  // cancels the timer if the component unmounts (or `endsAt` changes again)
-  // before the deadline, preventing state updates on an unmounted component.
+  // Reconciles `isVisible` with the current `[startsAt, endsAt)` window and
+  // arms at most two timers — one for the activation boundary (only if it
+  // is still in the future) and one for the expiry boundary. Each timer
+  // invokes a shared `evaluate` callback that recomputes visibility from
+  // `Date.now()`. Long horizons that exceed the platform `setTimeout` cap
+  // are handled transparently by `scheduleAt`, which re-arms in chunks
+  // until the target instant is reached.
   //
-  // The effect explicitly synchronises `isVisible` in BOTH directions on every
-  // `endsAt` change. The lazy `useState` initialiser only executes on the
-  // first render; without an effect that can also flip the flag back to
-  // `true`, a component that was mounted with an already-expired deadline
-  // would remain permanently hidden even after the consumer supplied a new,
-  // future deadline. This scenario occurs in practice during Vite HMR (which
-  // preserves component state across prop edits) and whenever consumers
-  // mutate `endsAt` at runtime to reactivate a campaign.
+  // The effect explicitly synchronises `isVisible` on every prop change so
+  // the component recovers correctly from scenarios where the consumer
+  // reassigns either bound at runtime (for example to extend an active
+  // campaign or to bring forward an upcoming one).
   useEffect(() => {
-    const remaining = new Date(endsAt).getTime() - Date.now();
+    const startMs = parseBoundary(startsAt, Number.NEGATIVE_INFINITY);
+    const endMs = parseBoundary(endsAt, Number.POSITIVE_INFINITY);
 
-    // Branch 1: the deadline has already passed (or is exactly now). Hide
-    // synchronously and skip the timer; no further work is required.
-    if (remaining <= 0) {
-      setIsVisible(false);
-      return;
-    }
-
-    // Branch 2: a future deadline. Ensure the banner is visible (covers the
-    // case where it was previously hidden) and schedule a single timer to
-    // hide it once the deadline elapses.
-    setIsVisible(true);
-
-    const timerId = window.setTimeout(() => {
-      setIsVisible(false);
-    }, remaining);
-
-    // Cleanup: cancel the pending timer when the effect re-runs (endsAt prop
-    // changed) or when the component unmounts.
-    return () => {
-      window.clearTimeout(timerId);
+    const evaluate = (): void => {
+      setIsVisible(isWithinWindowMs(startMs, endMs, Date.now()));
     };
-  }, [endsAt]);
+
+    // Synchronise immediately in case the lazy `useState` initialiser ran
+    // with a stale prop value (Vite HMR scenarios, controlled re-mounts).
+    evaluate();
+
+    const now = Date.now();
+    const cancelStart =
+      startMs > now ? scheduleAt(startMs, evaluate) : NO_OP;
+    const cancelEnd =
+      endMs > now ? scheduleAt(endMs, evaluate) : NO_OP;
+
+    return () => {
+      cancelStart();
+      cancelEnd();
+    };
+  }, [startsAt, endsAt]);
 
   // ---------------------------------------------------------------------------
   // Early Return — Expired or Hidden

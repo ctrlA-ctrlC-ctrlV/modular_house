@@ -416,7 +416,7 @@ function Landing() {
             {
               number: '03',
               title: 'Is my build guaranteed?',
-              description: 'Yes. We provide a comprehensive 25-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.'
+              description: 'Yes. We provide a comprehensive 50-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.'
             }
           ]}
         />

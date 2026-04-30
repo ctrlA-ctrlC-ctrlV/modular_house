@@ -340,7 +340,7 @@ const COMPACT_15: HydratedProduct = {
   available: true,
   inStock: true,
   planningPermission: false,
-  leadTime: '6\u20138 weeks',
+  leadTime: '4\u20136 weeks',
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
@@ -503,7 +503,7 @@ const STUDIO_25: HydratedProduct = {
   available: true,
   inStock: true,
   planningPermission: false,
-  leadTime: '8\u201310 weeks',
+  leadTime: '4\u20136 weeks',
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
@@ -771,7 +771,7 @@ const LIVING_35: HydratedProduct = {
   available: true,
   inStock: true,
   planningPermission: true,
-  leadTime: '10\u201312 weeks',
+  leadTime: '6\u201310 weeks',
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
@@ -948,7 +948,7 @@ const GRAND_45: HydratedProduct = {
   available: true,
   inStock: true,
   planningPermission: true,
-  leadTime: '12\u201316 weeks',
+  leadTime: '6\u201312 weeks',
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',

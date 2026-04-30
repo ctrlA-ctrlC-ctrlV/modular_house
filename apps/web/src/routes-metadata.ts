@@ -174,7 +174,7 @@ export const routesMetadata: RouteMetadata[] = [
                 name: 'Is my build guaranteed?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Yes. We provide a comprehensive 25-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.',
+                  text: 'Yes. We provide a comprehensive 50-year structural warranty on our steel frames. Because steel is inorganic and durable, you can be confident your investment is protected against the elements for decades.',
                 },
               },
             ],
@@ -365,7 +365,7 @@ export const routesMetadata: RouteMetadata[] = [
                 name: 'What is included in the price?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'The quoted price for all four models includes the EN1090 steel frame, approximately 200mm of insulation, composite external cladding, laminated flooring, internal electrical wiring with lighting and sockets, double-glazed UPVC windows and doors, foundation works, and a 25-year structural warranty. A triple-glazing upgrade is available as an optional add-on. For The Living (35 m²), The Grand (45 m²), and The Studio en-suite and bedroom layouts, a fully plumbed kitchen and bathroom are also included as standard — appliances are not included. Full pricing details and optional extras can be customised through our online product configurator.',
+                  text: 'The quoted price for all four models includes the EN1090 steel frame, approximately 200mm of insulation, composite external cladding, laminated flooring, internal electrical wiring with lighting and sockets, double-glazed UPVC windows and doors, foundation works, and a 50-year structural warranty. A triple-glazing upgrade is available as an optional add-on. For The Living (35 m²), The Grand (45 m²), and The Studio en-suite and bedroom layouts, a fully plumbed kitchen and bathroom are also included as standard — appliances are not included. Full pricing details and optional extras can be customised through our online product configurator.',
                 },
               },
             ],
@@ -396,14 +396,14 @@ export const routesMetadata: RouteMetadata[] = [
     path: '/house-extensions',
     seo: {
       title: 'House Extensions Dublin | Steel Frame Home Extensions | Modular House',
-      description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 25-year structural warranty. Get a free quote today.',
+      description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 50-year structural warranty. Get a free quote today.',
       canonicalUrl: 'https://modularhouse.ie/house-extensions',
       robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 
       openGraph: {
         type: 'website',
         title: 'House Extensions Dublin | Steel Frame Extensions | Modular House',
-        description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 25-year structural warranty. Get a free quote today.',
+        description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 50-year structural warranty. Get a free quote today.',
         // hosue-extension1.png is the only available house-extension image in
         // public/resource/house-extension/. Note the filename contains a typo
         // ("hosue") — the reference below matches the actual deployed filename
@@ -448,7 +448,7 @@ export const routesMetadata: RouteMetadata[] = [
           type: 'Product',
           data: {
             name: 'House Extension Dublin — Steel Frame Extensions',
-            description: 'Premium steel frame house extensions in Dublin. Fixed-price contracts, A-rated insulation, and 25-year structural warranty.',
+            description: 'Premium steel frame house extensions in Dublin. Fixed-price contracts, A-rated insulation, and 50-year structural warranty.',
             // IMAGE PROPERTY (REQUIRED)
             // Google Search Console requires an image for Product rich results.
             // This URL matches the Open Graph image used for social sharing.
@@ -472,7 +472,7 @@ export const routesMetadata: RouteMetadata[] = [
         ...generatePageSchema(
           '/house-extensions',
           'House Extensions Dublin | Steel Frame Home Extensions | Modular House',
-          'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 25-year structural warranty.',
+          'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 50-year structural warranty.',
           BUILD_TIMESTAMP
         ),
       ],

@@ -235,7 +235,7 @@ export const PRODUCT_SHOWCASE_FEATURES: ProductShowcaseFeature[] = [
    ============================================================================= */
 
 export const PRODUCT_SHOWCASE_WARRANTIES: ProductShowcaseWarranty[] = [
-  { years: '25', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
+  { years: '50', label: 'Structural Warranty', sub: 'Steel frame & foundations' },
 ];
 
 
@@ -377,7 +377,7 @@ export const GARDEN_ROOM_FAQS: AccordionFAQItem[] = [
     number: '06',
     title: 'What is included in the price?',
     description:
-      'The quoted price for all four models includes the EN1090 steel frame, approximately 200mm of insulation, composite external cladding, laminated flooring, internal electrical wiring with lighting and sockets, double-glazed UPVC windows and doors, foundation works, and a 25-year structural warranty. A triple-glazing upgrade is available as an optional add-on. For The Living (35 m²), The Grand (45 m²), and The Studio en-suite and bedroom layouts, a fully plumbed kitchen and bathroom are also included as standard — appliances are not included. Full pricing details and optional extras can be customised through our online product configurator.',
+      'The quoted price for all four models includes the EN1090 steel frame, approximately 200mm of insulation, composite external cladding, laminated flooring, internal electrical wiring with lighting and sockets, double-glazed UPVC windows and doors, foundation works, and a 50-year structural warranty. A triple-glazing upgrade is available as an optional add-on. For The Living (35 m²), The Grand (45 m²), and The Studio en-suite and bedroom layouts, a fully plumbed kitchen and bathroom are also included as standard — appliances are not included. Full pricing details and optional extras can be customised through our online product configurator.',
   },
 ];
 

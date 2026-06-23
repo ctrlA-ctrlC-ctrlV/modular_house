@@ -24,7 +24,7 @@ An administrator opens the admin login page, enters the email and password held 
 
 **Acceptance Scenarios**:
 
-1. **Given** a registered, active admin account, **When** the administrator submits the correct email and password, **Then** the system emails a short-lived one-time code to the account address and presents a code-entry step instead of granting immediate access.
+1. **Given** a registered, active admin account, **When** the administrator submits the correct email and password, **Then** the system emails a short-lived one-time code to the account email address and presents a code-entry step instead of granting immediate access.
 2. **Given** the code-entry step is shown, **When** the administrator enters the correct, unexpired code, **Then** an authenticated admin session is established and the admin panel loads.
 3. **Given** the code-entry step is shown, **When** the administrator enters an incorrect code, **Then** access is denied, the failure is counted, and a clear retry message is shown.
 4. **Given** a one-time code has expired, **When** the administrator submits it, **Then** access is denied and the administrator can request a new code (subject to rate limiting).
@@ -49,6 +49,9 @@ After signing in, the administrator sees the new admin panel shell: a collapsibl
 4. **Given** the top bar is shown, **When** the administrator inspects its controls, **Then** it provides a sidebar-collapse toggle, a UI-preference control, a dark-mode toggle, and an account button, and it does NOT include a GitHub link or button.
 5. **Given** the administrator toggles the sidebar collapse or dark mode, **When** they reload the page or return in a later session, **Then** the previously chosen state is restored without a visible flash on first paint.
 6. **Given** a keyboard-only user, **When** they navigate the shell, **Then** every control is reachable and operable, focus is clearly visible, and a keyboard shortcut toggles the sidebar.
+7. **Given** an authenticated session, **When** the administrator activates the account button (or the sidebar user section), **Then** an account menu opens offering at least "Settings" and "Logout".
+8. **Given** the account menu is open, **When** the administrator selects "Logout", **Then** the active session is ended, its session/refresh credential is invalidated, and the user is returned to the login screen; navigating back or reusing the prior credential does not restore access.
+9. **Given** a small-viewport (mobile) device, **When** the administrator opens the panel, **Then** the shell presents a touch-first, mobile-optimized layout — the sidebar collapses to an off-canvas drawer, the top-bar controls remain reachable, and content fits without horizontal scrolling.
 
 ---
 
@@ -68,12 +71,13 @@ An administrator who has forgotten their password chooses the password-reset opt
 4. **Given** a reset page, **When** the two password entries do not match or fail the policy, **Then** the submission is rejected with a clear, specific message and no change is made.
 5. **Given** a reset link that has already been used or has expired, **When** the administrator opens it, **Then** the system shows a clear error and offers a path to request a new link.
 6. **Given** a password has been reset, **When** the administrator signs in, **Then** the new password works and the previous password is rejected.
+7. **Given** the account had other active sessions before the reset, **When** the reset completes, **Then** those other sessions are revoked and must re-authenticate.
 
 ---
 
 ### User Story 4 - Manage my own account on the settings page (Priority: P3)
 
-A signed-in administrator opens their user settings page to change their password (entered twice, must match and meet policy, confirmed with their current password) and to update their profile photo. Their name and email are visible but read-only in Phase 1.
+A signed-in administrator opens their user settings page to change their password (entered twice, must match and meet policy, confirmed with their current password) and to update their profile photo. Their personal information such as name and email are visible but read-only in Phase 1.
 
 **Why this priority**: Account self-management is valuable once sign-in works, but it is not required to demonstrate secure access, so it follows the core flows.
 
@@ -82,10 +86,13 @@ A signed-in administrator opens their user settings page to change their passwor
 **Acceptance Scenarios**:
 
 1. **Given** an authenticated user on the settings page, **When** they enter a new password twice with matching values meeting the policy and confirm with the correct current password, **Then** the password is updated and usable on the next sign-in.
-2. **Given** the settings page, **When** the two new-password entries differ or fail the policy, or the current password is wrong, **Then** the change is rejected with a clear message and no update occurs.
-3. **Given** the settings page, **When** the user uploads a new profile photo, **Then** the photo is saved and displayed in the settings page and the sidebar user section.
-4. **Given** the settings page, **When** the user views their name and email, **Then** both are shown as read-only and cannot be edited in Phase 1.
-5. **Given** the super_admin account is signed in, **When** it opens settings, **Then** its account is displayed read-only and cannot be changed through the panel (changes are made only via direct database access).
+2. **Given** the user changes their password from the settings page, **When** the change succeeds, **Then** the account's other active sessions are revoked and only the current session remains valid.
+3. **Given** the settings page, **When** the two new-password entries differ or fail the policy, or the current password is wrong, **Then** the change is rejected with a clear message and no update occurs.
+4. **Given** the settings page, **When** the user uploads a new profile photo, **Then** the photo is saved and displayed in the settings page and the sidebar user section.
+5. **Given** the user has a custom profile photo, **When** they remove it without uploading a replacement, **Then** the display falls back to a default (user initials) in both the settings page and the sidebar user section.
+6. **Given** the settings page, **When** the user views their personal information (name and email), **Then** everything is shown as read-only and cannot be edited in Phase 1.
+7. **Given** the super_admin account is signed in, **When** it opens settings, **Then** its account is displayed read-only and cannot be changed through the panel (changes are made only via direct database access).
+8. **Given** an authenticated session, **When** the user opens the account menu and selects "Settings", **Then** the user settings page loads; the settings page is not reachable without an authenticated session.
 
 ---
 
@@ -100,6 +107,8 @@ A signed-in administrator opens their user settings page to change their passwor
 - **Session expiry mid-use**: When the session ends or is revoked, protected admin views redirect to the login page rather than showing broken or empty content.
 - **Public site isolation**: Adding the admin panel must not change or regress any public marketing page.
 - **Oversized or invalid profile photo**: An unsupported file type or oversized image is rejected with a clear message and no change is made.
+- **Credential change while signed in elsewhere**: A password change or reset revokes the account's other active sessions, so a stolen or stale session cannot outlive a credential change.
+- **Concurrent sessions across devices**: An account may hold more than one active session at a time; a plain logout ends only the current session, whereas a password change/reset performs account-wide revocation.
 
 ## Requirements *(mandatory)*
 
@@ -135,42 +144,56 @@ A signed-in administrator opens their user settings page to change their passwor
 - **FR-017**: A reset link MUST be invalidated after a successful reset or after expiry, and opening a consumed or expired link MUST show a clear error with a path to request a new one.
 - **FR-018**: A successful password reset MUST clear any active failed-attempt lockout for that account.
 
+#### Password policy
+
+- **FR-019**: System MUST define a single password policy and enforce it identically wherever a password is set (reset link and settings-page change). The policy MUST specify a minimum length and basic strength rules, reject the user's current password as the new value, and surface a clear, specific message on any violation. Exact thresholds are tunable defaults (see Assumptions) and MUST be applied server-side, not only in the browser.
+
 #### Admin shell
 
-- **FR-019**: The shell MUST provide a collapsible left sidebar and a top bar that are reused across every admin view.
-- **FR-020**: In Phase 1, the sidebar's main content-navigation area MUST display a centered, faded "Coming Soon" message and MUST NOT expose feature pages.
-- **FR-021**: The sidebar MUST include a user section pinned to its bottom (avatar, name, account menu) consistent with the template.
-- **FR-022**: The top bar MUST provide a sidebar-collapse toggle, a UI-preference control, a dark-mode toggle, and an account button, and MUST NOT include a GitHub link or button.
-- **FR-023**: Sidebar collapse state and theme selection MUST persist across reloads and sessions and MUST be applied before first paint to avoid any visual flash.
+- **FR-020**: The shell MUST provide a collapsible left sidebar and a top bar that are reused across every admin view.
+- **FR-021**: In Phase 1, the sidebar's main content-navigation area MUST display a centered, faded "Coming Soon" message and MUST NOT expose feature pages.
+- **FR-022**: The sidebar MUST include a user section pinned to its bottom (avatar, name, account menu) consistent with the template.
+- **FR-023**: The top bar MUST provide a sidebar-collapse toggle, a UI-preference control, a dark-mode toggle, and an account button, and MUST NOT include a GitHub link or button.
+- **FR-024**: Sidebar collapse state and theme selection MUST persist across reloads and sessions and MUST be applied before first paint to avoid any visual flash.
+- **FR-025**: The account control (top-bar account button and/or sidebar user section) MUST open an account menu that provides, at minimum, navigation to the user settings page and a logout action. The settings page MUST be reachable only from within an authenticated session.
+- **FR-026**: The shell MUST remain usable across the reference template's supported breakpoints, preserving the template's responsive/off-canvas sidebar behavior on narrow viewports. 
+- **FR-027**: The admin panel MUST provide a mobile-optimized experience for small viewports across all Phase 1 surfaces (login, two-factor entry, password reset, shell, and user settings), designed for touch and narrow screens rather than a scaled-down desktop layout. The mobile design MUST be captured in a dedicated mobile design document maintained alongside the template design references.
 
 #### Theming & accessibility
 
-- **FR-024**: System MUST support light and dark modes using the design-system tokens.
-- **FR-025**: System MUST ship the Default preset and a single font in Phase 1, while keeping the token structure extensible so additional presets/fonts can be added later without reworking components (Open-Closed Principle).
-- **FR-026**: The admin UI MUST meet WCAG 2.1 AA (including color contrast and visible focus indicators) and MUST be fully operable by keyboard, including a keyboard shortcut to toggle the sidebar.
+- **FR-028**: System MUST support light and dark modes using the template's design-system tokens; adapting the template's theme (tokens, light/dark, and the Default theme) into the admin panel is Phase 1 work and is not deferred.
+- **FR-029**: System MUST ship the Default preset and a single font in Phase 1, while keeping the token structure extensible so additional presets/fonts can be added later without reworking components (Open-Closed Principle).
+- **FR-030**: The admin UI MUST meet WCAG 2.1 AA (including color contrast and visible focus indicators) and MUST be fully operable by keyboard, including a keyboard shortcut to toggle the sidebar.
+- **FR-031**: The pre-authentication pages — login, two-factor code entry, and password reset — MUST also meet WCAG 2.1 AA and be fully keyboard-operable, with form fields, errors, and the code-entry step exposed to assistive technology.
 
 #### User settings
 
-- **FR-027**: An authenticated user MUST be able to change their password from a settings page by entering the new password twice (both must match and meet the password policy) and confirming with their current password.
-- **FR-028**: A user MUST be able to change their profile photo, with invalid file types or oversized images rejected with a clear message.
-- **FR-029**: The settings page MUST display the user's name and email as read-only in Phase 1.
-- **FR-030**: The super_admin account MUST be shown read-only in the panel and changeable only via direct database access, while retaining unrestricted access.
+- **FR-032**: An authenticated user MUST be able to change their password from a settings page by entering the new password twice (both must match and meet the password policy) and confirming with their current password.
+- **FR-033**: A user MUST be able to change their profile photo, with invalid file types or oversized images rejected with a clear message.
+- **FR-034**: The settings page MUST display the user's name and email as read-only in Phase 1.
+- **FR-035**: The super_admin account MUST be shown read-only in the panel and changeable only via direct database access, while retaining unrestricted access.
 
 #### Access control, audit & session integrity
 
-- **FR-031**: The authenticated session MUST carry the user's role and effective permissions so later phases can gate features through permission checks without modifying route code (reusing the existing role/permission model).
-- **FR-032**: System MUST record authentication-related events (login success and failure, logout, one-time-code issuance and verification, password-reset request and completion) in the existing audit log.
-- **FR-033**: Logout MUST end the active session and invalidate the associated session/refresh credential so it cannot be reused.
-- **FR-034**: Secrets — passwords, one-time codes, and reset tokens — MUST be stored only in hashed/secure form and MUST never be written to logs or returned to the client in raw form.
-- **FR-035**: Session credentials MUST be stored and transmitted using secure, industry-standard practices that minimize exposure to client-side theft (e.g., avoiding long-lived secrets in browser-accessible storage where avoidable).
+- **FR-036**: The authenticated session MUST carry the user's role and effective permissions so later phases can gate features through permission checks without modifying route code (reusing the existing role/permission model).
+- **FR-037**: System MUST record authentication-related events (login success and failure, logout, one-time-code issuance and verification, password-reset request and completion, and settings-page password change) in the existing audit log.
+- **FR-038**: Logout MUST end the active session and invalidate the associated session/refresh credential so it cannot be reused.
+- **FR-039**: Secrets — passwords, one-time codes, and reset tokens — MUST be stored only in hashed/secure form and MUST never be written to logs or returned to the client in raw form.
+- **FR-040**: Session credentials MUST be stored and transmitted using secure, industry-standard practices that minimize exposure to client-side theft (e.g., avoiding long-lived secrets in browser-accessible storage where avoidable).
+- **FR-041**: A password change (settings page) or password reset (reset link) MUST revoke the account's other active sessions/refresh credentials, requiring them to re-authenticate, while leaving the session that performed a settings-page change valid.
+
+#### Abuse prevention & request throttling
+
+- **FR-042**: For both one-time codes (FR-010–FR-013) and password-reset links (FR-014–FR-015), after a request the system MUST enforce a minimum resend cooldown (default ~60 seconds) before the same user can request another, and the UI MUST indicate when a new request becomes available (e.g., a countdown on the resend control). A request made during the cooldown MUST NOT issue or email a new code/link.
+- **FR-043**: Beyond the per-request cooldown, the system MUST cap the number of one-time-code and reset-link requests per account/email within a rolling time window (tunable defaults). Exceeding the cap MUST temporarily block further requests and show a clear, non-technical message; the throttling response MUST remain neutral so it never reveals whether an email is registered (preserving FR-008 and FR-015).
 
 ### Key Entities *(include if feature involves data)*
 
-- **Admin User**: An account that can sign in to the panel. Key attributes: email, securely hashed password, assigned role, active flag, failed-attempt count and lockout window, last sign-in time, display name, and profile photo reference. (Existing model extended with display name and profile photo.)
+- **Admin User**: An account that can sign in to the panel. Key attributes: email, securely hashed password, assigned role, active flag, failed-attempt count and lockout window, last sign-in time, display name, and profile photo reference (optional; when absent, a default avatar/initials is shown). (Existing model extended with display name and profile photo.)
 - **Role & Permission**: Named roles mapped to granular permissions, used to express what a signed-in user may do. (Existing; reused unchanged in Phase 1 to carry permissions in the session.)
 - **One-Time Login Code**: A short-lived two-factor code tied to a user. Key attributes: owning user, hashed code value, expiry time, incorrect-attempt count, consumed flag.
 - **Password Reset Token**: A single-use recovery token tied to a user. Key attributes: owning user, hashed token value, expiry time, consumed flag.
-- **Session / Refresh Credential**: Represents an authenticated session and its renewal, supporting rotation and revocation on logout. (Existing model reused.)
+- **Session / Refresh Credential**: Represents an authenticated session and its renewal, supporting rotation and revocation on logout and on password change/reset (account-wide). (Existing model reused.)
 - **Audit Log Entry**: An immutable record of an admin/security action. Key attributes: acting user, action, affected entity, timestamp, request metadata. (Existing model reused.)
 - **User Preferences**: Per-user interface choices persisted across sessions — at minimum theme mode (light/dark/system) and sidebar collapse state.
 
@@ -187,6 +210,9 @@ A signed-in administrator opens their user settings page to change their passwor
 - **SC-007**: The legacy admin panel is fully removed — no legacy admin route or screen is reachable after Phase 1 ships.
 - **SC-008**: The public marketing site shows zero regressions (all existing public-site checks pass) after the admin panel is added.
 - **SC-009**: Automated tests covering sign-in, two-factor verification, password reset, account lockout, and shell behavior all pass in the continuous-integration pipeline.
+- **SC-010**: From the settings page, a user can change their password (and use it on next sign-in) and replace their profile photo (reflected in the sidebar user section) end to end, while name and email remain read-only.
+- **SC-011**: After a password change or reset, the account's other active sessions are verifiably revoked and forced to re-authenticate.
+- **SC-012**: On a representative small-viewport device, every Phase 1 surface (login, two-factor entry, password reset, shell, and settings) is usable touch-first — controls reachable, no horizontal scrolling, sidebar presented as an off-canvas drawer — and a mobile design document covering these layouts exists.
 
 ## Assumptions
 
@@ -196,8 +222,16 @@ A signed-in administrator opens their user settings page to change their passwor
 - **Session strategy**: Phase 1 adopts the existing refresh-token rotation model and secure session handling rather than the legacy long-lived token-in-local-storage approach; exact storage mechanics are an implementation concern bounded by FR-035.
 - **Code/link lifetimes (defaults, tunable)**: One-time codes expire in roughly 10 minutes; reset links expire in roughly 30–60 minutes. Final values are set during implementation without changing the requirements.
 - **Profile photo storage**: Profile photos are stored consistently with the project's database-backed media direction; a local backup/seed path is acceptable. Full image-library migration is Phase 2 and out of scope here.
-- **Theme scope**: Only the Default preset plus light/dark and a single font ship in Phase 1; the token system remains extensible for future presets/fonts.
+- **Theme scope**: The template's theming is adapted into the admin panel in Phase 1 — design tokens, light/dark, and the Default theme (FR-028). Only the Default preset plus a single font ship now; the token system stays extensible so future presets/fonts can be added without reworking components.
+- **Mobile design**: Mobile-specific layouts are in scope for Phase 1 across all surfaces and are captured in a dedicated mobile design document, kept alongside the Studio Admin references so later phases inherit consistent mobile patterns (FR-027).
 - **Landing view**: After sign-in, the administrator lands on the shell showing the "Coming Soon" content area; no dashboard widgets or feature pages are part of Phase 1.
+- **Password policy (defaults, tunable)**: Minimum length around 12 characters with basic strength checks (e.g., not a common/breached password, not equal to the current password). Enforced server-side and applied identically at reset and at change (FR-019). Final thresholds are set during implementation without changing the requirement.
+- **One-time-code format (defaults, tunable)**: A 6-digit numeric code, single-use, expiring in roughly 10 minutes, locked out after a small number of incorrect attempts. Format and limits are tunable without changing FR-010–FR-013.
+- **Profile-photo constraints (defaults, tunable)**: Common web image types (e.g., PNG, JPEG, WebP) up to a modest size cap (e.g., ~5 MB); the server validates type and size and may downscale. Storage follows the project's database-backed media direction (see Profile photo storage above).
+- **Session lifetimes (defaults, tunable)**: A short-lived access credential refreshed via rotation, an idle timeout, and an absolute session cap. Any "remember me" affordance only lengthens the refresh lifetime and never bypasses two-factor (consistent with FR-040 and the two-factor assumption).
+- **Account bootstrapping**: Because registration is removed and user-management UI is Phase 3, the initial admin/super_admin account(s) are created by direct database seeding in Phase 1.
+- **UI-preference control scope**: In Phase 1 the top-bar UI-preference control exposes only theme mode and the single shipped Default preset/font; it is structured to accept future presets/fonts without rework (bounded by FR-028/FR-029) but adds none now.
+- **UI language**: The admin UI ships in a single language (English) in Phase 1; multi-language content remains in the parking lot.
 - **No emoji in code**, conventional naming, and Open-Closed-friendly extension points are followed throughout per the senior-engineering requirements in the brief.
 
 ## Dependencies

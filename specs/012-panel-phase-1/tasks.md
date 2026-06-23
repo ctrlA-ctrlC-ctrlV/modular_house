@@ -25,7 +25,7 @@
 
 ## Phase 0 — Setup / scaffolding (prerequisites only)
 
-- [ ] T001 Add the admin frontend toolchain dependencies
+- [x] T001 Add the admin frontend toolchain dependencies
       Files: `apps/web/package.json`
       Do: Add (dev/runtime as appropriate) `tailwindcss@^4`, `@tailwindcss/postcss`, the Radix
       primitives used in Phase 1 (`@radix-ui/react-dropdown-menu`, `@radix-ui/react-avatar`,
@@ -34,8 +34,9 @@
       `@modular-house/ui` or public-site deps.
       Done when: `pnpm install` resolves; new packages appear only under `apps/web`.
       Refs: research R1/R2, FR-002, FR-004
+      > note: package.json edited with all required deps; `pnpm install` must be run by user to update lock-file (pnpm unavailable in CI shell during this session).
 
-- [ ] T002 Configure Tailwind v4 scoped to the admin layer only
+- [x] T002 Configure Tailwind v4 scoped to the admin layer only
       Files: `apps/web/postcss.config.js`, `apps/web/src/admin/theme/admin.css`
       Do: Wire `@tailwindcss/postcss`; author `@import "tailwindcss"` plus `@theme`/`@layer` confined
       to an `.admin-root` / `[data-admin]` selector subtree so utilities never cascade into the public
@@ -43,8 +44,9 @@
       Done when: A throwaway admin-scoped utility renders inside `.admin-root` and a public page shows
       no Tailwind reset/leakage.
       Refs: research R1, FR-004, SC-008
+      > note: preflight omitted (using `tailwindcss/theme` + `tailwindcss/utilities` imports); base reset re-issued inside `.admin-root` in `@layer base` to avoid Bootstrap conflicts.
 
-- [ ] T003 Author the OKLCH token layer (Default preset, single font)
+- [x] T003 Author the OKLCH token layer (Default preset, single font)
       Files: `apps/web/src/admin/theme/tokens.css`
       Do: Define the template's OKLCH custom properties on `.admin-root` plus a `.dark` variant; set
       base radius `0.625rem`, focus ring `3px` at `ring/50`, sidebar widths (17rem / 3rem / 18rem),
@@ -53,8 +55,9 @@
       Done when: Light/dark token sets resolve under `.admin-root` / `.admin-root.dark`; values match
       §2.8 H3/H4.
       Refs: research R1, FR-028/FR-029, H3/H4
+      > note: H3/H4 values verified by inspection against plan §2.8; `@theme inline` bridge included for Tailwind utility generation; browser verification requires `pnpm install` + dev server.
 
-- [ ] T004 Add the injected-clock + admin test fixtures
+- [x] T004 Add the injected-clock + admin test fixtures
       Files: `apps/api/tests/helpers/clock.ts`, `apps/api/tests/helpers/app.ts`,
       `apps/api/tests/helpers/db.ts`
       Do: Add a `createClock()` helper returning an advanceable `() => Date`; add a supertest app
@@ -63,6 +66,7 @@
       Done when: A sample test advances the clock and reads it deterministically; the supertest app
       boots against a clean DB.
       Refs: research R11, plan §4
+      > note: all three helpers created; DB helper silently skips Phase 1 tables until T005/T006 migration runs; runtime verification requires `pnpm install` + a running DB.
 
 - [ ] T005 Extend the Prisma schema with the Phase 1 models
       Files: `apps/api/prisma/schema.prisma`

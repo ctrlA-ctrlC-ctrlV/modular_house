@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2025-11-18
 - N/A (Static Files) (005-seo-maximization)
 - TypeScript 5.6.3 (frontend & backend) (006-admin-panel-redesign)
 - PostgreSQL via Prisma ORM (006-admin-panel-redesign)
+- TypeScript 5.6.3; admin UI via Tailwind CSS v4 + OKLCH tokens + shadcn-style primitives (Radix UI, cva, tailwind-merge, clsx), input-otp; backend reuses Express + Prisma + argon2 + jsonwebtoken + nodemailer (012-panel-phase-1)
+- PostgreSQL via Prisma; reuses feature-006 models; adds LoginCode, PasswordResetToken, UserPreference and extends User (012-panel-phase-1)
 
 - Node.js 24.11.1 LTS, TypeScript latest stable; React latest stable; Express 4.x stable; PostgreSQL 18.x. + Vite, React Router, React Hook Form + Zod, Axios, `@radix-ui/react-dialog` (lightbox/dialog), `express`, `cors`, `helmet`, `compression`, `express-rate-limit`, `zod`, `pino` + `pino-http`, `nodemailer`, Prisma ORM. (001-web-app-skeleton)
 
@@ -31,6 +33,7 @@ npm test; npm run lint
 Node.js 24.11.1 LTS, TypeScript latest stable; React latest stable; Express 4.x stable; PostgreSQL 18.x.: Follow standard conventions
 
 ## Recent Changes
+- 012-panel-phase-1: Added client-only admin panel (Tailwind v4 + OKLCH design-system port, app shell), DB-backed auth with email 2FA, password reset, refresh-token rotation, account-wide revocation, requirePermission RBAC middleware, and user settings
 - 006-admin-panel-redesign: Added TypeScript 5.6.3 (frontend & backend)
 - 005-seo-maximization: Added TypeScript 5+ + React 18, Vite 5, React Helmet Async
 - 005-seo-maximization: Added TypeScript 5.y, Node 20+ + `vite-plugin-sitemap` (New), `react-helmet-async` (Existing), `react-router-dom` (Existing).

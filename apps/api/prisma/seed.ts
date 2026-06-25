@@ -436,6 +436,8 @@ async function seedAdminUser(roleIdMap: Map<string, string>): Promise<void> {
         isActive: true,
         failedLoginAttempts: 0,
         lockedUntil: null,
+        // Ensure displayName is set for Phase 1 sidebar/settings display.
+        displayName: existingUser.displayName ?? 'Super Admin',
       },
     });
 
@@ -456,6 +458,7 @@ async function seedAdminUser(roleIdMap: Map<string, string>): Promise<void> {
       roleId: superAdminRoleId,
       isActive: true,
       failedLoginAttempts: 0,
+      displayName: 'Super Admin',
     },
   });
 

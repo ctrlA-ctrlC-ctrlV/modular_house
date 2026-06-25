@@ -212,6 +212,7 @@
       Refs: B1–B9, data-model.md §2
       > note: `resend()` resolves challengeId→userId via `findFirst` (any matching row, not just active) so it can find the userId even after the old code is superseded. Coverage verified by test suite (17 tests, all B1–B9 paths exercised).
       > fix(T018 review): added `orderBy: { createdAt: 'desc' }` to `verify()` findFirst so newest row is always returned after resend; added no-args constructor test that also calls verify() to exercise the default clock branch; added verify-after-resend test to pin ordering fix. loginCode.ts now 100% branch/stmt/func/line coverage.
+      > reviewed: PASS (re-check) — both corrective items applied: (1) `verify()` findFirst now has `orderBy: { createdAt: 'desc' }` ✓; (2) no-args constructor test covers lines 59–60 defaults and calls verify() to exercise the default clock ✓; verify-after-resend test pins ordering fix ✓. Coverage confirmed: loginCode.ts 100% stmt/branch/funcs/lines. Suite: 128 passed / 21 skipped, exit 0.
 
 - [ ] T019 [test] PasswordResetToken service unit tests
       Files: `apps/api/tests/unit/passwordResetToken.test.ts`

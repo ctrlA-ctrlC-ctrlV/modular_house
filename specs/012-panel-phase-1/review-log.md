@@ -97,3 +97,23 @@ pnpm --filter @modular-house/api test:run         # all tests must stay green (9
    ```
 
 3. **loginCode.test.ts** — Add a test that verifies successfully after a `resend()` (mock `findFirst` to return the new active row, confirm `success: true`). This pins the ordering fix and guards against regression.
+
+---
+
+## Session 3 re-check — 2026-06-25 (T018 corrective items)
+
+**Trigger:** Session 3 left T018 as CHANGES-REQUIRED. Implementing agent applied all three corrective items.
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:coverage` — ✅ exit 0; 128 passed / 21 skipped; loginCode.ts **100% stmt / 100% branch / 100% funcs / 100% lines**
+
+**Fix audit:**
+1. `verify()` `findFirst` now has `orderBy: { createdAt: 'desc' }` — confirmed in `loginCode.ts` ✓
+2. No-args constructor test added (`describe('constructor defaults')`) that calls `verify()` to exercise default clock ✓
+3. `describe('verify() after resend()')` test added; asserts `success: true` when newest row is active ✓
+
+| Task | Session 3 | Re-check | Change |
+|------|-----------|----------|--------|
+| T018 | CHANGES-REQUIRED | PASS | All corrective items applied; 100% branch coverage confirmed; re-checked `[x]` |
+
+**Overall: GO** — T013–T018 all PASS / PASS-WITH-NITS. Proceed to T019+.

@@ -125,6 +125,7 @@ export class LoginCodeService {
 
     const record = await this.prisma.loginCode.findFirst({
       where: { challengeId },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!record) {

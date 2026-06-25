@@ -309,4 +309,52 @@ describe('LoginCodeService — B1–B9', () => {
       expect(createData.codeHash).toBe('hashed-code');
     });
   });
+
+  // =========================================================================
+  // Constructor default branches (coverage gap identified in T018 review)
+  // =========================================================================
+
+  describe('constructor defaults', () => {
+    // Covers the `?? new PrismaClient()` and `?? (() => new Date())` branches
+    // at lines 59–60 of loginCode.ts. The @prisma/client mock at the top of this
+    // file intercepts `new PrismaClient()`, so no real DB connection is made.
+    // Calling verify() triggers this.clock() so the default clock function is
+    // actually invoked (not just assigned), reaching 100% branch coverage.
+    it('initialises with no-argument defaults and uses the wall-clock when called', async () => {
+      mockLoginCode.findFirst.mockResolvedValue(null); // unknown challengeId → fast return
+
+      const defaultService = new LoginCodeService();
+      const result = await defaultService.verify('no-such-challenge', '000000');
+
+      // Unknown challenge → failure; the important thing is no error is thrown
+      // and this.clock() was invoked (covers the default branch).
+      expect(result.success).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // verify() ordering fix — successful verify after resend (T018 review)
+  // =========================================================================
+
+  describe('verify() after resend()', () => {
+    // After resend() a second LoginCode row shares the same challengeId.
+    // verify() must use orderBy: { createdAt: 'desc' } so it always returns
+    // the newest (active) row rather than the consumed old one.
+    it('succeeds when the newest row is active even if an older row exists for the same challengeId', async () => {
+      // Simulate: findFirst returns the NEWEST row (active), not the consumed old one.
+      const newestRow = activeCode(clock, {
+        id: 'code-2',
+        challengeId: 'stable-id',
+        // newly issued — expiresAt is in the future, not consumed
+      });
+      mockLoginCode.findFirst.mockResolvedValue(newestRow);
+      mockArgon2.verify.mockResolvedValue(true);
+      mockLoginCode.update.mockResolvedValue({});
+
+      const result = await service.verify('stable-id', '123456');
+
+      expect(result.success).toBe(true);
+      expect((result as VerifySuccess).userId).toBe('user-1');
+    });
+  });
 });

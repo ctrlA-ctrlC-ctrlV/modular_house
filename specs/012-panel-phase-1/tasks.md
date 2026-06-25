@@ -214,28 +214,28 @@
       > fix(T018 review): added `orderBy: { createdAt: 'desc' }` to `verify()` findFirst so newest row is always returned after resend; added no-args constructor test that also calls verify() to exercise the default clock branch; added verify-after-resend test to pin ordering fix. loginCode.ts now 100% branch/stmt/func/line coverage.
       > reviewed: PASS (re-check) — both corrective items applied: (1) `verify()` findFirst now has `orderBy: { createdAt: 'desc' }` ✓; (2) no-args constructor test covers lines 59–60 defaults and calls verify() to exercise the default clock ✓; verify-after-resend test pins ordering fix ✓. Coverage confirmed: loginCode.ts 100% stmt/branch/funcs/lines. Suite: 128 passed / 21 skipped, exit 0.
 
-- [ ] T019 [test] PasswordResetToken service unit tests
+- [x] T019 [test] PasswordResetToken service unit tests
       Files: `apps/api/tests/unit/passwordResetToken.test.ts`
       Do: With the injected clock assert: 32-byte CSPRNG URL-safe value, hashed-only storage, 60m TTL,
       single-use `consumedAt`, expired/consumed → clear error path.
       Done when: Tests fail and pin C1–C3.
       Refs: C1–C3, research R11
 
-- [ ] T020 Implement the PasswordResetToken service
+- [x] T020 Implement the PasswordResetToken service
       Files: `apps/api/src/services/passwordResetToken.ts`
       Do: Mint/verify/consume reset tokens with injected clock; on consume trigger lockout-clear (C5)
       and account-wide revoke (C6) via the auth service hook.
       Done when: T019 passes; 100% branch coverage.
       Refs: C1–C6, data-model.md §3
 
-- [ ] T021 [test] UserPreference service unit tests
+- [x] T021 [test] UserPreference service unit tests
       Files: `apps/api/tests/unit/userPreference.test.ts`
       Do: Assert one row per user (upsert), `themeMode` constrained to `light|dark|system`,
       `sidebarCollapsed` boolean default false, read-back returns persisted values.
       Done when: Tests fail and pin H1/H2 persistence.
       Refs: H1/H2, data-model.md §4, research R7
 
-- [ ] T022 Implement the UserPreference service
+- [x] T022 Implement the UserPreference service
       Files: `apps/api/src/services/userPreference.ts`
       Do: Zod-validated get/put of theme mode + sidebar state; server-stored source of truth.
       Done when: T021 passes.

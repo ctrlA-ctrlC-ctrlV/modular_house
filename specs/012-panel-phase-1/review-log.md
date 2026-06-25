@@ -117,3 +117,38 @@ pnpm --filter @modular-house/api test:run         # all tests must stay green (9
 | T018 | CHANGES-REQUIRED | PASS | All corrective items applied; 100% branch coverage confirmed; re-checked `[x]` |
 
 **Overall: GO** — T013–T018 all PASS / PASS-WITH-NITS. Proceed to T019+.
+
+---
+
+## Session 4 — 2026-06-25 (reviewer: supervisor)
+
+**Scope:** T019–T022 (Pass 1 — Backend services, most recent contiguous `[x]` block without `> reviewed:` lines)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run` — ✅ **143 passed / 0 failed** (21 suites; was 128 after Session 3 re-check)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ 143 passed; all security modules at 100%:
+
+| File | Stmts | Branch | Funcs | Lines |
+|------|-------|--------|-------|-------|
+| `passwordResetToken.ts` | 100 | 100 | 100 | 100 |
+| `userPreference.ts` | 100 | 100 | 100 | 100 |
+| `passwordPolicy.ts` | 100 | 100 | 100 | 100 |
+| `auditLog.ts` | 100 | 100 | 100 | 100 |
+| `loginCode.ts` | 100 | 100 | 100 | 100 |
+| `auth.ts` | 100 | 100 | 100 | 100 |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T019 | PASS | Injected clock used; C1 (32-byte base64url, hash-only storage), C2 (60m TTL via `RESET_TOKEN_TTL_MS`), C3 (consumed/expired/unknown → clear error) all pinned; TTL boundary crossing tested; no real `Date.now()` |
+| T020 | PASS | `passwordResetToken.ts` 100% branch; SHA-256 hash-only; injected clock; `consume()` returns `userId` as auth-service hook for C5/C6 (wired at T043); no extra features; schema fields/maps/indexes match data-model.md §3 exactly |
+| T021 | PASS | H1 (`themeMode` enum + rejection of invalid value) and H2 (`sidebarCollapsed` boolean + default false) pinned; upsert semantics and `get()` round-trip tested; no injected clock needed (correct — no time logic); no extra preference fields invented |
+| T022 | PASS | `userPreference.ts` 100% branch; Zod enum for `themeMode`; only `themeMode` + `sidebarCollapsed` (no scope creep); conditional-spread partial-update logic correct; schema fields/defaults/map match data-model.md §4 exactly |
+
+**Overall: GO** — All four tasks PASS; no corrective items. Proceed to T023+.
+
+**Must-run before proceeding:**
+```
+pnpm --filter @modular-house/api exec prisma migrate dev  # confirm "already in sync" (no new migration)
+pnpm --filter @modular-house/api exec prisma validate     # confirm schema valid
+```
+(Both are carry-forward confirmations from Session 2; no new schema changes in T019–T022.)

@@ -220,6 +220,7 @@
       single-use `consumedAt`, expired/consumed → clear error path.
       Done when: Tests fail and pin C1–C3.
       Refs: C1–C3, research R11
+      > reviewed: PASS — injected clock used; C1 (32-byte base64url + hash-only storage), C2 (60m TTL via `RESET_TOKEN_TTL_MS`), C3 (consumed/expired/unknown → clear errors) all pinned; TTL boundary-crossing tests included; no real Date.now().
 
 - [x] T020 Implement the PasswordResetToken service
       Files: `apps/api/src/services/passwordResetToken.ts`
@@ -227,6 +228,7 @@
       and account-wide revoke (C6) via the auth service hook.
       Done when: T019 passes; 100% branch coverage.
       Refs: C1–C6, data-model.md §3
+      > reviewed: PASS — T019 passes (143/143); passwordResetToken.ts 100% branch coverage; SHA-256 hash-only; injected clock throughout; consume() returns userId as auth-service hook for C5/C6 (wired at T043); schema fields/maps/indexes match data-model.md §3 exactly; no scope creep.
 
 - [x] T021 [test] UserPreference service unit tests
       Files: `apps/api/tests/unit/userPreference.test.ts`
@@ -234,12 +236,14 @@
       `sidebarCollapsed` boolean default false, read-back returns persisted values.
       Done when: Tests fail and pin H1/H2 persistence.
       Refs: H1/H2, data-model.md §4, research R7
+      > reviewed: PASS — H1 (themeMode enum; invalid value rejected) and H2 (sidebarCollapsed boolean; default false) pinned; upsert semantics and get() round-trip tested; no injected clock needed (correct — no time logic); no invented preference fields.
 
 - [x] T022 Implement the UserPreference service
       Files: `apps/api/src/services/userPreference.ts`
       Do: Zod-validated get/put of theme mode + sidebar state; server-stored source of truth.
       Done when: T021 passes.
       Refs: H1/H2, FR-024
+      > reviewed: PASS — T021 passes (143/143); userPreference.ts 100% branch coverage; Zod enum for themeMode; only themeMode + sidebarCollapsed (no scope creep); conditional-spread partial-update correct; schema fields/defaults/maps match data-model.md §4 exactly.
 
 - [ ] T023 [test] authenticateJWT claim-loading test
       Files: `apps/api/tests/unit/authenticateJWT.test.ts`

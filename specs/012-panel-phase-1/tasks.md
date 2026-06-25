@@ -170,12 +170,14 @@
       verify), requires matching entries, returns specific field-level messages.
       Done when: Tests fail (no module yet) and pin D1–D4.
       Refs: D1–D4, FR-019, research R10
+      > reviewed: PASS — all D1–D4 boundaries pinned with `PASSWORD_MIN_LENGTH`/`PASSWORD_MAX_LENGTH` constants; D6 multi-violation covered; injected clock not needed (correct — no time logic); passwordPolicy.ts reaches 100% branch coverage after T014.
 
 - [x] T014 Implement the shared password-policy validator
       Files: `apps/api/src/services/passwordPolicy.ts`
       Do: One server-side module used identically by reset and settings-change; no client-only checks.
       Done when: T013 passes; module is the single source for D1–D4.
       Refs: D1–D7, FR-019, research R10
+      > reviewed: PASS — T013 passes; passwordPolicy.ts 100% branch coverage confirmed; single module used for D1–D7; D3 check correctly skipped when no `currentPasswordHash` provided.
 
 - [x] T015 [test] Audit-log writer unit tests
       Files: `apps/api/tests/unit/auditLog.test.ts`
@@ -183,6 +185,7 @@
       `ipAddress`, `userAgent`, `createdAt`; assert no secret value appears in any entry.
       Done when: Tests fail and pin I1–I3.
       Refs: I1–I3, FR-037/FR-039
+      > reviewed: PASS-WITH-NITS — all 8 I1 actions tested; null-userId skip tested; I3 secret-field-name pattern tested; optional entityId tested. Nit: `createdAt` not explicitly asserted in mock data (acceptable — it is a `@default(now())` Prisma-managed field, not passed by the service; no injected clock needed).
 
 - [x] T016 Implement the audit-log writer
       Files: `apps/api/src/services/auditLog.ts`
@@ -190,6 +193,7 @@
       Done when: T015 passes.
       Refs: I1–I3, FR-037
       > note: `AuditLog` schema has non-null `userId` FK (reused, no schema change); service accepts `userId: string | null` and skips the DB write when null (unknown-email failures) instead of crashing.
+      > reviewed: PASS — T015 passes; auditLog.ts 100% branch coverage confirmed; null-userId → skip (FK constraint respected); `entityId` field confirmed present in schema (`@map("entity_id")`); no secrets in persisted data.
 
 - [x] T017 [test] LoginCode (OTP) service unit tests
       Files: `apps/api/tests/unit/loginCode.test.ts`
@@ -198,6 +202,7 @@
       `challengeId` opaque/256-bit/stable across resend and resolving to the user.
       Done when: Tests fail and pin B1–B9.
       Refs: B1–B9, research R3/R11
+      > reviewed: PASS — all B1–B9 assertions present; injected clock used for B3 TTL (no real Date.now()); constants imported from adminAuth; challengeId entropy ≥43 chars for 32-byte base64url (B9); B6 supersede + B9 stable-across-resend covered; B7 no-token-minted asserted.
 
 - [x] T018 Implement the LoginCode (OTP) service
       Files: `apps/api/src/services/loginCode.ts`
@@ -206,6 +211,7 @@
       Done when: T017 passes; 100% branch coverage on the module.
       Refs: B1–B9, data-model.md §2
       > note: `resend()` resolves challengeId→userId via `findFirst` (any matching row, not just active) so it can find the userId even after the old code is superseded. Coverage verified by test suite (17 tests, all B1–B9 paths exercised).
+      > fix(T018 review): added `orderBy: { createdAt: 'desc' }` to `verify()` findFirst so newest row is always returned after resend; added no-args constructor test that also calls verify() to exercise the default clock branch; added verify-after-resend test to pin ordering fix. loginCode.ts now 100% branch/stmt/func/line coverage.
 
 - [ ] T019 [test] PasswordResetToken service unit tests
       Files: `apps/api/tests/unit/passwordResetToken.test.ts`

@@ -60,3 +60,40 @@ pnpm --filter @modular-house/web test:run             # currently 102 passed —
 2. Add a comment to `20260625102529_modular_panel_1/migration.sql` explaining this fixes pre-existing `role_id` nullability drift from feature-006, not a Phase 1 schema change (T006 nit).
 3. Add a note to `data-model.md §7` that migration `20260625102529_modular_panel_1` was auto-generated to close the `role_id` NOT NULL gap left by `20260224155034` (T006 nit).
 4. After T031 wires the real OTP path, remove the `if (res.status === 200)` conditional in `admin-auth.test.ts` (T012 nit).
+
+---
+
+## Session 3 — 2026-06-25 (reviewer: supervisor)
+
+**Scope:** T013–T018 (Pass 1 — Backend services, first contiguous `[x]` block without a `> reviewed:` line)
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T013 | PASS | D1–D4 all pinned with constants; D6 multi-violation covered; passwordPolicy.ts 100% branch after T014 |
+| T014 | PASS | passwordPolicy.ts 100% branch/stmt/funcs/lines; single module for D1–D7; D3 correctly skipped when no hash |
+| T015 | PASS-WITH-NITS | All 8 I1 actions + null-userId skip + I3 secret-pattern tested; nit: `createdAt` not asserted in mock data (acceptable — Prisma `@default(now())`) |
+| T016 | PASS | auditLog.ts 100% coverage; entityId field confirmed in schema; null userId → skip write correctly implemented |
+| T017 | PASS | All B1–B9 pinned with injected clock; no real Date.now(); challengeId entropy ≥43 chars verified |
+| T018 | CHANGES-REQUIRED | Unchecked. (1) Branch coverage 87.5% — constructor defaults at lines 59–60 never exercised; (2) `verify()` findFirst lacks `orderBy: { createdAt: 'desc' }` — risk of returning consumed old row after resend |
+
+**Overall: NO-GO** — T018 CHANGES-REQUIRED must be resolved before proceeding to T019+.
+
+**Must-run before proceeding:**
+```
+pnpm --filter @modular-house/api test:coverage   # loginCode.ts must reach 100% branch after fix
+pnpm --filter @modular-house/api test:run         # all tests must stay green (92 passed / 21 skipped)
+```
+
+**Corrective items for implementing agent (T018):**
+
+1. **loginCode.test.ts** — Add one test that instantiates `new LoginCodeService()` with no arguments (the `vi.mock('@prisma/client')` at the top of the file intercepts `new PrismaClient()`, so no real DB connection is attempted). This covers the `?? new PrismaClient()` and `?? (() => new Date())` branches at lines 59–60 and brings branch coverage to 100%.
+
+2. **loginCode.ts `verify()`** — Change the `findFirst` call to add `orderBy: { createdAt: 'desc' }` so that after a resend creates a second row sharing the same `challengeId`, the query deterministically returns the newest (active) row:
+   ```ts
+   const record = await this.prisma.loginCode.findFirst({
+     where: { challengeId },
+     orderBy: { createdAt: 'desc' },
+   });
+   ```
+
+3. **loginCode.test.ts** — Add a test that verifies successfully after a `resend()` (mock `findFirst` to return the new active row, confirm `success: true`). This pins the ordering fix and guards against regression.

@@ -10,6 +10,11 @@
 If left blank, implement the next unchecked tasks in order up to a natural checkpoint
 (one `###` subsection, ~4–8 tasks), then stop.
 
+
+
+**SESSION GOAL:** Implement implement the next unchecked tasks in order up to a natural checkpoint
+(4 tasks), then stop.
+
 You are implementing Phase 1 of the admin panel in this monorepo (`apps/web`, `apps/api`)
 on branch `012-panel-phase-1`. The full plan already exists — your job is to execute it
 faithfully, not to redesign it.

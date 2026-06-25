@@ -26,7 +26,7 @@ const ADMIN_TABLES = ['loginCode', 'passwordResetToken', 'userPreference'] as co
  */
 export async function resetAdminTables(): Promise<void> {
   for (const table of ADMIN_TABLES) {
-    const delegate = (prisma as Record<string, unknown>)[table];
+    const delegate = (prisma as unknown as Record<string, unknown>)[table];
     if (delegate && typeof (delegate as { deleteMany?: unknown }).deleteMany === 'function') {
       await (delegate as { deleteMany: () => Promise<unknown> }).deleteMany();
     }

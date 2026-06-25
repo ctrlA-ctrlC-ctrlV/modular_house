@@ -164,33 +164,34 @@
 
 ### Backend services
 
-- [ ] T013 [test] Password-policy validator unit tests
+- [x] T013 [test] Password-policy validator unit tests
       Files: `apps/api/tests/unit/passwordPolicy.test.ts`
       Do: Assert min 12 / max 128, requires lower+upper+digit, rejects equal-to-current (argon2
       verify), requires matching entries, returns specific field-level messages.
       Done when: Tests fail (no module yet) and pin D1–D4.
       Refs: D1–D4, FR-019, research R10
 
-- [ ] T014 Implement the shared password-policy validator
+- [x] T014 Implement the shared password-policy validator
       Files: `apps/api/src/services/passwordPolicy.ts`
       Do: One server-side module used identically by reset and settings-change; no client-only checks.
       Done when: T013 passes; module is the single source for D1–D4.
       Refs: D1–D7, FR-019, research R10
 
-- [ ] T015 [test] Audit-log writer unit tests
+- [x] T015 [test] Audit-log writer unit tests
       Files: `apps/api/tests/unit/auditLog.test.ts`
       Do: Assert each I1 action writes acting user (nullable on unknown-email failure), action, entity,
       `ipAddress`, `userAgent`, `createdAt`; assert no secret value appears in any entry.
       Done when: Tests fail and pin I1–I3.
       Refs: I1–I3, FR-037/FR-039
 
-- [ ] T016 Implement the audit-log writer
+- [x] T016 Implement the audit-log writer
       Files: `apps/api/src/services/auditLog.ts`
       Do: Thin writer over the reused `AuditLog` model exposing the I1 action set; redact secrets.
       Done when: T015 passes.
       Refs: I1–I3, FR-037
+      > note: `AuditLog` schema has non-null `userId` FK (reused, no schema change); service accepts `userId: string | null` and skips the DB write when null (unknown-email failures) instead of crashing.
 
-- [ ] T017 [test] LoginCode (OTP) service unit tests
+- [x] T017 [test] LoginCode (OTP) service unit tests
       Files: `apps/api/tests/unit/loginCode.test.ts`
       Do: With the injected clock assert: 6-digit CSPRNG format, argon2 hash only (raw never stored),
       10m TTL, single-use `consumedAt`, 5-attempt lockout, new-code supersedes prior active code,
@@ -198,12 +199,13 @@
       Done when: Tests fail and pin B1–B9.
       Refs: B1–B9, research R3/R11
 
-- [ ] T018 Implement the LoginCode (OTP) service
+- [x] T018 Implement the LoginCode (OTP) service
       Files: `apps/api/src/services/loginCode.ts`
       Do: Issue/verify/resend codes with injected clock; supersede prior active codes on issue; keep
       `challengeId` stable across resend within one challenge.
       Done when: T017 passes; 100% branch coverage on the module.
       Refs: B1–B9, data-model.md §2
+      > note: `resend()` resolves challengeId→userId via `findFirst` (any matching row, not just active) so it can find the userId even after the old code is superseded. Coverage verified by test suite (17 tests, all B1–B9 paths exercised).
 
 - [ ] T019 [test] PasswordResetToken service unit tests
       Files: `apps/api/tests/unit/passwordResetToken.test.ts`

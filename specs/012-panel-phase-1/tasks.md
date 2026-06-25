@@ -106,15 +106,16 @@
       Refs: E7, research R6
       > note: `lastUsedAt DateTime?` added additively to `RefreshToken`; folded into T006's migration as `ALTER TABLE "refresh_tokens" ADD COLUMN "last_used_at" TIMESTAMPTZ(6)`; data-model.md §5 updated.
 
-- [ ] T009 Extend the seed with displayName + Phase 1 permissions
+- [x] T009 Extend the seed with displayName + Phase 1 permissions
       Files: `apps/api/prisma/seed.ts`
       Do: Set `displayName` on the bootstrapped `super_admin`/admin account(s) and upsert the Role →
       Permission rows the Phase 1 surfaces need; keep the seed idempotent.
       Done when: Re-running `db:seed` is a no-op delta; seeded accounts carry `displayName` and
       permissions.
       Refs: data-model.md §7, FR-036, plan §5.1
+      > note: `displayName: 'Super Admin'` added to both create and update paths in `seedAdminUser`; existing permission seeding already covers all Phase 1 surface permissions.
 
-- [ ] T010 Add the central Phase 1 auth config/constants module
+- [x] T010 Add the central Phase 1 auth config/constants module
       Files: `apps/api/src/config/adminAuth.ts`, `apps/api/src/config/env.ts`
       Do: Hold the §2 pinned values (access TTL 15m, refresh 7d, OTP TTL 10m, reset TTL 60m, lockout
       5/15m, resend cooldown 60s, window cap 5/15m, idle 30m, photo 5MB, password min 12 / max 128)
@@ -123,8 +124,9 @@
       assert against.
       Done when: All §2 tunables resolve from one module; env vars are read per quickstart §1.
       Refs: plan §2 (all groups), quickstart §1
+      > note: `apps/api/src/config/adminAuth.ts` created with all §2 numeric constants; `env.ts` `jwtExpiresIn` default changed from `'24h'` to `'15m'` to match E1.
 
-- [ ] T011 Remove the legacy frontend admin UI and localStorage token flow
+- [x] T011 Remove the legacy frontend admin UI and localStorage token flow
       Files: `apps/web/src/routes/admin/login.tsx`, `apps/web/src/routes/admin/index.tsx`,
       `apps/web/src/routes/admin/guard.tsx`, and any legacy admin dashboard/list pages + the
       `localStorage` `adminToken` read/write code
@@ -133,14 +135,16 @@
       Done when: No `localStorage`/`sessionStorage` token reference remains in the admin path; no
       legacy admin route resolves.
       Refs: research R12, FR-001, SC-007
+      > note: all 7 legacy admin route files deleted; App.tsx imports and route blocks removed; `/admin/*` returns 404 until new admin layer is wired in.
 
-- [ ] T012 Amend/replace the legacy backend admin auth route + its tests
+- [x] T012 Amend/replace the legacy backend admin auth route + its tests
       Files: `apps/api/src/routes/admin/auth.ts`, `apps/api/tests/integration/admin-auth.test.ts`
       Do: Reduce the legacy `login` to a stub the new flow replaces; amend existing tests from
       "200 + token" to the new "200 + OTP issued, no token" contract (do not delete coverage).
       Done when: Legacy "token on login" assertions are gone; the file compiles against the new
       contract surface; no legacy hardcoded-credential path remains.
       Refs: plan §4.3, FR-007, T-B1
+      > note: login now returns `{challengeId, message}` with `randomUUID()` stub (real OTP wired in T018/T031); `admin-auth.test.ts` created asserting new contract shape; existing `admin.auth.spec.ts` (protected-route coverage) kept intact.
 
 ---
 

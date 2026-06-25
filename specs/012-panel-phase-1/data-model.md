@@ -100,7 +100,7 @@ Index: `@@unique([userId])` (implicit). Map: `@@map("user_preferences")`.
 | Entity | Phase 1 use |
 |--------|-------------|
 | `Role` / `Permission` / `RolePermission` | Drive `requirePermission`; effective permissions loaded into the access token (FR-036) |
-| `RefreshToken` | In-memory access token's renewal; family rotation + theft detection; account-wide revoke (E3–E6); `lastUsedAt` checked to enforce the 30m idle timeout (E7) |
+| `RefreshToken` | In-memory access token's renewal; family rotation + theft detection; account-wide revoke (E3–E6); `lastUsedAt DateTime?` confirmed present (added additively in the `add_login_2fa_reset_and_profile` migration, T008) and checked to enforce the 30m idle timeout (E7) |
 | `AuditLog` | Records the I1 event set (FR-037) |
 | `Setting` | Untouched (global config); per-user UI state goes to `UserPreference`, not here |
 
@@ -126,10 +126,12 @@ erDiagram
 
 - **Name**: `add_login_2fa_reset_and_profile`
 - **Direction**: forward, additive. Adds three tables (`login_codes`, `password_reset_tokens`,
-  `user_preferences`) and three nullable columns on `users` (`display_name`, `profile_photo`,
-  `profile_photo_mime`). No column drops, no type changes, no backfill.
-- **Reversibility**: drop the three new tables and three new `users` columns. Existing rows are
-  unaffected because all additions are nullable/defaulted.
+  `user_preferences`), three nullable columns on `users` (`display_name`, `profile_photo`,
+  `profile_photo_mime`), and one nullable column on `refresh_tokens` (`last_used_at`, for the E7
+  idle timeout — T008). No column drops, no type changes, no backfill.
+- **Reversibility**: drop the three new tables, the three new `users` columns, and the
+  `refresh_tokens.last_used_at` column. Existing rows are unaffected because all additions are
+  nullable/defaulted.
 - **Seed**: extend `prisma/seed.ts` to set `displayName` on the bootstrapped `super_admin`/admin
   account(s) and ensure the Phase 1 permission rows exist. Seed remains idempotent (upsert).
 

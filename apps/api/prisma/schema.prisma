@@ -35,10 +35,24 @@ model User {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  // --------------- Phase 1 extensions (additive, all nullable) ---------------
+  /// Display name shown in sidebar user section and settings (read-only in Phase 1).
+  displayName      String? @map("display_name") @db.VarChar(100)
+
+  /// Raw image bytes for the profile photo; NULL → initials fallback (G4).
+  profilePhoto     Bytes?  @map("profile_photo")
+
+  /// MIME type of the stored photo: image/png | image/jpeg | image/webp (G1).
+  /// Set iff profilePhoto is set; enforced in the service layer.
+  profilePhotoMime String? @map("profile_photo_mime") @db.VarChar(50)
+
   // --------------- Relations ---------------
-  role          Role           @relation(fields: [roleId], references: [id])
-  auditLogs     AuditLog[]
-  refreshTokens RefreshToken[]
+  role                Role               @relation(fields: [roleId], references: [id])
+  auditLogs           AuditLog[]
+  refreshTokens       RefreshToken[]
+  loginCodes          LoginCode[]
+  passwordResetTokens PasswordResetToken[]
+  preference          UserPreference?
 
   @@map("users")
 }
@@ -321,6 +335,12 @@ model RefreshToken {
   /// Points to the successor token created during rotation.
   replacedByTokenId String?      @unique @map("replaced_by_token_id") @db.Uuid
 
+  /// Last time this token was presented to the refresh endpoint.
+  /// NULL means the token was issued but never used for a silent refresh.
+  /// The auth service updates this on every successful refresh; the idle
+  /// timeout check (E7) rejects the token when now - lastUsedAt > 30m.
+  lastUsedAt        DateTime?    @map("last_used_at") @db.Timestamptz(6)
+
   createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
 
   // --------------- Relations ---------------
@@ -412,4 +432,109 @@ model RolePermission {
   @@index([roleId])
   @@index([permissionId])
   @@map("role_permissions")
+}
+
+// ==========================================================================
+//  Phase 1 models — Admin Panel Phase 1: Foundation (012)
+// ==========================================================================
+
+// --------------------------------------------------------------------------
+// LoginCode: Two-factor one-time code issued on every successful password
+// verification.  The raw 6-digit code is never stored; only its argon2 hash
+// is persisted.  challengeId is returned to the client to bind the
+// code-entry step to the user without exposing the email address; it is
+// stable across resend-code calls within the same login challenge (B9).
+// --------------------------------------------------------------------------
+model LoginCode {
+  id           String    @id @default(uuid()) @db.Uuid
+
+  /// FK to the user who this OTP belongs to.
+  userId       String    @map("user_id") @db.Uuid
+
+  /// Opaque CSPRNG id returned by POST /admin/auth/login (B9).
+  /// Shared across resends within one challenge; NOT a secret.
+  challengeId  String    @map("challenge_id")
+
+  /// argon2 hash of the 6-digit numeric code — raw code never stored (B2).
+  codeHash     String    @map("code_hash")
+
+  /// Absolute expiry timestamp: issuedAt + 10 minutes (B3).
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+
+  /// Wrong-guess counter; code is invalidated when this reaches 5 (B5).
+  attemptCount Int       @default(0) @map("attempt_count")
+
+  /// Set on first successful verification; single-use enforcement (B4).
+  consumedAt   DateTime? @map("consumed_at") @db.Timestamptz(6)
+
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // --------------- Relations ---------------
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // --------------- Indexes ---------------
+  @@index([userId])
+  @@index([challengeId])
+  @@index([expiresAt])
+  @@map("login_codes")
+}
+
+// --------------------------------------------------------------------------
+// PasswordResetToken: Single-use reset token minted on a forgot-password
+// request.  The 32-byte CSPRNG value is SHA-256 hashed before storage;
+// raw bytes are only in the emailed link (C1).  Consuming the token clears
+// the account's lockout (C5) and revokes all refresh-token families (C6).
+// --------------------------------------------------------------------------
+model PasswordResetToken {
+  id         String    @id @default(uuid()) @db.Uuid
+
+  /// FK to the requesting user.
+  userId     String    @map("user_id") @db.Uuid
+
+  /// SHA-256 hash of the URL-safe base64 token value — raw never stored (C1).
+  tokenHash  String    @map("token_hash")
+
+  /// Absolute expiry timestamp: issuedAt + 60 minutes (C2).
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+
+  /// Set on first successful use; single-use enforcement (C3).
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // --------------- Relations ---------------
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // --------------- Indexes ---------------
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+// --------------------------------------------------------------------------
+// UserPreference: One row per admin user holding server-authoritative UI
+// state (theme mode and sidebar collapse).  Returned in /admin/me for
+// cross-device consistency; a cookie/localStorage mirror is maintained
+// client-side for pre-paint FOUC prevention only (research R7/R8).
+// --------------------------------------------------------------------------
+model UserPreference {
+  id               String   @id @default(uuid()) @db.Uuid
+
+  /// FK to the owning user — unique: one preference row per user.
+  userId           String   @unique @map("user_id") @db.Uuid
+
+  /// Active theme: "light" | "dark" | "system" (H1).
+  themeMode        String   @default("system") @map("theme_mode") @db.VarChar(10)
+
+  /// Whether the sidebar is collapsed (H2).
+  sidebarCollapsed Boolean  @default(false) @map("sidebar_collapsed")
+
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // --------------- Relations ---------------
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }

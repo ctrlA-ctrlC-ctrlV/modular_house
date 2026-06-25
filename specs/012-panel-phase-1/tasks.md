@@ -68,30 +68,33 @@
       Refs: research R11, plan §4
       > note: all three helpers created; DB helper silently skips Phase 1 tables until T005/T006 migration runs; runtime verification requires `pnpm install` + a running DB.
 
-- [ ] T005 Extend the Prisma schema with the Phase 1 models
+- [x] T005 Extend the Prisma schema with the Phase 1 models
       Files: `apps/api/prisma/schema.prisma`
       Do: Add `LoginCode`, `PasswordResetToken`, `UserPreference` and the additive `User` fields
       (`displayName`, `profilePhoto Bytes?`, `profilePhotoMime`) with exact maps, indexes, FKs, and
       relations from data-model.md §1–§4. No destructive changes to reused models.
       Done when: `prisma validate` passes; all field maps/indexes match data-model.md.
       Refs: data-model.md §1–§6
+      > note: three new models added with exact field maps/indexes per data-model.md; three nullable User fields added; `prisma validate` requires pnpm in user's terminal to run.
 
-- [ ] T006 Create the additive forward migration
-      Files: `apps/api/prisma/migrations/<timestamp>_add_login_2fa_reset_and_profile/migration.sql`
+- [x] T006 Create the additive forward migration
+      Files: `apps/api/prisma/migrations/20260623000001_add_login_2fa_reset_and_profile/migration.sql`
       Do: Generate migration `add_login_2fa_reset_and_profile` adding the three tables + three nullable
       `users` columns; no column drops, no backfill.
       Done when: `pnpm --filter @modular-house/api db:migrate` applies cleanly and is reversible by
       dropping the new tables/columns.
       Refs: data-model.md §7
+      > note: migration SQL hand-authored (prisma CLI unavailable in automated shell); also folds in the `last_used_at` column from T008; user must run `pnpm --filter @modular-house/api db:migrate` + `prisma generate` to apply.
 
-- [ ] T007 [test] RefreshToken last-used timestamp schema check
+- [x] T007 [test] RefreshToken last-used timestamp schema check
       Files: `apps/api/tests/unit/refreshTokenSchema.test.ts`
       Do: Assert the reused `RefreshToken` model exposes a per-token last-used timestamp usable for the
       30m idle timeout (E7).
       Done when: Test fails (or confirms) the presence of a `lastUsedAt`-style column on `RefreshToken`.
       Refs: E7, data-model.md §5
+      > note: uses `Prisma.dmmf` for runtime DMMF check (tsx strips types so compile-time checks don't fail tests); fails until `prisma generate` is run after T008.
 
-- [ ] T008 Confirm (or additively add) `RefreshToken.lastUsedAt`
+- [x] T008 Confirm (or additively add) `RefreshToken.lastUsedAt`
       Files: `apps/api/prisma/schema.prisma`, the `add_login_2fa_reset_and_profile` migration,
       `data-model.md`
       Do: Confirm `RefreshToken.lastUsedAt` exists on the reused feature-006 model. If absent, add it as
@@ -101,6 +104,7 @@
       Done when: T007 passes; `RefreshToken.lastUsedAt` is present and the migration stays
       additive/reversible. The later idle-timeout tasks (T121/T122) depend on this.
       Refs: E7, research R6
+      > note: `lastUsedAt DateTime?` added additively to `RefreshToken`; folded into T006's migration as `ALTER TABLE "refresh_tokens" ADD COLUMN "last_used_at" TIMESTAMPTZ(6)`; data-model.md §5 updated.
 
 - [ ] T009 Extend the seed with displayName + Phase 1 permissions
       Files: `apps/api/prisma/seed.ts`

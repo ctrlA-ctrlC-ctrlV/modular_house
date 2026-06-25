@@ -148,7 +148,7 @@ export const config: EnvConfig = {
   },
   security: {
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
-    jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '24h'),
+    jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '15m'),
     refreshTokenSecret: getRequiredEnvVar('REFRESH_TOKEN_SECRET'),
     refreshTokenExpiresIn: getEnvVar('REFRESH_TOKEN_EXPIRES_IN', '7d'),
     passwordSaltRounds: getNumericEnvVar('PASSWORD_SALT_ROUNDS', 12),

@@ -25,14 +25,15 @@ describe('RefreshToken schema — E7 idle timeout', () => {
 
     expect(refreshTokenModel).toBeDefined();
 
-    const fieldNames = refreshTokenModel!.fields.map((f) => f.name);
+    if (!refreshTokenModel) throw new Error('RefreshToken model not found in DMMF');
+    const fieldNames = refreshTokenModel.fields.map((f) => f.name);
 
     // Assert that the idle-timeout column exists (E7).
     expect(fieldNames).toContain('lastUsedAt');
 
     // Assert that the field is nullable (the auth service sets it on refresh;
     // NULL means the token has never been used for a silent refresh).
-    const lastUsedAtField = refreshTokenModel!.fields.find(
+    const lastUsedAtField = refreshTokenModel.fields.find(
       (f) => f.name === 'lastUsedAt',
     );
     expect(lastUsedAtField?.isRequired).toBe(false);

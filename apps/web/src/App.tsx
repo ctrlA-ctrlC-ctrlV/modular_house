@@ -30,14 +30,6 @@ import { TrailingSlashRedirect } from './components/TrailingSlashRedirect'
 import { routes } from './route-config'
 import GardenRoomConfigurator from './routes/GardenRoomConfigurator'
 
-import AdminLogin from './routes/admin/login'
-import AdminDashboard from './routes/admin/index'
-import AdminRedirects from './routes/admin/redirects'
-import AdminGallery from './routes/admin/gallery'
-import AdminSubmissions from './routes/admin/submissions'
-import AdminPages from './routes/admin/pages'
-import AdminGuard from './routes/admin/guard'
-
 /** Redirect helper: forwards /garden-room/configure/:slug to /garden-rooms/configure/:slug */
 function GardenRoomConfigureRedirect() {
   const { slug } = useParams<{ slug: string }>();
@@ -87,16 +79,7 @@ function App() {
           <Route path="/house-extension" element={<Navigate to="/house-extensions" replace />} />
         </Route>
 
-        {/* Admin Routes — also normalized for trailing slash consistency */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        
-        <Route element={<AdminGuard />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/redirects" element={<AdminRedirects />} />
-          <Route path="/admin/gallery" element={<AdminGallery />} />
-          <Route path="/admin/submissions" element={<AdminSubmissions />} />
-          <Route path="/admin/pages" element={<AdminPages />} />
-        </Route>
+        {/* Admin routes will be wired in when the new admin layer is ready (T011 onward) */}
       </Route>
     </Routes>
   )

@@ -9,7 +9,7 @@ vi.mock('@prisma/client', () => ({
   },
 }));
 
-import { AuditLogService, AUDIT_ACTIONS } from '../../../src/services/auditLog.js';
+import { AuditLogService, AUDIT_ACTIONS } from '../../src/services/auditLog.js';
 
 describe('AuditLogService — I1–I3', () => {
   let service: AuditLogService;

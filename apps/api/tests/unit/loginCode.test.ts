@@ -4,7 +4,7 @@ import {
   OTP_DIGIT_COUNT,
   OTP_TTL_MS,
   OTP_MAX_ATTEMPTS,
-} from '../../../src/config/adminAuth.js';
+} from '../../src/config/adminAuth.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -35,7 +35,12 @@ vi.mock('argon2', () => mockArgon2);
 // ---------------------------------------------------------------------------
 
 import { PrismaClient } from '@prisma/client';
-import { LoginCodeService } from '../../../src/services/loginCode.js';
+import {
+  LoginCodeService,
+  type VerifySuccess,
+  type VerifyFailure,
+  type ResendResult,
+} from '../../src/services/loginCode.js';
 
 // ---------------------------------------------------------------------------
 // Shared test helpers
@@ -164,7 +169,7 @@ describe('LoginCodeService — B1–B9', () => {
 
       const result = await service.verify('challenge-abc', '123456');
       expect(result.success).toBe(false);
-      expect(result.reason).toMatch(/expired/i);
+      expect((result as VerifyFailure).reason).toMatch(/expired/i);
     });
 
     // B4: consumed code → rejected
@@ -175,7 +180,7 @@ describe('LoginCodeService — B1–B9', () => {
 
       const result = await service.verify('challenge-abc', '123456');
       expect(result.success).toBe(false);
-      expect(result.reason).toMatch(/consumed|used/i);
+      expect((result as VerifyFailure).reason).toMatch(/consumed|used/i);
     });
 
     // B5: locked code (attemptCount >= OTP_MAX_ATTEMPTS) → rejected
@@ -186,7 +191,7 @@ describe('LoginCodeService — B1–B9', () => {
 
       const result = await service.verify('challenge-abc', '123456');
       expect(result.success).toBe(false);
-      expect(result.reason).toMatch(/locked|attempts/i);
+      expect((result as VerifyFailure).reason).toMatch(/locked|attempts/i);
     });
 
     // B5: wrong code increments attemptCount
@@ -214,7 +219,7 @@ describe('LoginCodeService — B1–B9', () => {
       const result = await service.verify('challenge-abc', '123456');
 
       expect(result.success).toBe(true);
-      expect(result.userId).toBe('user-1');
+      expect((result as VerifySuccess).userId).toBe('user-1');
       expect(mockLoginCode.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ consumedAt: expect.any(Date) }),
@@ -233,7 +238,7 @@ describe('LoginCodeService — B1–B9', () => {
 
       expect(result).not.toHaveProperty('token');
       expect(result).not.toHaveProperty('accessToken');
-      expect(result.userId).toBe('user-1');
+      expect((result as VerifySuccess).userId).toBe('user-1');
     });
   });
 
@@ -262,7 +267,7 @@ describe('LoginCodeService — B1–B9', () => {
 
       const result = await service.resend(existingChallengeId);
 
-      expect(result.challengeId).toBe(existingChallengeId);
+      expect((result as ResendResult).challengeId).toBe(existingChallengeId);
       expect(capturedChallengeId).toBe(existingChallengeId);
     });
 

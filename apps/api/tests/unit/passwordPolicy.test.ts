@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_MAX_LENGTH,
-} from '../../../src/config/passwordPolicy.js';
+} from '../../src/config/adminAuth.js';
 
 // Must use vi.hoisted so the mock factory can reference the variable.
 const mockVerify = vi.hoisted(() => vi.fn());
 vi.mock('argon2', () => ({ verify: mockVerify, hash: vi.fn() }));
 
-import { validatePassword } from '../../../src/services/passwordPolicy.js';
+import { validatePassword } from '../../src/services/passwordPolicy.js';
 
 describe('passwordPolicy validator — D1–D4', () => {
   beforeEach(() => {

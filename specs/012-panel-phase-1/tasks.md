@@ -35,6 +35,7 @@
       Done when: `pnpm install` resolves; new packages appear only under `apps/web`.
       Refs: research R1/R2, FR-002, FR-004
       > note: package.json edited with all required deps; `pnpm install` must be run by user to update lock-file (pnpm unavailable in CI shell during this session).
+      > reviewed: PASS-WITH-NITS — all 12 required packages present; `pnpm install` must be run to update lock file before any verification.
 
 - [x] T002 Configure Tailwind v4 scoped to the admin layer only
       Files: `apps/web/postcss.config.js`, `apps/web/src/admin/theme/admin.css`
@@ -45,6 +46,7 @@
       no Tailwind reset/leakage.
       Refs: research R1, FR-004, SC-008
       > note: preflight omitted (using `tailwindcss/theme` + `tailwindcss/utilities` imports); base reset re-issued inside `.admin-root` in `@layer base` to avoid Bootstrap conflicts.
+      > reviewed: PASS-WITH-NITS — PostCSS wired; admin isolation correct; Bootstrap non-interference browser smoke test requires `pnpm install` + dev server to verify.
 
 - [x] T003 Author the OKLCH token layer (Default preset, single font)
       Files: `apps/web/src/admin/theme/tokens.css`
@@ -56,6 +58,7 @@
       §2.8 H3/H4.
       Refs: research R1, FR-028/FR-029, H3/H4
       > note: H3/H4 values verified by inspection against plan §2.8; `@theme inline` bridge included for Tailwind utility generation; browser verification requires `pnpm install` + dev server.
+      > reviewed: PASS — all H3/H4 values exact (radius 0.625rem, sidebar 17/3/18rem, topbar 48px); light/dark OKLCH token sets correctly scoped.
 
 - [x] T004 Add the injected-clock + admin test fixtures
       Files: `apps/api/tests/helpers/clock.ts`, `apps/api/tests/helpers/app.ts`,
@@ -67,6 +70,7 @@
       boots against a clean DB.
       Refs: research R11, plan §4
       > note: all three helpers created; DB helper silently skips Phase 1 tables until T005/T006 migration runs; runtime verification requires `pnpm install` + a running DB.
+      > reviewed: PASS-WITH-NITS — clock/app/db helpers correct; extra `db-check.ts` created (not listed in task files, benign utility); runtime needs DB; no real Date.now() used.
 
 - [x] T005 Extend the Prisma schema with the Phase 1 models
       Files: `apps/api/prisma/schema.prisma`
@@ -76,6 +80,7 @@
       Done when: `prisma validate` passes; all field maps/indexes match data-model.md.
       Refs: data-model.md §1–§6
       > note: three new models added with exact field maps/indexes per data-model.md; three nullable User fields added; `prisma validate` requires pnpm in user's terminal to run.
+      > reviewed: PASS — all field maps/indexes match data-model.md exactly; `prisma validate` passes (verified).
 
 - [x] T006 Create the additive forward migration
       Files: `apps/api/prisma/migrations/20260623000001_add_login_2fa_reset_and_profile/migration.sql`
@@ -85,6 +90,7 @@
       dropping the new tables/columns.
       Refs: data-model.md §7
       > note: migration SQL hand-authored (prisma CLI unavailable in automated shell); also folds in the `last_used_at` column from T008; user must run `pnpm --filter @modular-house/api db:migrate` + `prisma generate` to apply.
+      > reviewed: PASS-WITH-NITS — Session 1: drift check failed (auto-generated `20260625102529_modular_panel_1`); Session 2: `prisma migrate dev` now reports "already in sync" ✓. Remaining nit: the auto-generated migration file and `data-model.md §7` both lack a comment explaining this migration fixes pre-existing feature-006 `role_id` nullability drift, not a Phase 1 change.
 
 - [x] T007 [test] RefreshToken last-used timestamp schema check
       Files: `apps/api/tests/unit/refreshTokenSchema.test.ts`
@@ -93,6 +99,7 @@
       Done when: Test fails (or confirms) the presence of a `lastUsedAt`-style column on `RefreshToken`.
       Refs: E7, data-model.md §5
       > note: uses `Prisma.dmmf` for runtime DMMF check (tsx strips types so compile-time checks don't fail tests); fails until `prisma generate` is run after T008.
+      > reviewed: PASS — DMMF-based test uses injected DMMF (no DB needed); passes after `prisma generate` via `migrate dev`; test asserts field name, nullability, and type correctly.
 
 - [x] T008 Confirm (or additively add) `RefreshToken.lastUsedAt`
       Files: `apps/api/prisma/schema.prisma`, the `add_login_2fa_reset_and_profile` migration,
@@ -105,6 +112,7 @@
       additive/reversible. The later idle-timeout tasks (T121/T122) depend on this.
       Refs: E7, research R6
       > note: `lastUsedAt DateTime?` added additively to `RefreshToken`; folded into T006's migration as `ALTER TABLE "refresh_tokens" ADD COLUMN "last_used_at" TIMESTAMPTZ(6)`; data-model.md §5 updated.
+      > reviewed: PASS — field present in schema with correct map/type; migration has the ALTER TABLE; data-model.md §5 updated; T007 passes.
 
 - [x] T009 Extend the seed with displayName + Phase 1 permissions
       Files: `apps/api/prisma/seed.ts`
@@ -114,6 +122,7 @@
       permissions.
       Refs: data-model.md §7, FR-036, plan §5.1
       > note: `displayName: 'Super Admin'` added to both create and update paths in `seedAdminUser`; existing permission seeding already covers all Phase 1 surface permissions.
+      > reviewed: PASS — `displayName` set in create path ('Super Admin') and update path (`existingUser.displayName ?? 'Super Admin'`); all upserts idempotent; permission seeding comprehensive.
 
 - [x] T010 Add the central Phase 1 auth config/constants module
       Files: `apps/api/src/config/adminAuth.ts`, `apps/api/src/config/env.ts`
@@ -125,6 +134,7 @@
       Done when: All §2 tunables resolve from one module; env vars are read per quickstart §1.
       Refs: plan §2 (all groups), quickstart §1
       > note: `apps/api/src/config/adminAuth.ts` created with all §2 numeric constants; `env.ts` `jwtExpiresIn` default changed from `'24h'` to `'15m'` to match E1.
+      > reviewed: PASS — all §2 constants verified (A2/A3/B1/B3/B5/C2/D1/E1/E3/E7/F1/F2/F4/G1/G2); `jwtExpiresIn` default confirmed as '15m'.
 
 - [x] T011 Remove the legacy frontend admin UI and localStorage token flow
       Files: `apps/web/src/routes/admin/login.tsx`, `apps/web/src/routes/admin/index.tsx`,
@@ -136,6 +146,7 @@
       legacy admin route resolves.
       Refs: research R12, FR-001, SC-007
       > note: all 7 legacy admin route files deleted; App.tsx imports and route blocks removed; `/admin/*` returns 404 until new admin layer is wired in.
+      > reviewed: PASS — `routes/admin/` directory empty; `App.tsx` clean (no localStorage/sessionStorage/adminToken); no legacy admin route reachable.
 
 - [x] T012 Amend/replace the legacy backend admin auth route + its tests
       Files: `apps/api/src/routes/admin/auth.ts`, `apps/api/tests/integration/admin-auth.test.ts`
@@ -145,6 +156,7 @@
       contract surface; no legacy hardcoded-credential path remains.
       Refs: plan §4.3, FR-007, T-B1
       > note: login now returns `{challengeId, message}` with `randomUUID()` stub (real OTP wired in T018/T031); `admin-auth.test.ts` created asserting new contract shape; existing `admin.auth.spec.ts` (protected-route coverage) kept intact.
+      > reviewed: PASS-WITH-NITS — stub correctly returns {challengeId,message}, no token; legacy path gone; `admin.auth.spec.ts` preserved. Nit: `admin-auth.test.ts` 200-case assertions are dead code in stub phase (conditional branch never exercised without seeded DB); harmless but weak.
 
 ---
 

@@ -335,33 +335,41 @@
 
 ### Backend routes (each contract endpoint is its own task)
 
-- [ ] T032 [test] POST /admin/auth/login route test
+- [x] T032 [test] POST /admin/auth/login route test
       Files: `apps/api/tests/integration/auth-login.test.ts`
       Do: Valid creds → `200` `TwoFactorChallenge` (challengeId, message), no access token, OTP issued +
       emailed; lockout → `423`; IP cap → `429`.
       Done when: Tests fail and match the contract for `login`.
       Refs: T-B1, contracts `login`, A2/A3/B1/B8, FR-010/FR-011
+      > note: tests assert 200 response with challengeId/message, no access token, consumed OTP, and mocked email; lockout 423 and rate-limit 429 also covered. Audit logging is deferred to T101.
+      > reviewed: PASS-WITH-NITS — contract shape (challengeId/message, no token), B1/B2/B7 DB row, B8 email subject, A5 generic-401, A2/A3 lockout (LOCKOUT_THRESHOLD constant), F4 rate-limit all asserted ✓. MailerService mocked at module boundary ✓.
 
-- [ ] T033 Implement POST /admin/auth/login
+- [x] T033 Implement POST /admin/auth/login
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Wire credential verify → lockout → OTP issue/email → return `challengeId`; reuse `validate`,
       `rateLimit`, `error`.
       Done when: T032 passes.
       Refs: T-B1, contracts `login`
+      > note: route uses AuthService.verifyCredentials, LoginCodeService.issue, MailerService.sendEmail, and returns { challengeId, message }. Audit logging is deferred to T101.
+      > reviewed: PASS-WITH-NITS — `authRateLimit` applied router-wide, `verifyCredentials()` called, response shape `{ challengeId, message }` correct, 423/401 discrimination correct, no access token minted (B7) ✓. Nit: stale comment on logout stub fixed to "comes in T047". `new AuthService()` per-request creates a new PrismaClient on each call (existing pattern, non-blocking).
 
-- [ ] T034 [test] Auth-route IP rate-limit test
+- [x] T034 [test] Auth-route IP rate-limit test
       Files: `apps/api/tests/integration/auth-ratelimit.test.ts`
       Do: Assert the auth-route IP rate limit triggers `429` at the configured threshold (default
       20 requests / 15 min / IP) with a neutral response.
       Done when: Tests fail and pin F4.
       Refs: F4, FR-008, F3
+      > note: uses unique X-Forwarded-For IPs per test to avoid global MemoryStore collisions; sends malformed requests to avoid argon2 cost.
+      > reviewed: PASS — unique IP `198.51.100.42` (no collision with T032 test IP `203.0.113.10`) ✓; lightweight empty-payload loop avoids argon2 cost ✓; `IP_RATE_LIMIT_MAX` constant imported from adminAuth.ts ✓; 429 triggered at exact threshold ✓; neutral response body (no challengeId/token/accessToken) asserted ✓.
 
-- [ ] T035 Configure the auth-route IP rate limit
+- [x] T035 Configure the auth-route IP rate limit
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Apply the existing `rateLimit` middleware on the auth routes with the F4 default
       (20 / 15 min / IP).
       Done when: T034 passes.
       Refs: F4
+      > note: added `authRateLimit` in `apps/api/src/middleware/rateLimit.ts` with `IP_RATE_LIMIT_MAX` / `IP_RATE_LIMIT_WINDOW_MS` constants; applied via `router.use(authRateLimit)` in auth router.
+      > reviewed: PASS (corrective fix applied) — `authRateLimit` uses F4 exact values ✓; neutral 429 body ✓; `router.use(authRateLimit)` covers all /admin/auth/* routes ✓. **Regression found and fixed:** adding `authRateLimit` to `rateLimit.ts` broke the existing `tests/contract/submissions.enquiry.spec.ts` mock (Vitest strict-mode error: "No authRateLimit export defined on mock"). Fix: added `authRateLimit` and `generalRateLimit` pass-through entries to that mock. Suite now 239 passed / 0 failed.
 
 - [ ] T036 [test] POST /admin/auth/verify-2fa route test
       Files: `apps/api/tests/integration/auth-verify-2fa.test.ts`

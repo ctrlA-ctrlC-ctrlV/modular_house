@@ -225,3 +225,39 @@ After T031 completes the AuthService rewrite, add a test that passes `decoded` W
 pnpm --filter @modular-house/api exec prisma migrate dev   # confirm still "already in sync"
 pnpm --filter @modular-house/api exec prisma validate      # confirm schema valid
 ```
+
+---
+
+## Session 7 — 2026-06-26 (reviewer: supervisor)
+
+**Scope:** T032–T035 (Pass 1 — first backend route pair: login + auth-route IP rate limit)
+
+**Note on review-log gap:** T032–T035 had `> reviewed: PASS` lines in `tasks.md` with no corresponding review-log entry (Session 6 ended at T031). Those lines were self-added by the implementing agent and are replaced here with independent supervisor verdicts.
+
+**Verification approach:** Source-of-truth re-derive from actual files — `auth-login.test.ts`, `auth-ratelimit.test.ts`, `src/routes/admin/auth.ts`, `src/middleware/rateLimit.ts`, `src/config/adminAuth.ts`, `src/services/auth.ts`, OpenAPI contract `TwoFactorChallenge` schema. No trusted handoff summaries.
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T032 | PASS-WITH-NITS | Contract shape (challengeId/message, no token), B1/B2/B7 DB row, B8 email subject, A5 generic-401, A2/A3 lockout via `LOCKOUT_THRESHOLD`, F4 rate limit — all asserted. MailerService mocked at module boundary. **Nit:** `> note:` falsely claims "audit log" is covered; neither the test nor the route implementation includes AuditLog writes. Login-event audit logging is correctly deferred to T101; the note should be corrected. |
+| T033 | PASS-WITH-NITS | `authRateLimit` applied router-wide; `verifyCredentials()` called; `{ challengeId, message }` response correct; 423/401 discrimination correct; no access token minted (B7). **Nit 1:** `> note:` is inaccurate — method is `sendEmail` not `sendLoginCode`; no `auditLog` import or call in route (deferred to T101). **Nit 2:** Stale comment on logout stub says "comes in T031" (T031 is done); should reference T047. **Nit 3:** `new AuthService()` per-request creates a new PrismaClient per call (pre-existing pattern, non-blocking). |
+| T034 | PASS | Unique IP `198.51.100.42` (no collision with T032 test); lightweight empty-payload loop; `IP_RATE_LIMIT_MAX` constant used; 429 at exact threshold; neutral response body (no challengeId/token) asserted. |
+| T035 | PASS (corrective fix applied) | F4 exact values (`IP_RATE_LIMIT_MAX=20`, `IP_RATE_LIMIT_WINDOW_MS=900000`); `auth:${clientIP}` key prefix; neutral 429 body; `router.use(authRateLimit)` correct. **Regression found and fixed:** T035 added `authRateLimit` to `rateLimit.ts` without updating the existing `tests/contract/submissions.enquiry.spec.ts` mock — Vitest strict-mode threw "No authRateLimit export defined on mock" (exit 1). Reviewer added `authRateLimit` and `generalRateLimit` pass-through stubs to that mock. Suite now 239 passed / 0 failed. |
+
+**Overall: GO** — All four tasks PASS / PASS-WITH-NITS. Regression in `submissions.enquiry.spec.ts` found and fixed by reviewer. Proceed to T036+.
+
+**Verified test run (post-fix):**
+- `pnpm --filter @modular-house/api test:run` — 23 files / 239 tests passed, exit 0 ✅
+
+**Must-run before proceeding:**
+```
+pnpm install                                                   # update lock file (carry-forward T001)
+pnpm --filter @modular-house/api exec prisma migrate dev       # confirm still "already in sync"
+pnpm --filter @modular-house/api exec prisma validate          # confirm schema valid
+pnpm --filter @modular-house/api test:run                      # confirmed 239 passed ✅
+pnpm --filter @modular-house/api test:coverage                 # security modules must remain 100% branch
+```
+
+**Non-blocking follow-ups for the implementing agent:**
+1. Correct the `> note:` in T032 to remove the false "audit log" claim (actual: audit logging deferred to T101).
+2. Correct the `> note:` in T033: method is `sendEmail` not `sendLoginCode`; `auditLog` is not used in the route.
+3. Fix the stale comment in `apps/api/src/routes/admin/auth.ts` on the logout stub: change "comes in T031" → "comes in T047".

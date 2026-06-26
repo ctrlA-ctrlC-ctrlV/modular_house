@@ -70,7 +70,7 @@ value. Re-derive every judgment from the actual files and the sources of truth. 
   `apps/web/src/admin/`, seeds idempotent, no obvious dead code or copy-paste from the template's
   Next.js-specific bits.
 
-## Verification commands (run if available; otherwise list as "user must run")
+## Verification commands (**MUST RUN**)
 
 ```
 pnpm --filter @modular-house/api test:run

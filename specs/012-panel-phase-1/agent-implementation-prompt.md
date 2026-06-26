@@ -78,6 +78,7 @@ For each task, in order:
 
 ## Non-negotiables
 
+- **Typing**: Ensure all props are strictly typed with TypeScript interfaces. Never use "any" data type and only use "unknown" when receive data from user input or external API.
 - **Scope:** Build only what the current tasks describe. The guardrails in the `tasks.md`
   header and `plan.md` §1.4/§5.2 are binding: no user/role-management UI, content/media
   editors, customer views, dashboard widgets, extra theme presets/fonts, authenticator/SMS
@@ -92,6 +93,7 @@ For each task, in order:
 - **Style:** No emoji in code. Conventional naming. Keep the admin layer isolated under
   `apps/web/src/admin/` with its own scoped Tailwind.
 - **Migrations are additive only** — no destructive changes to reused feature-006 models.
+- Follow the "Open-Closed Principle" (make it easy to extend but hard to break).
 
 ## Stop and ask (do not guess) when
 
@@ -117,7 +119,7 @@ comes first. Then output:
 - **Next:** the first unchecked task ID (where the next chat should resume).
 - **Notes/deviations:** anything you changed beyond the literal task text, and why. If you
   deviated from a task, add a one-line `> note:` under that task in `tasks.md`.
-- **Commits**: Separate the implementations into individual commits. Clearly label the full relevant path for `git add`. Naming of `git commit -m` should follow `.docs\COMMIT_CONVENTION.md` .
+- **Commits**: separate the implementations into individual commits. Clearly label the full relevant path for `git add`. Naming of `git commit -m` should follow `.docs\COMMIT_CONVENTION.md` .
 - **Blockers:** any open question for me.
 
 Keep going only while output stays high-quality. If you're losing the thread or the context

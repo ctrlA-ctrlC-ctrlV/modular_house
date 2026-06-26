@@ -16,6 +16,7 @@ vi.mock('../../../src/services/auth.js', () => {
 });
 
 import { authenticateJWT, requireRole } from '../../../src/middleware/auth.js';
+import { requirePermission } from '../../../src/middleware/requirePermission.js';
 
 describe('Auth Middleware', () => {
   let mockRequest: Partial<Request>;
@@ -120,6 +121,69 @@ describe('Auth Middleware', () => {
         error: 'Forbidden'
       }));
       expect(nextFunction).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // T027: requirePermission gate — retained alongside requireRole tests
+  // -------------------------------------------------------------------------
+
+  describe('requirePermission', () => {
+    it('calls next() when the user has the required permission', () => {
+      (mockRequest as Request).user = {
+        userId: 'user-1',
+        email: 'admin@example.com',
+        role: 'admin',
+        permissions: ['pages:view', 'submissions:read'],
+      };
+
+      requirePermission('pages', 'view')(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(nextFunction).toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 when the user lacks the required permission', () => {
+      (mockRequest as Request).user = {
+        userId: 'user-1',
+        email: 'admin@example.com',
+        role: 'admin',
+        permissions: ['submissions:view'],
+      };
+
+      requirePermission('pages', 'view')(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(403);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Forbidden' }),
+      );
+    });
+
+    it('returns 403 when the user has an empty permissions array', () => {
+      (mockRequest as Request).user = {
+        userId: 'user-1',
+        email: 'admin@example.com',
+        role: 'admin',
+        permissions: [],
+      };
+
+      requirePermission('submissions', 'export')(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(403);
+    });
+
+    it('returns 401 when req.user is not set (unauthenticated)', () => {
+      (mockRequest as Request).user = undefined;
+
+      requirePermission('pages', 'view')(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Unauthorized' }),
+      );
     });
   });
 });

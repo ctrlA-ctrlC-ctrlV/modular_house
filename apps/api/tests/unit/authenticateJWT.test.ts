@@ -89,6 +89,26 @@ describe('authenticateJWT — claim loading (E1)', () => {
     expect((req as Request).user!.permissions).toEqual([]);
   });
 
+  it('defaults req.user.permissions to [] when the JWT carries no permissions field (legacy token)', () => {
+    // Simulate a legacy JWT that was minted before the permissions claim was added.
+    // The decoded object intentionally has no 'permissions' key at all.
+    const decoded: { userId: string; email: string; role: string } = {
+      userId: 'user-1',
+      email: 'admin@example.com',
+      role: 'admin',
+    };
+    verifyTokenMock.mockReturnValue(decoded);
+
+    const req = makeReq({ authorization: 'Bearer legacy.token' });
+    const res = makeRes();
+
+    authenticateJWT(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalled();
+    // authenticateJWT must default missing permissions to [] via `decoded.permissions ?? []`
+    expect((req as Request).user!.permissions).toEqual([]);
+  });
+
   it('passes all four claim fields through to req.user (userId, email, role, permissions)', () => {
     const decoded = {
       userId: 'abc-123',

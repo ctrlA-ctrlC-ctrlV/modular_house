@@ -6,16 +6,8 @@
 
 ---
 
-**SESSION GOAL:** Implement `____` (e.g. "T013–T018", or "the next unchecked group").
-If left blank, implement the next unchecked tasks in order up to a natural checkpoint
-(one `###` subsection, ~4–8 tasks), then stop.
-
-
-
 **SESSION GOAL:** Implement implement the next unchecked tasks in order up to a natural checkpoint
 (4 tasks), then stop.
-
-**SESSION GOAL:** Implement T027–T031, then stop.
 
 You are implementing Phase 1 of the admin panel in this monorepo (`apps/web`, `apps/api`)
 on branch `012-panel-phase-1`. The full plan already exists — your job is to execute it
@@ -108,6 +100,13 @@ For each task, in order:
 - A task would require touching out-of-scope or public-site code to pass.
 - A decision is needed that isn't pinned in the sources of truth.
 
+## In code comments
+Add clear, detailed, and professional inline comments to the attached files. The comments should accurately describe the purpose and functionality of each section, block, or key line of code.
+  - Write the comments as if they are part of technical documentation—not a conversation.
+  - Avoid using personal or directive language (e.g., “this is what I did” or “you should do this here”).
+  - Assume the target reader is a graduate-level developer with a basic understanding of modern development practices.
+  - Aim for clarity, consistency, and completeness to support long-term maintainability.
+
 ## End-of-session handoff (always finish with this)
 
 Stop when the batch is complete, you reach a checkpoint, or you hit a blocker — whichever
@@ -118,6 +117,7 @@ comes first. Then output:
 - **Next:** the first unchecked task ID (where the next chat should resume).
 - **Notes/deviations:** anything you changed beyond the literal task text, and why. If you
   deviated from a task, add a one-line `> note:` under that task in `tasks.md`.
+- **Commits**: Separate the implementations into individual commits. Clearly label the full relevant path for `git add`. Naming of `git commit -m` should follow `.docs\COMMIT_CONVENTION.md` .
 - **Blockers:** any open question for me.
 
 Keep going only while output stays high-quality. If you're losing the thread or the context

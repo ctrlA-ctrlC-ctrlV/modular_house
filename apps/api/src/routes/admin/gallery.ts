@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { GalleryCategory, PublishStatus } from '@prisma/client';
 import { GalleryService } from '../../services/content/gallery.js';
 import { authenticateJWT } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/requirePermission.js';
 import { validate } from '../../middleware/validate.js';
 
 const router = Router();
@@ -36,7 +37,7 @@ const updateGalleryItemBody = z.object({
 router.use(authenticateJWT); // Protect all routes
 
 // List
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', requirePermission('gallery', 'view'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Cast query params to enum types if they match, otherwise undefined
     const category = Object.values(GalleryCategory).includes(req.query.category as unknown as GalleryCategory) 
@@ -55,7 +56,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get one
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', requirePermission('gallery', 'view'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await GalleryService.findById(id);
@@ -70,7 +71,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Create
-router.post('/', validate({ body: createGalleryItemBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('gallery', 'create'), validate({ body: createGalleryItemBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const item = await GalleryService.create(req.body);
     res.status(201).json(item);
@@ -80,7 +81,7 @@ router.post('/', validate({ body: createGalleryItemBody }), async (req: Request,
 });
 
 // Update
-router.put('/:id', validate({ params: updateGalleryItemParams, body: updateGalleryItemBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requirePermission('gallery', 'edit'), validate({ params: updateGalleryItemParams, body: updateGalleryItemBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await GalleryService.update(id, req.body);
@@ -91,7 +92,7 @@ router.put('/:id', validate({ params: updateGalleryItemParams, body: updateGalle
 });
 
 // Delete
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requirePermission('gallery', 'delete'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     await GalleryService.delete(id);

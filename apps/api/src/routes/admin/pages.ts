@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { PagesService } from '../../services/content/pages.js';
-import { authenticateJWT, requireRole } from '../../middleware/auth.js';
+import { authenticateJWT } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/requirePermission.js';
 import { validate } from '../../middleware/validate.js';
 import { logger } from '../../middleware/logger.js';
 
@@ -23,10 +24,9 @@ const updatePageSchema = pageSchema.partial();
 
 // Apply auth middleware to all routes
 router.use(authenticateJWT);
-router.use(requireRole('admin'));
 
 // List all pages
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', requirePermission('pages', 'view'), async (_req: Request, res: Response) => {
   try {
     const pages = await PagesService.findAll();
     res.json(pages);
@@ -37,7 +37,7 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 // Get page by ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', requirePermission('pages', 'view'), async (req: Request, res: Response) => {
   try {
     const page = await PagesService.findById(req.params.id);
     if (!page) {
@@ -52,7 +52,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Create page
-router.post('/', validate({ body: pageSchema }), async (req: Request, res: Response) => {
+router.post('/', requirePermission('pages', 'create'), validate({ body: pageSchema }), async (req: Request, res: Response) => {
   try {
     const page = await PagesService.create(req.body);
     logger.info({ pageId: page.id, user: req.user?.email }, 'Page created');
@@ -68,7 +68,7 @@ router.post('/', validate({ body: pageSchema }), async (req: Request, res: Respo
 });
 
 // Update page
-router.put('/:id', validate({ body: updatePageSchema }), async (req: Request, res: Response) => {
+router.put('/:id', requirePermission('pages', 'edit'), validate({ body: updatePageSchema }), async (req: Request, res: Response) => {
   try {
     const page = await PagesService.update(req.params.id, req.body);
     logger.info({ pageId: page.id, user: req.user?.email }, 'Page updated');
@@ -88,7 +88,7 @@ router.put('/:id', validate({ body: updatePageSchema }), async (req: Request, re
 });
 
 // Delete page
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requirePermission('pages', 'delete'), async (req: Request, res: Response) => {
   try {
     await PagesService.delete(req.params.id);
     logger.info({ pageId: req.params.id, user: req.user?.email }, 'Page deleted');

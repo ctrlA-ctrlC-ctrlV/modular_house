@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { RedirectsService } from '../../services/content/redirects.js';
 import { authenticateJWT } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/requirePermission.js';
 import { validate } from '../../middleware/validate.js';
 
 const router = Router();
@@ -27,7 +28,7 @@ const updateRedirectBody = z.object({
 router.use(authenticateJWT); // Protect all routes
 
 // List
-router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', requirePermission('redirects', 'view'), async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const items = await RedirectsService.findAll();
     res.json(items);
@@ -37,7 +38,7 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get one
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', requirePermission('redirects', 'view'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await RedirectsService.findById(id);
@@ -52,7 +53,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Create
-router.post('/', validate({ body: createRedirectBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('redirects', 'create'), validate({ body: createRedirectBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const item = await RedirectsService.create(req.body);
     res.status(201).json(item);
@@ -71,7 +72,7 @@ router.post('/', validate({ body: createRedirectBody }), async (req: Request, re
 });
 
 // Update
-router.put('/:id', validate({ params: updateRedirectParams, body: updateRedirectBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requirePermission('redirects', 'edit'), validate({ params: updateRedirectParams, body: updateRedirectBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await RedirectsService.update(id, req.body);
@@ -94,7 +95,7 @@ router.put('/:id', validate({ params: updateRedirectParams, body: updateRedirect
 });
 
 // Delete
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requirePermission('redirects', 'delete'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     await RedirectsService.delete(id);

@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { FaqsService } from '../../services/content/faqs.js';
 import { authenticateJWT } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/requirePermission.js';
 import { validate } from '../../middleware/validate.js';
 
 const router = Router();
@@ -27,7 +28,7 @@ const updateFAQBody = z.object({
 router.use(authenticateJWT); // Protect all routes
 
 // List
-router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', requirePermission('faqs', 'view'), async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const items = await FaqsService.findAll();
     res.json(items);
@@ -37,7 +38,7 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get one
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', requirePermission('faqs', 'view'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await FaqsService.findById(id);
@@ -52,7 +53,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Create
-router.post('/', validate({ body: createFAQBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('faqs', 'create'), validate({ body: createFAQBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const item = await FaqsService.create(req.body);
     res.status(201).json(item);
@@ -62,7 +63,7 @@ router.post('/', validate({ body: createFAQBody }), async (req: Request, res: Re
 });
 
 // Update
-router.put('/:id', validate({ params: updateFAQParams, body: updateFAQBody }), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requirePermission('faqs', 'edit'), validate({ params: updateFAQParams, body: updateFAQBody }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const item = await FaqsService.update(id, req.body);
@@ -73,7 +74,7 @@ router.put('/:id', validate({ params: updateFAQParams, body: updateFAQBody }), a
 });
 
 // Delete
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requirePermission('faqs', 'delete'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     await FaqsService.delete(id);

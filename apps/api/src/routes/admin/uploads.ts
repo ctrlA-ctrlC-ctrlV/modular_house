@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { authenticateJWT } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/requirePermission.js';
 import { logger } from '../../middleware/logger.js';
 
 const router = Router();
@@ -75,7 +76,7 @@ const uploadSingle = (req: Request, res: Response, next: NextFunction) => {
  * POST /admin/uploads/image
  * Upload an image file
  */
-router.post('/image', authenticateJWT, uploadSingle, (req: Request, res: Response) => {
+router.post('/image', authenticateJWT, requirePermission('gallery', 'create'), uploadSingle, (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({
       error: 'Missing file',

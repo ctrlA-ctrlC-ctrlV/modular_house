@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { SubmissionsExportService } from '../../services/submissionsExport.js';
 import { authenticateJWT } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/requirePermission.js';
 import { validate } from '../../middleware/validate.js';
 
 const router = Router();
@@ -16,7 +17,7 @@ const listSubmissionsQuery = z.object({
 router.use(authenticateJWT); // Protect all routes
 
 // List
-router.get('/', validate({ query: listSubmissionsQuery }), async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', requirePermission('submissions', 'view'), validate({ query: listSubmissionsQuery }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page, limit } = req.query as unknown as { page: number; limit: number };
     const result = await SubmissionsExportService.findAll(page, limit);
@@ -27,7 +28,7 @@ router.get('/', validate({ query: listSubmissionsQuery }), async (req: Request, 
 });
 
 // Export CSV
-router.get('/export.csv', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/export.csv', requirePermission('submissions', 'export'), async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const csv = await SubmissionsExportService.exportToCsv();
     

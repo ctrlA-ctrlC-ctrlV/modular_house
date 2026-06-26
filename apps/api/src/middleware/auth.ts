@@ -11,6 +11,8 @@ declare global {
         userId: string;
         email: string;
         role: string;
+        /** Effective permission strings in `resource:action` format (E1). */
+        permissions: string[];
       };
     }
   }
@@ -26,7 +28,12 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     const decoded = authService.verifyToken(token);
 
     if (decoded) {
-      req.user = decoded;
+      req.user = {
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role,
+        permissions: decoded.permissions ?? [],
+      };
       next();
     } else {
       logger.warn({ ip: req.ip }, 'Invalid or expired token provided');

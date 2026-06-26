@@ -152,3 +152,37 @@ pnpm --filter @modular-house/api exec prisma migrate dev  # confirm "already in 
 pnpm --filter @modular-house/api exec prisma validate     # confirm schema valid
 ```
 (Both are carry-forward confirmations from Session 2; no new schema changes in T019–T022.)
+---
+
+## Session 5 — 2026-06-26 (reviewer: supervisor)
+
+**Scope:** T023–T026 (Pass 1 — `authenticateJWT` claims + `requirePermission` middleware)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run` — ✅ **165 passed / 21 skipped** (19 suites; +22 tests from T023–T026)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ security modules:
+
+| File | Stmts | Branch | Funcs | Lines | Notes |
+|------|-------|--------|-------|-------|-------|
+| `src/middleware/auth.ts` | 100 | 100 | 100 | 100 | T024 changes fully covered ✅ |
+| `src/middleware/requirePermission.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/config/adminAuth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/services/auth.ts` | 97.95 | 88.23 | 100 | 97.95 | line 39: production-throw branch (pre-existing; fixed at T031) |
+| `src/routes/admin/auth.ts` | 72.22 | 50 | 100 | 72.22 | lines 35-46: T012 stub routes (not a T023–T026 concern) |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T023 | PASS-WITH-NITS | All 4 E1 claims (userId/email/role/permissions) asserted; 3 × 401 paths covered; **nit**: implementing agent's `> note` acknowledges tests passed immediately before T024 — "Done when: Tests fail" condition was never met (TDD process violation, non-blocking: implementation + coverage are correct) |
+| T024 | PASS | `authenticateJWT` explicitly maps all 4 E1 claims; `decoded.permissions ?? []` correctly defaults empty array for legacy tokens; `TokenPayload` + `Express.Request.user` types updated; `auth.spec.ts` kept in sync; `src/middleware/auth.ts` 100% branch |
+| T025 | PASS | RBAC allow/deny/unauthenticated paths all asserted; Open-Closed factory test included; permission string format `resource:action` exercised with 6 distinct test pairs; no injected clock needed (correct — no time logic) |
+| T026 | PASS | `requirePermission.ts` 100% branch; factory pattern correct (Open-Closed); reads from `req.user.permissions` (JWT-loaded, no per-request DB query); 401 on no `req.user`, 403 on missing permission; `logger.warn` on deny path |
+
+**Overall: GO** — All four tasks PASS / PASS-WITH-NITS. No corrective items needed. Proceed to T027+.
+
+**Must-run before proceeding:**
+```
+pnpm --filter @modular-house/api exec prisma migrate dev   # confirm still "already in sync"
+```
+
+**Carry-forward nit (non-blocking):**
+After T031 completes the AuthService rewrite, add a test that passes `decoded` WITHOUT a `permissions` field (simulating a legacy JWT) and verifies that `req.user.permissions` is set to `[]`. This pins the `?? []` null-coalescing branch which T023 currently leaves untested.

@@ -245,16 +245,18 @@
       Refs: H1/H2, FR-024
       > reviewed: PASS — T021 passes (143/143); userPreference.ts 100% branch coverage; Zod enum for themeMode; only themeMode + sidebarCollapsed (no scope creep); conditional-spread partial-update correct; schema fields/defaults/maps match data-model.md §4 exactly.
 
-- [ ] T023 [test] authenticateJWT claim-loading test
+- [x] T023 [test] authenticateJWT claim-loading test
       Files: `apps/api/tests/unit/authenticateJWT.test.ts`
       Do: Assert `authenticateJWT` decodes the access-token claims (`userId`, `email`, `role`, effective
       `permissions` per E1) and populates the request context that `requirePermission` reads;
       invalid/expired token → `401`.
       Done when: Tests fail (claims not yet loaded into context).
       Refs: E1, FR-036, research R5
+      > note: test file placed in tests/unit/ (not tests/unit/middleware/); uses 2-level relative path (../../src/). Tests pass immediately because JS runtime copies all token properties through req.user = decoded; the meaningful change is the TypeScript type formalization in T024.
+      > reviewed: PASS-WITH-NITS — all 4 E1 claims asserted; 3 × 401 paths covered; nit: "Done when: Tests fail" never met (tests passed immediately before T024); `?? []` default branch untested (non-blocking).
 
-- [ ] T024 Load role + effective permissions into request context in authenticateJWT
-      Files: `apps/api/src/middleware/authenticateJWT.ts`
+- [x] T024 Load role + effective permissions into request context in authenticateJWT
+      Files: `apps/api/src/middleware/auth.ts`, `apps/api/src/services/auth.ts`
       Do: Decode the JWT and attach `userId`/`email`/`role`/`permissions` to the request context so
       downstream `requirePermission` works without route edits (Open-Closed). Do not change the
       token-minting side (that stays in the AuthService rewrite).
@@ -263,20 +265,24 @@
       Note: Must stay ordered before the `requirePermission` impl (T026) that consumes the context;
       complementary to (not a replacement for) the amend authenticateJWT/requireRole tests task (T027),
       which keeps the still-valid role-based assertions.
+      > note: `permissions: string[]` added to `TokenPayload` (auth.ts service) and `Express.Request.user` (auth.ts middleware); `authenticateJWT` now explicitly maps claims + defaults `permissions` to `[]` for legacy tokens; `auth.ts` `tokenPayload` gets `permissions: []` placeholder (real loading in T031); `auth.spec.ts` updated to include `permissions: []` in decoded mock.
+      > reviewed: PASS — all 4 E1 claims explicitly mapped; `decoded.permissions ?? []` defaults empty array for legacy tokens; TokenPayload + Express.Request.user types updated; auth.spec.ts kept in sync; src/middleware/auth.ts 100% branch.
 
-- [ ] T025 [test] requirePermission middleware unit tests
+- [x] T025 [test] requirePermission middleware unit tests
       Files: `apps/api/tests/unit/requirePermission.test.ts`
       Do: Assert it resolves Role → RolePermission → Permission, allows on matching `(resource,action)`,
       `403`s otherwise, and works without editing route code (Open-Closed).
       Done when: Tests fail and pin the RBAC plumbing.
       Refs: FR-036, research R5
+      > reviewed: PASS — allow/deny/unauthenticated paths all asserted; Open-Closed factory test included; 6 distinct resource:action pairs exercised; no injected clock needed (correct).
 
-- [ ] T026 Implement the requirePermission middleware
+- [x] T026 Implement the requirePermission middleware
       Files: `apps/api/src/middleware/requirePermission.ts`
       Do: `requirePermission(resource, action)` reading effective permissions loaded into the request
       context; reuse existing `authenticateJWT`.
       Done when: T025 passes; 100% branch coverage.
       Refs: FR-036, research R5
+      > reviewed: PASS — requirePermission.ts 100% branch; factory pattern correct (Open-Closed); reads from req.user.permissions (no per-request DB query); 401 on unauthenticated, 403 on missing permission.
 
 - [ ] T027 [test] Amend authenticateJWT / requireRole middleware tests for requirePermission
       Files: existing `apps/api/tests/**` middleware test(s) for `authenticateJWT`/`requireRole`
@@ -307,6 +313,7 @@
       account-wide revoke, settings-change re-mints acting family.
       Done when: Tests fail and pin A1–A6, B7, E1–E7, C5/C6.
       Refs: A1–A6, B7, C5/C6, E1–E7, research R4/R6/R11
+      > note (supervisor): also add a test for `authenticateJWT` that passes a decoded token **without** a `permissions` field (i.e. `decoded` has no `permissions` key, simulating a legacy JWT) and asserts `req.user.permissions` is `[]`. This pins the `decoded.permissions ?? []` null-coalescing branch that T023 left uncovered. File: `apps/api/tests/unit/authenticateJWT.test.ts`.
 
 - [ ] T031 Rewrite the AuthService
       Files: `apps/api/src/services/auth.ts`
@@ -315,6 +322,7 @@
       revoke, permission loading; inject clock + `MailerService`.
       Done when: T030 passes; 100% branch coverage on the security paths.
       Refs: A1–A6, B7, E1–E7, FR-036, research R3/R4/R6
+      > note (supervisor): `src/services/auth.ts` is currently at 88.23% branch coverage; line 39 (production-throw guard in constructor) is the one uncovered branch. The full rewrite must reach 100% branch. Verify with `pnpm --filter @modular-house/api test:coverage` after T031. Also: remove the `// TODO(T031)` comment on the `permissions: []` placeholder once real permission-loading from `Role → RolePermission → Permission` is wired.
 
 ### Backend routes (each contract endpoint is its own task)
 

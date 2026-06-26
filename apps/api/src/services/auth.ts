@@ -21,6 +21,8 @@ interface TokenPayload {
   userId: string;
   email: string;
   role: string;
+  /** Effective permission strings in `resource:action` format (E1). */
+  permissions: string[];
   iat?: number;
   exp?: number;
 }
@@ -77,6 +79,8 @@ export class AuthService {
         userId: user.id,
         email: user.email,
         role: user.role.name,
+        // TODO(T031): populate effective permissions from Role → RolePermission → Permission
+        permissions: [],
       };
 
       const token = jwt.sign(tokenPayload, this.jwtSecret, { 

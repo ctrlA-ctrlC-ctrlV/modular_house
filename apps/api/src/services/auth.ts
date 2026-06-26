@@ -18,7 +18,7 @@
 
 import { randomBytes, createHash } from 'node:crypto';
 import * as argon2 from 'argon2';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { LoginCodeService } from './loginCode.js';
 import { MailerService } from './mailer.js';
@@ -139,9 +139,7 @@ export class AuthService {
   // -------------------------------------------------------------------------
 
   private mintAccessToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): string {
-    return jwt.sign(payload as object, this.jwtSecret, {
-      expiresIn: ACCESS_TOKEN_TTL,
-    } as SignOptions);
+    return jwt.sign(payload, this.jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
   }
 
   private async createRefreshToken(userId: string, family: string): Promise<string> {
@@ -317,21 +315,17 @@ export class AuthService {
     }
 
     // E7: idle timeout — reject if no activity within IDLE_TIMEOUT_MS
-    if (
-      stored.lastUsedAt !== null &&
-      stored.lastUsedAt !== undefined &&
-      now.getTime() - new Date(stored.lastUsedAt as Date).getTime() > IDLE_TIMEOUT_MS
-    ) {
+    if (stored.lastUsedAt !== null && now.getTime() - stored.lastUsedAt.getTime() > IDLE_TIMEOUT_MS) {
       return { success: false, status: 401, message: 'Session idle timeout' };
     }
 
     // E4: rotate — revoke old token, issue new in same family
     await this.prisma.refreshToken.update({
-      where: { id: stored.id as string },
+      where: { id: stored.id },
       data: { revokedAt: now },
     });
 
-    const user = await this.loadUser(stored.userId as string);
+    const user = await this.loadUser(stored.userId);
     if (!user) {
       return { success: false, status: 401, message: 'User not found' };
     }
@@ -343,7 +337,7 @@ export class AuthService {
       role: user.role.name,
       permissions,
     });
-    const rawRefreshToken = await this.createRefreshToken(user.id, stored.family as string);
+    const rawRefreshToken = await this.createRefreshToken(user.id, stored.family);
 
     return { success: true, accessToken, rawRefreshToken };
   }
@@ -471,9 +465,8 @@ export class AuthService {
         permissions: [],
       };
 
-      const token = jwt.sign(tokenPayload, this.jwtSecret, {
-        expiresIn: this.jwtExpiresIn,
-      } as SignOptions);
+      // jwtExpiresIn is `string` from env; cast needed because SignOptions.expiresIn expects StringValue.
+      const token = jwt.sign(tokenPayload, this.jwtSecret, { expiresIn: this.jwtExpiresIn } as SignOptions);
 
       logger.info({ userId: user.id }, 'Credentials verified (legacy stub path)');
       return { success: true, token, user: { id: user.id, email: user.email, role: user.role.name } };

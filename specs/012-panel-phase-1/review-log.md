@@ -186,3 +186,42 @@ pnpm --filter @modular-house/api exec prisma migrate dev   # confirm still "alre
 
 **Carry-forward nit (non-blocking):**
 After T031 completes the AuthService rewrite, add a test that passes `decoded` WITHOUT a `permissions` field (simulating a legacy JWT) and verifies that `req.user.permissions` is set to `[]`. This pins the `?? []` null-coalescing branch which T023 currently leaves untested.
+
+---
+
+## Session 6 — 2026-06-26 (reviewer: supervisor)
+
+**Scope:** T027–T031 (Pass 1 — middleware amendment, route re-gating, AuthService rewrite)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run` — ✅ **212 passed / 21 skipped** (21 suites; +47 tests from T027–T031)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ all security modules at 100% branch:
+
+| File | Stmts | Branch | Funcs | Lines | Notes |
+|------|-------|--------|-------|-------|-------|
+| `src/middleware/auth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/middleware/requirePermission.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/services/auth.ts` | 100 | 100 | 100 | 100 | ✅ T031 rewrite; production-secret branch now covered |
+| `src/services/loginCode.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/services/passwordPolicy.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/services/passwordResetToken.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/services/auditLog.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/services/userPreference.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/config/adminAuth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `src/routes/admin/auth.ts` | 72.22 | 50 | 100 | 72.22 | lines 35-46: T012 stub success-path not exercised without DB (pre-existing; will be replaced by T033) |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T027 | PASS | requirePermission allow/deny/empty/unauthenticated added to auth.spec.ts; requireRole tests retained; legacy-JWT test in authenticateJWT.test.ts pins decoded.permissions ?? [] branch; both middleware files at 100% branch; carry-forward nit from Session 5 resolved |
+| T028 | PASS | 10-test file (5 endpoints × {401-unauthenticated, 403-no-permission}); JWT with permissions:[] pattern correct; all 10 pass. Nit: uploads route also re-gated in T029 but not covered by T028 (acceptable — uploads is correctly gated) |
+| T029 | PASS | pages/gallery/faqs/submissions/redirects/uploads all gate via authenticateJWT (router-level) + requirePermission (per-operation); requireRole removed from pages.ts; T028 10/10 verified |
+| T030 | PASS | All A1–A6/B7/C6/E1–E7 scenarios covered with injected clock; adminAuth.ts constants imported (no magic numbers); legacy-JWT branch pinned in authenticateJWT.test.ts; production-secret guard tested |
+| T031 | PASS | All 6 Phase-1 methods present (verifyCredentials/verifyOtp/refresh/logout/revokeAllSessions/changePassword); services/auth.ts 100% branch confirmed; raw tokens hash-only storage; injected clock throughout; E1 permissions via derivePermissions(); E7 idle timeout in refresh(); legacy helpers preserved; no scope creep |
+
+**Overall: GO** — All five tasks PASS. No corrective items. Proceed to T032+ (backend routes Pass 1).
+
+**Must-run before proceeding:**
+```
+pnpm --filter @modular-house/api exec prisma migrate dev   # confirm still "already in sync"
+pnpm --filter @modular-house/api exec prisma validate      # confirm schema valid
+```

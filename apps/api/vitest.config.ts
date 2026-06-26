@@ -37,7 +37,7 @@ export default defineConfig({
           branches: 30,
         },
         'src/services/auth.ts': {
-          branches: 70,
+          branches: 100,
         },
         'src/config/env.ts': {
           branches: 40,

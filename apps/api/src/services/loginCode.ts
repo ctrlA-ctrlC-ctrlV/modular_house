@@ -181,7 +181,7 @@ export class LoginCodeService {
    *
    * Returns failure if the `challengeId` is unknown or has no active record.
    */
-  async resend(challengeId: string): Promise<(ResendResult) | ResendFailure> {
+  async resend(challengeId: string): Promise<ResendResult | ResendFailure> {
     const now = this.clock();
 
     // Resolve challengeId → userId (B9: stable binding without exposing email)

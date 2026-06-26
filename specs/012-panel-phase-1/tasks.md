@@ -284,28 +284,31 @@
       Refs: FR-036, research R5
       > reviewed: PASS — requirePermission.ts 100% branch; factory pattern correct (Open-Closed); reads from req.user.permissions (no per-request DB query); 401 on unauthenticated, 403 on missing permission.
 
-- [ ] T027 [test] Amend authenticateJWT / requireRole middleware tests for requirePermission
+- [x] T027 [test] Amend authenticateJWT / requireRole middleware tests for requirePermission
       Files: existing `apps/api/tests/**` middleware test(s) for `authenticateJWT`/`requireRole`
       Do: Extend the existing tests to also cover the new `requirePermission` gate; keep the still-valid
       role-based assertions (do not delete coverage).
       Done when: Amended tests cover both the retained role checks and the new permission gate.
       Refs: plan §4.3, FR-036, research R5
+      > note: `requirePermission` tests added to `tests/unit/middleware/auth.spec.ts` (allow, deny, empty-permissions, unauthenticated); legacy-JWT test (no `permissions` field → `req.user.permissions === []`) added to `tests/unit/authenticateJWT.test.ts` per T030 supervisor note; all 17 tests pass.
 
-- [ ] T028 [test] Retained legacy admin endpoints re-gate test
+- [x] T028 [test] Retained legacy admin endpoints re-gate test
       Files: `apps/api/tests/integration/legacy-endpoints-regate.test.ts`
       Do: Assert every retained feature-006 admin list/data endpoint kept for Phase 2+ now requires a
       matching permission: unauthenticated → `401`, authenticated-without-permission → `403`.
       Done when: Tests fail for any ungated retained endpoint.
       Refs: research R12, FR-036
+      > note: 10 tests (2 per endpoint × 5 endpoints: pages, gallery, faqs, submissions, redirects); tests used jwt with `permissions:[]` to trigger 403; all 10 tests fail before T029, all 10 pass after.
 
-- [ ] T029 Re-gate retained legacy backend endpoints behind requirePermission
+- [x] T029 Re-gate retained legacy backend endpoints behind requirePermission
       Files: the retained `apps/api/src/routes/admin/*` endpoint files
       Do: Apply `requirePermission(resource, action)` to the retained endpoints so no ungated admin
       endpoint remains; add no new feature endpoints.
       Done when: T028 passes; no ungated admin endpoint remains.
       Refs: research R12, SC-007
+      > note: per-operation `requirePermission` applied to pages/gallery/faqs/submissions/redirects/uploads routes; `requireRole('admin')` removed from pages.ts; `admin.auth.spec.ts` and `admin.content.spec.ts` updated to include explicit permissions in test tokens; T028 10/10 pass, admin.auth.spec.ts 6/6 pass; typecheck clean.
 
-- [ ] T030 [test] AuthService core unit tests
+- [x] T030 [test] AuthService core unit tests
       Files: `apps/api/tests/unit/auth.test.ts`
       Do: With injected clock assert: credential verify (argon2id), generic `401` for unknown email vs
       wrong password (byte-identical), inactive account blocked, lockout reset on success, OTP issue on
@@ -314,15 +317,16 @@
       Done when: Tests fail and pin A1–A6, B7, E1–E7, C5/C6.
       Refs: A1–A6, B7, C5/C6, E1–E7, research R4/R6/R11
       > note (supervisor): also add a test for `authenticateJWT` that passes a decoded token **without** a `permissions` field (i.e. `decoded` has no `permissions` key, simulating a legacy JWT) and asserts `req.user.permissions` is `[]`. This pins the `decoded.permissions ?? []` null-coalescing branch that T023 left uncovered. File: `apps/api/tests/unit/authenticateJWT.test.ts`.
+      > note: 28-test file created; 26 fail with `service.verifyCredentials is not a function` (correct TDD red); legacy-JWT test already added to `authenticateJWT.test.ts` in T027.
 
-- [ ] T031 Rewrite the AuthService
+- [x] T031 Rewrite the AuthService
       Files: `apps/api/src/services/auth.ts`
       Do: credential → lockout → OTP issue+email → OTP verify → mint 15m access JWT (carrying role +
       effective permissions) + rotating httpOnly refresh cookie; add refresh rotation, account-wide
       revoke, permission loading; inject clock + `MailerService`.
       Done when: T030 passes; 100% branch coverage on the security paths.
       Refs: A1–A6, B7, E1–E7, FR-036, research R3/R4/R6
-      > note (supervisor): `src/services/auth.ts` is currently at 88.23% branch coverage; line 39 (production-throw guard in constructor) is the one uncovered branch. The full rewrite must reach 100% branch. Verify with `pnpm --filter @modular-house/api test:coverage` after T031. Also: remove the `// TODO(T031)` comment on the `permissions: []` placeholder once real permission-loading from `Role → RolePermission → Permission` is wired.
+      > note: AuthService rewritten with verifyCredentials/verifyOtp/refresh/logout/revokeAllSessions/changePassword; legacy methods (hashPassword/verifyToken/createUser/authenticateUser) kept for backward compat; injected (prisma, clock, loginCodeService, mailerService); permissions loaded from Role→RolePermission(permissions field)→Permission; `TODO(T031)` placeholder removed; T030 28/28 pass + 4 new branch tests; auth.spec.ts regressions fixed (hashPassword try/catch + authenticateUser token shape + createUser try/catch); 100% branch coverage on services/auth.ts verified; typecheck clean.
 
 ### Backend routes (each contract endpoint is its own task)
 

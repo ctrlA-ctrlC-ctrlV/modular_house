@@ -1,6 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
 import { logger } from './logger.js';
+import {
+  IP_RATE_LIMIT_MAX,
+  IP_RATE_LIMIT_WINDOW_MS,
+} from '../config/adminAuth.js';
 
 // Rate limiter specifically for submission endpoints
 // 10 requests per hour per IP as per requirements
@@ -125,4 +129,50 @@ export const generalRateLimit = rateLimit({
       retryAfter: '15 minutes'
     });
   }
+});
+
+// Auth-route rate limiter (F4): 20 requests per 15 minutes per IP.
+// Applied to all /admin/auth/* endpoints to mitigate brute-force attempts.
+export const authRateLimit = rateLimit({
+  windowMs: IP_RATE_LIMIT_WINDOW_MS,
+  max: IP_RATE_LIMIT_MAX,
+  message: {
+    error: 'Too many requests',
+    message: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request): string => {
+    const forwardedFor = req.headers['x-forwarded-for'];
+    let clientIP: string;
+
+    if (forwardedFor) {
+      clientIP = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0].trim();
+    } else {
+      clientIP = req.socket?.remoteAddress || 'unknown';
+    }
+
+    return `auth:${clientIP}`;
+  },
+  handler: (req: Request, res: Response) => {
+    const clientIP = req.socket?.remoteAddress || 'unknown';
+
+    logger.warn({
+      ip: clientIP,
+      forwardedFor: req.headers['x-forwarded-for'],
+      url: req.url,
+      method: req.method,
+      userAgent: req.headers['user-agent'],
+      rateLimitType: 'auth',
+      windowMs: IP_RATE_LIMIT_WINDOW_MS,
+      maxRequests: IP_RATE_LIMIT_MAX,
+    }, 'Auth route rate limit exceeded - blocking request');
+
+    res.status(429).json({
+      error: 'Too many requests',
+      message: 'Too many requests from this IP, please try again later.',
+      retryAfter: '15 minutes',
+    });
+  },
 });

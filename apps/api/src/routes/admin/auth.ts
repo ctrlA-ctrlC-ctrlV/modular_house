@@ -2,9 +2,13 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { validate } from '../../middleware/validate.js';
 import { logger } from '../../middleware/logger.js';
+import { authRateLimit } from '../../middleware/rateLimit.js';
 import { AuthService } from '../../services/auth.js';
 
 const router: Router = Router();
+
+// Apply the auth-route IP rate limit to every endpoint under /admin/auth (F4).
+router.use(authRateLimit);
 
 // Login request schema
 const loginSchema = z.object({

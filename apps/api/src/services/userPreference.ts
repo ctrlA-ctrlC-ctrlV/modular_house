@@ -56,7 +56,7 @@ export class UserPreferenceService {
     }
 
     return {
-      themeMode: row.themeMode as 'light' | 'dark' | 'system',
+      themeMode: ThemeModeSchema.parse(row.themeMode),
       sidebarCollapsed: row.sidebarCollapsed,
     };
   }
@@ -83,7 +83,7 @@ export class UserPreferenceService {
     });
 
     return {
-      themeMode: row.themeMode as 'light' | 'dark' | 'system',
+      themeMode: ThemeModeSchema.parse(row.themeMode),
       sidebarCollapsed: row.sidebarCollapsed,
     };
   }

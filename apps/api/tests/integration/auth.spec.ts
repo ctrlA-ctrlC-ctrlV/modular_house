@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
+import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app.js';
 import { AuthService } from '../../src/services/auth.js';
@@ -58,11 +59,9 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         })
         .expect(200);
 
-      expect(response.body).toHaveProperty('token');
-      expect(response.body).toHaveProperty('user');
-      expect(response.body.user).toHaveProperty('id');
-      expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user.role).toBe('admin');
+      // Phase 1: login step 1 returns a 2FA challenge, not a session token.
+      expect(response.body).toHaveProperty('challengeId');
+      expect(response.body).toHaveProperty('message');
     });
 
     it('should reject invalid email', async () => {
@@ -74,7 +73,7 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         })
         .expect(401);
 
-      expect(response.body).toHaveProperty('error', 'Invalid credentials');
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
     });
 
     it('should reject invalid password', async () => {
@@ -86,7 +85,7 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         })
         .expect(401);
 
-      expect(response.body).toHaveProperty('error', 'Invalid credentials');
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
     });
 
     it('should validate required fields', async () => {
@@ -132,18 +131,14 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
 
   describe('POST /admin/auth/logout', () => {
     it('should accept logout request with valid token', async () => {
-      // First login to get a token
-      const loginResponse = await request(app)
-        .post('/admin/auth/login')
-        .send({
-          email: testUser.email,
-          password: testUser.password,
-        })
-        .expect(200);
+      // Phase 1: login step 1 returns a challengeId, not an access token.
+      // Sign a test access token directly to exercise the logout endpoint.
+      const token = jwt.sign(
+        { userId: 'test-id', email: testUser.email, role: 'admin', permissions: [] },
+        process.env.JWT_SECRET ?? 'test-jwt-secret',
+        { expiresIn: '15m' },
+      );
 
-      const token = loginResponse.body.token;
-
-      // Then logout with the token
       await request(app)
         .post('/admin/auth/logout')
         .set('Authorization', `Bearer ${token}`)

@@ -15,13 +15,14 @@ describe.runIf(dbAvailable)('Admin Redirects Integration', () => {
 
   beforeAll(async () => {
     adminToken = jwt.sign(
-      { 
-        userId: 'test-admin-id', 
-        email: 'admin@example.com', 
-        role: 'admin' 
+      {
+        userId: 'test-admin-id',
+        email: 'admin@example.com',
+        role: 'admin',
+        permissions: ['redirects:view', 'redirects:create', 'redirects:edit', 'redirects:delete'],
       },
       JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
   });
 

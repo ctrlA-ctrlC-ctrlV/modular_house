@@ -248,18 +248,12 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       await service.verifyCredentials('admin@example.com', 'Wrong1!');
 
-      // Must have called user.update with lockedUntil set
-      const updateCall = mockUser.update.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'data' in (call[0] as Record<string, unknown>) &&
-          (call[0] as { data: Record<string, unknown> }).data.lockedUntil !== undefined,
-      );
-      expect(updateCall).toBeDefined();
-      const data = (updateCall as [{ data: Record<string, unknown> }])[0].data;
       const expectedLockoutTime = new Date(clock.now().getTime() + LOCKOUT_DURATION_MS);
-      expect((data.lockedUntil as Date).getTime()).toBe(expectedLockoutTime.getTime());
+      expect(mockUser.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ lockedUntil: expectedLockoutTime }),
+        }),
+      );
     });
 
     // -----------------------------------------------------------------------
@@ -274,17 +268,11 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       await service.verifyCredentials('admin@example.com', 'CorrectPassword1!');
 
-      const resetCall = mockUser.update.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'data' in (call[0] as Record<string, unknown>) &&
-          (call[0] as { data: Record<string, unknown> }).data.failedLoginAttempts === 0,
+      expect(mockUser.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ failedLoginAttempts: 0, lockedUntil: null }),
+        }),
       );
-      expect(resetCall).toBeDefined();
-      const data = (resetCall as [{ data: Record<string, unknown> }])[0].data;
-      expect(data.failedLoginAttempts).toBe(0);
-      expect(data.lockedUntil).toBeNull();
     });
 
     // -----------------------------------------------------------------------
@@ -721,7 +709,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
     it('verifies and decodes a valid JWT (E1)', () => {
       const token = jwt.sign(
         { userId: 'u1', email: 'a@b.com', role: 'admin', permissions: ['pages:view'] },
-        'test-jwt-secret',
+        config.security.jwtSecret,
         { expiresIn: '15m' },
       );
 

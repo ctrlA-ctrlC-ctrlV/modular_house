@@ -196,14 +196,9 @@ describe('PasswordResetTokenService — C1–C3', () => {
 
   it('rejects a token exactly at or after TTL boundary (C2/C3)', async () => {
     const row = activeToken(clock);
-    // Advance past TTL
+    // Advance past TTL — row.expiresAt (t0 + TTL) is now in the past
     clock.advance(RESET_TOKEN_TTL_MS + 1);
-    // Return expired row (expiresAt is in the past relative to current clock)
-    const expiredRow = {
-      ...row,
-      expiresAt: new Date(clock.now().getTime() - 1),
-    };
-    mockPasswordResetToken.findFirst.mockResolvedValueOnce(expiredRow);
+    mockPasswordResetToken.findFirst.mockResolvedValueOnce(row);
 
     const result = await service.consume('raw-token');
 

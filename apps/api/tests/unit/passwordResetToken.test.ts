@@ -96,9 +96,10 @@ describe('PasswordResetTokenService — C1–C3', () => {
     const result = await service.issue('user-1');
 
     expect(capturedData).not.toBeNull();
+    const stored = capturedData as Record<string, unknown>;
     // tokenHash must be present and must NOT equal the raw token
-    expect(capturedData!['tokenHash']).toBeDefined();
-    expect(capturedData!['tokenHash']).not.toEqual(result.rawToken);
+    expect(stored['tokenHash']).toBeDefined();
+    expect(stored['tokenHash']).not.toEqual(result.rawToken);
     // Raw token must not appear anywhere in the stored data
     expect(JSON.stringify(capturedData)).not.toContain(result.rawToken);
   });
@@ -118,7 +119,8 @@ describe('PasswordResetTokenService — C1–C3', () => {
     await service.issue('user-1');
     const expected = new Date(before.getTime() + RESET_TOKEN_TTL_MS);
 
-    expect(capturedData!['expiresAt']).toEqual(expected);
+    expect(capturedData).not.toBeNull();
+    expect((capturedData as Record<string, unknown>)['expiresAt']).toEqual(expected);
   });
 
   // -------------------------------------------------------------------------

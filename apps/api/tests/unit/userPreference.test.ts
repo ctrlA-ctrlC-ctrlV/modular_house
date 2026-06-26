@@ -145,8 +145,9 @@ describe('UserPreferenceService — H1/H2', () => {
     const result = await service.get('user-1');
 
     expect(result).not.toBeNull();
-    expect(result!.themeMode).toBe('dark');
-    expect(result!.sidebarCollapsed).toBe(true);
+    const pref = result as NonNullable<typeof result>;
+    expect(pref.themeMode).toBe('dark');
+    expect(pref.sidebarCollapsed).toBe(true);
   });
 
   it('returns null when no preference row exists yet (H1/H2)', async () => {

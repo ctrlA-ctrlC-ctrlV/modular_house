@@ -396,7 +396,7 @@ export class AuthService {
       return { success: false, status: 401, message: 'Invalid current password' };
     }
 
-    const newHash = await argon2.hash(newPassword);
+    const newHash = await this.hashPassword(newPassword);
     await this.prisma.user.update({ where: { id: userId }, data: { passwordHash: newHash } });
 
     // E6: revoke all sessions

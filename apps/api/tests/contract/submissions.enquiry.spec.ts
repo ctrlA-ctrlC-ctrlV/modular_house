@@ -25,7 +25,9 @@ vi.mock('../../src/services/submissions.js', () => ({
 
 // Mock rate limiter to avoid rate limiting during tests
 vi.mock('../../src/middleware/rateLimit.js', () => ({
-  submissionRateLimit: (_req: Request, _res: Response, next: NextFunction) => next()
+  submissionRateLimit: (_req: Request, _res: Response, next: NextFunction) => next(),
+  generalRateLimit: (_req: Request, _res: Response, next: NextFunction) => next(),
+  authRateLimit: (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 
 const mockedSubmissionsService = vi.mocked(SubmissionsService);

@@ -162,9 +162,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       const result = await service.verifyCredentials('noone@example.com', 'AnyPassword1!');
 
-      expect(result.success).toBe(false);
-      expect(result.status).toBe(401);
-      expect(result.message).toBe('Invalid credentials');
+      expect(result).toMatchObject({ success: false, status: 401, message: 'Invalid credentials' });
     });
 
     // -----------------------------------------------------------------------
@@ -176,11 +174,8 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       mockArgon2.verify.mockResolvedValue(false); // wrong password
 
       const result = await service.verifyCredentials('admin@example.com', 'WrongPassword1!');
-      const unknownResult = { success: false, status: 401, message: 'Invalid credentials' };
 
-      expect(result.success).toBe(false);
-      expect(result.status).toBe(unknownResult.status);
-      expect(result.message).toBe(unknownResult.message);
+      expect(result).toMatchObject({ success: false, status: 401, message: 'Invalid credentials' });
     });
 
     // -----------------------------------------------------------------------
@@ -193,9 +188,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       const result = await service.verifyCredentials('admin@example.com', 'CorrectPassword1!');
 
-      expect(result.success).toBe(false);
-      expect(result.status).toBe(401);
-      expect(result.message).toBe('Invalid credentials');
+      expect(result).toMatchObject({ success: false, status: 401, message: 'Invalid credentials' });
     });
 
     // -----------------------------------------------------------------------
@@ -210,8 +203,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       const result = await service.verifyCredentials('admin@example.com', 'AnyPassword1!');
 
-      expect(result.success).toBe(false);
-      expect(result.status).toBe(423);
+      expect(result).toMatchObject({ success: false, status: 423 });
     });
 
     // -----------------------------------------------------------------------
@@ -230,9 +222,8 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       mockArgon2.verify.mockResolvedValue(false); // still wrong password → 401, not 423
       const result = await service.verifyCredentials('admin@example.com', 'Wrong1!');
 
-      expect(result.success).toBe(false);
       // 401 (wrong pw) not 423 (lockout) — lockout has expired
-      expect(result.status).toBe(401);
+      expect(result).toMatchObject({ success: false, status: 401 });
     });
 
     // -----------------------------------------------------------------------
@@ -677,8 +668,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
         'family-1',
       );
 
-      expect(result.success).toBe(false);
-      expect(result.status).toBe(401);
+      expect(result).toMatchObject({ success: false, status: 401 });
     });
   });
 

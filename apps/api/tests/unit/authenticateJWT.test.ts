@@ -68,7 +68,7 @@ describe('authenticateJWT — claim loading (E1)', () => {
 
     expect(next).toHaveBeenCalled();
     expect((req as Request).user).toEqual(decoded);
-    expect((req as Request).user!.permissions).toEqual(['submissions:read', 'submissions:export']);
+    expect(((req as Request).user as NonNullable<Request['user']>).permissions).toEqual(['submissions:read', 'submissions:export']);
   });
 
   it('populates req.user.permissions as an empty array when the JWT carries none', () => {
@@ -86,7 +86,7 @@ describe('authenticateJWT — claim loading (E1)', () => {
     authenticateJWT(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalled();
-    expect((req as Request).user!.permissions).toEqual([]);
+    expect(((req as Request).user as NonNullable<Request['user']>).permissions).toEqual([]);
   });
 
   it('defaults req.user.permissions to [] when the JWT carries no permissions field (legacy token)', () => {
@@ -106,7 +106,7 @@ describe('authenticateJWT — claim loading (E1)', () => {
 
     expect(next).toHaveBeenCalled();
     // authenticateJWT must default missing permissions to [] via `decoded.permissions ?? []`
-    expect((req as Request).user!.permissions).toEqual([]);
+    expect(((req as Request).user as NonNullable<Request['user']>).permissions).toEqual([]);
   });
 
   it('passes all four claim fields through to req.user (userId, email, role, permissions)', () => {
@@ -123,7 +123,7 @@ describe('authenticateJWT — claim loading (E1)', () => {
 
     authenticateJWT(req as Request, res as Response, next);
 
-    const user = (req as Request).user!;
+    const user = (req as Request).user as NonNullable<Request['user']>;
     expect(user.userId).toBe('abc-123');
     expect(user.email).toBe('test@example.com');
     expect(user.role).toBe('super_admin');

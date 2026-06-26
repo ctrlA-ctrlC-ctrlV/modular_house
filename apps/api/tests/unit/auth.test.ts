@@ -257,7 +257,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
           (call[0] as { data: Record<string, unknown> }).data.lockedUntil !== undefined,
       );
       expect(updateCall).toBeDefined();
-      const data = (updateCall![0] as { data: Record<string, unknown> }).data;
+      const data = (updateCall as [{ data: Record<string, unknown> }])[0].data;
       const expectedLockoutTime = new Date(clock.now().getTime() + LOCKOUT_DURATION_MS);
       expect((data.lockedUntil as Date).getTime()).toBe(expectedLockoutTime.getTime());
     });
@@ -282,7 +282,7 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
           (call[0] as { data: Record<string, unknown> }).data.failedLoginAttempts === 0,
       );
       expect(resetCall).toBeDefined();
-      const data = (resetCall![0] as { data: Record<string, unknown> }).data;
+      const data = (resetCall as [{ data: Record<string, unknown> }])[0].data;
       expect(data.failedLoginAttempts).toBe(0);
       expect(data.lockedUntil).toBeNull();
     });
@@ -728,8 +728,9 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       const decoded = service.verifyToken(token);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.userId).toBe('u1');
-      expect(decoded!.permissions).toEqual(['pages:view']);
+      const payload = decoded as NonNullable<typeof decoded>;
+      expect(payload.userId).toBe('u1');
+      expect(payload.permissions).toEqual(['pages:view']);
     });
 
     it('returns null for an invalid or expired token', () => {

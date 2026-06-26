@@ -371,31 +371,35 @@
       > note: added `authRateLimit` in `apps/api/src/middleware/rateLimit.ts` with `IP_RATE_LIMIT_MAX` / `IP_RATE_LIMIT_WINDOW_MS` constants; applied via `router.use(authRateLimit)` in auth router.
       > reviewed: PASS (corrective fix applied) — `authRateLimit` uses F4 exact values ✓; neutral 429 body ✓; `router.use(authRateLimit)` covers all /admin/auth/* routes ✓. **Regression found and fixed:** adding `authRateLimit` to `rateLimit.ts` broke the existing `tests/contract/submissions.enquiry.spec.ts` mock (Vitest strict-mode error: "No authRateLimit export defined on mock"). Fix: added `authRateLimit` and `generalRateLimit` pass-through entries to that mock. Suite now 239 passed / 0 failed.
 
-- [ ] T036 [test] POST /admin/auth/verify-2fa route test
+- [x] T036 [test] POST /admin/auth/verify-2fa route test
       Files: `apps/api/tests/integration/auth-verify-2fa.test.ts`
       Do: Correct code → `200` `Session` + Set-Cookie refresh; wrong/expired/consumed/locked → `401`;
       malformed → `400`.
       Done when: Tests fail and match the contract for `verify-2fa`.
       Refs: T-B1, contracts `verify-2fa`, B3/B4/B5/B7
+      > note: 6 tests covering 200 Session (accessToken + refresh Set-Cookie), 401 wrong/expired/consumed/locked, and 400 malformed. Uses injected clock via `LoginCodeService(prisma, clock.now)` to issue codes at arbitrary times. Test user seeded with `admin` role; permissions round-trip asserted.
 
-- [ ] T037 Implement POST /admin/auth/verify-2fa
+- [x] T037 Implement POST /admin/auth/verify-2fa
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Verify OTP by `challengeId`, mint access token + refresh cookie on success.
       Done when: T036 passes.
       Refs: T-B1, contracts `verify-2fa`
+      > note: Route calls `AuthService.verifyOtp`, builds the `Me`-shaped session user (role + effective permissions, preferences, `hasProfilePhoto`, `isSuperAdmin`), mints 15-minute access JWT, and sets the rotating refresh token as an httpOnly SameSite=Strict cookie.
 
-- [ ] T038 [test] POST /admin/auth/resend-code route test
+- [x] T038 [test] POST /admin/auth/resend-code route test
       Files: `apps/api/tests/integration/auth-resend-code.test.ts`
       Do: Eligible → neutral `200`; prior code invalidated; `challengeId` unchanged across resend;
       cooldown/window-cap → neutral `429`.
       Done when: Tests fail and match the contract for `resend-code`.
       Refs: contracts `resend-code`, B6/B9/F1/F2, FR-013
+      > note: 3 tests covering eligible resend with prior invalidation + stable challengeId, cooldown 429, and rolling-window cap 429. `MailerService` mocked at module boundary so no SMTP mail is sent.
 
-- [ ] T039 Implement POST /admin/auth/resend-code
+- [x] T039 Implement POST /admin/auth/resend-code
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Issue a new code reusing the same `challengeId`, invalidate prior; neutral responses.
       Done when: T038 passes.
       Refs: contracts `resend-code`, B6/B9
+      > note: Route resolves `challengeId` to a user without exposing existence (unknown challenge → neutral 401), applies cooldown + rolling-window throttle checks, calls `LoginCodeService.resend`, and emails the new code. Also fixed `LoginCodeService.issue/resend` to set `createdAt` from the injected clock (R11).
 
 - [ ] T040 [test] POST /admin/auth/forgot-password route test
       Files: `apps/api/tests/integration/auth-forgot-password.test.ts`

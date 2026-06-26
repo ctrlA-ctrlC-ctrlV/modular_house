@@ -95,6 +95,7 @@ export class LoginCodeService {
         challengeId,
         codeHash,
         expiresAt,
+        createdAt: now,
       },
     });
 
@@ -211,6 +212,7 @@ export class LoginCodeService {
         challengeId, // same challengeId — stable across resend (B9)
         codeHash,
         expiresAt,
+        createdAt: now,
       },
     });
 

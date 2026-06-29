@@ -5,6 +5,8 @@ import { logger } from '../../middleware/logger.js';
 import { authRateLimit } from '../../middleware/rateLimit.js';
 import { AuthService } from '../../services/auth.js';
 import { LoginCodeService } from '../../services/loginCode.js';
+import { PasswordResetTokenService } from '../../services/passwordResetToken.js';
+import { validatePassword } from '../../services/passwordPolicy.js';
 import { MailerService } from '../../services/mailer.js';
 import { config } from '../../config/env.js';
 import {
@@ -283,7 +285,181 @@ router.post('/resend-code', validate({ body: resendCodeSchema }), async (req: Re
   }
 });
 
-// Logout — revokes the current session (stub: full refresh-token revocation comes in T047).
+// Forgot-password request schema
+const forgotPasswordSchema = z.object({
+  email: z.string({ required_error: 'Email is required' }).email('Invalid email format').min(1, 'Email is required'),
+});
+
+/**
+ * Check whether a forgot-password request is currently throttled for `userId`.
+ *
+ * Cooldown (F1): the most recent PasswordResetToken row for the user must be
+ * older than RESEND_COOLDOWN_MS. Window cap (F2): the count of rows created
+ * within the trailing RATE_WINDOW_MS must be below RATE_WINDOW_MAX_REQUESTS.
+ *
+ * Returns `'cooldown' | 'window_cap' | null` where null means the request may proceed.
+ */
+async function checkResetThrottle(userId: string): Promise<'cooldown' | 'window_cap' | null> {
+  const now = new Date();
+
+  const latest = await prisma.passwordResetToken.findFirst({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (latest && now.getTime() - latest.createdAt.getTime() < RESEND_COOLDOWN_MS) {
+    return 'cooldown';
+  }
+
+  const windowStart = new Date(now.getTime() - RATE_WINDOW_MS);
+  const countInWindow = await prisma.passwordResetToken.count({
+    where: {
+      userId,
+      createdAt: { gte: windowStart },
+    },
+  });
+
+  if (countInWindow >= RATE_WINDOW_MAX_REQUESTS) {
+    return 'window_cap';
+  }
+
+  return null;
+}
+
+// Request a password-reset link (C4, F1, F2).
+router.post('/forgot-password', validate({ body: forgotPasswordSchema }), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Always look up the account; the response stays neutral either way (C4).
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, email: true },
+    });
+
+    if (user) {
+      const throttle = await checkResetThrottle(user.id);
+      if (throttle === 'cooldown') {
+        res.status(429).json({
+          error: 'Too many requests',
+          message: 'Please wait before requesting a new reset link.',
+        });
+        return;
+      }
+      if (throttle === 'window_cap') {
+        res.status(429).json({
+          error: 'Too many requests',
+          message: 'Too many attempts. Please try again later.',
+        });
+        return;
+      }
+
+      const resetService = new PasswordResetTokenService(prisma);
+      const { rawToken } = await resetService.issue(user.id);
+
+      const resetUrl = `${config.app.corsOrigin}/admin/reset-password?token=${encodeURIComponent(rawToken)}`;
+      const mailer = new MailerService();
+      await mailer.sendEmail({
+        to: user.email,
+        subject: 'Password reset request',
+        text: `A password reset was requested for your account.\n\nReset link: ${resetUrl}\n\nThis link expires in 60 minutes and can only be used once.`,
+      });
+
+      logger.info({ userId: user.id }, 'Password reset link issued');
+    }
+
+    // Neutral confirmation regardless of whether the account exists (C4).
+    res.status(200).json({
+      message: 'If an account exists for this email, a reset link has been sent.',
+    });
+  } catch (error) {
+    logger.error({ error }, 'Forgot-password endpoint error');
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication service unavailable',
+    });
+  }
+});
+
+// Reset-password request schema
+const resetPasswordSchema = z.object({
+  token: z.string({ required_error: 'Reset token is required' }).min(1, 'Reset token is required'),
+  newPassword: z.string({ required_error: 'New password is required' }).min(1, 'New password is required').max(128, 'Password too long'),
+  confirmPassword: z.string({ required_error: 'Password confirmation is required' }).min(1, 'Password confirmation is required').max(128, 'Password confirmation too long'),
+});
+
+// Consume a reset link and set a new password (C2/C3/C5/C6, D1-D4).
+router.post('/reset-password', validate({ body: resetPasswordSchema }), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, newPassword, confirmPassword } = req.body;
+
+    const authService = new AuthService();
+
+    // D1-D4: apply the shared password policy before consuming the token.
+    const policy = await validatePassword({
+      newPassword,
+      confirmPassword,
+    });
+
+    if (!policy.valid) {
+      const firstError = Object.values(policy.errors)[0] ?? 'Invalid password';
+      res.status(400).json({
+        error: 'Validation Error',
+        message: firstError,
+      });
+      return;
+    }
+
+    const resetService = new PasswordResetTokenService(prisma);
+    const consumeResult = await resetService.consume(token);
+
+    if (!consumeResult.success) {
+      // C2/C3: consumed or expired tokens surface a clear 410 so the UI can
+      // prompt the user to request a new link.
+      res.status(410).json({
+        error: 'Gone',
+        message: 'This reset link has expired or already been used. Please request a new one.',
+      });
+      return;
+    }
+
+    const { userId } = consumeResult;
+
+    // Hash and persist the new password.
+    const passwordHash = await authService.hashPassword(newPassword);
+
+    // C5: clear lockout counters; C6: revoke all sessions.
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          passwordHash,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      }),
+      prisma.refreshToken.updateMany({
+        where: { userId },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+
+    logger.info({ userId }, 'Password reset completed');
+
+    res.status(200).json({
+      message: 'Password updated successfully.',
+    });
+  } catch (error) {
+    logger.error({ error }, 'Reset-password endpoint error');
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication service unavailable',
+    });
+  }
+});
+
+// Logout — revokes the current session (full refresh-token revocation comes in T047).
 router.post('/logout', (_req: Request, res: Response): void => {
   res.status(204).send();
 });

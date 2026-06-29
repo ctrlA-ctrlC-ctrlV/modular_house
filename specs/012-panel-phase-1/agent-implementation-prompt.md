@@ -7,7 +7,7 @@
 ---
 
 **SESSION GOAL:** Implement implement the next unchecked tasks in order up to a natural checkpoint
-(4 tasks), then stop.
+(4 tasks), then stop. A natural checkpoint is usually a coherent milestone: a route + its test (e.g., T032/T033), a throttle mechanism + its test (T034/T035), or a set of related endpoints that share a file (T036–T039). If the next task would leave a file half-implemented, extend the batch to finish the coherent unit; do not split a route handler across sessions.
 
 You are implementing Phase 1 of the admin panel in this monorepo (`apps/web`, `apps/api`)
 on branch `012-panel-phase-1`. The full plan already exists — your job is to execute it
@@ -56,8 +56,9 @@ If you cannot access the template path, say so and stop before guessing UI styli
 1. Open `tasks.md` and find the first unchecked `- [ ]` task at or after the SESSION GOAL.
 2. Read that task and the **next few** in your batch, plus the exact `Refs:` they cite
    (the §2 ids, contract endpoint, data-model section). Read those sections now.
-3. Confirm the git working tree is clean and you are on branch `012-panel-phase-1`.
-4. Briefly restate, in 2–3 lines, the batch you will do this session. Then begin.
+3. Confirm the git working tree is clean and you are on branch `012-panel-phase-1`. If the working tree is dirty, stop and report the changed files. Do not start a new batch on top of uncommitted work unless the previous session's handoff explicitly told you to continue.
+4. Open `specs/012-panel-phase-1/review-log.md` and check the most recent session for carry-forward nits, CHANGES-REQUIRED items, or "Non-blocking follow-ups" that affect your batch. Apply any outstanding corrections before starting new tasks, and update `tasks.md` notes when you do.
+5. Briefly restate, in 2–3 lines, the batch you will do this session. Then begin.
 
 ## Per-task loop (strict TDD, one task at a time)
 
@@ -73,7 +74,7 @@ For each task, in order:
    Run the test and confirm it passes.
 4. Run lint + typecheck on the files you touched. Fix anything you introduced.
 5. **Only when the task's `Done when:` is truly met**, flip its box in `tasks.md` from
-   `- [ ]` to `- [x]`. Never check a box whose test is not green.
+   `- [ ]` to `- [x]`. Add a `> note:` line under the task describing the implementation highlights, test count, and any deviations. Never check a box whose test is not green.
 6. Move to the next task. Do not skip ahead or batch many files before testing.
 
 ## Non-negotiables
@@ -94,6 +95,7 @@ For each task, in order:
   `apps/web/src/admin/` with its own scoped Tailwind.
 - **Migrations are additive only** — no destructive changes to reused feature-006 models.
 - Follow the "Open-Closed Principle" (make it easy to extend but hard to break).
+- Integration tests that exercise email-sending routes must mock `MailerService` at the module boundary (`vi.mock('../../src/services/mailer.js', ...)`). Assert the `to` address, subject, and that no real network call leaves the test process.
 
 ## Stop and ask (do not guess) when
 
@@ -109,6 +111,17 @@ Add clear, detailed, and professional inline comments to the attached files. The
   - Assume the target reader is a graduate-level developer with a basic understanding of modern development practices.
   - Aim for clarity, consistency, and completeness to support long-term maintainability.
 
+## Pre-handoff verification
+
+Before finishing the session, run the full verification set for every package you touched:
+
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`
+- `pnpm --filter @modular-house/api lint`
+- `pnpm --filter @modular-house/api typecheck`
+- If you touched `apps/web`: `pnpm --filter @modular-house/web test:run`
+
+Do not hand off a session where any of these fail.
+
 ## End-of-session handoff (always finish with this)
 
 Stop when the batch is complete, you reach a checkpoint, or you hit a blocker — whichever
@@ -119,7 +132,7 @@ comes first. Then output:
 - **Next:** the first unchecked task ID (where the next chat should resume).
 - **Notes/deviations:** anything you changed beyond the literal task text, and why. If you
   deviated from a task, add a one-line `> note:` under that task in `tasks.md`.
-- **Commits**: separate the implementations into individual commits. Clearly label the full relevant path for `git add`. Naming of `git commit -m` should follow `.docs\COMMIT_CONVENTION.md` .
+- **Commits**: separate the implementations into individual commits. Clearly label the full relevant path for `git add`. Naming of `git commit -m` should follow `.docs\COMMIT_CONVENTION.md` . When a single source file must change for several tasks (e.g., multiple Express routes in `auth.ts`), prefer a single coherent commit over fragile patch-staging. Name the commit after the task group it completes (e.g., `feat(api): implement verify-2fa and resend-code routes with tests (T036-T039)`). If the tasks are genuinely independent and the file can be split cleanly, commit separately; otherwise group them and explain the grouping in the handoff.
 - **Blockers:** any open question for me.
 
 Keep going only while output stays high-quality. If you're losing the thread or the context
@@ -129,9 +142,12 @@ short, correct session is the goal.
 ## Useful commands (from quickstart §5)
 
 ```
-pnpm --filter @modular-house/api test:run
+pnpm --filter @modular-house/api test:run -- --no-file-parallelism
 pnpm --filter @modular-house/web test:run
 pnpm --filter @modular-house/api test:coverage   # security modules must hit 100% branch
 pnpm --filter @modular-house/api docs:validate    # OpenAPI contract validation
-pnpm lint && pnpm typecheck
+pnpm --filter @modular-house/api lint	#Use the root `pnpm lint` only for a final full-monorepo check
+pnpm --filter @modular-house/api typecheck		#Use the root `pnpm typecheck` only for a final full-monorepo check
+pnpm --filter @modular-house/web lint
+pnpm --filter @modular-house/web typecheck
 ```

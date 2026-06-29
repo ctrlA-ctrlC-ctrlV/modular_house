@@ -191,8 +191,7 @@ single source of truth and the only place tests must pin the thresholds (§2.4).
 
 ## R11. Deterministic time in OTP/reset/lockout tests
 
-**Decision**: Inject a clock (function returning `Date`) into the OTP, reset-token, and lockout
-services so tests can advance time deterministically; never assert on real `Date.now()`.
+**Decision**: Use the injected clock (`apps/api/tests/helpers/clock.ts`) for any TTL / expiry / lockout / cooldown / idle logic **and for writing time-stamped rows** (`createdAt`, `expiresAt`, `consumedAt`, etc.). Never rely on Prisma `@default(now())` in test-controlled services.
 
 **Rationale**: Constitution III requires deterministic tests with controlled time; TTL/expiry/lockout
 boundaries (B3, C2, A3) must be asserted exactly.

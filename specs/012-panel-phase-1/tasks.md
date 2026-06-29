@@ -12,7 +12,7 @@
   encodes the order.
 - **TDD.** Each implementation task is immediately preceded by its failing-test task. Test tasks
   cite the §4 test ID and assert the §2 values directly.
-- **Injected clock (R11).** Every TTL / expiry / lockout / cooldown / idle test uses the injected
+- **Injected clock (R11).** Every TTL / expiry / lockout / cooldown / idle test and for writing time-stamped rows (`createdAt`, `expiresAt`, `consumedAt`, etc.) uses the injected. Never rely on Prisma `@default(now())` in test-controlled services.
   clock from `apps/api/tests/helpers/clock.ts` — never real `Date.now()`.
 - **Security coverage.** `auth`, `loginCode`, `passwordResetToken`, refresh rotation, lockout, and
   `requirePermission` must reach **100% branch coverage** (DoD-3); each auth-touching change ships a

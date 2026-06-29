@@ -261,3 +261,76 @@ pnpm --filter @modular-house/api test:coverage                 # security module
 1. Correct the `> note:` in T032 to remove the false "audit log" claim (actual: audit logging deferred to T101).
 2. Correct the `> note:` in T033: method is `sendEmail` not `sendLoginCode`; `auditLog` is not used in the route.
 3. Fix the stale comment in `apps/api/src/routes/admin/auth.ts` on the logout stub: change "comes in T031" → "comes in T047".
+
+---
+
+## Session 8 — 2026-06-29 (reviewer: supervisor)
+
+**Scope:** T036–T043 (Pass 1 — backend route pairs: verify-2fa, resend-code, forgot-password, reset-password)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run` — ❌ **exit 1 — 9 failed / 249 passed (258 total)**. Failures confined to `auth-verify-2fa.test.ts` (3 tests). Root cause identified — see Race Condition section below.
+- `pnpm --filter @modular-house/api test:run --fileParallelism=false` — ✅ **258 passed / 0 failed** (sequential run, same test file, confirms race condition not a logic bug)
+- `pnpm --filter @modular-house/api test:run -- tests/integration/auth-verify-2fa.test.ts` — ✅ **6/6 passed** (isolation run confirms implementation is correct)
+
+**Root Cause — Cross-Test Race Condition in `resetAdminTables()`:**
+
+`helpers/db.ts:resetAdminTables()` calls `deleteMany()` on `loginCode`, `passwordResetToken`, and `userPreference` with **no `userId` filter**. When T036–T042's four integration test files all run in parallel (Vitest default), concurrent `beforeEach` calls delete rows belonging to another file's active test. Two failure modes observed:
+1. **500**: `loginCode.verify()` calls `findFirst` (record found) → another file's `beforeEach` deletes ALL `loginCode` rows → `update({ where: { id } })` throws `PrismaClientKnownRequestError: Record to update not found` → route's `catch` block returns 500.
+2. **401 on correct code**: another file's `beforeEach` deletes all login codes before the route call → `findFirst` returns null → `{ success: false, reason: 'unknown_challenge' }` → 401.
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T036 | CHANGES-REQUIRED | Unchecked. 6/6 assertions match contract and pass in isolation; fail 3/6 in full parallel suite due to `resetAdminTables()` race. Additional nit: `SameSite=Strict` not asserted on Set-Cookie (E3). |
+| T037 | PASS (pending T036 fix) | Route verified by inspection: `verifyOtp()` → Session shape (`accessToken`, `expiresIn=900`, full `Me` user) matches contract; `httpOnly + SameSite=Strict` cookie (E3); `buildSessionUser` loads all Me fields correctly; no secrets returned. Implementation is correct; blocked by T036 test infra. |
+| T038 | CHANGES-REQUIRED | Unchecked. Same `resetAdminTables()` race. Additional nit: eligible-resend test does not assert `sendEmailMock` called (B8 — OTP must be emailed on resend). |
+| T039 | PASS (pending T038 fix) | Route verified by inspection: `checkResendThrottle()` derives cooldown from `createdAt` timestamps (F1/F2); `LoginCodeService.resend(challengeId)` keeps same challengeId (B9); prior code invalidated (B6); neutral 429 on throttle (F3); code emailed (B8). Implementation is correct. |
+| T040 | CHANGES-REQUIRED | Unchecked. Same `resetAdminTables()` race. |
+| T041 | PASS-WITH-NITS (pending T040 fix) | Route verified by inspection: C4 neutral 200 ✓; token + email only for known email ✓; F1/F2 derived from `password_reset_token` rows ✓; email subject contains 'reset' ✓. **Nit (F3):** throttle 429 only returned for known-email accounts — an attacker can enumerate account existence by observing 429 vs 200 on consecutive rapid requests. This is a deliberate pass-2 gap (T115 will harden). |
+| T042 | CHANGES-REQUIRED | Unchecked. Same `resetAdminTables()` race. Assertions verified by inspection: C2/C3/C5/C6/D1–D4 all covered; injected clock for TTL; argon2.verify confirms password change; lockout counters and `revokedAt` verified in DB. |
+| T043 | PASS (pending T042 fix) | Route verified by inspection: policy check first → 400 if invalid, token stays unconsumed (correct per D6) ✓; `consume()` → 410 on used/expired (C2/C3) ✓; `$transaction` atomically hashes new password, clears lockout (C5), revokes all families (C6) ✓; neutral 200 response ✓. |
+
+**Overall: NO-GO** — `pnpm --filter @modular-house/api test:run` exits 1. T036/T038/T040/T042 unchecked. T037/T039/T041/T043 implementations are correct and left checked (verifiable by inspection + isolation run), pending test-infra fix.
+
+**Must-run before proceeding (after corrective items are applied):**
+```
+pnpm --filter @modular-house/api test:run           # must exit 0 (currently 9 failures)
+pnpm --filter @modular-house/api test:coverage      # security modules must remain 100% branch
+pnpm --filter @modular-house/api exec prisma validate
+```
+
+**Corrective items for implementing agent (T036/T038/T040/T042 — test infra):**
+
+1. **`apps/api/tests/helpers/db.ts`** — Add a `userId` parameter to `resetAdminTables()` and filter all `deleteMany()` calls to that user's rows. This eliminates the cross-test race condition while keeping the helper type-safe:
+   ```typescript
+   export async function resetAdminTables(userId?: string): Promise<void> {
+     const filter = userId ? { where: { userId } } : {};
+     for (const table of ADMIN_TABLES) {
+       const delegate = (prisma as unknown as Record<string, unknown>)[table];
+       if (delegate && typeof (delegate as { deleteMany?: unknown }).deleteMany === 'function') {
+         await (delegate as { deleteMany: (args?: unknown) => Promise<unknown> }).deleteMany(filter);
+       }
+     }
+   }
+   ```
+
+2. **All four test files** — Update every `await resetAdminTables()` call in `beforeEach` to pass `userId`:
+   - `auth-verify-2fa.test.ts`: `await resetAdminTables(userId)`
+   - `auth-resend-code.test.ts`: `await resetAdminTables(userId)`
+   - `auth-forgot-password.test.ts`: `await resetAdminTables(userId)`
+   - `auth-reset-password.test.ts`: `await resetAdminTables(userId)`
+   Also check any existing test files that call `resetAdminTables()` (e.g. `auth-login.test.ts`, `auth-ratelimit.test.ts`, `legacy-endpoints-regate.test.ts`) and update those too if they were modified.
+
+3. **`auth-resend-code.test.ts`** (T038 nit) — In the eligible-resend test, add after the 200 response assertion:
+   ```typescript
+   expect(sendEmailMock).toHaveBeenCalledTimes(1);
+   expect(sendEmailMock).toHaveBeenCalledWith(expect.objectContaining({ to: email }));
+   ```
+   This pins B8 (new code emailed on resend).
+
+4. **`auth-verify-2fa.test.ts`** (T036 nit, non-blocking) — Add `SameSite=Strict` assertion to the Set-Cookie check:
+   ```typescript
+   expect(setCookie[0]).toMatch(/SameSite=Strict/i);
+   ```
+
+After these fixes, re-run `pnpm --filter @modular-house/api test:run` to confirm 258/258 green, then re-check T036/T038/T040/T042 and mark them `> reviewed: PASS` / `> reviewed: PASS-WITH-NITS` accordingly.

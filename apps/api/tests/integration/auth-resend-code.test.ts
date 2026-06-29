@@ -72,7 +72,7 @@ describe('POST /admin/auth/resend-code', () => {
   });
 
   beforeEach(async () => {
-    await resetAdminTables();
+    await resetAdminTables(userId);
     sendEmailMock.mockClear();
   });
 
@@ -102,6 +102,10 @@ describe('POST /admin/auth/resend-code', () => {
     expect(res.body).toHaveProperty('message');
     expect(res.body).not.toHaveProperty('accessToken');
     expect(res.body).not.toHaveProperty('token');
+
+    // The new code must be emailed (B8).
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendEmailMock).toHaveBeenCalledWith(expect.objectContaining({ to: email }));
 
     // The prior code must be marked consumed/invalid (B6).
     const prior = await prisma.loginCode.findFirst({

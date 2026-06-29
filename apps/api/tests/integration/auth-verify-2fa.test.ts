@@ -45,7 +45,7 @@ describe('POST /admin/auth/verify-2fa', () => {
   });
 
   beforeEach(async () => {
-    await resetAdminTables();
+    await resetAdminTables(userId);
   });
 
   afterAll(async () => {
@@ -102,6 +102,7 @@ describe('POST /admin/auth/verify-2fa', () => {
     expect(setCookie.length).toBeGreaterThan(0);
     expect(setCookie[0]).toMatch(/refreshToken=/);
     expect(setCookie[0]).toMatch(/HttpOnly/);
+    expect(setCookie[0]).toMatch(/SameSite=Strict/i);
 
     // The code must now be marked consumed (B4).
     const record = await prisma.loginCode.findFirst({ where: { challengeId } });

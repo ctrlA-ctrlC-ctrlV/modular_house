@@ -70,7 +70,7 @@ describe('POST /admin/auth/login', () => {
   });
 
   beforeEach(async () => {
-    await resetAdminTables();
+    await resetAdminTables(userId);
     sendEmailMock.mockClear();
 
     // Reset the user's lockout counters so order-dependent tests start clean.

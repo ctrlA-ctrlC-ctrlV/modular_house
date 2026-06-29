@@ -43,7 +43,7 @@ describe('POST /admin/auth/reset-password', () => {
   });
 
   beforeEach(async () => {
-    await resetAdminTables();
+    await resetAdminTables(userId);
 
     // Reset lockout counters and password between tests.
     await prisma.user.update({

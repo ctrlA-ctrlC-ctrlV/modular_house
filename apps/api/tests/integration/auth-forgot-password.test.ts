@@ -75,7 +75,7 @@ describe('POST /admin/auth/forgot-password', () => {
   });
 
   beforeEach(async () => {
-    await resetAdminTables();
+    await resetAdminTables(userId);
     sendEmailMock.mockClear();
   });
 
@@ -115,7 +115,7 @@ describe('POST /admin/auth/forgot-password', () => {
     expect(knownRes.status).toBe(200);
     const knownMessage = knownRes.body.message;
 
-    await resetAdminTables();
+    await resetAdminTables(userId);
     sendEmailMock.mockClear();
 
     const res = await request(app)

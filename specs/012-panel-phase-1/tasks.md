@@ -371,14 +371,14 @@
       > note: added `authRateLimit` in `apps/api/src/middleware/rateLimit.ts` with `IP_RATE_LIMIT_MAX` / `IP_RATE_LIMIT_WINDOW_MS` constants; applied via `router.use(authRateLimit)` in auth router.
       > reviewed: PASS (corrective fix applied) — `authRateLimit` uses F4 exact values ✓; neutral 429 body ✓; `router.use(authRateLimit)` covers all /admin/auth/* routes ✓. **Regression found and fixed:** adding `authRateLimit` to `rateLimit.ts` broke the existing `tests/contract/submissions.enquiry.spec.ts` mock (Vitest strict-mode error: "No authRateLimit export defined on mock"). Fix: added `authRateLimit` and `generalRateLimit` pass-through entries to that mock. Suite now 239 passed / 0 failed.
 
-- [ ] T036 [test] POST /admin/auth/verify-2fa route test
+- [x] T036 [test] POST /admin/auth/verify-2fa route test
       Files: `apps/api/tests/integration/auth-verify-2fa.test.ts`
       Do: Correct code → `200` `Session` + Set-Cookie refresh; wrong/expired/consumed/locked → `401`;
       malformed → `400`.
       Done when: Tests fail and match the contract for `verify-2fa`.
       Refs: T-B1, contracts `verify-2fa`, B3/B4/B5/B7
       > note: 6 tests covering 200 Session (accessToken + refresh Set-Cookie), 401 wrong/expired/consumed/locked, and 400 malformed. Uses injected clock via `LoginCodeService(prisma, clock.now)` to issue codes at arbitrary times. Test user seeded with `admin` role; permissions round-trip asserted.
-      > reviewed: CHANGES-REQUIRED — test assertions match the contract and pass in isolation (6/6), but 3 tests fail in the full parallel suite. Root cause: `resetAdminTables()` in `beforeEach` calls `deleteMany()` with no `userId` filter, so concurrent `beforeEach` hooks across other integration test files delete login codes mid-test, producing spurious 500s (Prisma update-on-deleted-record race) and 401s (challenge no longer found). Nit: `SameSite=Strict` on the Set-Cookie is not explicitly asserted (E3). Fix: scope `resetAdminTables(userId)` — see corrective items in review-log.md Session 8.
+      > reviewed: PASS-WITH-NITS — `resetAdminTables(userId)` scoping fixed the parallel-suite race (full suite 258/258 green); `SameSite=Strict` assertion added to the Set-Cookie check (E3).
 
 - [x] T037 Implement POST /admin/auth/verify-2fa
       Files: `apps/api/src/routes/admin/auth.ts`
@@ -388,14 +388,14 @@
       > note: Route calls `AuthService.verifyOtp`, builds the `Me`-shaped session user (role + effective permissions, preferences, `hasProfilePhoto`, `isSuperAdmin`), mints 15-minute access JWT, and sets the rotating refresh token as an httpOnly SameSite=Strict cookie.
       > reviewed: PASS (pending T036 fix) — implementation verified by inspection: `verifyOtp()` called; Session response shape (`accessToken`, `expiresIn: ACCESS_TOKEN_TTL_MS/1000`, `user` with all Me fields) matches contract; `httpOnly + SameSite=Strict` cookie set correctly (E3); `buildSessionUser` includes all Me fields; no secrets returned. Done when: T036 passes — blocked by T036 race condition, not an implementation defect.
 
-- [ ] T038 [test] POST /admin/auth/resend-code route test
+- [x] T038 [test] POST /admin/auth/resend-code route test
       Files: `apps/api/tests/integration/auth-resend-code.test.ts`
       Do: Eligible → neutral `200`; prior code invalidated; `challengeId` unchanged across resend;
       cooldown/window-cap → neutral `429`.
       Done when: Tests fail and match the contract for `resend-code`.
       Refs: contracts `resend-code`, B6/B9/F1/F2, FR-013
       > note: 3 tests covering eligible resend with prior invalidation + stable challengeId, cooldown 429, and rolling-window cap 429. `MailerService` mocked at module boundary so no SMTP mail is sent.
-      > reviewed: CHANGES-REQUIRED — same `resetAdminTables()` race condition as T036. Additional nit: eligible-resend test does not assert `sendEmailMock` was called (B8 — OTP must be emailed on resend). Fix: scope `resetAdminTables(userId)` + add email-sent assertion. See review-log.md Session 8.
+      > reviewed: PASS-WITH-NITS — `resetAdminTables(userId)` scoping fixed the parallel-suite race; eligible-resend test now asserts `sendEmailMock` is called with the user's email (B8).
 
 - [x] T039 Implement POST /admin/auth/resend-code
       Files: `apps/api/src/routes/admin/auth.ts`
@@ -405,14 +405,14 @@
       > note: Route resolves `challengeId` to a user without exposing existence (unknown challenge → neutral 401), applies cooldown + rolling-window throttle checks, calls `LoginCodeService.resend`, and emails the new code. Also fixed `LoginCodeService.issue/resend` to set `createdAt` from the injected clock (R11).
       > reviewed: PASS (pending T038 fix) — implementation verified by inspection: `checkResendThrottle()` derives cooldown from `createdAt` timestamps (F1/F2 correct); `LoginCodeService.resend(challengeId)` keeps same challengeId (B9); prior code invalidated via `updateMany({ consumedAt: now })` (B6); neutral 429 on cooldown/window-cap (F3); new code emailed via `MailerService.sendEmail()`; no secret in response. Done when: T038 passes — blocked by T038 race condition, not an implementation defect.
 
-- [ ] T040 [test] POST /admin/auth/forgot-password route test
+- [x] T040 [test] POST /admin/auth/forgot-password route test
       Files: `apps/api/tests/integration/auth-forgot-password.test.ts`
       Do: Known + unknown email both return the same neutral `200`; email sent only when account
       exists; cooldown/window-cap → neutral.
       Done when: Tests fail and match the contract for `forgot-password`.
       Refs: T-B2, contracts `forgot-password`, C4/F1/F2/F3, FR-014/FR-015
       > note: 4 tests cover known-email 200 + token row + email, unknown-email neutral 200 + no row + no email, cooldown 429, and window-cap 429; MailerService mocked at module boundary.
-      > reviewed: CHANGES-REQUIRED — same `resetAdminTables()` race condition as T036. Fix: scope `resetAdminTables(userId)`. See review-log.md Session 8.
+      > reviewed: PASS — `resetAdminTables(userId)` scoping fixed the parallel-suite race; all 4 tests pass in the full parallel suite.
 
 - [x] T041 Implement POST /admin/auth/forgot-password
       Files: `apps/api/src/routes/admin/auth.ts`
@@ -422,14 +422,14 @@
       > note: route uses PasswordResetTokenService.issue, emails a reset link with token in query string, and returns the same neutral 200 for known/unknown email (C4). Per-account cooldown/window-cap derived from password_reset_token rows (F1/F2).
       > reviewed: PASS-WITH-NITS (pending T040 fix) — implementation verified by inspection: C4 neutral 200 for known/unknown email ✓; token row created + emailed for known email ✓; `checkResetThrottle()` uses `createdAt` timestamps (F1/F2) ✓; email subject contains 'reset' ✓; no raw token in response ✓. **Nit (F3):** throttle 429 is only returned for known-email accounts — an unknown-email request always returns 200 even during cooldown, allowing account-existence enumeration via the throttle difference. This is a Pass 2 concern (T115: Harden resend cooldown) but should be noted. Done when: T040 passes — blocked by T040 race condition.
 
-- [ ] T042 [test] POST /admin/auth/reset-password route test
+- [x] T042 [test] POST /admin/auth/reset-password route test
       Files: `apps/api/tests/integration/auth-reset-password.test.ts`
       Do: Matching policy-compliant password → `200`, lockout cleared, all sessions revoked; policy/
       mismatch → `400`; used/expired link → `410`; subsequent login old→`401` / new→`200`.
       Done when: Tests fail and match the contract for `reset-password`.
       Refs: T-B2, contracts `reset-password`, C2/C3/C5/C6/D1–D4, FR-016/FR-017/FR-018
       > note: 6 tests cover valid reset + lockout clear + session revoke, policy violation 400, mismatch 400, used link 410, expired link 410, and subsequent login old→401 / new→200.
-      > reviewed: CHANGES-REQUIRED — same `resetAdminTables()` race condition as T036. Test assertions are correct by inspection (C2/C3/C5/C6/D1–D4 all covered; injected clock for TTL; argon2.verify confirms password change; lockout counters and revokedAt verified). Fix: scope `resetAdminTables(userId)`. See review-log.md Session 8.
+      > reviewed: PASS — `resetAdminTables(userId)` scoping fixed the parallel-suite race; all 6 tests pass in the full parallel suite.
 
 - [x] T043 Implement POST /admin/auth/reset-password
       Files: `apps/api/src/routes/admin/auth.ts`

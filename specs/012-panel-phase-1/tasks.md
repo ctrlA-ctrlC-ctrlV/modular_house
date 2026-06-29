@@ -350,7 +350,7 @@
       `rateLimit`, `error`.
       Done when: T032 passes.
       Refs: T-B1, contracts `login`
-      > note: route uses AuthService.verifyCredentials, LoginCodeService.issue, MailerService.sendEmail, and returns { challengeId, message }. Audit logging is deferred to T101.
+      > note: route uses AuthService.verifyCredentials, LoginCodeService.issue, MailerService.sendEmail, and returns { challengeId, message }. Audit logging is deferred to T101; no audit-log call in this route.
       > reviewed: PASS-WITH-NITS — `authRateLimit` applied router-wide, `verifyCredentials()` called, response shape `{ challengeId, message }` correct, 423/401 discrimination correct, no access token minted (B7) ✓. Nit: stale comment on logout stub fixed to "comes in T047". `new AuthService()` per-request creates a new PrismaClient on each call (existing pattern, non-blocking).
 
 - [x] T034 [test] Auth-route IP rate-limit test
@@ -401,31 +401,35 @@
       Refs: contracts `resend-code`, B6/B9
       > note: Route resolves `challengeId` to a user without exposing existence (unknown challenge → neutral 401), applies cooldown + rolling-window throttle checks, calls `LoginCodeService.resend`, and emails the new code. Also fixed `LoginCodeService.issue/resend` to set `createdAt` from the injected clock (R11).
 
-- [ ] T040 [test] POST /admin/auth/forgot-password route test
+- [x] T040 [test] POST /admin/auth/forgot-password route test
       Files: `apps/api/tests/integration/auth-forgot-password.test.ts`
       Do: Known + unknown email both return the same neutral `200`; email sent only when account
       exists; cooldown/window-cap → neutral.
       Done when: Tests fail and match the contract for `forgot-password`.
       Refs: T-B2, contracts `forgot-password`, C4/F1/F2/F3, FR-014/FR-015
+      > note: 4 tests cover known-email 200 + token row + email, unknown-email neutral 200 + no row + no email, cooldown 429, and window-cap 429; MailerService mocked at module boundary.
 
-- [ ] T041 Implement POST /admin/auth/forgot-password
+- [x] T041 Implement POST /admin/auth/forgot-password
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Mint reset token + email link when the account exists; always neutral confirmation.
       Done when: T040 passes.
       Refs: T-B2, contracts `forgot-password`, C4
+      > note: route uses PasswordResetTokenService.issue, emails a reset link with token in query string, and returns the same neutral 200 for known/unknown email (C4). Per-account cooldown/window-cap derived from password_reset_token rows (F1/F2).
 
-- [ ] T042 [test] POST /admin/auth/reset-password route test
+- [x] T042 [test] POST /admin/auth/reset-password route test
       Files: `apps/api/tests/integration/auth-reset-password.test.ts`
       Do: Matching policy-compliant password → `200`, lockout cleared, all sessions revoked; policy/
       mismatch → `400`; used/expired link → `410`; subsequent login old→`401` / new→`200`.
       Done when: Tests fail and match the contract for `reset-password`.
       Refs: T-B2, contracts `reset-password`, C2/C3/C5/C6/D1–D4, FR-016/FR-017/FR-018
+      > note: 6 tests cover valid reset + lockout clear + session revoke, policy violation 400, mismatch 400, used link 410, expired link 410, and subsequent login old→401 / new→200.
 
-- [ ] T043 Implement POST /admin/auth/reset-password
+- [x] T043 Implement POST /admin/auth/reset-password
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Consume token, apply `passwordPolicy`, clear lockout, account-wide revoke.
       Done when: T042 passes.
       Refs: T-B2, contracts `reset-password`
+      > note: route validates password policy first (400 on failure), consumes the reset token (410 on used/expired), then hashes the new password, clears lockout counters, and revokes all refresh-token families in a transaction (C5/C6).
 
 - [ ] T044 [test] POST /admin/auth/refresh route test
       Files: `apps/api/tests/integration/auth-refresh.test.ts`

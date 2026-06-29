@@ -116,3 +116,4 @@ pnpm lint && pnpm typecheck
   `T009 — PASS-WITH-NITS — seed idempotent; §7 doc updated; user must run db:seed`. Also add a
   `> reviewed: <verdict>` line under each reviewed task in `tasks.md` so the next review resumes
   cleanly.
+- **Performance:** At the end of the session give a `%` score on the performance made on implementation based for all aspect of the checklist.

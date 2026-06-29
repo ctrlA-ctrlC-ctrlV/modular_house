@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { validate } from '../../middleware/validate.js';
 import { logger } from '../../middleware/logger.js';
+import { authenticateJWT } from '../../middleware/auth.js';
 import { authRateLimit } from '../../middleware/rateLimit.js';
 import { AuthService } from '../../services/auth.js';
 import { LoginCodeService } from '../../services/loginCode.js';
@@ -459,9 +460,90 @@ router.post('/reset-password', validate({ body: resetPasswordSchema }), async (r
   }
 });
 
-// Logout — revokes the current session (full refresh-token revocation comes in T047).
-router.post('/logout', (_req: Request, res: Response): void => {
-  res.status(204).send();
+// Refresh — rotate the refresh token within its family and mint a new access token (E4, E7).
+router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const rawToken = req.cookies?.refreshToken as string | undefined;
+
+    if (!rawToken) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Refresh token not provided',
+      });
+      return;
+    }
+
+    const authService = new AuthService();
+    const result = await authService.refresh(rawToken);
+
+    if (!result.success) {
+      // Clear the invalid cookie so the client doesn't keep retrying.
+      res.clearCookie('refreshToken', { path: '/', domain: config.security.cookieDomain });
+      res.status(result.status).json({
+        error: 'Unauthorized',
+        message: result.message,
+      });
+      return;
+    }
+
+    const sessionUser = await buildSessionUser(result.userId);
+    if (!sessionUser) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User not found',
+      });
+      return;
+    }
+
+    // E3: set rotated refresh cookie (httpOnly, SameSite=Strict).
+    res.cookie('refreshToken', result.rawRefreshToken, {
+      httpOnly: true,
+      secure: config.app.nodeEnv === 'production',
+      sameSite: 'strict',
+      domain: config.security.cookieDomain,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    logger.info({ userId: result.userId }, 'Refresh token rotated');
+
+    res.status(200).json({
+      accessToken: result.accessToken,
+      expiresIn: ACCESS_TOKEN_TTL_MS / 1000,
+      user: sessionUser,
+    });
+  } catch (error) {
+    logger.error({ error }, 'Refresh endpoint error');
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication service unavailable',
+    });
+  }
+});
+
+// Logout — revoke the current session's refresh-token family and clear the cookie (E5).
+router.post('/logout', authenticateJWT, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const rawToken = req.cookies?.refreshToken as string | undefined;
+
+    if (rawToken) {
+      const authService = new AuthService();
+      await authService.logout(rawToken);
+    }
+
+    // Clear the refresh cookie regardless of whether it was present (idempotent).
+    res.clearCookie('refreshToken', { path: '/', domain: config.security.cookieDomain });
+
+    logger.info({ userId: req.user?.userId }, 'Session ended');
+
+    res.status(204).send();
+  } catch (error) {
+    logger.error({ error }, 'Logout endpoint error');
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication service unavailable',
+    });
+  }
 });
 
 export { router as authRouter };

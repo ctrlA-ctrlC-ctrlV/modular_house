@@ -66,9 +66,9 @@ describe('POST /admin/auth/login — Phase 1 two-factor contract', () => {
   });
 });
 
-describe('POST /admin/auth/logout — stub contract', () => {
-  it('returns 204 regardless of auth state', async () => {
+describe('POST /admin/auth/logout', () => {
+  it('returns 401 when no access token is provided', async () => {
     const res = await request(app).post('/admin/auth/logout');
-    expect(res.status).toBe(204);
+    expect(res.status).toBe(401);
   });
 });

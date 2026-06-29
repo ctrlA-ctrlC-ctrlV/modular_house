@@ -55,7 +55,7 @@ export type OtpResult =
   | { success: false; status: number; message: string };
 
 export type RefreshResult =
-  | { success: true; accessToken: string; rawRefreshToken: string }
+  | { success: true; accessToken: string; rawRefreshToken: string; userId: string }
   | { success: false; status: number; message: string };
 
 export type ChangePasswordResult =
@@ -339,7 +339,7 @@ export class AuthService {
     });
     const rawRefreshToken = await this.createRefreshToken(user.id, stored.family);
 
-    return { success: true, accessToken, rawRefreshToken };
+    return { success: true, accessToken, rawRefreshToken, userId: stored.userId };
   }
 
   /**

@@ -145,10 +145,10 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         .expect(204);
     });
 
-    it('should accept logout request without token', async () => {
+    it('should reject logout request without token', async () => {
       await request(app)
         .post('/admin/auth/logout')
-        .expect(204);
+        .expect(401);
     });
   });
 });

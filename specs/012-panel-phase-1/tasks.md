@@ -439,31 +439,35 @@
       > note: route validates password policy first (400 on failure), consumes the reset token (410 on used/expired), then hashes the new password, clears lockout counters, and revokes all refresh-token families in a transaction (C5/C6).
       > reviewed: PASS (pending T042 fix) — implementation verified by inspection: policy validated first (D1–D4, 400 on fail, token stays unconsumed) ✓; token consumed via `resetService.consume()` → 410 on failure (C2/C3) ✓; password hashed + persisted ✓; `$transaction` atomically clears lockout (`failedLoginAttempts=0, lockedUntil=null`, C5) + revokes all refresh families (`updateMany revokedAt`, C6) ✓; neutral 200 response ✓; no raw token/password in response ✓. Done when: T042 passes — blocked by T042 race condition, not an implementation defect.
 
-- [ ] T044 [test] POST /admin/auth/refresh route test
+- [x] T044 [test] POST /admin/auth/refresh route test
       Files: `apps/api/tests/integration/auth-refresh.test.ts`
       Do: Valid cookie → `200` new access token + rotated cookie; missing/expired/reused → `401`
       (reuse revokes family).
       Done when: Tests fail and match the contract for `refresh`.
       Refs: contracts `refresh`, E3/E4, FR-040
+      > note: 5 tests: valid cookie → 200 Session + rotated Set-Cookie (E3/E4), missing cookie → 401, expired token → 401, reuse-revokes-family → 401 + sibling tokens invalidated, idle timeout (E7). Used real wall-clock for OTP issuance so route's default AuthService clock matches; reused verify-2fa provider pattern from T036.
 
-- [ ] T045 Implement POST /admin/auth/refresh
+- [x] T045 Implement POST /admin/auth/refresh
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Rotate refresh within family, mint new access token; revoke family on reuse.
       Done when: T044 passes.
       Refs: contracts `refresh`, E3/E4
+      > note: wired cookie-parser in app.ts; extended RefreshResult success type to include userId; route reads req.cookies.refreshToken, calls AuthService.refresh(), sets rotated httpOnly/SameSite=Strict cookie + returns Session. T044 all 5 tests pass.
 
-- [ ] T046 [test] POST /admin/auth/logout route test
+- [x] T046 [test] POST /admin/auth/logout route test
       Files: `apps/api/tests/integration/auth-logout.test.ts`
       Do: Authenticated → `204`, current family revoked + cookie cleared; the refresh credential cannot
       be reused afterward.
       Done when: Tests fail and match the contract for `logout`.
       Refs: contracts `logout`, E5, FR-038
+      > note: 2 tests: authenticated+valid cookie → 204 + cookie cleared + refresh rejected (E5), unauthenticated → 401. verify-2fa provider pattern reused; real-time clock for OTP issuance.
 
-- [ ] T047 Implement POST /admin/auth/logout
+- [x] T047 Implement POST /admin/auth/logout
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Revoke current family, clear the refresh cookie.
       Done when: T046 passes.
       Refs: contracts `logout`, E5
+      > note: replaced logout stub with authenticateJWT-guarded route; reads req.cookies.refreshToken, calls AuthService.logout(), clears cookie; idempotent (silently succeeds if no cookie); updated admin-auth.test.ts and auth.spec.ts tests to match new 401-on-unauth contract.
 
 - [ ] T048 [test] GET /admin/auth/me route test
       Files: `apps/api/tests/integration/auth-me.test.ts`

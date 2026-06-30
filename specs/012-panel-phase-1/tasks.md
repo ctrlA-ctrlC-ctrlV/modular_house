@@ -517,7 +517,7 @@
       Done when: Tests fail and match the contract for `settings/password`.
       Refs: T-B3, contracts `settings/password`, D5/E6/FR-035/FR-041
       > note: 6 tests: correct change → 200 + re-minted cookie + other session revoked + new password works for login (E6/D5), mismatch 400 (D4), policy violation 400 (D1/D2), wrong current 400 (D5), super_admin 403 (FR-035), unauthenticated 401. verify-2fa provider pattern reused for multi-session setup.
-      > reviewed: PASS-WITH-NITS — D3 test added (Session 10 corrective item 2); 7 tests now covering D3 (newPass=current→400), D4 mismatch, D1 length, D5 wrong-current, E6 revoke+remint, FR-035 super_admin 403, 401 unauth. All 7 pass.
+      > reviewed: PASS — D3 test added (corrective item 2); 7 tests covering D3 (newPass=current→400), D4 mismatch, D1 length, D5 wrong-current, E6 revoke+remint, FR-035 super_admin 403, 401 unauth; all 7 pass at runtime on port 5434; TDD nit (retroactively unverifiable) non-blocking.
 
 - [x] T051 Implement PUT /admin/settings/password
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -526,32 +526,41 @@
       Done when: T050 passes.
       Refs: T-B3, contracts `settings/password`, I1
       > note: new settings.ts router created + wired in app.ts; authenticateJWT guard; super_admin block (403); Zod validation; passwordPolicy check; resolves acting refresh-token family from cookie for re-mint; AuthService.changePassword returns 400-mapped errors; new refresh cookie set on success. Audit-log PASSWORD_CHANGED deferred to T101. D3 enforced in changePassword() via argon2.verify after D5 (Session 10 fix).
+      > reviewed: PASS — D3 check added to `changePassword()` after D5 verify; `argon2.verify(user.passwordHash, newPassword)` → `{success:false, status:400}` if same; `services/auth.ts` remains 100% branch (unit test + integration D3 test together cover both D3 branches); T050 7/7 pass. Nit (reset route carry-forward): reset-password route pre-checks token validity before `validatePassword`, duplicating `consume()` validation (2 DB queries on token table) — non-blocking, logic correct.
 
-- [ ] T052 [test] PUT /admin/settings/photo route test
+- [x] T052 [test] PUT /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-put.test.ts`
       Do: PNG/JPEG/WebP ≤5MB → `200` `Me` with `hasProfilePhoto=true`; bad type / >5MB → `400`;
       `super_admin` → `403`.
       Done when: Tests fail and match the contract for `settings/photo` PUT.
       Refs: T-B4, contracts `settings/photo`, G1/G2/G3, FR-033/FR-035
+      > note: 7 tests (PNG/JPEG/WebP 200, gif 400, oversized 400, super_admin 403, unauth 401); uses in-memory buffer fixtures (no disk files); PHOTO_MAX_BYTES imported from adminAuth.ts; supertest .attach() for multipart.
+      > reviewed: PASS-WITH-NITS — 7/7 tests pass in full parallel suite (286/0/0); G1/G2/G3 contract cases correct; PHOTO_MAX_BYTES boundary exact; nit: 200 tests only assert hasProfilePhoto + id, not full Me shape (email, role, permissions omitted from assertions).
 
-- [ ] T053 Implement PUT /admin/settings/photo
+- [x] T053 Implement PUT /admin/settings/photo
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: multer memory upload, validate MIME + size, persist bytes+MIME on `User`; block `super_admin`.
       Done when: T052 passes.
       Refs: T-B4, contracts `settings/photo`, research R9
+      > note: multer memoryStorage with 6MB limit (headroom above 5MB policy); MIME validated against PHOTO_ACCEPTED_MIME_TYPES; bytes persisted via prisma.user.update; returns Me-shaped response via local buildSessionUser(); super_admin 403 enforced. T052 7/7 pass.
+      > reviewed: PASS — authenticateJWT ✓; upload.single('photo') multer ✓; PHOTO_ACCEPTED_MIME_TYPES MIME check ✓; PHOTO_MAX_BYTES size check ✓; profilePhoto+profilePhotoMime persisted ✓; buildSessionUser() Me response ✓; super_admin 403 ✓; no scope creep; T052 7/7 confirmed with full parallelism.
 
-- [ ] T054 [test] GET /admin/settings/photo route test
+- [x] T054 [test] GET /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-get.test.ts`
       Do: Photo set → `200` image bytes with correct MIME; none set → `404` (client renders initials);
       unauthenticated → `401`.
       Done when: Tests fail and match the contract for `settings/photo` GET.
       Refs: T-B4, contracts `settings/photo`, G5/G6
+      > note: 3 tests (photo set → 200 with image/png Content-Type + byte equality, no photo → 404, unauth → 401); seeds photo directly via prisma.user.update; Buffer comparison for byte-level assertion.
+      > reviewed: PASS-WITH-NITS — 3/3 pass in full parallel suite; G5/G6 contract pinned; byte-level Buffer comparison ✓; seeds via prisma.user.update ✓; nit: test-file comment "The route already exists from T053" is stale (T053 adds PUT only; GET is added by T055).
 
-- [ ] T055 Implement GET /admin/settings/photo
+- [x] T055 Implement GET /admin/settings/photo
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: Stream stored bytes for the authenticated user; `404` when absent.
       Done when: T054 passes.
       Refs: T-B4, G5/G6
+      > note: route loads only profilePhoto + profilePhotoMime columns; sets Content-Type and Content-Length headers; sends raw Buffer via res.send(); 404 when either column is null. T054 3/3 pass.
+      > reviewed: PASS — loads only photo columns ✓; Content-Type + Content-Length set ✓; raw Buffer via res.send() ✓; 404 when null ✓; authenticateJWT guard ✓; T054 3/3 confirmed with full parallelism.
 
 - [ ] T056 [test] DELETE /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-delete.test.ts`

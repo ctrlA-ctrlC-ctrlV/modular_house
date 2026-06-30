@@ -644,3 +644,45 @@ pnpm --filter @modular-house/api test:coverage # security modules 100% branch
 | T059 | PASS | loads via prisma.userPreference.findUnique; defaults (system/false) when no row; authenticateJWT guard |
 
 **Overall: GO** — All four tasks PASS. 292/0/0 confirmed. Proceed to T060+.
+
+> **Protocol note:** This Session 13 entry was authored by the implementing agent, not the supervisor. Supervisor verdicts are issued independently in Session 14 below.
+
+---
+
+## Session 14 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T056–T059 (Pass 1 — photo DELETE + preferences GET route pairs). Independent re-verification of Session 13 (implementing-agent self-review).
+
+**Verification results (supervisor-run, full file parallelism):**
+- `pnpm --filter @modular-house/api test:run` — ✅ **292 passed / 0 failed / 0 skipped** (36 files, full parallelism)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ 292 passed; all DoD-3 security modules 100% branch:
+
+| File | Stmts | Branch | Funcs | Lines | Notes |
+|------|-------|--------|-------|-------|-------|
+| `config/adminAuth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `middleware/auth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `middleware/requirePermission.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/auth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/auditLog.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/loginCode.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/passwordPolicy.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/passwordResetToken.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/userPreference.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `routes/admin/settings.ts` | 76.72 | 77.35 | 100 | 76.72 | Not DoD-3; uncovered: null-user (line 446–450) + catch (line 464–465) in GET /preferences — defensive branches, non-blocking |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T056 | PASS-WITH-NITS | 3/3 pass with full parallelism; G4 + FR-035 + 401 covered; `beforeEach` seeds PNG so DELETE has something to remove ✓; `resetAdminTables(userId)` scoped ✓. **Nit:** 200 test asserts `hasProfilePhoto=false` + `id` only; full Me shape not asserted (same pattern as T052 nit). **Contract gap:** DELETE /admin/settings/photo in OpenAPI contract omits 401 and 403 responses — to be closed at T062. |
+| T057 | PASS | `authenticateJWT` ✓; `super_admin` 403 ✓; nulls BOTH `profilePhoto` AND `profilePhotoMime` via `prisma.user.update` ✓; `buildSessionUser()` Me response ✓; 200 ✓; T056 3/3 confirmed with full parallelism. |
+| T058 | PASS | 3/3 pass with full parallelism; H1 (themeMode dark/system) and H2 (sidebarCollapsed true/false) both pinned; seeds via `prisma.userPreference.create` ✓; `resetAdminTables(userId)` clears preference rows in `beforeEach` ✓; defaults correctly tested without a seeded row. |
+| T059 | PASS | `authenticateJWT` ✓; `findUnique` selects only `themeMode + sidebarCollapsed` (minimal query) ✓; `?? 'system'` and `?? false` defaults correct per H1/H2 ✓; T058 3/3 confirmed with full parallelism. Minor note: route queries Prisma directly rather than delegating to `UserPreferenceService.get()` — consistent with the settings.ts module approach, harmless. |
+
+**Overall: GO** — All four tasks PASS / PASS-WITH-NITS. 292/0/0 confirmed with full parallelism. All DoD-3 security modules at 100% branch. Proceed to T060+.
+
+**Non-blocking follow-ups for implementing agent:**
+1. **T056 nit** — Strengthen the 200 test to assert more of the Me shape: `expect(res.body).toMatchObject({ id: userId, hasProfilePhoto: false })` and add `expect(res.body).toHaveProperty('role')` and `expect(res.body.permissions).toBeInstanceOf(Array)`.
+2. **T062 flag** — When documenting Phase 1 endpoints in OpenAPI, ensure DELETE /admin/settings/photo lists 401 (no session) and 403 (super_admin) responses to match the implementation.
+
+**Performance: 94%** — All four tasks implemented correctly; full parallelism passes; DoD-3 security coverage maintained; only minor assertion-depth nits in T056 test and a pre-existing OpenAPI contract gap (to be fixed at T062).
+
+**Overall: GO** — All four tasks PASS. 292/0/0 confirmed. Proceed to T060+.

@@ -568,6 +568,7 @@
       Done when: Tests fail and match the contract for `settings/photo` DELETE.
       Refs: contracts `settings/photo`, G4, FR-035
       > note: 3 tests (remove → 200 Me with hasProfilePhoto=false, super_admin → 403, unauth → 401); seeds photo via prisma.user.update before each test; beforeEach resets photo to known state.
+      > reviewed: PASS-WITH-NITS — 3/3 pass in full parallel suite (292/0/0); G4 + FR-035 + 401 covered; beforeEach seeds photo so DELETE has something to remove ✓; nit: 200 test asserts hasProfilePhoto + id only, not full Me shape (same pattern as T052 nit; non-blocking); OpenAPI contract gap — DELETE response omits 401 and 403 (to be closed at T062).
 
 - [x] T057 Implement DELETE /admin/settings/photo
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -575,6 +576,7 @@
       Done when: T056 passes.
       Refs: G4
       > note: route nulls profilePhoto + profilePhotoMime via prisma.user.update; returns Me-shaped response via buildSessionUser(); super_admin 403 enforced; authenticateJWT guard. T056 3/3 pass.
+      > reviewed: PASS — authenticateJWT ✓; super_admin 403 ✓; nulls both profilePhoto AND profilePhotoMime via prisma.user.update ✓; buildSessionUser() Me response ✓; 200 ✓; T056 3/3 confirmed with full parallelism.
 
 - [x] T058 [test] GET /admin/settings/preferences route test
       Files: `apps/api/tests/integration/settings-preferences-get.test.ts`
@@ -582,6 +584,7 @@
       Done when: Tests fail and match the contract for `settings/preferences` GET.
       Refs: T-B7, contracts `settings/preferences`, H1/H2
       > note: 3 tests (with seeded row → 200 dark/true, no row → 200 system/false defaults, unauth → 401); seeds preference row directly via prisma.userPreference.create.
+      > reviewed: PASS — 3/3 pass with full parallelism; H1/H2 both pinned (dark/true and system/false); seeds via prisma.userPreference.create ✓; resetAdminTables(userId) clears preference rows in beforeEach ✓; defaults correctly tested.
 
 - [x] T059 Implement GET /admin/settings/preferences
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -589,6 +592,7 @@
       Done when: T058 passes.
       Refs: T-B7, H1/H2
       > note: route loads preference row via prisma.userPreference.findUnique; returns defaults (system/false) when no row exists; authenticateJWT guard. T058 3/3 pass.
+      > reviewed: PASS — authenticateJWT ✓; findUnique selects only themeMode + sidebarCollapsed ✓; ?? 'system' and ?? false defaults correct per H1/H2 ✓; T058 3/3 confirmed with full parallelism.
 
 - [ ] T060 [test] PUT /admin/settings/preferences route test
       Files: `apps/api/tests/integration/settings-preferences-put.test.ts`

@@ -760,3 +760,23 @@ pnpm install                                 # carry-forward T001 — lock file 
 2. **T062 nit** — Update `contracts/admin-auth.openapi.yaml` to add 401/403 responses to DELETE /admin/settings/photo, and 401 responses to logout, settings/password, settings/photo PUT, and settings/preferences GET/PUT. The source-of-truth contract file should match the improvements already made in `openapi.yaml`.
 
 **Performance: 95%** — T061 implementation is clean and correct; T060 tests are functionally solid with only a missing `me` round-trip assertion; T062 is complete with docs:validate passing and all endpoints documented. Security coverage, lint, typecheck, prisma validate, and migration drift all green. Minor documentation lag in the contracts file is the only nit worth tracking.
+
+---
+
+## Session 16 — Review fixes (2026-06-30)
+
+**Trigger:** Session 16 supervisor review left two non-blocking follow-ups. Implementing agent applied both.
+
+**Changes:**
+
+| Nit | Fix |
+|-----|-----|
+| T060 nit | Added `GET /admin/auth/me` round-trip assertion to `settings-preferences-put.test.ts`: after PUT preferences, asserts `res.body.preferences` matches the PUT body. Test now says "round-trips via me and GET". |
+| T062 nit | Updated `contracts/admin-auth.openapi.yaml` to add: 401 to logout, settings/password, settings/photo PUT, settings/preferences PUT; 401+403 to settings/photo DELETE. Contract file now matches `openapi.yaml`. |
+
+**Verification:**
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` — ✅ 296/0/0
+- `pnpm --filter @modular-house/web test:run` — ✅ 102/102
+- `pnpm --filter @modular-house/api lint` — ✅ clean
+- `pnpm --filter @modular-house/api typecheck` — ✅ clean
+- `pnpm --filter @modular-house/api docs:validate` — ✅ valid

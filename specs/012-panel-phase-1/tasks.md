@@ -618,7 +618,7 @@
       Done when: `pnpm --filter @modular-house/api docs:validate` passes.
       Refs: plan §5.1, DoD-9
       > note: replaced legacy login (token-based) with 2FA flow; added all Phase 1 auth + settings endpoints; added TwoFactorChallenge, Session, Me, Preferences, NeutralAck, Error schemas; docs:validate passes.
-      > reviewed: PASS-WITH-NITS — docs:validate passes ✓; all 13 Phase 1 endpoints documented; all schemas match contracts file exactly ✓; openapi.yaml improves on contracts file by adding 401 responses to logout, settings/password, settings/photo (PUT/DELETE), settings/preferences (GET/PUT). Nit: `contracts/admin-auth.openapi.yaml` (spec source of truth) still lacks 401/403 on DELETE /admin/settings/photo — the contract file was not updated, only the main openapi.yaml. Non-blocking (implementation is correct; docs:validate passes).
+      > reviewed: PASS — docs:validate passes ✓; all 13 Phase 1 endpoints documented; all schemas match contracts file exactly ✓; `contracts/admin-auth.openapi.yaml` updated (Session 16 nit resolved): 401 added to logout, settings/password, settings/photo PUT, settings/preferences PUT; 401+403 added to settings/photo DELETE. contracts file now matches openapi.yaml exactly. 296/0/0 confirmed with full parallelism.
 
 ### Frontend design-system port + primitives
 

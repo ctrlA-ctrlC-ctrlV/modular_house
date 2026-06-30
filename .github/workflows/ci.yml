@@ -138,6 +138,13 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5433/test_db
 
+      - name: Seed test database
+        working-directory: apps/api
+        run: pnpm db:seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          NODE_ENV: test
+
       - name: Run API tests with coverage
         working-directory: apps/api
         run: pnpm test:coverage
@@ -246,6 +253,13 @@ jobs:
         run: pnpm db:migrate:deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+
+      - name: Seed test database
+        working-directory: apps/api
+        run: pnpm db:seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          NODE_ENV: test
 
       - name: Enforce coverage thresholds
         run: pnpm test:coverage:enforce

@@ -881,3 +881,165 @@ pnpm --filter @modular-house/api test:run     # confirmed 296/0/0 ✅
 3. **T076 reminder** — input-otp.tsx stub still does not use the `input-otp` npm package. T076 must replace it with the real `OTPInput`-based implementation for keyboard-operability per B1/H6.
 
 **Performance: 93%** — All four implementations are clean template-parity ports. Input and Label are particularly clean (no comments, correct H4 focus ring). Card and DropdownMenu are comprehensive and correct with only cosmetic comment-style nits and the harmless data-slot-on-provider issue.
+
+---
+
+## Session 20 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T050–T070 — full independent re-verification of the entire backend settings surface +
+frontend design-system primitives (consolidates Sessions 10/12/14/16/18/19). Every verdict re-derived
+from source files per the independence rule; `[x]` and prior `> reviewed:` lines treated as claims.
+
+**Verification results (supervisor-run this session):**
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed** (37 files, full parallelism)
+- `pnpm --filter @modular-house/web test:run` — ✅ **131 passed / 0 failed** (19 files)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ all DoD-3 security modules 100% branch:
+
+| File | Branch | Notes |
+|------|--------|-------|
+| `config/adminAuth.ts` | 100 | ✅ |
+| `middleware/auth.ts` | 100 | ✅ |
+| `middleware/requirePermission.ts` | 100 | ✅ |
+| `services/auth.ts` | 100 | ✅ (lockout, refresh rotation, changePassword D3/D5, revoke) |
+| `services/loginCode.ts` | 100 | ✅ |
+| `services/passwordPolicy.ts` | 100 | ✅ |
+| `services/passwordResetToken.ts` | 100 | ✅ |
+| `services/userPreference.ts` | 100 | ✅ |
+| `services/auditLog.ts` | 100 | ✅ |
+| `routes/admin/auth.ts` | 84.61 | Not DoD-3; uncovered = defensive null/catch branches |
+| `routes/admin/settings.ts` | 76.19 | Not DoD-3; uncovered = null-user + catch branches |
+
+- `pnpm --filter @modular-house/api exec prisma validate` — ✅ valid
+- `pnpm --filter @modular-house/api exec prisma migrate status` (DATABASE_URL → test DB, port 5434) —
+  ✅ "Database schema is up to date!" (7 migrations, **no drift**). Note: the default `.env` points at
+  `127.0.0.1:5432` (SSH tunnel, not running) so the drift check MUST be run with `DATABASE_URL`
+  overridden to the port-5434 test DB.
+- `pnpm --filter @modular-house/api docs:validate` — ✅ OpenAPI valid
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/api exec tsc --noEmit` / `--filter @modular-house/web` — ✅ clean
+
+**Source-of-truth re-derivation (independent of prior sessions):**
+- `config/adminAuth.ts` — every §2 constant exact (`PHOTO_MAX_BYTES = 5*1024*1024`,
+  `PHOTO_ACCEPTED_MIME_TYPES = [png,jpeg,webp]`, all TTL/lockout/throttle values).
+- `routes/admin/settings.ts` — six handlers verified: `authenticateJWT` guard, `super_admin` → 403 on
+  password/photo PUT/DELETE, photo MIME+size validated against the constants, `buildSessionUser()`
+  returns the full `Me` shape, preferences Zod-enum-validated + upserted (partial-update safe), only
+  `themeMode + sidebarCollapsed` persisted (no invented prefs).
+- `services/auth.ts changePassword()` — D5 (verify current) → D3 (`argon2.verify(hash, newPassword)` →
+  400 if equal) → E6 (revoke all + re-mint acting family). Session 10 D3 fix present and correct.
+- `contracts/admin-auth.openapi.yaml` — settings shapes/status codes match the routes
+  (password → NeutralAck+400/401/403; photo GET 200/401/404, PUT Me/400/401/403, DELETE Me/401/403;
+  preferences GET Preferences/401, PUT Preferences/400/401).
+- Primitives `button/input/label/card/dropdown-menu` + `primitives.test.tsx` (22 parity assertions):
+  `data-slot` (+ `data-variant`/`data-size` on Button), H4 focus ring `ring-3 ring-ring/50`,
+  `rounded-lg` → `var(--radius)` = 0.625rem, Radix keyboard operability — all satisfy T065.
+- Guardrails: no public-site / `@modular-house/ui` changes; admin isolated under `apps/web/src/admin/`;
+  migrations additive; prefs exactly `themeMode + sidebarCollapsed`.
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T050 | PASS | settings/password test: 7 cases incl. D3, D4, D1, D5, E6 (revoke+remint), FR-035 403, 401 |
+| T051 | PASS | `changePassword` D5→D3→E6 correct; route maps all auth failures to 400; super_admin 403; NeutralAck |
+| T052 | PASS-WITH-NITS | photo PUT 7 cases; nit: 200 tests assert only `hasProfilePhoto`+`id`, not full `Me` shape |
+| T053 | PASS | multer memoryStorage (6MB headroom); MIME+size vs constants; super_admin 403; `Me` response |
+| T054 | PASS-WITH-NITS | photo GET 3 cases + byte equality; nit: stale comment "route already exists from T053" |
+| T055 | PASS | GET streams bytes, Content-Type/Length set, 404 when null |
+| T056 | PASS-WITH-NITS | photo DELETE 3 cases; nit: 200 asserts `hasProfilePhoto`+`id` only (same as T052) |
+| T057 | PASS | nulls both photo columns; super_admin 403; `Me` response |
+| T058 | PASS | preferences GET 3 cases (seeded / default system+false / unauth) |
+| T059 | PASS | findUnique; defaults `system`/`false`; minimal column select |
+| T060 | PASS | preferences PUT 4 cases incl. `/me` round-trip (Session 16 nit fixed) |
+| T061 | PASS | Zod enum + upsert; partial update; only `themeMode + sidebarCollapsed` (no scope creep) |
+| T062 | PASS | OpenAPI mirrors contract; 13 endpoints; contract file synced (401/403 on DELETE photo etc.) |
+| T063 | PASS | cn() test: 7 cases (merge/dedupe/conditional/array/object/empty/null) |
+| T064 | PASS | clsx + twMerge wrapper |
+| T065 | PASS-WITH-NITS | 22 parity assertions correct; nit: TDD "fail first" not met (stubs alongside); early stubs for T071–T076 |
+| T066 | PASS | Button 6 variants / 8 sizes; `data-slot/variant/size`; H4 ring exact |
+| T067 | PASS-WITH-NITS | Input `data-slot`, H4 ring, aria-invalid, dark-mode ✓. **Correction:** file contains multi-line JSDoc blocks — Session 19's "no multi-line comments ✓" claim is inaccurate. Cosmetic, non-blocking |
+| T068 | PASS-WITH-NITS | Label Radix Root, `htmlFor`, `data-slot`, peer/group-disabled ✓. **Correction:** same multi-line JSDoc blocks as T067; Session 19 "no comments" claim inaccurate. Non-blocking |
+| T069 | PASS-WITH-NITS | Card/Header/Content/Footer `data-slot`; `rounded-lg`→0.625rem; Title/Description/Action = template parity; nit: multi-line JSDoc blocks |
+| T070 | PASS-WITH-NITS | DropdownMenu Radix, 15 subcomponents, inline SVG (no lucide-react), keyboard-operable; nit: `data-slot` on Root/Portal/Sub renders no DOM (silently dropped, untested); multi-line JSDoc blocks |
+
+**Independent finding (correction to Session 19):** Session 19's verdicts and review-log explicitly
+stated T067/T068 (input.tsx, label.tsx) have "no multi-line comments ✓" and called them "particularly
+clean (no comments)". The actual files contain multi-line JSDoc header + function blocks (same style as
+button/card/dropdown-menu). Corrected to PASS-WITH-NITS above. This is a cosmetic style nit — the
+commenting is internally consistent across all primitives — and changes no code-correctness verdict.
+
+**Overall: GO** — all of T050–T070 PASS / PASS-WITH-NITS. Every MUST-RUN verification command green;
+all DoD-3 security modules 100% branch; no drift; lint/typecheck clean; no scope creep; no public-site
+or `@modular-house/ui` changes. T071–T076 remain `[ ]` (not implemented) and are out of scope.
+
+**Must-run before proceeding to T071+:** none outstanding — the suite is green this session.
+(Carry-forward only: `pnpm install` to refresh the lock file, T001 nit.)
+
+**Corrective items:** none blocking. Non-blocking follow-ups for the implementing agent:
+1. Strengthen the photo PUT/DELETE 200 assertions (T052/T056) to check the full `Me` shape.
+2. Fix the stale comment in `settings-photo-get.test.ts` (T054).
+3. Optional: reduce the multi-line JSDoc blocks across the primitives to one-line comments if the
+   project's "one short line max" comment rule is to be enforced (carry-forward from Sessions 18/19).
+
+**Performance: 94%** — implementation fully correct and contract-faithful through T070; constants,
+schema, contract, and security coverage all exact; only cosmetic / test-assertion-depth nits remain,
+plus one inaccurate prior review-log claim (T067/T068 comments) corrected here.
+
+---
+
+## Session 20 — Addendum: CI integration-test failure (missing seed step) (2026-06-30)
+
+**Trigger:** CI reported 4 integration failures that the local suite (and every prior session) passed:
+- `settings-password.test.ts` / `settings-photo-put.test.ts` → `Error: admin role not found — seed required`
+- `settings-photo-delete.test.ts` → `Error: super_admin role not found — seed required`
+- `auth-me.test.ts:98` → `expected 0 to be greater than 0` (`res.body.permissions.length`)
+
+**Root cause (CI infrastructure, NOT a T050–T070 code defect):** `.github/workflows/ci.yml`
+`test-api` job runs `db:migrate:deploy` then `test:coverage` with **no `db:seed` step**. The
+integration tests look up the `admin` / `super_admin` roles in `beforeAll` and assume the RBAC
+roles + permissions are already seeded (`tests/integration/*.test.ts`; `resetAdminTables()` only
+clears the 3 Phase 1 tables scoped to a user, so it does not wipe roles). A migrated-but-unseeded
+DB therefore has no roles and no permissions. `auth-me` finds the `admin` role only via test-created
+data but the role carries 0 RolePermission rows → empty `permissions`.
+
+**Why this was missed by Sessions 9–20 (including this one):** all local verification ran against the
+port-5434 test DB which was seeded once in **T047b** (`db:seed`). That seeded state persisted across
+every session, masking the CI gap. This is a **pre-existing CI gap** affecting *all* DB-dependent
+integration tests (login, verify-2fa, etc. since T032), not something introduced by T050–T070. My
+Session 20 "Overall: GO — suite green" was true only against the seeded local DB; against a clean DB
+(CI) the DB-dependent suites fail. **Process lesson:** a green local `test:run` is not evidence that
+CI passes when the local DB carries out-of-band seed state — the seed must be part of the automated
+pipeline, and the drift between "works locally" and CI must be checked explicitly.
+
+**Fix applied (CI/infra only — within supervisor MAY; no feature code touched):**
+Added a `Seed test database` step (`pnpm db:seed`, `DATABASE_URL` + `NODE_ENV=test`) immediately after
+`db:migrate:deploy` in BOTH DB-dependent jobs — `test-api` and `coverage-check` — in
+`.github/workflows/ci.yml`.
+
+**Fix verification:**
+- `prisma/seed.ts` is idempotent (upserts throughout); steps 1–4 (roles/permissions/role-permissions/
+  settings) require no special env; step 5 (`seedAdminUser`) uses `config.admin` defaults
+  (`testadmin@modular.house` / `admin123!`) which the production guard only rejects when
+  `NODE_ENV=production` — in CI (`NODE_ENV=test`) it runs cleanly.
+- Ran `DATABASE_URL=…:5434 NODE_ENV=test pnpm db:seed` → **"Database seed completed successfully", exit 0**.
+- The seed creates exactly the data the four failing assertions require: `admin` + `super_admin` roles
+  and the admin role's content/settings/audit/dashboard RolePermission rows (`permissions.length > 0`).
+
+**Verdict impact:** T050–T070 **code/test verdicts stand** (PASS / PASS-WITH-NITS) — the implementations
+are correct; the failure was a missing CI pipeline step. **Overall verdict corrected to: GO _after_ the
+CI seed step lands.** The remaining honest gap is that CI itself (clean DB) must now confirm green; the
+fix cannot be self-verified by a locally-seeded run.
+
+**Must-run / confirm on CI before declaring fully green:**
+```
+# CI will now run, in order, for test-api + coverage-check:
+pnpm db:migrate:deploy   # existing
+pnpm db:seed             # ADDED — roles + permissions + admin user
+pnpm test:coverage       # the 4 previously-failing suites should now pass
+```
+Push the branch and confirm the GitHub Actions `test-api` + `coverage-check` jobs go green.
+
+**Corrective items for the implementing agent (follow-up, non-blocking once CI is green):**
+1. Consider making the DB-dependent integration tests self-sufficient via a Vitest `globalSetup` that
+   ensures the RBAC roles/permissions exist, so a clean local `vitest run` (no out-of-band seed) also
+   passes. This removes the hidden dependency on externally-seeded state that masked this gap.
+2. The `auth-me` permissions assertion (`> 0`) silently depended on seed data; a globalSetup or an
+   in-test role+permission upsert would make the dependency explicit.

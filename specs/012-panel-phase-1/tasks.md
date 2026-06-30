@@ -661,7 +661,8 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, H4/H6
       > note: full implementation replacing T065 stub; file-input styling, aria-invalid error states, dark-mode variants (dark:bg-input/30, dark:disabled:bg-input/80), H4 focus ring (3px at ring/50); T065 Input 2/2 pass.
-      > reviewed: PASS — `data-slot="input"` ✓; `focus-visible:ring-3 focus-visible:ring-ring/50` = H4 exact (3px at ring/50) ✓; `aria-invalid` error-state styles ✓; dark-mode variants ✓; no multi-line comments ✓; T065 2/2 Input assertions pass (131/0/0 confirmed).
+      > reviewed: PASS — `data-slot="input"` ✓; `focus-visible:ring-3 focus-visible:ring-ring/50` = H4 exact (3px at ring/50) ✓; `aria-invalid` error-state styles ✓; dark-mode variants ✓; T065 2/2 Input assertions pass (131/0/0 confirmed).
+      > reviewed (S20): PASS-WITH-NITS — correction to S19: input.tsx DOES contain multi-line JSDoc blocks (S19 "no multi-line comments" claim was inaccurate). Cosmetic, non-blocking; code-correctness unchanged.
 
 - [x] T068 Implement Label primitive
       Files: `apps/web/src/admin/ui/label.tsx`
@@ -669,7 +670,8 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, H6
       > note: full implementation replacing T065 stub; added flex layout (items-center gap-2), disabled-state styling via group-data-[disabled=true] and peer-disabled selectors; T065 Label 2/2 pass.
-      > reviewed: PASS — Radix `@radix-ui/react-label` Root ✓; `data-slot="label"` ✓; `peer-disabled:cursor-not-allowed peer-disabled:opacity-50` ✓; `group-data-[disabled=true]` support ✓; native `htmlFor` association via Radix Label (renders `<label>`) ✓; no multi-line comments ✓; T065 2/2 Label assertions pass.
+      > reviewed: PASS — Radix `@radix-ui/react-label` Root ✓; `data-slot="label"` ✓; `peer-disabled:cursor-not-allowed peer-disabled:opacity-50` ✓; `group-data-[disabled=true]` support ✓; native `htmlFor` association via Radix Label (renders `<label>`) ✓; T065 2/2 Label assertions pass.
+      > reviewed (S20): PASS-WITH-NITS — correction to S19: label.tsx DOES contain multi-line JSDoc blocks (S19 "no multi-line comments" claim was inaccurate). Cosmetic, non-blocking; code-correctness unchanged.
 
 - [x] T069 Implement Card primitive
       Files: `apps/web/src/admin/ui/card.tsx`

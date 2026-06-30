@@ -93,8 +93,9 @@ describe('POST /admin/auth/logout', () => {
     const newCookies = res.headers['set-cookie'];
     if (newCookies) {
       const newCookieStr: string = Array.isArray(newCookies) ? newCookies[0] : newCookies;
-      expect(newCookieStr).toMatch(/refreshToken=/);
-      // A cleared cookie has an immediate or past expiry.
+      // Express clearCookie sets an empty cookie value with the same
+      // domain/path; a cleared cookie will show up as 'refreshToken=;'.
+      expect(newCookieStr).toMatch(/refreshToken=;/);
     }
 
     // The refresh credential must be unusable afterward (E5).

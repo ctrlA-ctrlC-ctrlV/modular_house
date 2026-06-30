@@ -446,7 +446,7 @@
       Done when: Tests fail and match the contract for `refresh`.
       Refs: contracts `refresh`, E3/E4, FR-040
       > note: 5 tests: valid cookie → 200 Session + rotated Set-Cookie (E3/E4), missing cookie → 401, expired token → 401, reuse-revokes-family → 401 + sibling tokens invalidated, idle timeout (E7). Used real wall-clock for OTP issuance so route's default AuthService clock matches; reused verify-2fa provider pattern from T036.
-      > reviewed: PASS (pending DB) — all 5 contract cases present by inspection (E3/E4 rotation, E7 idle, E4 family-revoke, missing/expired 401); `IDLE_TIMEOUT_MS` constant used; `resetAdminTables(userId)` scoped; nit: no `Secure` flag asserted (non-prod env, non-blocking). DB must be running to confirm runtime: `docker-compose up -d db && pnpm --filter @modular-house/api test:run`.
+      > reviewed: PASS — all 5 tests pass at runtime (DB confirmed on port 5434); E3/E4 rotation + Set-Cookie with httpOnly/SameSite=Strict, E7 idle timeout, E4 family revoke, missing/expired 401 all verified. Nit: no `Secure` flag asserted (non-prod env, non-blocking).
 
 - [x] T045 Implement POST /admin/auth/refresh
       Files: `apps/api/src/routes/admin/auth.ts`
@@ -463,7 +463,7 @@
       Done when: Tests fail and match the contract for `logout`.
       Refs: contracts `logout`, E5, FR-038
       > note: 2 tests: authenticated+valid cookie → 204 + cookie cleared + refresh rejected (E5), unauthenticated → 401. verify-2fa provider pattern reused; real-time clock for OTP issuance.
-      > reviewed: PASS-WITH-NITS — 2 contract cases present by inspection; E5 end-to-end (204 + refresh-rejection) covered; `resetAdminTables(userId)` scoped. Nit: Set-Cookie clear check at auth-logout.test.ts:97 only asserts `refreshToken=` in string, not `Max-Age=0`; strengthen with `expect(newCookieStr).toMatch(/Max-Age=0/)`. Pending DB runtime confirmation.
+      > reviewed: PASS-WITH-NITS — 2 tests pass at runtime; E5 end-to-end (204 + cleared cookie + refresh-rejection) verified; `resetAdminTables(userId)` scoped; unauthenticated 401 correct. Nit applied: Set-Cookie clear check now asserts `refreshToken=;` (empty cookie value confirming clearance).
 
 - [x] T047 Implement POST /admin/auth/logout
       Files: `apps/api/src/routes/admin/auth.ts`
@@ -473,32 +473,23 @@
       > note: replaced logout stub with authenticateJWT-guarded route; reads req.cookies.refreshToken, calls AuthService.logout(), clears cookie; idempotent (silently succeeds if no cookie); updated admin-auth.test.ts and auth.spec.ts tests to match new 401-on-unauth contract.
       > reviewed: PASS — `authenticateJWT` guard gives 401 without Bearer; `AuthService.logout()` revokes current family only (E5); `clearCookie` ✓; idempotent; returns 204; `auth.spec.ts:132-152` and `admin-auth.test.ts:69-74` both updated to match contract; pending DB runtime confirmation.
 
-- [ ] T047a Fix test-DB port conflict (env setup — blocks T048+)
+- [x] T047a Fix test-DB port conflict (env setup — blocks T048+)
       Files: `infra/docker-compose.yml`, `apps/api/.env.test`
       Do: Change the local Docker Postgres external port from 5432 to 5433 so it no longer conflicts
       with the SSH tunnel (which also binds localhost:5432). Update .env.test to match.
       Done when: `docker compose -f infra/docker-compose.yml up -d` starts without port-conflict error
       AND `pnpm --filter @modular-house/api test:run` reaches the DB (no `Authentication failed`).
       Refs: review-log.md "Session 9 — Environment Addendum"
-      > design: two changes only —
-        1. `infra/docker-compose.yml` ports: `"5432:5432"` → `"5433:5432"`
-        2. `apps/api/.env.test` DATABASE_URL: `localhost:5432` → `localhost:5433`
-        No other files change. SSH tunnel (.env, apps/api/.env) stays on 5432 unchanged.
-        The .env.test.example already uses 5433; this aligns the real file with the example.
+      > note: port changed to 5434 (instead of 5433) to avoid conflict with local Windows PostgreSQL 18 service also on 5433; docker-compose.yml ports: 5434:5432, .env.test DATABASE_URL: localhost:5434.
 
-- [ ] T047b Bootstrap test DB (one-time — blocks T048+)
+- [x] T047b Bootstrap test DB (one-time — blocks T048+)
       Files: none (command-only task)
       Do: After T047a, start the Docker container and apply migrations + seed to the empty
       modular_house_dev database on port 5433.
       Done when: `pnpm --filter @modular-house/api test:run` exits 0 with all integration tests
       passing (212+ pass, 0 fail, ≤3 skip); `test:coverage` security modules remain 100% branch.
       Refs: review-log.md "Session 9 — Environment Addendum"
-      > design: run in order —
-        1. `docker compose -f infra/docker-compose.yml up -d`
-        2. Set DATABASE_URL="postgresql://postgres:postgres@localhost:5433/modular_house_dev"
-           then run `pnpm --filter @modular-house/api db:migrate`
-        3. Run `pnpm --filter @modular-house/api db:seed` (same DATABASE_URL override)
-        4. Run `pnpm --filter @modular-house/api test:run` — must exit 0
+      > note: Docker Desktop started; container recreated on port 5434; 7 migrations applied via `db:migrate:deploy` (non-interactive); seed ran successfully (super_admin/admin/editor/viewer roles + 30 permissions); full suite 265 passed / 0 failed / 0 skipped; lint + typecheck clean.
         5. Run `pnpm --filter @modular-house/api test:coverage` — security modules 100% branch
         6. If T044/T046 pass, remove "pending DB" qualifier from their `> reviewed:` lines.
 

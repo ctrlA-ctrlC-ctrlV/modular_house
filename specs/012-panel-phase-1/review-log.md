@@ -709,3 +709,54 @@ pnpm --filter @modular-house/api test:coverage # security modules 100% branch
 **Performance: 94%** — All four tasks implemented correctly; full parallelism passes; DoD-3 security coverage maintained; only minor assertion-depth nits in T056 test and a pre-existing OpenAPI contract gap (to be fixed at T062).
 
 **Overall: GO** — All four tasks PASS. 292/0/0 confirmed. Proceed to T060+.
+
+---
+
+## Session 16 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T060–T062 (Pass 1 — preferences PUT route pair + OpenAPI documentation). Independent re-verification of Session 15 (implementing-agent self-review).
+
+**Protocol note:** Session 15 in this log was authored by the implementing agent — a protocol violation (supervisor prompt forbids trusting handoff summaries at face value). All verdicts below are independently re-derived from source files.
+
+**Verification results (supervisor-run, full file parallelism):**
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (37 files, full parallelism)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ 296 passed; all DoD-3 security modules 100% branch:
+
+| File | Stmts | Branch | Funcs | Lines | Notes |
+|------|-------|--------|-------|-------|-------|
+| `config/adminAuth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `middleware/auth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `middleware/requirePermission.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/auth.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/auditLog.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/loginCode.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/passwordPolicy.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/passwordResetToken.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `services/userPreference.ts` | 100 | 100 | 100 | 100 | ✅ |
+| `routes/admin/settings.ts` | 76.69 | 76.19 | 100 | 76.69 | Not DoD-3; uncovered: null-user + catch branches (defensive) |
+
+- `pnpm --filter @modular-house/api exec prisma validate` — ✅ valid
+- `pnpm --filter @modular-house/api exec prisma migrate status` (port 5434) — ✅ "Database schema is up to date!" (7 migrations — no drift)
+- `pnpm --filter @modular-house/api docs:validate` — ✅ OpenAPI valid
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/api exec tsc --noEmit` — ✅ clean
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T060 | PASS-WITH-NITS | 4/4 tests pass with full parallelism; H1 (themeMode enum + invalid→400) and H2 (sidebarCollapsed partial update) pinned; `resetAdminTables(userId)` scoped ✓; 401 unauthenticated covered ✓. **Nit:** task "Done when" specifies round-trip via `me` AND GET preferences; test only asserts GET preferences round-trip; `me` round-trip after PUT is not explicitly tested in this file (non-blocking: `me` preferences payload tested end-to-end in T048/T049). |
+| T061 | PASS | `authenticateJWT` guard ✓; Zod enum `['light','dark','system']` for themeMode ✓; conditional-spread partial-update builds only defined fields ✓; `prisma.userPreference.upsert` create-path defaults (`system`/`false`) correct ✓; returns only `themeMode + sidebarCollapsed` (no scope creep, no extra fields) ✓; `super_admin` not blocked (correct — prefs are not restricted by role) ✓; `userPreference.ts` 100% branch maintained ✓; T060 4/4 confirmed. Note: route queries Prisma directly rather than delegating to `UserPreferenceService` — consistent pattern with T059 GET route, harmless. |
+| T062 | PASS-WITH-NITS | `docs:validate` passes ✓; all 13 Phase 1 endpoints present in `openapi.yaml` (login, verify-2fa, resend-code, forgot-password, reset-password, refresh, logout, me, settings/password, settings/photo GET/PUT/DELETE, settings/preferences GET/PUT) ✓; all schemas (TwoFactorChallenge, Session, Me, Preferences, PreferencesRequest, NeutralAck, Error, etc.) match contracts file exactly ✓; openapi.yaml adds 401 responses to logout, settings/password, settings/photo PUT/DELETE, settings/preferences GET/PUT (improves on contracts file). **Session 14 flag resolved:** DELETE /admin/settings/photo now has 401 + 403 in openapi.yaml ✓. **Nit:** `contracts/admin-auth.openapi.yaml` (the spec source-of-truth file) was not updated to add 401/403 for DELETE /photo or the extra 401 responses — the contract file still lags the main openapi.yaml. Non-blocking (implementation correct; docs:validate passes). |
+
+**Overall: GO** — All three tasks PASS / PASS-WITH-NITS. 296/0/0 confirmed with full parallelism. All DoD-3 security modules at 100% branch. Proceed to T063+.
+
+**Must-run before proceeding:**
+```
+pnpm --filter @modular-house/web test:run    # web suite — confirm no public regressions before T063+ frontend work
+pnpm install                                 # carry-forward T001 — lock file not yet updated
+```
+
+**Non-blocking follow-ups for implementing agent:**
+1. **T060 nit** — Add a `me` round-trip assertion after PUT preferences: call `GET /admin/auth/me` and assert `res.body.preferences` matches the PUT body. This closes the gap in the "Done when" wording.
+2. **T062 nit** — Update `contracts/admin-auth.openapi.yaml` to add 401/403 responses to DELETE /admin/settings/photo, and 401 responses to logout, settings/password, settings/photo PUT, and settings/preferences GET/PUT. The source-of-truth contract file should match the improvements already made in `openapi.yaml`.
+
+**Performance: 95%** — T061 implementation is clean and correct; T060 tests are functionally solid with only a missing `me` round-trip assertion; T062 is complete with docs:validate passing and all endpoints documented. Security coverage, lint, typecheck, prisma validate, and migration drift all green. Minor documentation lag in the contracts file is the only nit worth tracking.

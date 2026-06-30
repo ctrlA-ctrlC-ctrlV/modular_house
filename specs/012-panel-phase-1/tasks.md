@@ -600,6 +600,7 @@
       Done when: Tests fail and match the contract for `settings/preferences` PUT.
       Refs: T-B7, contracts `settings/preferences`, H1/H2, FR-024
       > note: 4 tests (persist + round-trip via GET, invalid themeMode → 400, partial update, unauth → 401); uses prisma.userPreference.upsert for create-or-update semantics.
+      > reviewed: PASS-WITH-NITS — 4/4 pass with full parallelism; H1/H2 pinned; partial update + invalid themeMode→400 + 401 covered ✓. Nit: "Done when" says round-trip via `me` AND GET preferences; test only exercises GET preferences round-trip; `me` round-trip after PUT not asserted (non-blocking: `me` preferences payload tested end-to-end in T048/T049).
 
 - [x] T061 Implement PUT /admin/settings/preferences
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -607,6 +608,7 @@
       Done when: T060 passes.
       Refs: T-B7, FR-024
       > note: Zod schema validates themeMode enum (light|dark|system) + sidebarCollapsed boolean; partial updates supported; prisma.userPreference.upsert for create-or-update; authenticateJWT guard. T060 4/4 pass.
+      > reviewed: PASS — Zod enum for themeMode (light|dark|system) ✓; conditional-spread partial-update correct ✓; upsert create-path defaults (system/false) correct ✓; authenticateJWT guard ✓; only themeMode + sidebarCollapsed returned (no scope creep) ✓; userPreference.ts 100% branch maintained ✓; T060 4/4 confirmed with full parallelism.
 
 - [x] T062 Document the Phase 1 endpoints in OpenAPI
       Files: `apps/api/openapi.yaml`
@@ -616,6 +618,7 @@
       Done when: `pnpm --filter @modular-house/api docs:validate` passes.
       Refs: plan §5.1, DoD-9
       > note: replaced legacy login (token-based) with 2FA flow; added all Phase 1 auth + settings endpoints; added TwoFactorChallenge, Session, Me, Preferences, NeutralAck, Error schemas; docs:validate passes.
+      > reviewed: PASS-WITH-NITS — docs:validate passes ✓; all 13 Phase 1 endpoints documented; all schemas match contracts file exactly ✓; openapi.yaml improves on contracts file by adding 401 responses to logout, settings/password, settings/photo (PUT/DELETE), settings/preferences (GET/PUT). Nit: `contracts/admin-auth.openapi.yaml` (spec source of truth) still lacks 401/403 on DELETE /admin/settings/photo — the contract file was not updated, only the main openapi.yaml. Non-blocking (implementation is correct; docs:validate passes).
 
 ### Frontend design-system port + primitives
 

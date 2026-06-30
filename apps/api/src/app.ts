@@ -22,6 +22,7 @@ import { faqsRouter } from './routes/admin/faqs.js';
 import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/submissions.js';
 import { redirectsRouter } from './routes/admin/redirects.js';
 import { uploadsRouter } from './routes/admin/uploads.js';
+import { settingsRouter } from './routes/admin/settings.js';
 
 const app: Application = express();
 
@@ -65,6 +66,7 @@ app.use('/admin/faqs', faqsRouter);
 app.use('/admin/submissions', adminSubmissionsRouter);
 app.use('/admin/redirects', redirectsRouter);
 app.use('/admin/uploads', uploadsRouter);
+app.use('/admin/settings', settingsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

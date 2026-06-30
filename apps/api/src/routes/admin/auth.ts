@@ -546,4 +546,36 @@ router.post('/logout', authenticateJWT, async (req: Request, res: Response): Pro
   }
 });
 
+// Me — return the current user's identity, role, permissions, and preferences (T-B5/T-B7).
+router.get('/me', authenticateJWT, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User not authenticated',
+      });
+      return;
+    }
+
+    const sessionUser = await buildSessionUser(userId);
+
+    if (!sessionUser) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User not found',
+      });
+      return;
+    }
+
+    res.status(200).json(sessionUser);
+  } catch (error) {
+    logger.error({ error }, 'Me endpoint error');
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication service unavailable',
+    });
+  }
+});
+
 export { router as authRouter };

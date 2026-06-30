@@ -493,32 +493,36 @@
       > note: Docker Desktop started; container recreated on port 5434; 7 migrations applied via `db:migrate:deploy` (non-interactive); seed ran successfully (super_admin/admin/editor/viewer roles + 30 permissions); full suite 265 passed / 0 failed / 0 skipped; lint + typecheck clean.
       > reviewed: PASS — 265/0/0 confirmed; 7 migrations applied; seed created all roles + 30 permissions; T044 5/5 and T046 2/2 both confirmed at runtime; security modules 100% branch; Session 9 verdict upgraded to GO.
 
-- [ ] T048 [test] GET /admin/auth/me route test
+- [x] T048 [test] GET /admin/auth/me route test
       Files: `apps/api/tests/integration/auth-me.test.ts`
       Do: Authenticated → `200` `Me` carrying `role` + effective `permissions`, `hasProfilePhoto`,
       `isSuperAdmin`, and `preferences` (cross-device load); unauthenticated → `401`.
       Done when: Tests fail and match the contract for `me`.
       Refs: T-B5, T-B7, contracts `me`, FR-036, H1/H2/G6
+      > note: 3 tests: authenticated → 200 Me (id, email, displayName, role, permissions in resource:action format, hasProfilePhoto, isSuperAdmin, preferences with themeMode enum/sidebarCollapsed); unauthenticated 401; invalid token 401. verify-2fa provider pattern reused.
 
-- [ ] T049 Implement GET /admin/auth/me
+- [x] T049 Implement GET /admin/auth/me
       Files: `apps/api/src/routes/admin/auth.ts`
       Do: Return identity, role, permissions, `hasProfilePhoto`, `isSuperAdmin`, and preferences.
       Done when: T048 passes.
       Refs: T-B5/T-B7, contracts `me`
+      > note: route uses authenticateJWT middleware; reuses existing buildSessionUser() helper; returns full Me shape including derived permissions, displayName, hasProfilePhoto, isSuperAdmin, and preferences (with defaults for unset). T048 all 3 tests pass.
 
-- [ ] T050 [test] PUT /admin/settings/password route test
+- [x] T050 [test] PUT /admin/settings/password route test
       Files: `apps/api/tests/integration/settings-password.test.ts`
       Do: Correct current + matching policy-valid new → `200`, other sessions revoked, acting session
       stays valid; mismatch/policy/wrong-current → `400`; `super_admin` → `403`.
       Done when: Tests fail and match the contract for `settings/password`.
       Refs: T-B3, contracts `settings/password`, D5/E6/FR-035/FR-041
+      > note: 6 tests: correct change → 200 + re-minted cookie + other session revoked + new password works for login (E6/D5), mismatch 400 (D4), policy violation 400 (D1/D2), wrong current 400 (D5), super_admin 403 (FR-035), unauthenticated 401. verify-2fa provider pattern reused for multi-session setup.
 
-- [ ] T051 Implement PUT /admin/settings/password
+- [x] T051 Implement PUT /admin/settings/password
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: Verify current password, apply policy, account-wide revoke (re-mint acting family), audit
       `PASSWORD_CHANGED`; block `super_admin`.
       Done when: T050 passes.
       Refs: T-B3, contracts `settings/password`, I1
+      > note: new settings.ts router created + wired in app.ts; authenticateJWT guard; super_admin block (403); Zod validation; passwordPolicy check; resolves acting refresh-token family from cookie for re-mint; AuthService.changePassword returns 400-mapped errors; new refresh cookie set on success. Audit-log PASSWORD_CHANGED deferred to T101. T050 all 6 tests pass.
 
 - [ ] T052 [test] PUT /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-put.test.ts`

@@ -624,3 +624,23 @@ pnpm --filter @modular-house/api test:coverage # security modules 100% branch
 2. **T054 nit** — Fix the stale comment in `settings-photo-get.test.ts` line 9: change "The route already exists from T053; these tests pin the GET behaviour." → "Tests pin the GET behaviour added by T055."
 
 **Performance: 93%** — Implementation fully correct; T053/T055 clean; T052/T054 tests functionally complete with only minor assertion depth omissions; full parallelism passes; all security coverage gates met.
+
+---
+
+## Session 13 — 2026-06-30 (implementing agent)
+
+**Scope:** T056–T059 (Pass 1 — photo DELETE + preferences GET route pairs)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` — ✅ **292 passed / 0 failed / 0 skipped** (+6 tests from T056–T059)
+- `pnpm --filter @modular-house/api lint` — ✅ clean
+- `pnpm --filter @modular-house/api typecheck` — ✅ clean
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T056 | PASS | 3 tests: remove → 200 Me hasProfilePhoto=false, super_admin → 403, unauth → 401; seeds photo before each test |
+| T057 | PASS | nulls profilePhoto + profilePhotoMime; returns Me via buildSessionUser(); super_admin 403 enforced |
+| T058 | PASS | 3 tests: seeded row → 200 dark/true, no row → 200 defaults (system/false), unauth → 401 |
+| T059 | PASS | loads via prisma.userPreference.findUnique; defaults (system/false) when no row; authenticateJWT guard |
+
+**Overall: GO** — All four tasks PASS. 292/0/0 confirmed. Proceed to T060+.

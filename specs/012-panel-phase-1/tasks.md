@@ -562,29 +562,33 @@
       > note: route loads only profilePhoto + profilePhotoMime columns; sets Content-Type and Content-Length headers; sends raw Buffer via res.send(); 404 when either column is null. T054 3/3 pass.
       > reviewed: PASS — loads only photo columns ✓; Content-Type + Content-Length set ✓; raw Buffer via res.send() ✓; 404 when null ✓; authenticateJWT guard ✓; T054 3/3 confirmed with full parallelism.
 
-- [ ] T056 [test] DELETE /admin/settings/photo route test
+- [x] T056 [test] DELETE /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-delete.test.ts`
       Do: Remove → `200` `Me` with `hasProfilePhoto=false`; `super_admin` → `403`.
       Done when: Tests fail and match the contract for `settings/photo` DELETE.
       Refs: contracts `settings/photo`, G4, FR-035
+      > note: 3 tests (remove → 200 Me with hasProfilePhoto=false, super_admin → 403, unauth → 401); seeds photo via prisma.user.update before each test; beforeEach resets photo to known state.
 
-- [ ] T057 Implement DELETE /admin/settings/photo
+- [x] T057 Implement DELETE /admin/settings/photo
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: Null out bytes+MIME; block `super_admin`.
       Done when: T056 passes.
       Refs: G4
+      > note: route nulls profilePhoto + profilePhotoMime via prisma.user.update; returns Me-shaped response via buildSessionUser(); super_admin 403 enforced; authenticateJWT guard. T056 3/3 pass.
 
-- [ ] T058 [test] GET /admin/settings/preferences route test
+- [x] T058 [test] GET /admin/settings/preferences route test
       Files: `apps/api/tests/integration/settings-preferences-get.test.ts`
       Do: Authenticated → `200` `Preferences` (server-stored authoritative values); unauthenticated → `401`.
       Done when: Tests fail and match the contract for `settings/preferences` GET.
       Refs: T-B7, contracts `settings/preferences`, H1/H2
+      > note: 3 tests (with seeded row → 200 dark/true, no row → 200 system/false defaults, unauth → 401); seeds preference row directly via prisma.userPreference.create.
 
-- [ ] T059 Implement GET /admin/settings/preferences
+- [x] T059 Implement GET /admin/settings/preferences
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: Return persisted `themeMode`/`sidebarCollapsed`.
       Done when: T058 passes.
       Refs: T-B7, H1/H2
+      > note: route loads preference row via prisma.userPreference.findUnique; returns defaults (system/false) when no row exists; authenticateJWT guard. T058 3/3 pass.
 
 - [ ] T060 [test] PUT /admin/settings/preferences route test
       Files: `apps/api/tests/integration/settings-preferences-put.test.ts`

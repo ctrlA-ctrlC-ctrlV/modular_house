@@ -5,9 +5,10 @@
  *   - PUT /password     — change own password (D5/E6)
  *   - PUT /photo        — upload or replace the profile photo (G1–G3)
  *   - GET /photo        — retrieve the profile photo bytes (G5/G6)
+ *   - DELETE /photo     — remove the profile photo (G4)
+ *   - GET /preferences  — read persisted UI preferences (H1/H2)
  *
- * Additional endpoints (photo DELETE, preferences GET/PUT) are
- * added in subsequent tasks.
+ * Additional endpoints (preferences PUT) are added in subsequent tasks.
  */
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
@@ -353,6 +354,117 @@ router.get(
       res.status(500).json({
         error: 'Internal server error',
         message: 'Unable to retrieve profile photo',
+      });
+    }
+  },
+);
+
+/**
+ * DELETE /admin/settings/photo — remove the profile photo (G4).
+ *
+ * Nulls out the stored photo bytes and MIME type on the User row.
+ * Returns the `Me`-shaped payload with `hasProfilePhoto: false` so the
+ * client can immediately switch to the initials fallback without a
+ * separate /me round-trip.  Blocks super_admin (FR-035).
+ */
+router.delete(
+  '/photo',
+  authenticateJWT,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+      const role = req.user?.role;
+
+      if (!userId) {
+        res.status(401).json({
+          error: 'Unauthorized',
+          message: 'User not authenticated',
+        });
+        return;
+      }
+
+      // FR-035: super_admin account cannot be edited through the panel.
+      if (role === 'super_admin') {
+        res.status(403).json({
+          error: 'Forbidden',
+          message: 'The super_admin account cannot be modified through the admin panel.',
+        });
+        return;
+      }
+
+      // Clear the stored photo bytes and MIME type.
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          profilePhoto: null,
+          profilePhotoMime: null,
+        },
+      });
+
+      // Build and return the Me-shaped response so the client can
+      // update hasProfilePhoto without a separate /me round-trip.
+      const me = await buildSessionUser(userId);
+      if (!me) {
+        res.status(404).json({
+          error: 'Not Found',
+          message: 'User not found',
+        });
+        return;
+      }
+
+      logger.info({ userId }, 'Profile photo removed');
+      res.status(200).json(me);
+    } catch (error) {
+      logger.error({ error }, 'Settings photo DELETE endpoint error');
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Unable to remove profile photo',
+      });
+    }
+  },
+);
+
+/**
+ * GET /admin/settings/preferences — read persisted UI preferences (H1/H2).
+ *
+ * Returns the server-stored `themeMode` and `sidebarCollapsed` values
+ * for the authenticated user.  When no preference row exists (e.g. a
+ * fresh account), the defaults from the schema are returned:
+ * `themeMode: 'system'`, `sidebarCollapsed: false`.
+ *
+ * This endpoint provides the authoritative cross-device load; the
+ * cookie/localStorage mirror is only the pre-paint cache.
+ */
+router.get(
+  '/preferences',
+  authenticateJWT,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          error: 'Unauthorized',
+          message: 'User not authenticated',
+        });
+        return;
+      }
+
+      // Load the preference row; fall back to schema defaults when absent.
+      const preference = await prisma.userPreference.findUnique({
+        where: { userId },
+        select: { themeMode: true, sidebarCollapsed: true },
+      });
+
+      res.status(200).json({
+        themeMode: preference?.themeMode ?? 'system',
+        sidebarCollapsed: preference?.sidebarCollapsed ?? false,
+      });
+    } catch (error) {
+      logger.error({ error }, 'Settings preferences GET endpoint error');
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Unable to retrieve preferences',
       });
     }
   },

@@ -334,3 +334,92 @@ pnpm --filter @modular-house/api exec prisma validate
    ```
 
 After these fixes, re-run `pnpm --filter @modular-house/api test:run` to confirm 258/258 green, then re-check T036/T038/T040/T042 and mark them `> reviewed: PASS` / `> reviewed: PASS-WITH-NITS` accordingly.
+
+---
+
+## Session 9 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T044–T047 (Pass 1 — backend route pair: refresh + logout)
+
+**Critical environment finding:** PostgreSQL is **not running** at `localhost:5432`. All 7 integration test files that require a live DB have their tests skipped (Vitest 3 behavior: `beforeAll` throws → tests skip). The 1 test failure (`admin-auth.test.ts:39`, `PrismaClientInitializationError → 500`) is a pre-existing T012 test that fails when DB is down — NOT a T044–T047 regression. All 212 passing tests are unit/non-DB tests. Verdicts below are by **code inspection** only per the "env blocked run" clause.
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run` — ❌ **exit 1 — 1 failed (admin-auth.test.ts:39) / 212 passed / 52 skipped**. Root cause: DB not running. Integration test files have `beforeAll` that throws, causing Vitest to skip their tests; file-level failures are reported.
+- `pnpm --filter @modular-house/api test:run -- auth-refresh.test.ts` — ❌ `PrismaClientInitializationError: Can't reach database server at localhost:5432` in beforeAll; 5 tests skipped.
+- `pnpm --filter @modular-house/api test:run -- admin-auth.test.ts` — 1 failure (`PrismaClientInitializationError` on first DB call); 5 pass (400s + logout test).
+
+**Implementation review (by inspection):**
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T044 | PASS (pending DB) | All 5 contract cases present: E3/E4 (200+rotate+Set-Cookie HttpOnly+SameSite=Strict), missing cookie 401, expired 401, reuse+family-revoke 401 (E4), idle-timeout 401 (E7). `ACCESS_TOKEN_TTL_MS` and `IDLE_TIMEOUT_MS` constants used. `resetAdminTables(userId)` scoped correctly. Nit: no `Secure` flag assertion (non-production test env; non-blocking). |
+| T045 | PASS | Route reads `req.cookies.refreshToken` (cookie-parser at app.ts:46 ✓); no `authenticateJWT` (correct); calls `AuthService.refresh()` implementing E4 family rotation + E7 idle timeout + absolute expiry; response shape `{ accessToken, expiresIn: 900, user: Me }` matches `Session` schema; cookie `httpOnly + sameSite:strict + maxAge=7d (REFRESH_TOKEN_TTL_MS)` matches E3; `clearCookie` on failure; `RefreshResult.userId` extended. |
+| T046 | PASS-WITH-NITS | 2 tests: authenticated+cookie → 204 + cookie cleared + refresh-rejected (E5); no-Bearer → 401. `resetAdminTables(userId)` correct. Nit: Set-Cookie clear check at line 97 only asserts `refreshToken=` in string — does not assert `Max-Age=0`; the post-logout refresh-rejection test IS the meaningful E5 assertion. |
+| T047 | PASS | `authenticateJWT` guard gives 401 without Bearer; `AuthService.logout()` revokes family by SHA-256 hash + `updateMany({ family })` (E5 — current family only); idempotent on missing cookie; `clearCookie` ✓; returns 204; `auth.spec.ts` (204/401) and `admin-auth.test.ts` (logout → 401) both updated. |
+
+**Overall: NO-GO** — DB not running; T044/T046 "Done when: tests pass" cannot be confirmed by run. Implementation is correct by inspection. Start DB and run `test:run` to promote to GO.
+
+**Must-run before proceeding:**
+```bash
+# 1. Start the database server (e.g.):
+docker-compose up -d db
+
+# 2. Then verify:
+pnpm --filter @modular-house/api test:run             # must exit 0, no failures
+pnpm --filter @modular-house/api test:coverage        # security modules remain 100% branch
+pnpm --filter @modular-house/api exec prisma migrate dev   # confirm "already in sync"
+```
+
+**Non-blocking follow-up for implementing agent:**
+1. Start the DB, run `test:run`, confirm exit 0, then update tasks.md `> reviewed:` lines to remove the "pending DB" qualifier.
+2. **T046 nit** — Strengthen the Set-Cookie clear assertion in `auth-logout.test.ts:97` by adding `expect(newCookieStr).toMatch(/Max-Age=0/)` to confirm the cookie was cleared (not just that a `refreshToken=` header was present).
+
+---
+
+## Session 9 — Environment Addendum (2026-06-30)
+
+**Finding:** SSH tunnel port conflict with local Docker Postgres — blocks all integration tests.
+
+**Root cause analysis:**
+
+`apps/api/.env.test` connects to `postgresql://postgres:postgres@localhost:5432/modular_house_dev`. This matches the local Docker container defined in `infra/docker-compose.yml` (`POSTGRES_DB: modular_house_dev`, `POSTGRES_USER: postgres`, `POSTGRES_PASSWORD: postgres`, ports: `"5432:5432"`). However, the SSH tunnel also forwards `localhost:5432` to the remote production Postgres. When the SSH tunnel is active it wins the port binding, Docker cannot start on 5432, and the test suite sees `Authentication failed` (server reachable but wrong credentials) rather than `Can't reach database server`.
+
+**Design — two-file fix (T047a), then one-time setup (T047b):**
+
+**T047a — Fix port binding conflict**
+
+| File | Change |
+|------|--------|
+| `infra/docker-compose.yml` | `ports: "5432:5432"` → `"5433:5432"` (external 5433, internal 5432) |
+| `apps/api/.env.test` | `DATABASE_URL=...localhost:5432/...` → `...localhost:5433/...` |
+
+After this change:
+- Port 5432 = SSH tunnel → remote production Postgres (unchanged — `.env` / `apps/api/.env` unchanged)
+- Port 5433 = local Docker Postgres → test DB (`modular_house_dev`, `postgres:postgres`)
+
+No other files need to change. The `.env.test.example` already shows port 5433 as the intended test-DB port (`test:test@localhost:5433/test_db`); T047a brings the actual `.env.test` in line with that intent.
+
+**T047b — One-time test-DB bootstrap**
+
+After applying T047a and starting the container, the `modular_house_dev` database will be empty. It needs migrations + seed before any integration test can run:
+
+```powershell
+# 1. Start container (idempotent; safe to re-run)
+docker compose -f infra/docker-compose.yml up -d
+
+# 2. Apply all migrations to the test DB
+# Prisma reads DATABASE_URL from environment; override it for the test DB
+$env:DATABASE_URL = "postgresql://postgres:postgres@localhost:5433/modular_house_dev"
+pnpm --filter @modular-house/api db:migrate
+
+# 3. Seed roles + bootstrap admin user into the test DB
+pnpm --filter @modular-house/api db:seed
+
+# 4. Verify — must exit 0, no failures
+pnpm --filter @modular-house/api test:run
+pnpm --filter @modular-house/api test:coverage  # security modules must remain 100% branch
+```
+
+**Verdict impact:** Once T047a+T047b are done and `test:run` exits 0, the Session 9 overall verdict upgrades from **NO-GO → GO** and the "pending DB" qualifiers on T044/T046 `> reviewed:` lines may be removed.
+
+**Tasks added:** T047a and T047b inserted in `tasks.md` between T047 and T048.

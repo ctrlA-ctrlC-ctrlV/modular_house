@@ -7,63 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --------------------------------------------------------------------------
-// User: Core user account model with RBAC role assignment and security fields.
-// The legacy `roles` string array has been replaced by a foreign key to the
-// Role model, enabling granular permission lookups via Role -> RolePermission
-// -> Permission.  Security fields support brute-force protection (account
-// lockout after repeated failures) and administrative deactivation.
-// --------------------------------------------------------------------------
 model User {
-  id                  String    @id @default(uuid()) @db.Uuid
-  email               String    @unique @db.VarChar(255)
-  passwordHash        String    @map("password_hash")
-
+  id                  String               @id @default(uuid()) @db.Uuid
+  email               String               @unique @db.VarChar(255)
+  passwordHash        String               @map("password_hash")
+  lastLoginAt         DateTime?            @map("last_login_at") @db.Timestamptz(6)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
   /// Foreign key referencing the Role assigned to this user.
-  roleId              String    @map("role_id") @db.Uuid
-
+  roleId              String               @map("role_id") @db.Uuid
   /// Soft-disable flag; when false the user cannot authenticate.
-  isActive            Boolean   @default(true) @map("is_active")
-
+  isActive            Boolean              @default(true) @map("is_active")
   /// Consecutive failed login count; resets to 0 on successful login.
-  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
-
+  failedLoginAttempts Int                  @default(0) @map("failed_login_attempts")
   /// When set, blocks login until this timestamp expires (15-min lockout).
-  lockedUntil         DateTime? @map("locked_until") @db.Timestamptz(6)
-
-  lastLoginAt         DateTime? @map("last_login_at") @db.Timestamptz(6)
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // --------------- Phase 1 extensions (additive, all nullable) ---------------
+  lockedUntil         DateTime?            @map("locked_until") @db.Timestamptz(6)
   /// Display name shown in sidebar user section and settings (read-only in Phase 1).
-  displayName      String? @map("display_name") @db.VarChar(100)
-
+  displayName         String?              @map("display_name") @db.VarChar(100)
   /// Raw image bytes for the profile photo; NULL → initials fallback (G4).
-  profilePhoto     Bytes?  @map("profile_photo")
-
+  profilePhoto        Bytes?               @map("profile_photo")
   /// MIME type of the stored photo: image/png | image/jpeg | image/webp (G1).
   /// Set iff profilePhoto is set; enforced in the service layer.
-  profilePhotoMime String? @map("profile_photo_mime") @db.VarChar(50)
-
-  // --------------- Relations ---------------
-  role                Role               @relation(fields: [roleId], references: [id])
+  profilePhotoMime    String?              @map("profile_photo_mime") @db.VarChar(50)
   auditLogs           AuditLog[]
-  refreshTokens       RefreshToken[]
   loginCodes          LoginCode[]
   passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
   preference          UserPreference?
+  role                Role                 @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
 
-// --------------------------------------------------------------------------
-// Page: Represents a content page with SEO metadata, hero section, and
-// JSON-based sections array for flexible page composition.  The
-// publishStatus field controls the Draft/Published lifecycle, and the
-// version integer enables optimistic concurrency control — the API rejects
-// updates when the client-supplied version does not match the stored value.
-// --------------------------------------------------------------------------
 model Page {
   id             String        @id @default(uuid()) @db.Uuid
   title          String
@@ -74,16 +49,13 @@ model Page {
   sections       Json          @default("[]")
   seoTitle       String?       @map("seo_title")
   seoDescription String?       @map("seo_description")
-
-  /// Draft / Published lifecycle state; defaults to DRAFT on creation.
-  publishStatus  PublishStatus @default(DRAFT) @map("publish_status")
-
-  /// Optimistic locking counter; incremented on every successful save.
-  version        Int           @default(1)
-
   lastModifiedAt DateTime      @default(now()) @map("last_modified_at") @db.Timestamptz(6)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  /// Draft / Published lifecycle state; defaults to DRAFT on creation.
+  publishStatus  PublishStatus @default(DRAFT) @map("publish_status")
+  /// Optimistic locking counter; incremented on every successful save.
+  version        Int           @default(1)
   heroImage      GalleryItem?  @relation("PageHeroImage", fields: [heroImageId], references: [id])
 
   @@map("pages")
@@ -106,22 +78,15 @@ model GalleryItem {
   @@map("gallery_items")
 }
 
-// --------------------------------------------------------------------------
-// FAQ: Frequently asked question entries with drag-drop reordering support
-// via displayOrder.  The publishStatus field mirrors the Page lifecycle so
-// that only PUBLISHED FAQs are returned to the public-facing site.
-// --------------------------------------------------------------------------
 model FAQ {
   id            String        @id @default(uuid()) @db.Uuid
   question      String
   answer        String
   displayOrder  Int           @default(0) @map("display_order")
-
-  /// Draft / Published lifecycle state; only PUBLISHED FAQs appear publicly.
-  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
-
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  /// Draft / Published lifecycle state; only PUBLISHED FAQs appear publicly.
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
 
   @@map("faqs")
 }
@@ -153,51 +118,37 @@ model Redirect {
   @@map("redirects")
 }
 
-// --------------------------------------------------------------------------
-// Customer: Stores customer contact details and quote metadata created from
-// enquiry submissions. The sourcePage field identifies which page or feature
-// generated the record. Configurator-specific fields are nullable and only
-// populated when the submission originates from the garden room configurator.
-// --------------------------------------------------------------------------
 model Customer {
-  id          String    @id @default(uuid()) @db.Uuid
-  product     String    @db.VarChar(50)
-  status      String    @default("active") @db.VarChar(20)
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy   String    @map("created_by") @db.VarChar(255)
-  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  updatedBy   String?   @map("updated_by") @db.VarChar(255)
-  address     String?
-  eircode     String?   @db.VarChar(20)
-  email       String    @db.VarChar(255)
-  firstName   String    @map("first_name") @db.VarChar(100)
-  phone       String?   @db.VarChar(50)
-  quoteDate   DateTime  @default(now()) @map("quote_date") @db.Timestamptz(6)
-  quoteNumber String    @unique @map("quote_number") @db.VarChar(20)
-  surname     String?   @db.VarChar(100)
-
+  id                         String    @id @default(uuid()) @db.Uuid
+  product                    String    @db.VarChar(50)
+  status                     String    @default("active") @db.VarChar(20)
+  createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy                  String    @map("created_by") @db.VarChar(255)
+  updatedAt                  DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy                  String?   @map("updated_by") @db.VarChar(255)
+  address                    String?
+  eircode                    String?   @db.VarChar(20)
+  email                      String    @db.VarChar(255)
+  firstName                  String    @map("first_name") @db.VarChar(100)
+  phone                      String?   @db.VarChar(50)
+  quoteDate                  DateTime  @default(now()) @map("quote_date") @db.Timestamptz(6)
+  quoteNumber                String    @unique @map("quote_number") @db.VarChar(20)
+  surname                    String?   @db.VarChar(100)
   /// Identifies the originating page: "contact", "landing", "garden-room", or "configurator".
-  sourcePage             String?  @default("contact") @map("source_page") @db.VarChar(50)
-
+  sourcePage                 String?   @default("contact") @map("source_page") @db.VarChar(50)
   /// Configurator-specific: product slug selected during configuration (e.g. "studio-25").
-  configuratorProductSlug    String?  @map("configurator_product_slug") @db.VarChar(50)
-
+  configuratorProductSlug    String?   @map("configurator_product_slug") @db.VarChar(50)
   /// Configurator-specific: selected exterior cladding finish name.
-  configuratorExteriorFinish String?  @map("configurator_exterior_finish") @db.VarChar(50)
-
+  configuratorExteriorFinish String?   @map("configurator_exterior_finish") @db.VarChar(50)
   /// Configurator-specific: selected interior wall finish name.
-  configuratorInteriorFinish String?  @map("configurator_interior_finish") @db.VarChar(50)
-
+  configuratorInteriorFinish String?   @map("configurator_interior_finish") @db.VarChar(50)
   /// Configurator-specific: comma-separated list of selected add-on slugs.
-  configuratorAddons         String?  @map("configurator_addons")
-
+  configuratorAddons         String?   @map("configurator_addons")
   /// Configurator-specific: total configured price in euro cents (base + add-ons).
-  configuratorTotalCents     Int?     @map("configurator_total_cents")
-
+  configuratorTotalCents     Int?      @map("configurator_total_cents")
   /// Customer's preferred date for consultation: "asap" or an ISO date string.
-  preferredDate              String?  @map("preferred_date") @db.VarChar(50)
-
-  notes       Note[]
+  preferredDate              String?   @map("preferred_date") @db.VarChar(50)
+  notes                      Note[]
 
   @@map("customers")
 }
@@ -213,6 +164,182 @@ model Note {
   @@map("notes")
 }
 
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  /// Foreign key to the admin user who performed the action.
+  userId    String   @map("user_id") @db.Uuid
+  /// Action verb: CREATE, UPDATE, DELETE, LOGIN, LOGOUT, BULK_UPDATE, EXPORT.
+  action    String   @db.VarChar(50)
+  /// Entity type affected: page, gallery_item, faq, submission, etc.
+  entity    String   @db.VarChar(50)
+  /// Identifier of the specific entity (null for bulk or system actions).
+  entityId  String?  @map("entity_id") @db.VarChar(255)
+  /// Optional JSON diff of before/after state for UPDATE actions.
+  changes   Json?
+  /// Request IP address for traceability.
+  ipAddress String   @map("ip_address") @db.VarChar(45)
+  /// Request User-Agent header (nullable for system-initiated actions).
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@index([entity, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+model Setting {
+  id          String   @id @default(uuid()) @db.Uuid
+  /// Unique setting key (e.g. "site_name", "contact_email").
+  key         String   @unique @db.VarChar(100)
+  /// Setting value stored as a string; consumers parse as needed.
+  value       String
+  /// Logical group for the settings UI: general, appearance, notifications.
+  group       String   @default("general") @db.VarChar(50)
+  /// Human-readable description displayed in the admin settings page.
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([group])
+  @@map("settings")
+}
+
+model RefreshToken {
+  id                String        @id @default(uuid()) @db.Uuid
+  /// Foreign key to the owning user account.
+  userId            String        @map("user_id") @db.Uuid
+  /// Hashed refresh token value; raw tokens are never persisted.
+  tokenHash         String        @map("token_hash")
+  /// Family identifier shared across a rotation chain.
+  family            String        @db.VarChar(255)
+  /// Absolute expiration timestamp (typically 7 days from creation).
+  expiresAt         DateTime      @map("expires_at") @db.Timestamptz(6)
+  /// Set when the token is revoked (rotation, logout, or theft detection).
+  revokedAt         DateTime?     @map("revoked_at") @db.Timestamptz(6)
+  /// Points to the successor token created during rotation.
+  replacedByTokenId String?       @unique @map("replaced_by_token_id") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Last time this token was presented to the refresh endpoint.
+  /// NULL means the token was issued but never used for a silent refresh.
+  /// The auth service updates this on every successful refresh; the idle
+  /// timeout check (E7) rejects the token when now - lastUsedAt > 30m.
+  lastUsedAt        DateTime?     @map("last_used_at") @db.Timestamptz(6)
+  replacedBy        RefreshToken? @relation("TokenRotation", fields: [replacedByTokenId], references: [id])
+  replacedToken     RefreshToken? @relation("TokenRotation")
+  user              User          @relation(fields: [userId], references: [id])
+
+  @@index([tokenHash])
+  @@index([family])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  /// Unique role name (e.g. "super_admin", "admin", "editor", "viewer").
+  name        String           @unique @db.VarChar(50)
+  /// Human-readable description of the role's purpose.
+  description String?
+  /// System roles cannot be deleted or renamed.
+  isSystem    Boolean          @default(false) @map("is_system")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  /// Resource name this permission applies to (e.g. "pages", "gallery").
+  resource    String           @db.VarChar(50)
+  /// Action type: view, create, edit, delete, export.
+  action      String           @db.VarChar(50)
+  /// Human-readable description of the permission.
+  description String?
+  roles       RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid()) @db.Uuid
+  /// Foreign key to the associated role.
+  roleId       String     @map("role_id") @db.Uuid
+  /// Foreign key to the granted permission.
+  permissionId String     @map("permission_id") @db.Uuid
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model LoginCode {
+  id           String    @id @default(uuid()) @db.Uuid
+  /// FK to the user who this OTP belongs to.
+  userId       String    @map("user_id") @db.Uuid
+  /// Opaque CSPRNG id returned by POST /admin/auth/login (B9).
+  /// Shared across resends within one challenge; NOT a secret.
+  challengeId  String    @map("challenge_id")
+  /// argon2 hash of the 6-digit numeric code — raw code never stored (B2).
+  codeHash     String    @map("code_hash")
+  /// Absolute expiry timestamp: issuedAt + 10 minutes (B3).
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+  /// Wrong-guess counter; code is invalidated when this reaches 5 (B5).
+  attemptCount Int       @default(0) @map("attempt_count")
+  /// Set on first successful verification; single-use enforcement (B4).
+  consumedAt   DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([challengeId])
+  @@index([expiresAt])
+  @@map("login_codes")
+}
+
+model PasswordResetToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  /// FK to the requesting user.
+  userId     String    @map("user_id") @db.Uuid
+  /// SHA-256 hash of the URL-safe base64 token value — raw never stored (C1).
+  tokenHash  String    @map("token_hash")
+  /// Absolute expiry timestamp: issuedAt + 60 minutes (C2).
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  /// Set on first successful use; single-use enforcement (C3).
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model UserPreference {
+  id               String   @id @default(uuid()) @db.Uuid
+  /// FK to the owning user — unique: one preference row per user.
+  userId           String   @unique @map("user_id") @db.Uuid
+  /// Active theme: "light" | "dark" | "system" (H1).
+  themeMode        String   @default("system") @map("theme_mode") @db.VarChar(10)
+  /// Whether the sidebar is collapsed (H2).
+  sidebarCollapsed Boolean  @default(false) @map("sidebar_collapsed")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
 enum GalleryCategory {
   GARDEN_ROOM     @map("garden-room")
   HOUSE_EXTENSION @map("house-extension")
@@ -225,316 +352,4 @@ enum PublishStatus {
   PUBLISHED
 
   @@map("publish_status")
-}
-
-// ==========================================================================
-//  NEW MODELS — Admin Panel Redesign (006)
-// ==========================================================================
-
-// --------------------------------------------------------------------------
-// AuditLog: Immutable record of every admin action for accountability and
-// the dashboard activity feed.  Each entry captures the acting user, the
-// action verb, the affected entity, an optional JSON diff of the changes,
-// and request metadata (IP address, user-agent).  Indexed for efficient
-// time-ordered queries, per-entity history lookups, and per-user filtering.
-// --------------------------------------------------------------------------
-model AuditLog {
-  id        String   @id @default(uuid()) @db.Uuid
-
-  /// Foreign key to the admin user who performed the action.
-  userId    String   @map("user_id") @db.Uuid
-
-  /// Action verb: CREATE, UPDATE, DELETE, LOGIN, LOGOUT, BULK_UPDATE, EXPORT.
-  action    String   @db.VarChar(50)
-
-  /// Entity type affected: page, gallery_item, faq, submission, etc.
-  entity    String   @db.VarChar(50)
-
-  /// Identifier of the specific entity (null for bulk or system actions).
-  entityId  String?  @map("entity_id") @db.VarChar(255)
-
-  /// Optional JSON diff of before/after state for UPDATE actions.
-  changes   Json?
-
-  /// Request IP address for traceability.
-  ipAddress String   @map("ip_address") @db.VarChar(45)
-
-  /// Request User-Agent header (nullable for system-initiated actions).
-  userAgent String?  @map("user_agent")
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  // --------------- Relations ---------------
-  user User @relation(fields: [userId], references: [id])
-
-  // --------------- Indexes ---------------
-  /// Descending time index supports the activity feed query.
-  @@index([createdAt(sort: Desc)])
-  /// Composite index for entity-specific history lookups.
-  @@index([entity, entityId])
-  /// User-specific activity filtering.
-  @@index([userId])
-  @@map("audit_logs")
-}
-
-// --------------------------------------------------------------------------
-// Setting: Key-value store for site-wide configuration (site name, SEO
-// defaults, notification preferences, appearance).  Values are stored as
-// strings; consuming code is responsible for parsing to the appropriate
-// type.  Settings are grouped for UI organisation.
-// --------------------------------------------------------------------------
-model Setting {
-  id          String   @id @default(uuid()) @db.Uuid
-
-  /// Unique setting key (e.g. "site_name", "contact_email").
-  key         String   @unique @db.VarChar(100)
-
-  /// Setting value stored as a string; consumers parse as needed.
-  value       String
-
-  /// Logical group for the settings UI: general, appearance, notifications.
-  group       String   @default("general") @db.VarChar(50)
-
-  /// Human-readable description displayed in the admin settings page.
-  description String?
-
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  @@index([group])
-  @@map("settings")
-}
-
-// --------------------------------------------------------------------------
-// RefreshToken: Tracks JWT refresh tokens with family-based rotation for
-// replay-attack detection.  Each refresh operation revokes the current
-// token, links it to a newly created successor via replacedByTokenId, and
-// preserves the family identifier.  Reuse of a revoked token triggers
-// revocation of the entire family (theft detection).  Separate indexes
-// support hash lookup, family-wide revocation, per-user listing, and
-// expiration-based cleanup.
-// --------------------------------------------------------------------------
-model RefreshToken {
-  id                String       @id @default(uuid()) @db.Uuid
-
-  /// Foreign key to the owning user account.
-  userId            String       @map("user_id") @db.Uuid
-
-  /// Hashed refresh token value; raw tokens are never persisted.
-  tokenHash         String       @map("token_hash")
-
-  /// Family identifier shared across a rotation chain.
-  family            String       @db.VarChar(255)
-
-  /// Absolute expiration timestamp (typically 7 days from creation).
-  expiresAt         DateTime     @map("expires_at") @db.Timestamptz(6)
-
-  /// Set when the token is revoked (rotation, logout, or theft detection).
-  revokedAt         DateTime?    @map("revoked_at") @db.Timestamptz(6)
-
-  /// Points to the successor token created during rotation.
-  replacedByTokenId String?      @unique @map("replaced_by_token_id") @db.Uuid
-
-  /// Last time this token was presented to the refresh endpoint.
-  /// NULL means the token was issued but never used for a silent refresh.
-  /// The auth service updates this on every successful refresh; the idle
-  /// timeout check (E7) rejects the token when now - lastUsedAt > 30m.
-  lastUsedAt        DateTime?    @map("last_used_at") @db.Timestamptz(6)
-
-  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  // --------------- Relations ---------------
-  user          User          @relation(fields: [userId], references: [id])
-  replacedBy    RefreshToken? @relation("TokenRotation", fields: [replacedByTokenId], references: [id])
-  replacedToken RefreshToken? @relation("TokenRotation")
-
-  // --------------- Indexes ---------------
-  @@index([tokenHash])
-  @@index([family])
-  @@index([userId])
-  @@index([expiresAt])
-  @@map("refresh_tokens")
-}
-
-// --------------------------------------------------------------------------
-// Role: Named role definitions used by RBAC.  System roles (super_admin,
-// admin, editor, viewer) are seeded on deployment and cannot be deleted.
-// Each role is linked to zero or more permissions via the RolePermission
-// join table, and to zero or more users via User.roleId.
-// --------------------------------------------------------------------------
-model Role {
-  id          String   @id @default(uuid()) @db.Uuid
-
-  /// Unique role name (e.g. "super_admin", "admin", "editor", "viewer").
-  name        String   @unique @db.VarChar(50)
-
-  /// Human-readable description of the role's purpose.
-  description String?
-
-  /// System roles cannot be deleted or renamed.
-  isSystem    Boolean  @default(false) @map("is_system")
-
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // --------------- Relations ---------------
-  permissions RolePermission[]
-  users       User[]
-
-  @@map("roles")
-}
-
-// --------------------------------------------------------------------------
-// Permission: Granular resource + action pair that defines a single
-// capability (e.g. "pages:edit", "submissions:export").  Permissions are
-// seeded and linked to roles via the RolePermission join table.  A unique
-// constraint on (resource, action) prevents duplicate definitions.
-// --------------------------------------------------------------------------
-model Permission {
-  id          String   @id @default(uuid()) @db.Uuid
-
-  /// Resource name this permission applies to (e.g. "pages", "gallery").
-  resource    String   @db.VarChar(50)
-
-  /// Action type: view, create, edit, delete, export.
-  action      String   @db.VarChar(50)
-
-  /// Human-readable description of the permission.
-  description String?
-
-  // --------------- Relations ---------------
-  roles RolePermission[]
-
-  @@unique([resource, action])
-  @@map("permissions")
-}
-
-// --------------------------------------------------------------------------
-// RolePermission: Join table linking Role to Permission, enabling
-// many-to-many RBAC.  Cascade deletes on both foreign keys ensure that
-// removing a role or permission cleans up stale mappings automatically.
-// --------------------------------------------------------------------------
-model RolePermission {
-  id           String @id @default(uuid()) @db.Uuid
-
-  /// Foreign key to the associated role.
-  roleId       String @map("role_id") @db.Uuid
-
-  /// Foreign key to the granted permission.
-  permissionId String @map("permission_id") @db.Uuid
-
-  // --------------- Relations ---------------
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  // --------------- Indexes ---------------
-  @@unique([roleId, permissionId])
-  @@index([roleId])
-  @@index([permissionId])
-  @@map("role_permissions")
-}
-
-// ==========================================================================
-//  Phase 1 models — Admin Panel Phase 1: Foundation (012)
-// ==========================================================================
-
-// --------------------------------------------------------------------------
-// LoginCode: Two-factor one-time code issued on every successful password
-// verification.  The raw 6-digit code is never stored; only its argon2 hash
-// is persisted.  challengeId is returned to the client to bind the
-// code-entry step to the user without exposing the email address; it is
-// stable across resend-code calls within the same login challenge (B9).
-// --------------------------------------------------------------------------
-model LoginCode {
-  id           String    @id @default(uuid()) @db.Uuid
-
-  /// FK to the user who this OTP belongs to.
-  userId       String    @map("user_id") @db.Uuid
-
-  /// Opaque CSPRNG id returned by POST /admin/auth/login (B9).
-  /// Shared across resends within one challenge; NOT a secret.
-  challengeId  String    @map("challenge_id")
-
-  /// argon2 hash of the 6-digit numeric code — raw code never stored (B2).
-  codeHash     String    @map("code_hash")
-
-  /// Absolute expiry timestamp: issuedAt + 10 minutes (B3).
-  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
-
-  /// Wrong-guess counter; code is invalidated when this reaches 5 (B5).
-  attemptCount Int       @default(0) @map("attempt_count")
-
-  /// Set on first successful verification; single-use enforcement (B4).
-  consumedAt   DateTime? @map("consumed_at") @db.Timestamptz(6)
-
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  // --------------- Relations ---------------
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // --------------- Indexes ---------------
-  @@index([userId])
-  @@index([challengeId])
-  @@index([expiresAt])
-  @@map("login_codes")
-}
-
-// --------------------------------------------------------------------------
-// PasswordResetToken: Single-use reset token minted on a forgot-password
-// request.  The 32-byte CSPRNG value is SHA-256 hashed before storage;
-// raw bytes are only in the emailed link (C1).  Consuming the token clears
-// the account's lockout (C5) and revokes all refresh-token families (C6).
-// --------------------------------------------------------------------------
-model PasswordResetToken {
-  id         String    @id @default(uuid()) @db.Uuid
-
-  /// FK to the requesting user.
-  userId     String    @map("user_id") @db.Uuid
-
-  /// SHA-256 hash of the URL-safe base64 token value — raw never stored (C1).
-  tokenHash  String    @map("token_hash")
-
-  /// Absolute expiry timestamp: issuedAt + 60 minutes (C2).
-  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
-
-  /// Set on first successful use; single-use enforcement (C3).
-  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
-
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  // --------------- Relations ---------------
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // --------------- Indexes ---------------
-  @@index([userId])
-  @@index([tokenHash])
-  @@index([expiresAt])
-  @@map("password_reset_tokens")
-}
-
-// --------------------------------------------------------------------------
-// UserPreference: One row per admin user holding server-authoritative UI
-// state (theme mode and sidebar collapse).  Returned in /admin/me for
-// cross-device consistency; a cookie/localStorage mirror is maintained
-// client-side for pre-paint FOUC prevention only (research R7/R8).
-// --------------------------------------------------------------------------
-model UserPreference {
-  id               String   @id @default(uuid()) @db.Uuid
-
-  /// FK to the owning user — unique: one preference row per user.
-  userId           String   @unique @map("user_id") @db.Uuid
-
-  /// Active theme: "light" | "dark" | "system" (H1).
-  themeMode        String   @default("system") @map("theme_mode") @db.VarChar(10)
-
-  /// Whether the sidebar is collapsed (H2).
-  sidebarCollapsed Boolean  @default(false) @map("sidebar_collapsed")
-
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // --------------- Relations ---------------
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_preferences")
 }

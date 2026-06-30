@@ -607,7 +607,9 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
   describe('changePassword (E6)', () => {
     it('revokes ALL session families and re-mints the acting family (E6)', async () => {
       mockUser.findUnique.mockResolvedValue(makeUser());
-      mockArgon2.verify.mockResolvedValue(true); // current password correct
+      // First verify: D5 (current password correct) → true.
+      // Second verify: D3 (new != current) → false (they differ).
+      mockArgon2.verify.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
       mockArgon2.hash.mockResolvedValue('$argon2id$new-hash');
 
       const actingFamily = 'family-1';

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { validate } from '../../middleware/validate.js';
 import { logger } from '../../middleware/logger.js';
@@ -395,12 +396,36 @@ router.post('/reset-password', validate({ body: resetPasswordSchema }), async (r
   try {
     const { token, newPassword, confirmPassword } = req.body;
 
-    const authService = new AuthService();
+    // Look up the reset token to get the userId before consuming it,
+    // so a policy violation (D6) does not waste the single-use token.
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const tokenRow = await prisma.passwordResetToken.findFirst({
+      where: { tokenHash },
+      select: { userId: true, consumedAt: true, expiresAt: true },
+    });
 
-    // D1-D4: apply the shared password policy before consuming the token.
+    // If the token is invalid or expired, reject early without
+    // revealing which condition failed (C2/C3).
+    if (!tokenRow || tokenRow.consumedAt || tokenRow.expiresAt < new Date()) {
+      res.status(410).json({
+        error: 'Gone',
+        message: 'This reset link has expired or already been used. Please request a new one.',
+      });
+      return;
+    }
+
+    // Load the user's current password hash so D3 can be enforced.
+    const targetUser = await prisma.user.findUnique({
+      where: { id: tokenRow.userId },
+      select: { passwordHash: true },
+    });
+
+    // D1-D4: apply the shared password policy (D3 enforced when current hash available).
+    const authService = new AuthService();
     const policy = await validatePassword({
       newPassword,
       confirmPassword,
+      currentPasswordHash: targetUser?.passwordHash,
     });
 
     if (!policy.valid) {
@@ -412,12 +437,12 @@ router.post('/reset-password', validate({ body: resetPasswordSchema }), async (r
       return;
     }
 
+    // Policy passed — now consume the token atomically. If another
+    // concurrent request consumed it first, reject with 410.
     const resetService = new PasswordResetTokenService(prisma);
     const consumeResult = await resetService.consume(token);
 
     if (!consumeResult.success) {
-      // C2/C3: consumed or expired tokens surface a clear 410 so the UI can
-      // prompt the user to request a new link.
       res.status(410).json({
         error: 'Gone',
         message: 'This reset link has expired or already been used. Please request a new one.',

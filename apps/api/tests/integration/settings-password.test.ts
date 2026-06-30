@@ -148,6 +148,23 @@ describe('PUT /admin/settings/password', () => {
     expect(res.body).toHaveProperty('message');
   });
 
+  it('returns 400 when newPassword equals the current password (D3)', async () => {
+    const session = await getSession();
+
+    const res = await request(app)
+      .put('/admin/settings/password')
+      .set('Authorization', `Bearer ${session.accessToken}`)
+      .set('Cookie', session.cookiePair)
+      .send({
+        currentPassword: oldPassword,
+        newPassword: oldPassword,
+        confirmPassword: oldPassword,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+  });
+
   it('returns 400 for a policy-violating new password (D1/D2)', async () => {
     const session = await getSession();
 

@@ -396,6 +396,16 @@ export class AuthService {
       return { success: false, status: 401, message: 'Invalid current password' };
     }
 
+    // D3: new password must not equal the current password
+    const sameAsCurrent = await argon2.verify(user.passwordHash, newPassword);
+    if (sameAsCurrent) {
+      return {
+        success: false,
+        status: 400,
+        message: 'New password must be different from your current password.',
+      };
+    }
+
     const newHash = await this.hashPassword(newPassword);
     await this.prisma.user.update({ where: { id: userId }, data: { passwordHash: newHash } });
 

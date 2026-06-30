@@ -437,7 +437,7 @@
       Done when: T042 passes.
       Refs: T-B2, contracts `reset-password`
       > note: route validates password policy first (400 on failure), consumes the reset token (410 on used/expired), then hashes the new password, clears lockout counters, and revokes all refresh-token families in a transaction (C5/C6).
-      > reviewed: PASS (pending T042 fix) — implementation verified by inspection: policy validated first (D1–D4, 400 on fail, token stays unconsumed) ✓; token consumed via `resetService.consume()` → 410 on failure (C2/C3) ✓; password hashed + persisted ✓; `$transaction` atomically clears lockout (`failedLoginAttempts=0, lockedUntil=null`, C5) + revokes all refresh families (`updateMany revokedAt`, C6) ✓; neutral 200 response ✓; no raw token/password in response ✓. Done when: T042 passes — blocked by T042 race condition, not an implementation defect.
+      > reviewed: PASS (pending T042 fix) — implementation verified by inspection: policy validated first (D1–D4, 400 on fail, token stays unconsumed) ✓; token consumed via `resetService.consume()` → 410 on failure (C2/C3) ✓; password hashed + persisted ✓; `$transaction` atomically clears lockout (`failedLoginAttempts=0, lockedUntil=null`, C5) + revokes all refresh families (`updateMany revokedAt`, C6) ✓; neutral 200 response ✓; no raw token/password in response ✓. Done when: T042 passes — blocked by T042 race condition, not an implementation defect. D3 (new≠current) enforce added in Session 10 re-check: route resolves userId from token without consuming first, loads passwordHash, passes currentPasswordHash to validatePassword; D6 preserved (policy violation leaves token unconsumed).
 
 - [x] T044 [test] POST /admin/auth/refresh route test
       Files: `apps/api/tests/integration/auth-refresh.test.ts`
@@ -517,7 +517,7 @@
       Done when: Tests fail and match the contract for `settings/password`.
       Refs: T-B3, contracts `settings/password`, D5/E6/FR-035/FR-041
       > note: 6 tests: correct change → 200 + re-minted cookie + other session revoked + new password works for login (E6/D5), mismatch 400 (D4), policy violation 400 (D1/D2), wrong current 400 (D5), super_admin 403 (FR-035), unauthenticated 401. verify-2fa provider pattern reused for multi-session setup.
-      > reviewed: CHANGES-REQUIRED — D3 test missing: no test for `newPassword === currentPassword → 400`. Other 5 cases correct: 200+E6 revoke+remint+session-B-rejected (D5), D4 mismatch, D1 length, D5 wrong-current, FR-035 super_admin 403, 401 unauth. Add D3 test per review-log Session 10 corrective item 2.
+      > reviewed: PASS-WITH-NITS — D3 test added (Session 10 corrective item 2); 7 tests now covering D3 (newPass=current→400), D4 mismatch, D1 length, D5 wrong-current, E6 revoke+remint, FR-035 super_admin 403, 401 unauth. All 7 pass.
 
 - [x] T051 Implement PUT /admin/settings/password
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -525,8 +525,7 @@
       `PASSWORD_CHANGED`; block `super_admin`.
       Done when: T050 passes.
       Refs: T-B3, contracts `settings/password`, I1
-      > note: new settings.ts router created + wired in app.ts; authenticateJWT guard; super_admin block (403); Zod validation; passwordPolicy check; resolves acting refresh-token family from cookie for re-mint; AuthService.changePassword returns 400-mapped errors; new refresh cookie set on success. Audit-log PASSWORD_CHANGED deferred to T101. T050 all 6 tests pass.
-      > reviewed: CHANGES-REQUIRED — D3 not enforced: `settings.ts:75` calls `validatePassword({newPassword, confirmPassword})` without `currentPasswordHash`; `changePassword()` in `auth.ts` has `user.passwordHash` at line 388 but doesn't call `argon2.verify(hash, newPassword)` for D3. Fix: add D3 check in `changePassword()` after D5 verify (see review-log Session 10 corrective item 1). All other contract behaviors (D5/E6/FR-035/403/400) correct.
+      > note: new settings.ts router created + wired in app.ts; authenticateJWT guard; super_admin block (403); Zod validation; passwordPolicy check; resolves acting refresh-token family from cookie for re-mint; AuthService.changePassword returns 400-mapped errors; new refresh cookie set on success. Audit-log PASSWORD_CHANGED deferred to T101. D3 enforced in changePassword() via argon2.verify after D5 (Session 10 fix).
 
 - [ ] T052 [test] PUT /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-put.test.ts`

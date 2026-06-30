@@ -76,7 +76,7 @@ describe('PUT /admin/settings/preferences', () => {
     return { accessToken: res.body.accessToken as string, cookiePair };
   }
 
-  it('persists preferences and round-trips via GET (H1/H2)', async () => {
+  it('persists preferences and round-trips via me and GET (H1/H2)', async () => {
     const session = await getSession();
 
     // PUT: save preferences.
@@ -92,7 +92,19 @@ describe('PUT /admin/settings/preferences', () => {
       sidebarCollapsed: true,
     });
 
-    // GET: verify persistence.
+    // /me: verify preferences round-trip through the identity endpoint.
+    const meRes = await request(app)
+      .get('/admin/auth/me')
+      .set('Authorization', `Bearer ${session.accessToken}`)
+      .set('Cookie', session.cookiePair);
+
+    expect(meRes.status).toBe(200);
+    expect(meRes.body.preferences).toMatchObject({
+      themeMode: 'dark',
+      sidebarCollapsed: true,
+    });
+
+    // GET: verify persistence via the dedicated preferences endpoint.
     const getRes = await request(app)
       .get('/admin/settings/preferences')
       .set('Authorization', `Bearer ${session.accessToken}`)

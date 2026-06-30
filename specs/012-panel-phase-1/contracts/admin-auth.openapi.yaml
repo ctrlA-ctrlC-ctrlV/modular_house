@@ -192,6 +192,8 @@ paths:
       responses:
         '204':
           description: Session ended.
+        '401':
+          description: No valid session.
 
   /admin/auth/me:
     get:
@@ -232,6 +234,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: No valid session.
         '403':
           description: super_admin account is read-only in the panel.
           content:
@@ -286,6 +290,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: No valid session.
         '403':
           description: super_admin account is read-only in the panel.
     delete:
@@ -298,6 +304,10 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Me' }
+        '401':
+          description: No valid session.
+        '403':
+          description: super_admin account is read-only in the panel.
 
   /admin/settings/preferences:
     get:
@@ -333,6 +343,8 @@ paths:
               schema: { $ref: '#/components/schemas/Preferences' }
         '400':
           description: Invalid themeMode.
+        '401':
+          description: No valid session.
 
 components:
   securitySchemes:

@@ -599,8 +599,8 @@
       Do: Valid body persists and round-trips via `me` and GET preferences; invalid `themeMode` → `400`.
       Done when: Tests fail and match the contract for `settings/preferences` PUT.
       Refs: T-B7, contracts `settings/preferences`, H1/H2, FR-024
-      > note: 4 tests (persist + round-trip via GET, invalid themeMode → 400, partial update, unauth → 401); uses prisma.userPreference.upsert for create-or-update semantics.
-      > reviewed: PASS-WITH-NITS — 4/4 pass with full parallelism; H1/H2 pinned; partial update + invalid themeMode→400 + 401 covered ✓. Nit: "Done when" says round-trip via `me` AND GET preferences; test only exercises GET preferences round-trip; `me` round-trip after PUT not asserted (non-blocking: `me` preferences payload tested end-to-end in T048/T049).
+      > note: 4 tests (persist + round-trip via /me and GET, invalid themeMode → 400, partial update, unauth → 401); uses prisma.userPreference.upsert for create-or-update semantics.
+      > reviewed: PASS — 4/4 pass with full parallelism; H1/H2 pinned; partial update + invalid themeMode→400 + 401 covered ✓; /me round-trip assertion added per Session 16 nit ✓.
 
 - [x] T061 Implement PUT /admin/settings/preferences
       Files: `apps/api/src/routes/admin/settings.ts`

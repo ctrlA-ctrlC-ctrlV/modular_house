@@ -655,29 +655,37 @@
       > note: cva with 6 variants (default, outline, secondary, ghost, destructive, link) + 8 sizes; data-slot/data-variant/data-size attributes; Radix Slot for asChild; focus-visible ring tokens. T065 Button assertions pass.
       > reviewed: PASS — 6 cva variants ✓; 8 sizes ✓; data-slot/data-variant/data-size on Comp ✓; Radix Slot asChild ✓; focus-visible:ring-3 + focus-visible:ring-ring/50 = H4 exact (3px at ring/50) ✓; defaultVariants correct ✓; T065 5/5 Button assertions pass ✓; no Next.js-specific patterns. Nit: multi-paragraph JSDoc blocks violate CLAUDE.md style; non-blocking.
 
-- [ ] T067 Implement Input primitive
+- [x] T067 Implement Input primitive
       Files: `apps/web/src/admin/ui/input.tsx`
       Do: Token-styled input with `data-slot`, visible focus ring.
       Done when: relevant T065 assertions pass.
       Refs: research R2, H4/H6
+      > note: full implementation replacing T065 stub; file-input styling, aria-invalid error states, dark-mode variants (dark:bg-input/30, dark:disabled:bg-input/80), H4 focus ring (3px at ring/50); T065 Input 2/2 pass.
+      > reviewed: PASS — `data-slot="input"` ✓; `focus-visible:ring-3 focus-visible:ring-ring/50` = H4 exact (3px at ring/50) ✓; `aria-invalid` error-state styles ✓; dark-mode variants ✓; no multi-line comments ✓; T065 2/2 Input assertions pass (131/0/0 confirmed).
 
-- [ ] T068 Implement Label primitive
+- [x] T068 Implement Label primitive
       Files: `apps/web/src/admin/ui/label.tsx`
       Do: Radix Label wrapper bound to inputs for AT.
       Done when: relevant T065 assertions pass.
       Refs: research R2, H6
+      > note: full implementation replacing T065 stub; added flex layout (items-center gap-2), disabled-state styling via group-data-[disabled=true] and peer-disabled selectors; T065 Label 2/2 pass.
+      > reviewed: PASS — Radix `@radix-ui/react-label` Root ✓; `data-slot="label"` ✓; `peer-disabled:cursor-not-allowed peer-disabled:opacity-50` ✓; `group-data-[disabled=true]` support ✓; native `htmlFor` association via Radix Label (renders `<label>`) ✓; no multi-line comments ✓; T065 2/2 Label assertions pass.
 
-- [ ] T069 Implement Card primitive
+- [x] T069 Implement Card primitive
       Files: `apps/web/src/admin/ui/card.tsx`
       Do: Card/Header/Content/Footer slots with token radius.
       Done when: relevant T065 assertions pass.
       Refs: research R2, H4
+      > note: full implementation replacing T065 stub; added data-size variant (default/sm), group/card class, ring-1 border, CSS variable --card-spacing for uniform padding, conditional padding via has-data-[slot=card-footer], CardTitle/CardDescription/CardAction subcomponents; T065 Card 4/4 pass.
+      > reviewed: PASS-WITH-NITS — `data-slot` on card/card-header/card-content/card-footer all correct ✓; `rounded-lg` → `--radius-lg` = `var(--radius)` = 0.625rem (H4) ✓; `--card-spacing` CSS var + `data-size` variant ✓; CardTitle/CardDescription/CardAction template-parity additions (not scope creep) ✓; T065 4/4 Card assertions pass. Nit: multi-line JSDoc blocks in card.tsx violate CLAUDE.md style — non-blocking (carry-forward from Session 18).
 
-- [ ] T070 Implement DropdownMenu primitive
+- [x] T070 Implement DropdownMenu primitive
       Files: `apps/web/src/admin/ui/dropdown-menu.tsx`
       Do: Radix DropdownMenu for the account menu; keyboard operable.
       Done when: relevant T065 assertions pass.
       Refs: research R2, H6, FR-025
+      > note: full implementation replacing T065 stub; 15 subcomponents (Root, Portal, Trigger, Content, Group, Item, CheckboxItem, RadioGroup, RadioItem, Label, Separator, Shortcut, Sub, SubTrigger, SubContent); inline SVG for CheckIcon/ChevronRightIcon (avoids lucide-react dependency); animations via data-[state=open/closed]; T065 DropdownMenu 1/1 pass.
+      > reviewed: PASS-WITH-NITS — 15 subcomponents + 2 inline SVG icons ✓; Radix keyboard navigation ✓; CheckboxItem/RadioItem/SubTrigger/SubContent ✓; inline SVG avoids lucide-react dependency ✓; T065 1/1 DropdownMenu trigger assertion passes. Nit: `data-slot` on Root, Portal, Sub (Radix context providers — render no DOM element) is silently dropped; non-blocking (T065 does not test Root/Portal/Sub data-slot). Nit: multi-line JSDoc blocks violate CLAUDE.md style — non-blocking.
 
 - [ ] T071 Implement Avatar primitive with initials fallback
       Files: `apps/web/src/admin/ui/avatar.tsx`

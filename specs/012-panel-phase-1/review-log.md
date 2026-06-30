@@ -842,3 +842,42 @@ pnpm --filter @modular-house/api test:run    # confirmed 296/0/0 ✅
 3. **input-otp.tsx stub** — The current stub does not use the `input-otp` npm package (T001 dep). T076 must replace it with the real `OTPInput`-based implementation so the OTP input is accessible and keyboard-operable per B1/H6.
 
 **Performance: 94%** — Button implementation fully correct with H4 exact values; cn() is correct; parity tests are functionally solid; API suite shows zero regression; only nits are TDD sequencing (same non-blocking pattern seen in T023/T048) and multi-line comment style.
+
+---
+
+## Session 19 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T067–T070 (Input, Label, Card, DropdownMenu primitive implementations).
+
+**Protocol note:** No implementing-agent self-review entry preceded this session. All verdicts derived from source files independently.
+
+**Verification results (supervisor-run):**
+- `pnpm --filter @modular-house/web test:run` — ✅ **131 passed / 0 failed / 0 skipped** (19 files, full parallelism; same count as Session 18 — correct, T067–T070 are impl tasks with no new tests)
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (37 files, full parallelism — no regression)
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/web exec tsc --noEmit` — ✅ clean
+- Emoji scan (`admin/ui/**/*.tsx`) — ✅ none found
+- `@modular-house/ui` diff vs `main` — ✅ no files changed
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T067 | PASS | `data-slot="input"` ✓; `focus-visible:ring-3 focus-visible:ring-ring/50` = H4 exact (3px at ring/50) ✓; `aria-invalid` error-state accessibility styles ✓; dark-mode variants ✓; no multi-line comments (addressing Session 18 nit) ✓; T065 2/2 assertions pass |
+| T068 | PASS | Radix `@radix-ui/react-label` Root ✓; `data-slot="label"` ✓; `peer-disabled` + `group-data-[disabled=true]` accessibility ✓; `htmlFor` association via native Radix Label (`<label>` element) ✓; no multi-line comments ✓; T065 2/2 assertions pass |
+| T069 | PASS-WITH-NITS | Card/CardHeader/CardContent/CardFooter all have correct `data-slot` ✓; `rounded-lg` → `--radius-lg` = `var(--radius)` = 0.625rem (H4) ✓; `--card-spacing` CSS var + `data-size` variant + container queries ✓; CardTitle/CardDescription/CardAction added for template parity (research R2) — not scope creep ✓; T065 4/4 assertions pass. **Nit:** multi-line JSDoc blocks in card.tsx violate CLAUDE.md style — non-blocking (carry-forward pattern) |
+| T070 | PASS-WITH-NITS | 15 subcomponents + 2 inline SVG icons ✓; Radix keyboard navigation ✓; CheckboxItem/RadioItem/SubMenu/SubTrigger/SubContent full template parity ✓; inline SVG avoids lucide-react dependency ✓; T065 1/1 trigger assertion passes. **Nit 1:** `data-slot` on Root, Portal, Sub (Radix context providers, render no DOM element) is silently dropped — non-blocking (T065 does not test these). **Nit 2:** multi-line JSDoc blocks violate CLAUDE.md style — non-blocking |
+
+**Overall: GO** — All four tasks PASS / PASS-WITH-NITS. 131/0/0 web and 296/0/0 API confirmed with full parallelism. No public-site or `@modular-house/ui` changes; all code under `apps/web/src/admin/`.
+
+**Must-run before proceeding:**
+```
+pnpm install                                  # carry-forward T001 lock file
+pnpm --filter @modular-house/web test:run     # confirmed 131/0/0 ✅
+pnpm --filter @modular-house/api test:run     # confirmed 296/0/0 ✅
+```
+
+**Non-blocking follow-ups for implementing agent:**
+1. **card.tsx / dropdown-menu.tsx style** — Reduce multi-line JSDoc blocks to one-line comments per CLAUDE.md (carry-forward from Session 18).
+2. **DropdownMenu Root/Portal/Sub data-slot** — When the app shell actually uses the account DropdownMenu, consider whether the Root's `data-slot` matters for any CSS selector or test. If not, remove those attributes from context providers to avoid confusion.
+3. **T076 reminder** — input-otp.tsx stub still does not use the `input-otp` npm package. T076 must replace it with the real `OTPInput`-based implementation for keyboard-operability per B1/H6.
+
+**Performance: 93%** — All four implementations are clean template-parity ports. Input and Label are particularly clean (no comments, correct H4 focus ring). Card and DropdownMenu are comprehensive and correct with only cosmetic comment-style nits and the harmless data-slot-on-provider issue.

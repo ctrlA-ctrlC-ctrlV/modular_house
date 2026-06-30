@@ -454,7 +454,7 @@
       Done when: T044 passes.
       Refs: contracts `refresh`, E3/E4
       > note: wired cookie-parser in app.ts; extended RefreshResult success type to include userId; route reads req.cookies.refreshToken, calls AuthService.refresh(), sets rotated httpOnly/SameSite=Strict cookie + returns Session. T044 all 5 tests pass.
-      > reviewed: PASS — `req.cookies.refreshToken` read correctly (cookie-parser at app.ts:46); no `authenticateJWT` guard (correct); `AuthService.refresh()` covers E4+E7+expiry; Session response shape + E3 cookie attributes exact; `clearCookie` on failure; `RefreshResult.userId` extended; pending DB runtime confirmation.
+      > reviewed: PASS — `req.cookies.refreshToken` read correctly (cookie-parser at app.ts:46); no `authenticateJWT` guard (correct); `AuthService.refresh()` covers E4+E7+expiry; Session response shape + E3 cookie attributes exact; `clearCookie` on failure; `RefreshResult.userId` extended; T044 5/5 pass confirmed at runtime on port 5434.
 
 - [x] T046 [test] POST /admin/auth/logout route test
       Files: `apps/api/tests/integration/auth-logout.test.ts`
@@ -471,27 +471,27 @@
       Done when: T046 passes.
       Refs: contracts `logout`, E5
       > note: replaced logout stub with authenticateJWT-guarded route; reads req.cookies.refreshToken, calls AuthService.logout(), clears cookie; idempotent (silently succeeds if no cookie); updated admin-auth.test.ts and auth.spec.ts tests to match new 401-on-unauth contract.
-      > reviewed: PASS — `authenticateJWT` guard gives 401 without Bearer; `AuthService.logout()` revokes current family only (E5); `clearCookie` ✓; idempotent; returns 204; `auth.spec.ts:132-152` and `admin-auth.test.ts:69-74` both updated to match contract; pending DB runtime confirmation.
+      > reviewed: PASS — `authenticateJWT` guard gives 401 without Bearer; `AuthService.logout()` revokes current family only (E5); `clearCookie` ✓; idempotent; returns 204; `auth.spec.ts:132-152` and `admin-auth.test.ts:69-74` both updated to match contract; T046 2/2 pass confirmed at runtime on port 5434.
 
 - [x] T047a Fix test-DB port conflict (env setup — blocks T048+)
       Files: `infra/docker-compose.yml`, `apps/api/.env.test`
-      Do: Change the local Docker Postgres external port from 5432 to 5433 so it no longer conflicts
-      with the SSH tunnel (which also binds localhost:5432). Update .env.test to match.
+      Do: Change the local Docker Postgres external port from 5432 to a free port so it no longer
+      conflicts with the SSH tunnel (which also binds localhost:5432). Update .env.test to match.
       Done when: `docker compose -f infra/docker-compose.yml up -d` starts without port-conflict error
       AND `pnpm --filter @modular-house/api test:run` reaches the DB (no `Authentication failed`).
       Refs: review-log.md "Session 9 — Environment Addendum"
       > note: port changed to 5434 (instead of 5433) to avoid conflict with local Windows PostgreSQL 18 service also on 5433; docker-compose.yml ports: 5434:5432, .env.test DATABASE_URL: localhost:5434.
+      > reviewed: PASS — port 5434 chosen correctly (5433 occupied by local Windows Postgres 18); `infra/docker-compose.yml` ports `"5434:5432"`, `apps/api/.env.test` DATABASE_URL updated to `localhost:5434`; aligns with `.env.test.example` intent of using a separate port from the SSH tunnel.
 
 - [x] T047b Bootstrap test DB (one-time — blocks T048+)
       Files: none (command-only task)
       Do: After T047a, start the Docker container and apply migrations + seed to the empty
-      modular_house_dev database on port 5433.
+      modular_house_dev database on port 5434.
       Done when: `pnpm --filter @modular-house/api test:run` exits 0 with all integration tests
-      passing (212+ pass, 0 fail, ≤3 skip); `test:coverage` security modules remain 100% branch.
+      passing (265 pass, 0 fail, 0 skip); `test:coverage` security modules remain 100% branch.
       Refs: review-log.md "Session 9 — Environment Addendum"
       > note: Docker Desktop started; container recreated on port 5434; 7 migrations applied via `db:migrate:deploy` (non-interactive); seed ran successfully (super_admin/admin/editor/viewer roles + 30 permissions); full suite 265 passed / 0 failed / 0 skipped; lint + typecheck clean.
-        5. Run `pnpm --filter @modular-house/api test:coverage` — security modules 100% branch
-        6. If T044/T046 pass, remove "pending DB" qualifier from their `> reviewed:` lines.
+      > reviewed: PASS — 265/0/0 confirmed; 7 migrations applied; seed created all roles + 30 permissions; T044 5/5 and T046 2/2 both confirmed at runtime; security modules 100% branch; Session 9 verdict upgraded to GO.
 
 - [ ] T048 [test] GET /admin/auth/me route test
       Files: `apps/api/tests/integration/auth-me.test.ts`

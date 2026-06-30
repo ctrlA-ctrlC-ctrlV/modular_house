@@ -594,25 +594,28 @@
       > note: route loads preference row via prisma.userPreference.findUnique; returns defaults (system/false) when no row exists; authenticateJWT guard. T058 3/3 pass.
       > reviewed: PASS — authenticateJWT ✓; findUnique selects only themeMode + sidebarCollapsed ✓; ?? 'system' and ?? false defaults correct per H1/H2 ✓; T058 3/3 confirmed with full parallelism.
 
-- [ ] T060 [test] PUT /admin/settings/preferences route test
+- [x] T060 [test] PUT /admin/settings/preferences route test
       Files: `apps/api/tests/integration/settings-preferences-put.test.ts`
       Do: Valid body persists and round-trips via `me` and GET preferences; invalid `themeMode` → `400`.
       Done when: Tests fail and match the contract for `settings/preferences` PUT.
       Refs: T-B7, contracts `settings/preferences`, H1/H2, FR-024
+      > note: 4 tests (persist + round-trip via GET, invalid themeMode → 400, partial update, unauth → 401); uses prisma.userPreference.upsert for create-or-update semantics.
 
-- [ ] T061 Implement PUT /admin/settings/preferences
+- [x] T061 Implement PUT /admin/settings/preferences
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: Validate + upsert preferences via `userPreference` service.
       Done when: T060 passes.
       Refs: T-B7, FR-024
+      > note: Zod schema validates themeMode enum (light|dark|system) + sidebarCollapsed boolean; partial updates supported; prisma.userPreference.upsert for create-or-update; authenticateJWT guard. T060 4/4 pass.
 
-- [ ] T062 Document the Phase 1 endpoints in OpenAPI
+- [x] T062 Document the Phase 1 endpoints in OpenAPI
       Files: `apps/api/openapi.yaml`
       Do: Mirror `contracts/admin-auth.openapi.yaml` (login, verify-2fa, resend-code, forgot-password,
       reset-password, refresh, logout, me, settings/password, settings/photo GET/PUT/DELETE,
       settings/preferences GET/PUT) including status codes.
       Done when: `pnpm --filter @modular-house/api docs:validate` passes.
       Refs: plan §5.1, DoD-9
+      > note: replaced legacy login (token-based) with 2FA flow; added all Phase 1 auth + settings endpoints; added TwoFactorChallenge, Session, Me, Preferences, NeutralAck, Error schemas; docs:validate passes.
 
 ### Frontend design-system port + primitives
 

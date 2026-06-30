@@ -645,6 +645,29 @@ pnpm --filter @modular-house/api test:coverage # security modules 100% branch
 
 **Overall: GO** — All four tasks PASS. 292/0/0 confirmed. Proceed to T060+.
 
+---
+
+## Session 15 — 2026-06-30 (implementing agent)
+
+**Scope:** T060–T062 (Pass 1 — preferences PUT route pair + OpenAPI documentation)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` — ✅ **296 passed / 0 failed / 0 skipped** (+4 tests from T060–T061)
+- `pnpm --filter @modular-house/api lint` — ✅ clean
+- `pnpm --filter @modular-house/api typecheck` — ✅ clean
+- `pnpm --filter @modular-house/api docs:validate` — ✅ OpenAPI valid
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T060 | PASS | 4 tests: persist + round-trip via GET, invalid themeMode → 400, partial update (only sidebarCollapsed), unauth → 401 |
+| T061 | PASS | Zod enum validation for themeMode; prisma.userPreference.upsert for create-or-update; partial updates supported; authenticateJWT guard |
+| T062 | PASS | Replaced legacy token-based login with 2FA flow; added all Phase 1 auth + settings endpoints; added TwoFactorChallenge/Session/Me/Preferences/NeutralAck/Error schemas; docs:validate passes |
+
+**Session 14 carry-forward items addressed:**
+- T062 flag (DELETE /photo 401/403) — resolved: OpenAPI now lists 401 and 403 responses for DELETE /admin/settings/photo.
+
+**Overall: GO** — All three tasks PASS. 296/0/0 confirmed. Proceed to T063+.
+
 > **Protocol note:** This Session 13 entry was authored by the implementing agent, not the supervisor. Supervisor verdicts are issued independently in Session 14 below.
 
 ---

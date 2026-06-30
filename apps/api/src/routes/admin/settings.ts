@@ -2,13 +2,12 @@
  * Admin settings routes — Phase 1.
  *
  * Handles user settings endpoints under /admin/settings:
- *   - PUT /password     — change own password (D5/E6)
- *   - PUT /photo        — upload or replace the profile photo (G1–G3)
- *   - GET /photo        — retrieve the profile photo bytes (G5/G6)
- *   - DELETE /photo     — remove the profile photo (G4)
- *   - GET /preferences  — read persisted UI preferences (H1/H2)
- *
- * Additional endpoints (preferences PUT) are added in subsequent tasks.
+ *   - PUT /password        — change own password (D5/E6)
+ *   - PUT /photo           — upload or replace the profile photo (G1–G3)
+ *   - GET /photo           — retrieve the profile photo bytes (G5/G6)
+ *   - DELETE /photo        — remove the profile photo (G4)
+ *   - GET /preferences     — read persisted UI preferences (H1/H2)
+ *   - PUT /preferences     — persist UI preferences (H1/H2)
  */
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
@@ -465,6 +464,79 @@ router.get(
       res.status(500).json({
         error: 'Internal server error',
         message: 'Unable to retrieve preferences',
+      });
+    }
+  },
+);
+
+/**
+ * Zod schema for the PUT /admin/settings/preferences request body.
+ * Both fields are optional — partial updates are permitted.  The
+ * `themeMode` enum is validated server-side regardless of any client
+ * check (D7 / H1).
+ */
+const updatePreferencesSchema = z.object({
+  themeMode: z.enum(['light', 'dark', 'system']).optional(),
+  sidebarCollapsed: z.boolean().optional(),
+});
+
+/**
+ * PUT /admin/settings/preferences — persist UI preferences (H1/H2).
+ *
+ * Validates the incoming body (themeMode must be one of the three
+ * literals), then upserts the `UserPreference` row.  Partial updates
+ * are supported — omitting a field leaves it unchanged.  Returns the
+ * persisted values so the client can confirm the round-trip.
+ */
+router.put(
+  '/preferences',
+  authenticateJWT,
+  validate({ body: updatePreferencesSchema }),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          error: 'Unauthorized',
+          message: 'User not authenticated',
+        });
+        return;
+      }
+
+      const { themeMode, sidebarCollapsed } = req.body;
+
+      // Build a partial update payload — only include fields that were
+      // explicitly provided so Prisma's upsert preserves existing values.
+      const data: { themeMode?: string; sidebarCollapsed?: boolean } = {};
+      if (themeMode !== undefined) {
+        data.themeMode = themeMode;
+      }
+      if (sidebarCollapsed !== undefined) {
+        data.sidebarCollapsed = sidebarCollapsed;
+      }
+
+      // Upsert: create the row if it doesn't exist, otherwise update.
+      const preference = await prisma.userPreference.upsert({
+        where: { userId },
+        create: {
+          userId,
+          themeMode: data.themeMode ?? 'system',
+          sidebarCollapsed: data.sidebarCollapsed ?? false,
+        },
+        update: data,
+        select: { themeMode: true, sidebarCollapsed: true },
+      });
+
+      res.status(200).json({
+        themeMode: preference.themeMode,
+        sidebarCollapsed: preference.sidebarCollapsed,
+      });
+    } catch (error) {
+      logger.error({ error }, 'Settings preferences PUT endpoint error');
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Unable to update preferences',
       });
     }
   },

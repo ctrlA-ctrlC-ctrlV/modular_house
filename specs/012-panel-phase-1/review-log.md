@@ -444,3 +444,78 @@ pnpm --filter @modular-house/api test:coverage  # security modules must remain 1
 | T047b | — | PASS | 7 migrations applied; seed complete; 265/0/0 confirmed |
 
 **Overall: GO** — T044–T047b all PASS / PASS-WITH-NITS. Proceed to T048.
+
+---
+
+## Session 10 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T048–T051 (Pass 1 — me endpoint + settings/password route pair)
+
+**Verification results:**
+- `pnpm --filter @modular-house/api test:run` — ✅ **274 passed / 0 failed / 0 skipped** (+9 tests from T048–T051)
+- `pnpm --filter @modular-house/api test:coverage` — ✅ security services all 100% branch; `routes/admin/auth.ts` at 83.33% branch (me catch/null-user branches uncovered — not in DoD-3 security-module list); `routes/admin/settings.ts` at 75% branch (userId-null check + catch block — not in DoD-3 list)
+- `pnpm --filter @modular-house/api exec prisma validate` — ✅ valid
+- `pnpm --filter @modular-house/api exec prisma migrate status` (test DB, port 5434) — ✅ "Database schema is up to date!" (7 migrations)
+- `pnpm --filter @modular-house/api docs:validate` — ✅ OpenAPI valid
+- `pnpm --filter @modular-house/api lint` — ✅ clean
+- `pnpm --filter @modular-house/api exec tsc --noEmit` — ✅ clean
+
+**Critical finding — D3 not enforced in settings/password flow:**
+
+`passwordPolicy.ts` implements D3 (new must not equal current) via an optional `currentPasswordHash` field on `PasswordValidationInput`. The unit tests for `passwordPolicy.ts` exercise this branch (hence 100% branch coverage). However:
+
+- `settings.ts:75` calls `validatePassword({ newPassword, confirmPassword })` — no `currentPasswordHash` passed → D3 silently skipped
+- `auth.ts:changePassword()` (lines 388–415) verifies D5 (current password correct at line 394) but performs no D3 check after that
+
+Net effect: the API currently accepts `newPassword === currentPassword` on the settings page, violating D3 ("New password MUST NOT equal the current password"). T050 has no test for this case.
+
+**Carry-forward from T043:** The reset-password route (`auth.ts` reset handler) also calls `validatePassword` without `currentPasswordHash`, meaning D3 is also skipped on password reset. Session 8 incorrectly listed D3 as "D1–D4 covered" for T043. Flagged here for the implementing agent; T043's `> reviewed:` line is not retroactively changed.
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T048 | PASS-WITH-NITS | 3 tests covering 200 Me (id/email/displayName/role/permissions/hasProfilePhoto/isSuperAdmin/preferences), 401 (no token), 401 (invalid token); `resetAdminTables(userId)` + refreshToken cleanup in `beforeEach` ✓; Me schema shape correct; nit: TDD discipline unverifiable retroactively (same non-blocking pattern as T023) |
+| T049 | PASS | `buildSessionUser()` builds complete Me schema: permissions as `resource:action` strings ✓; `hasProfilePhoto = profilePhoto !== null && profilePhotoMime !== null` ✓; `isSuperAdmin = role.name === 'super_admin'` ✓; preferences defaulted to `{themeMode:'system', sidebarCollapsed:false}` when no row ✓; `authenticateJWT` guard ✓; T048 3/3 confirmed |
+| T050 | CHANGES-REQUIRED | D3 test missing: no test for `newPassword === currentPassword → 400`. Other 5 cases present: 200+E6 (D5+revoke+remint+session-B-rejected), D4 (mismatch), D1/D2 (policy), D5 (wrong current), FR-035 (super_admin 403), 401 (unauth) ✓. Missing: add test with `currentPassword=oldPass, newPassword=oldPass, confirmPassword=oldPass → 400`. |
+| T051 | CHANGES-REQUIRED | D3 check missing: `settings.ts:75` calls `validatePassword({newPassword, confirmPassword})` without `currentPasswordHash`; `changePassword()` in `services/auth.ts` has `user.passwordHash` available (line 388) but doesn't call `argon2.verify(user.passwordHash, newPassword)` for D3. Fix in `changePassword()` (see corrective items). |
+
+**Overall: NO-GO** — T050/T051 D3 gap is a spec violation. Fix and re-run before T052+.
+
+**Must-run before proceeding:**
+```powershell
+pnpm --filter @modular-house/api test:run     # must remain 274+ passed, 0 failed
+pnpm --filter @modular-house/api test:coverage # security modules 100% branch
+```
+
+**Corrective items for implementing agent (T050/T051 — D3):**
+
+1. **`apps/api/src/services/auth.ts` — `changePassword()` method** — After the D5 check (line 394–396), add a D3 check using the same `user.passwordHash`:
+   ```typescript
+   // D3: new password must not equal the current password
+   const sameAsCurrent = await argon2.verify(user.passwordHash, newPassword);
+   if (sameAsCurrent) {
+     return { success: false, status: 400, message: 'New password must be different from your current password.' };
+   }
+   ```
+   This is the cleanest fix because `changePassword()` already holds `user` with its `passwordHash`.
+
+2. **`apps/api/tests/integration/settings-password.test.ts` (T050)** — Add a D3 test after the D4 test:
+   ```typescript
+   it('returns 400 when newPassword equals the current password (D3)', async () => {
+     const session = await getSession();
+     const res = await request(app)
+       .put('/admin/settings/password')
+       .set('Authorization', `Bearer ${session.accessToken}`)
+       .set('Cookie', session.cookiePair)
+       .send({
+         currentPassword: oldPassword,
+         newPassword: oldPassword,
+         confirmPassword: oldPassword,
+       });
+     expect(res.status).toBe(400);
+     expect(res.body).toHaveProperty('message');
+   });
+   ```
+
+3. **Carry-forward (T043 reset-password)** — The reset route in `auth.ts` (line 401–404) also calls `validatePassword` without `currentPasswordHash`. D3 is also unenforced on password reset. Fixing this requires loading the current user's passwordHash before calling `validatePassword` in the reset route. This fix is not strictly in the T050/T051 scope but should be addressed in the same session as item 1/2 above to close all D3 gaps.
+
+**Performance: 82%** — T049 is clean; T048 is solid; the D3 gap in T050/T051 is a material spec violation but isolated to one policy rule; all other contract behaviors, security coverage, schema, lint, and typecheck pass cleanly.

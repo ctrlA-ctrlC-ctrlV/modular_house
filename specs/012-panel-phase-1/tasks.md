@@ -500,6 +500,7 @@
       Done when: Tests fail and match the contract for `me`.
       Refs: T-B5, T-B7, contracts `me`, FR-036, H1/H2/G6
       > note: 3 tests: authenticated → 200 Me (id, email, displayName, role, permissions in resource:action format, hasProfilePhoto, isSuperAdmin, preferences with themeMode enum/sidebarCollapsed); unauthenticated 401; invalid token 401. verify-2fa provider pattern reused.
+      > reviewed: PASS-WITH-NITS — 3 tests pass; Me shape (id/email/displayName/role/permissions/hasProfilePhoto/isSuperAdmin/preferences) fully asserted; `resetAdminTables(userId)` + refreshToken cleanup in beforeEach ✓; nit: TDD discipline unverifiable retroactively (non-blocking, same pattern as T023).
 
 - [x] T049 Implement GET /admin/auth/me
       Files: `apps/api/src/routes/admin/auth.ts`
@@ -507,6 +508,7 @@
       Done when: T048 passes.
       Refs: T-B5/T-B7, contracts `me`
       > note: route uses authenticateJWT middleware; reuses existing buildSessionUser() helper; returns full Me shape including derived permissions, displayName, hasProfilePhoto, isSuperAdmin, and preferences (with defaults for unset). T048 all 3 tests pass.
+      > reviewed: PASS — `buildSessionUser()` returns complete Me schema; `hasProfilePhoto = profilePhoto !== null && profilePhotoMime !== null` ✓; `isSuperAdmin = role.name === 'super_admin'` ✓; preferences defaulted to `{themeMode:'system', sidebarCollapsed:false}` when no row ✓; `authenticateJWT` guard ✓; T048 3/3 confirmed at runtime.
 
 - [x] T050 [test] PUT /admin/settings/password route test
       Files: `apps/api/tests/integration/settings-password.test.ts`
@@ -515,6 +517,7 @@
       Done when: Tests fail and match the contract for `settings/password`.
       Refs: T-B3, contracts `settings/password`, D5/E6/FR-035/FR-041
       > note: 6 tests: correct change → 200 + re-minted cookie + other session revoked + new password works for login (E6/D5), mismatch 400 (D4), policy violation 400 (D1/D2), wrong current 400 (D5), super_admin 403 (FR-035), unauthenticated 401. verify-2fa provider pattern reused for multi-session setup.
+      > reviewed: CHANGES-REQUIRED — D3 test missing: no test for `newPassword === currentPassword → 400`. Other 5 cases correct: 200+E6 revoke+remint+session-B-rejected (D5), D4 mismatch, D1 length, D5 wrong-current, FR-035 super_admin 403, 401 unauth. Add D3 test per review-log Session 10 corrective item 2.
 
 - [x] T051 Implement PUT /admin/settings/password
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -523,6 +526,7 @@
       Done when: T050 passes.
       Refs: T-B3, contracts `settings/password`, I1
       > note: new settings.ts router created + wired in app.ts; authenticateJWT guard; super_admin block (403); Zod validation; passwordPolicy check; resolves acting refresh-token family from cookie for re-mint; AuthService.changePassword returns 400-mapped errors; new refresh cookie set on success. Audit-log PASSWORD_CHANGED deferred to T101. T050 all 6 tests pass.
+      > reviewed: CHANGES-REQUIRED — D3 not enforced: `settings.ts:75` calls `validatePassword({newPassword, confirmPassword})` without `currentPasswordHash`; `changePassword()` in `auth.ts` has `user.passwordHash` at line 388 but doesn't call `argon2.verify(hash, newPassword)` for D3. Fix: add D3 check in `changePassword()` after D5 verify (see review-log Session 10 corrective item 1). All other contract behaviors (D5/E6/FR-035/403/400) correct.
 
 - [ ] T052 [test] PUT /admin/settings/photo route test
       Files: `apps/api/tests/integration/settings-photo-put.test.ts`

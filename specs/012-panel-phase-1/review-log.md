@@ -780,3 +780,26 @@ pnpm install                                 # carry-forward T001 — lock file 
 - `pnpm --filter @modular-house/api lint` — ✅ clean
 - `pnpm --filter @modular-house/api typecheck` — ✅ clean
 - `pnpm --filter @modular-house/api docs:validate` — ✅ valid
+
+---
+
+## Session 17 — 2026-06-30 (implementing agent)
+
+**Scope:** T063–T066 (Frontend design-system port — cn() helper + primitive parity test + Button primitive)
+
+**Verification results:**
+- `pnpm --filter @modular-house/web test:run` — ✅ **131 passed / 0 failed / 0 skipped** (+29 tests from T063–T066)
+- `pnpm --filter @modular-house/web lint` — ✅ clean
+- `pnpm --filter @modular-house/web typecheck` — ✅ clean
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` — ✅ **296 passed / 0 failed** (no regression)
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T063 | PASS | 7 tests (merge, dedupe, conditional, arrays, objects, empty, undefined/null); fails with import error until T064 |
+| T064 | PASS | cn() using clsx + twMerge; mirrors template's lib/utils.ts; T063 7/7 pass |
+| T065 | PASS | 22 tests across 9 primitive groups; data-slot/data-variant/data-size assertions; focusability + disabled + label association; stub implementations created for all primitives |
+| T066 | PASS | Button with cva (6 variants, 8 sizes); data-slot/data-variant/data-size; Radix Slot for asChild; focus-visible ring tokens; T065 Button assertions pass |
+
+**Note:** Stub implementations created for Input, Label, Card, DropdownMenu, Avatar, Sidebar, Sheet, InputOTP to unblock T065 test execution. These stubs will be replaced by full implementations in T067–T076.
+
+**Overall: GO** — All four tasks PASS. 131/0/0 web tests, 296/0/0 API tests. Proceed to T067+.

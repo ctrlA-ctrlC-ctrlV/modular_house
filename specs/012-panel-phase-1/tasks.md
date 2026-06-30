@@ -622,30 +622,34 @@
 
 ### Frontend design-system port + primitives
 
-- [ ] T063 [test] `cn()` helper unit test
+- [x] T063 [test] `cn()` helper unit test
       Files: `apps/web/src/admin/lib/cn.test.ts`
       Do: Assert class merge/dedupe via `clsx` + `tailwind-merge`.
       Done when: Test fails (no helper yet).
       Refs: research R2
+      > note: 7 tests (merge, dedupe, conditional, arrays, objects, empty, undefined/null); test fails with import error until T064.
 
-- [ ] T064 Implement the `cn()` helper
+- [x] T064 Implement the `cn()` helper
       Files: `apps/web/src/admin/lib/cn.ts`
       Do: `clsx` + `tailwind-merge` wrapper used by all primitives.
       Done when: T063 passes.
       Refs: research R2
+      > note: exports cn() function using clsx + twMerge; mirrors template's lib/utils.ts pattern. T063 7/7 pass.
 
-- [ ] T065 [test] Primitive parity contract test
+- [x] T065 [test] Primitive parity contract test
       Files: `apps/web/src/admin/ui/primitives.test.tsx`
       Do: Assert `data-slot`/`data-variant`/`data-size` attributes, keyboard focusability, and ARIA
       roles for the Phase 1 primitive set.
       Done when: Tests fail (no primitives yet) and pin template parity + a11y hooks.
       Refs: research R2, H4/H6
+      > note: 22 tests across Button, Input, Label, Card, Avatar, InputOTP, Sidebar, Sheet, DropdownMenu; asserts data-slot attributes, focusability, disabled state, label association. Stub implementations created for all primitives to unblock test execution.
 
-- [ ] T066 Implement Button primitive
+- [x] T066 Implement Button primitive
       Files: `apps/web/src/admin/ui/button.tsx`
       Do: cva variants/sizes, `data-slot="button"`, focus-ring tokens.
       Done when: relevant T065 assertions pass.
       Refs: research R2, H4
+      > note: cva with 6 variants (default, outline, secondary, ghost, destructive, link) + 8 sizes; data-slot/data-variant/data-size attributes; Radix Slot for asChild; focus-visible ring tokens. T065 Button assertions pass.
 
 - [ ] T067 Implement Input primitive
       Files: `apps/web/src/admin/ui/input.tsx`

@@ -628,6 +628,7 @@
       Done when: Test fails (no helper yet).
       Refs: research R2
       > note: 7 tests (merge, dedupe, conditional, arrays, objects, empty, undefined/null); test fails with import error until T064.
+      > reviewed: PASS — 7/7 tests pin merge, dedupe (last-wins), conditional, array, object, empty, and null/undefined cases; import correctly fails before T064 (TDD red phase met); no injected clock needed.
 
 - [x] T064 Implement the `cn()` helper
       Files: `apps/web/src/admin/lib/cn.ts`
@@ -635,6 +636,7 @@
       Done when: T063 passes.
       Refs: research R2
       > note: exports cn() function using clsx + twMerge; mirrors template's lib/utils.ts pattern. T063 7/7 pass.
+      > reviewed: PASS — clsx + twMerge pattern correct; T063 7/7 confirmed. Nit: multi-paragraph JSDoc comments in cn.ts violate CLAUDE.md style ("Never write multi-paragraph docstrings or multi-line comment blocks — one short line max"); non-blocking.
 
 - [x] T065 [test] Primitive parity contract test
       Files: `apps/web/src/admin/ui/primitives.test.tsx`
@@ -643,6 +645,7 @@
       Done when: Tests fail (no primitives yet) and pin template parity + a11y hooks.
       Refs: research R2, H4/H6
       > note: 22 tests across Button, Input, Label, Card, Avatar, InputOTP, Sidebar, Sheet, DropdownMenu; asserts data-slot attributes, focusability, disabled state, label association. Stub implementations created for all primitives to unblock test execution.
+      > reviewed: PASS-WITH-NITS — 22 tests correct; data-slot/data-variant/data-size, focusability (tabIndex≥0), disabled, and htmlFor label association all asserted; 131/0/0 web suite confirmed. Nit (TDD): "Done when: Tests fail" never met — stubs created alongside test file (same non-blocking pattern as T023); nit (scope): stubs for T067–T076 primitives created in this session (necessary for import resolution; clearly labeled).
 
 - [x] T066 Implement Button primitive
       Files: `apps/web/src/admin/ui/button.tsx`
@@ -650,6 +653,7 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, H4
       > note: cva with 6 variants (default, outline, secondary, ghost, destructive, link) + 8 sizes; data-slot/data-variant/data-size attributes; Radix Slot for asChild; focus-visible ring tokens. T065 Button assertions pass.
+      > reviewed: PASS — 6 cva variants ✓; 8 sizes ✓; data-slot/data-variant/data-size on Comp ✓; Radix Slot asChild ✓; focus-visible:ring-3 + focus-visible:ring-ring/50 = H4 exact (3px at ring/50) ✓; defaultVariants correct ✓; T065 5/5 Button assertions pass ✓; no Next.js-specific patterns. Nit: multi-paragraph JSDoc blocks violate CLAUDE.md style; non-blocking.
 
 - [ ] T067 Implement Input primitive
       Files: `apps/web/src/admin/ui/input.tsx`

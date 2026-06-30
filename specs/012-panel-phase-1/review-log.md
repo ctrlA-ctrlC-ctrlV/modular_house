@@ -803,3 +803,42 @@ pnpm install                                 # carry-forward T001 — lock file 
 **Note:** Stub implementations created for Input, Label, Card, DropdownMenu, Avatar, Sidebar, Sheet, InputOTP to unblock T065 test execution. These stubs will be replaced by full implementations in T067–T076.
 
 **Overall: GO** — All four tasks PASS. 131/0/0 web tests, 296/0/0 API tests. Proceed to T067+.
+
+---
+
+## Session 18 — 2026-06-30 (reviewer: supervisor)
+
+**Scope:** T063–T066 (Frontend design-system port — cn() helper + primitive parity test + Button primitive). Independent re-verification of Session 17 (implementing-agent self-review).
+
+**Protocol note:** Session 17 was authored by the implementing agent — a protocol violation (supervisor prompt forbids trusting handoff summaries at face value). All verdicts below are independently re-derived from source files.
+
+**Verification results (supervisor-run):**
+- `pnpm --filter @modular-house/web test:run` — ✅ **131 passed / 0 failed / 0 skipped** (19 files, full parallelism)
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (37 files, full parallelism — no regression from frontend changes)
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/web exec tsc --noEmit` — ✅ clean
+- `@modular-house/ui` diff vs `main` — ✅ no files changed (admin design system correctly isolated)
+- Emoji scan (`admin/**/*.{ts,tsx,css}`) — ✅ no emoji in any admin source file
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T063 | PASS | 7 tests cover merge, dedupe (last-wins), conditional, array, object, empty, null/undefined; import correctly fails before T064 (TDD red phase met) ✓ |
+| T064 | PASS | `clsx + twMerge` pattern correct; T063 7/7 confirmed by supervisor run ✓. Nit: multi-paragraph JSDoc comments in `cn.ts` violate CLAUDE.md style ("never write multi-paragraph docstrings or multi-line comment blocks") — non-blocking |
+| T065 | PASS-WITH-NITS | 22 tests across 9 primitive groups (Button 5, Input 2, Label 2, Card 4, Avatar 3, InputOTP 3, Sidebar 1, Sheet 1, DropdownMenu 1); data-slot/data-variant/data-size, focusability (tabIndex≥0), disabled, and htmlFor label association all asserted ✓. **Nit (TDD):** "Done when: Tests fail" never met — stubs created alongside test file (same non-blocking pattern as T023 nit). **Nit (scope):** stub files for T067–T076 (input.tsx, label.tsx, card.tsx, avatar.tsx, sidebar.tsx, sheet.tsx, dropdown-menu.tsx, input-otp.tsx) created in this session; technically out of scope but necessary for the test file's imports to resolve; all stubs clearly labeled and non-blocking |
+| T066 | PASS | 6 cva variants (default/outline/secondary/ghost/destructive/link) ✓; 8 sizes (default/xs/sm/lg/icon/icon-xs/icon-sm/icon-lg) ✓; `data-slot="button"` / `data-variant={variant}` / `data-size={size}` on `Comp` ✓; Radix Slot `asChild` ✓; `focus-visible:ring-3 focus-visible:ring-ring/50` = H4 exact (3px at ring/50) ✓; defaultVariants correct ✓; no Next.js-specific patterns ✓; T065 Button 5/5 assertions pass ✓. Nit: multi-paragraph JSDoc blocks in `button.tsx` violate CLAUDE.md style — non-blocking |
+
+**Overall: GO** — All four tasks PASS / PASS-WITH-NITS. 131/0/0 web suite and 296/0/0 API suite confirmed with full parallelism. `@modular-house/ui` untouched; all new code under `apps/web/src/admin/`; no emoji; lint and typecheck clean.
+
+**Must-run before proceeding:**
+```
+pnpm install          # carry-forward T001 — lock file not yet updated
+pnpm --filter @modular-house/web test:run    # confirmed 131/0/0 ✅
+pnpm --filter @modular-house/api test:run    # confirmed 296/0/0 ✅
+```
+
+**Non-blocking follow-ups for implementing agent:**
+1. **cn.ts / button.tsx / primitives.test.tsx style** — Remove or reduce multi-line JSDoc comments to ≤ one short line per block per CLAUDE.md. Only add a comment when the WHY is non-obvious.
+2. **T065 stub note** — When implementing T067–T076, the stubs (input.tsx, label.tsx, card.tsx, avatar.tsx, sidebar.tsx, sheet.tsx, dropdown-menu.tsx, input-otp.tsx) must be replaced with full implementations that continue to satisfy the T065 `data-slot` assertions.
+3. **input-otp.tsx stub** — The current stub does not use the `input-otp` npm package (T001 dep). T076 must replace it with the real `OTPInput`-based implementation so the OTP input is accessible and keyboard-operable per B1/H6.
+
+**Performance: 94%** — Button implementation fully correct with H4 exact values; cn() is correct; parity tests are functionally solid; API suite shows zero regression; only nits are TDD sequencing (same non-blocking pattern seen in T023/T048) and multi-line comment style.

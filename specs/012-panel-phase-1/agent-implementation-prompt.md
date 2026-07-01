@@ -132,7 +132,7 @@ comes first. Then output:
 - **Verification:** the test/lint/typecheck commands you ran and their results.
 - **Next:** the first unchecked task ID (where the next chat should resume).
 - **Notes/deviations:** anything you changed beyond the literal task text, and why. If you
-  deviated from a task, add a one-line `> note:` under that task in `tasks.md`.
+  deviated from a task, add a one-line `> note:` under that task in `tasks.md` with the file name and relevant path of the files you touched.
 - **Commits**: separate the implementations into individual commits. Clearly label the full relevant path for `git add`. Naming of `git commit -m` should follow `.docs\COMMIT_CONVENTION.md` . When a single source file must change for several tasks (e.g., multiple Express routes in `auth.ts`), prefer a single coherent commit over fragile patch-staging. Name the commit after the task group it completes. If the tasks are genuinely independent and the file can be split cleanly, commit separately; otherwise group them and explain the grouping in the handoff.
 - **Blockers:** any open question for me.
 

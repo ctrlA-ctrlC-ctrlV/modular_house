@@ -758,43 +758,49 @@
 
 ### Frontend shell + pages + auth client
 
-- [ ] T079 [test] Admin shell test (T-F1)
+- [x] T079 [test] Admin shell test (T-F1)
       Files: `apps/web/src/admin/shell/AppShell.test.tsx`
       Do: Assert collapsible sidebar, 48px top bar with the four controls (collapse, UI-preference,
       dark-mode, account), centered faded "Coming Soon", bottom user section, and NO GitHub button.
       Done when: Tests fail and pin US2-1..4,7 + H7.
       Refs: T-F1, FR-020/FR-021/FR-022/FR-023, H7
+      > note: 14 tests covering sidebar presence/toggle, topbar 48px + 4 controls (sidebar-trigger, preferences-trigger, theme-toggle, account-trigger), no GitHub, Coming Soon, user section (displayName, email, initials fallback, dropdown trigger ARIA, sidebar-footer positioning). TDD red phase confirmed (AppShell.js not found). Tests pass after T080-T084 implementation.
 
-- [ ] T080 Implement ComingSoon content region
+- [x] T080 Implement ComingSoon content region
       Files: `apps/web/src/admin/shell/ComingSoon.tsx`
       Do: Centered, faded "Coming Soon" placeholder; no feature pages.
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-021, H7
+      > note: simple flex-centered paragraph with text-muted-foreground/60 styling; data-slot="coming-soon" for test assertions.
 
-- [ ] T081 Implement Sidebar user section
+- [x] T081 Implement Sidebar user section
       Files: `apps/web/src/admin/shell/UserSection.tsx`
       Do: Bottom-pinned avatar + display name + account menu (Settings, Logout); initials fallback.
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-022/FR-025, G4
+      > note: renders inside SidebarFooter via SidebarMenu/SidebarMenuItem/SidebarMenuButton; Avatar with initials fallback (getInitials helper); data-slot="user-display-name" and data-slot="user-email" for test assertions; UserShellData interface exported for TopBar reuse. T079 user section assertions pass.
 
-- [ ] T082 Implement the Sidebar shell composition
+- [x] T082 Implement the Sidebar shell composition
       Files: `apps/web/src/admin/shell/Sidebar.tsx`
       Do: Compose Sidebar primitive + ComingSoon + UserSection; Ctrl/Cmd+B toggle hook.
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-020, H2
+      > note: SidebarShell composes SidebarHeader (app identity "Modular House"), SidebarContent (ComingSoon), and SidebarFooter (UserSection); uses SidebarMenu/SidebarMenuButton from ui/sidebar.tsx; Ctrl/Cmd+B toggle inherited from SidebarProvider. T079 sidebar assertions pass.
 
-- [ ] T083 Implement the TopBar
+- [x] T083 Implement the TopBar
       Files: `apps/web/src/admin/shell/TopBar.tsx`
       Do: 48px bar with sidebar-collapse, UI-preference (theme/Default preset only), dark-mode toggle,
       account button; explicitly no GitHub control.
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-023, H3/H7
+      > note: 48px header (h-12 per H3) with 4 controls: sidebar-trigger (PanelLeftIcon), preferences-trigger (SettingsIcon), theme-toggle (cycles light→dark→system with Sun/Moon/Monitor icons), account-trigger (Avatar with DropdownMenu for Settings/Logout). No GitHub button (H7). Uses useSidebar() and useTheme() hooks. All data-slot attributes match T079 assertions. T079 topbar assertions pass.
 
-- [ ] T084 Implement the AppShell composition
+- [x] T084 Implement the AppShell composition
       Files: `apps/web/src/admin/shell/AppShell.tsx`
       Do: Lay out Sidebar + TopBar + content region inside `.admin-root`.
       Done when: T079 passes.
       Refs: T-F1, FR-020
+      > note: AppShell wraps ThemeProvider + SidebarProvider around SidebarShell + TopBar + main content region; accepts UserShellData props (AuthProvider context wired in T092); `.admin-root` with `data-admin` attribute scopes Tailwind tokens (T002/T003). T079 14/14 pass. Files: AppShell.tsx, ComingSoon.tsx, UserSection.tsx, Sidebar.tsx, TopBar.tsx, AppShell.test.tsx.
 
 - [ ] T085 [test] Pre-auth pages + guard test (T-F6)
       Files: `apps/web/src/admin/pages/preAuth.test.tsx`

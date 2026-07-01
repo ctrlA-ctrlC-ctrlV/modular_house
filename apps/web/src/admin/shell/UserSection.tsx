@@ -1,6 +1,8 @@
-// UserSection — bottom-pinned avatar + display name + account menu.
+// UserSection — bottom-pinned avatar + display name + email.
 // Renders inside SidebarFooter; shows initials fallback when no photo (G4).
-// Account menu provides Settings and Logout actions (FR-022/FR-025).
+// Design decision: the account menu (Settings, Logout) lives in TopBar.tsx
+// so it remains accessible when the sidebar is collapsed to icon rail.
+// UserSection is display-only; TopBar owns the account DropdownMenu (FR-025).
 import { cn } from '../lib/cn.js';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar.js';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '../ui/sidebar.js';

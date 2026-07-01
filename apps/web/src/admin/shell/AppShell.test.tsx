@@ -69,6 +69,8 @@ describe('Admin shell (AppShell)', () => {
       const topbar = screen.getByRole('banner');
       expect(topbar).toBeInTheDocument();
       expect(topbar).toHaveAttribute('data-slot', 'topbar');
+      // H3: top bar height = 48px = h-12 in Tailwind.
+      expect(topbar).toHaveClass('h-12');
     });
 
     it('renders a sidebar-collapse control', () => {

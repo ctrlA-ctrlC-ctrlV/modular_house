@@ -1,22 +1,9 @@
-/**
- * Avatar primitive — Phase 1 admin design system.
- *
- * Radix Avatar with size variants and initials fallback (G4).
- * Mirrors the template's avatar.tsx structure, stripped of Next.js
- * specifics and adapted to the Vite/React setup.
- */
+// Avatar primitive — Radix Avatar with size variants and initials fallback (G4).
 import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import { cn } from '../lib/cn.js';
 
-/**
- * Root avatar container.
- *
- * - `data-slot="avatar"` for test selectors.
- * - `data-size` drives width/height via Tailwind data-attribute variants.
- * - `group/avatar` enables descendant AvatarBadge positioning.
- * - `after:` pseudo-element adds a subtle ring/border for visual parity.
- */
+// Root avatar container with data-slot, data-size, and after:border ring.
 function Avatar({
   className,
   size = 'default',
@@ -39,13 +26,7 @@ function Avatar({
   );
 }
 
-/**
- * Avatar image element.
- *
- * Wraps the Radix Image in a span so `data-slot="avatar-image"` is
- * always present in the DOM. Radix omits the <img> entirely when the
- * image fails to load, which would break querySelector-based tests.
- */
+// Wrapped in a span so data-slot stays in DOM when Radix omits <img> on load failure.
 const AvatarImage = React.forwardRef<
   HTMLSpanElement,
   React.ComponentProps<typeof AvatarPrimitive.Image>
@@ -61,12 +42,7 @@ const AvatarImage = React.forwardRef<
 });
 AvatarImage.displayName = 'AvatarImage';
 
-/**
- * Avatar fallback — renders initials when no photo is set (G4).
- *
- * Uses `bg-muted` background with `text-muted-foreground` for a
- * neutral appearance. Font size scales down on `sm` avatars.
- */
+// Renders initials when no photo is set (G4).
 function AvatarFallback({
   className,
   ...props

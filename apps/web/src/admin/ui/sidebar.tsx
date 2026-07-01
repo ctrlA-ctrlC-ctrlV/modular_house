@@ -1,21 +1,9 @@
-/**
- * Sidebar primitive — Phase 1 admin design system.
- *
- * Collapsible sidebar with context-driven state, keyboard toggle
- * (Ctrl/Cmd+B per H2), rail/expanded modes, and mobile Sheet drawer.
- * Ports the template's sidebar.tsx to Vite/React, stripped of Next.js
- * specifics and Tooltip/Skeleton dependencies not needed in Phase 1.
- *
- * Width tokens from plan §2.8 H3:
- *   expanded  = 17rem (--sidebar-width)
- *   icon rail = 3rem  (--sidebar-width-icon)
- *   mobile    = 18rem (--sidebar-width-mobile)
- */
+// Sidebar primitive — collapsible rail/expanded with context, keyboard toggle, mobile Sheet drawer.
+// Width tokens (H3): expanded 17rem, icon rail 3rem, mobile 18rem.
 import * as React from 'react';
 import { cn } from '../lib/cn.js';
 import { Sheet, SheetContent } from './sheet.js';
 
-/** Sidebar context shape exposed via useSidebar(). */
 type SidebarContextProps = {
   state: 'expanded' | 'collapsed';
   open: boolean;
@@ -28,10 +16,7 @@ type SidebarContextProps = {
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
-/**
- * Access sidebar state from any descendant component.
- * Throws if used outside a SidebarProvider.
- */
+// Access sidebar state; throws outside a SidebarProvider.
 function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) {
@@ -40,13 +25,7 @@ function useSidebar() {
   return context;
 }
 
-/**
- * Provides sidebar state to descendants. Manages desktop collapse
- * and mobile drawer open/close, plus the Ctrl/Cmd+B keyboard shortcut.
- *
- * Writes the sidebar collapsed state to a cookie for pre-paint boot
- * script consumption (research R8 / H2).
- */
+// Provides sidebar state, Ctrl/Cmd+B shortcut (H2), and cookie mirror for pre-paint boot.
 function SidebarProvider({
   defaultOpen = true,
   open: openProp,
@@ -63,7 +42,7 @@ function SidebarProvider({
   const [isMobile, setIsMobile] = React.useState(false);
   const [openMobile, setOpenMobile] = React.useState(false);
 
-  // Detect mobile viewport (H5: < 768px).
+  // H5: mobile breakpoint < 768px.
   React.useEffect(() => {
     const mql = window.matchMedia('(max-width: 767px)');
     const handler = (e: MediaQueryListEvent | MediaQueryList) => {
@@ -74,7 +53,6 @@ function SidebarProvider({
     return () => mql.removeEventListener('change', handler);
   }, []);
 
-  // Internal state with optional controlled mode.
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
@@ -85,13 +63,11 @@ function SidebarProvider({
       } else {
         _setOpen(openState);
       }
-      // Mirror to cookie for pre-paint boot script.
       document.cookie = `sidebar_state=${openState}; path=/; max-age=${60 * 60 * 24 * 7}`;
     },
     [setOpenProp, open],
   );
 
-  /** Toggle desktop collapse or mobile drawer. */
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((prev) => !prev) : setOpen((prev) => !prev);
   }, [isMobile, setOpen, setOpenMobile]);
@@ -143,16 +119,7 @@ function SidebarProvider({
   );
 }
 
-/**
- * Main sidebar component. Renders as:
- * - A fixed sidebar with collapsible rail on desktop.
- * - A Sheet-based off-canvas drawer on mobile.
- * - A non-collapsible div when collapsible="none" or no provider.
- *
- * Uses `React.useContext` directly (not `useSidebar()`) so it can
- * gracefully fall back to a simple div when rendered outside a
- * SidebarProvider (e.g. in isolated primitive tests).
- */
+// Main sidebar — desktop collapsible rail, mobile Sheet drawer, or simple div fallback.
 function Sidebar({
   side = 'left',
   collapsible = 'offcanvas',
@@ -165,9 +132,7 @@ function Sidebar({
 }) {
   const ctx = React.useContext(SidebarContext);
 
-  // No context available — render as a simple non-collapsible sidebar.
-  // This happens when the component is used outside a SidebarProvider
-  // (e.g. in isolated primitive tests or simple layouts).
+  // Fallback for isolated tests or simple layouts without a provider.
   if (!ctx) {
     return (
       <div
@@ -185,7 +150,6 @@ function Sidebar({
 
   const { isMobile, state, openMobile, setOpenMobile } = ctx;
 
-  // Non-collapsible mode — simple fixed-width sidebar.
   if (collapsible === 'none') {
     return (
       <div
@@ -201,7 +165,7 @@ function Sidebar({
     );
   }
 
-  // Mobile mode — render via Sheet (off-canvas drawer, H5).
+  // Mobile: off-canvas Sheet drawer (H5).
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
@@ -218,7 +182,7 @@ function Sidebar({
     );
   }
 
-  // Desktop mode — fixed sidebar with collapsible rail.
+  // Desktop: fixed sidebar with collapsible rail.
   return (
     <div
       className="group peer hidden text-sidebar-foreground md:block"
@@ -227,7 +191,6 @@ function Sidebar({
       data-side={side}
       data-slot="sidebar"
     >
-      {/* Gap element — handles the sidebar width transition on the layout. */}
       <div
         data-slot="sidebar-gap"
         className={cn(
@@ -236,7 +199,6 @@ function Sidebar({
           'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
         )}
       />
-      {/* Fixed sidebar container. */}
       <div
         data-slot="sidebar-container"
         data-side={side}
@@ -262,7 +224,7 @@ function Sidebar({
   );
 }
 
-/** Toggle button for the sidebar — typically placed in the TopBar. */
+// Toggle button for the sidebar (inline panel-left SVG icon).
 function SidebarTrigger({
   className,
   onClick,
@@ -277,7 +239,7 @@ function SidebarTrigger({
       className={cn(
         'inline-flex size-8 items-center justify-center rounded-md text-sidebar-foreground',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'focus-visible:ring-2 focus-visible:ring-sidebar-ring outline-none',
+        'focus-visible:ring-3 focus-visible:ring-ring/50 outline-none',
         className,
       )}
       onClick={(event) => {
@@ -286,7 +248,6 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      {/* Panel-left icon (inline SVG, avoids lucide-react dependency). */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"
@@ -306,7 +267,7 @@ function SidebarTrigger({
   );
 }
 
-/** Rail element — thin clickable edge that toggles collapse. */
+// Thin clickable rail edge that toggles collapse.
 function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
   const { toggleSidebar } = useSidebar();
 
@@ -330,7 +291,6 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
   );
 }
 
-/** Header region inside the sidebar. */
 function SidebarHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -341,7 +301,6 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** Footer region inside the sidebar. */
 function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -352,7 +311,6 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** Scrollable content region between header and footer. */
 function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -367,7 +325,6 @@ function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** Group container for organizing sidebar sections. */
 function SidebarGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -378,7 +335,6 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** Label for a sidebar group — hidden when collapsed to icon rail. */
 function SidebarGroupLabel({
   className,
   ...props
@@ -397,7 +353,6 @@ function SidebarGroupLabel({
   );
 }
 
-/** Content wrapper inside a sidebar group. */
 function SidebarGroupContent({
   className,
   ...props
@@ -411,7 +366,6 @@ function SidebarGroupContent({
   );
 }
 
-/** Unordered list for sidebar menu items. */
 function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>) {
   return (
     <ul
@@ -422,7 +376,6 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>) {
   );
 }
 
-/** Individual menu item container. */
 function SidebarMenuItem({
   className,
   ...props
@@ -436,10 +389,7 @@ function SidebarMenuItem({
   );
 }
 
-/**
- * Menu button — the clickable element inside a menu item.
- * Supports active state and collapses to icon-only on rail mode.
- */
+// Clickable menu button; supports active state, collapses to icon-only on rail.
 function SidebarMenuButton({
   isActive = false,
   className,
@@ -453,7 +403,7 @@ function SidebarMenuButton({
         'flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm',
         'outline-none transition-[width,height,padding]',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+        'focus-visible:ring-3 focus-visible:ring-ring/50',
         'group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!',
         'disabled:pointer-events-none disabled:opacity-50',
         'data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground',

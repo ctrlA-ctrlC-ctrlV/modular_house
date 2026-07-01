@@ -1280,4 +1280,28 @@ pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
 1. **T079 nit** — Strengthen the topbar 48px assertion: add `expect(topbar).toHaveClass('h-12')` to the topbar test. This pins the H3 value in code rather than just a comment. Non-blocking since `h-12` is visually confirmed in source.
 2. **T081 nit** — If the project's long-term design intent is for the account menu to live in the sidebar user section (as the template typically shows), consider moving the dropdown from `TopBar.tsx` into `UserSection.tsx`. If the current split (identity in sidebar, actions in topbar) is intentional, add a one-line comment in `UserSection.tsx` explaining the design decision so future contributors understand.
 
+---
+
+## Session 23 — Re-check after corrective items (2026-07-01)
+
+**Trigger:** Session 23 left two non-blocking nits (T079 h-12 assertion, T081 design-decision comment). Implementing agent applied both in commit `3b5dbcc`.
+
+**Changes reviewed:**
+
+| Nit | Fix | Verified |
+|-----|-----|---------|
+| T079 — add `toHaveClass('h-12')` | `AppShell.test.tsx:71` — `expect(topbar).toHaveClass('h-12')` added directly after `data-slot` assertion | ✅ 14/14 still pass |
+| T081 — document account-menu design decision | `UserSection.tsx:1-3` — header comment updated: "Design decision: the account menu (Settings, Logout) lives in TopBar.tsx so it remains accessible when the sidebar is collapsed to icon rail." | ✅ rationale is sound and self-documenting |
+
+**Verification:** `pnpm --filter @modular-house/web test:run -- AppShell.test.tsx` → 14/14 ✅
+
+**Verdict updates:**
+
+| Task | Session 23 | Re-check | Change |
+|------|-----------|----------|--------|
+| T079 | PASS-WITH-NITS | PASS | `toHaveClass('h-12')` pins H3 value in code ✓ |
+| T081 | PASS-WITH-NITS | PASS | Design decision documented in source comment ✓ |
+
+**Overall: GO** — All T079–T084 now PASS. No remaining corrective items.
+
 **Performance: 93%** — Shell composition is clean and correct; H3/H4 values are exact; H7 guardrails are respected; all 14 tests pass in isolation and full parallelism; API suite shows zero regression. Score docked for: TDD nit (missing `h-12` class assertion to pin 48px in code, not just comment) and the mild T081 task-description deviation on account-menu placement (design decision, explicitly documented in the note but differs from task `Do:` wording).

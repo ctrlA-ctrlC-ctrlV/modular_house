@@ -765,7 +765,7 @@
       Done when: Tests fail and pin US2-1..4,7 + H7.
       Refs: T-F1, FR-020/FR-021/FR-022/FR-023, H7
       > note: 14 tests covering sidebar presence/toggle, topbar 48px + 4 controls (sidebar-trigger, preferences-trigger, theme-toggle, account-trigger), no GitHub, Coming Soon, user section (displayName, email, initials fallback, dropdown trigger ARIA, sidebar-footer positioning). TDD red phase confirmed (AppShell.js not found). Tests pass after T080-T084 implementation.
-      > reviewed: PASS-WITH-NITS — 14/14 pass (isolation + full suite 161/0/0); US2-1..4,7 + H7 all asserted; nit: no `toHaveClass('h-12')` to pin the 48px H3 claim in code (comment-only, non-blocking).
+      > reviewed: PASS — 14/14 pass; US2-1..4,7 + H7 all asserted; `toHaveClass('h-12')` added (Session 23 nit resolved ✓).
 
 - [x] T080 Implement ComingSoon content region
       Files: `apps/web/src/admin/shell/ComingSoon.tsx`
@@ -781,7 +781,7 @@
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-022/FR-025, G4
       > note: renders inside SidebarFooter via SidebarMenu/SidebarMenuItem/SidebarMenuButton; Avatar with initials fallback (getInitials helper); data-slot="user-display-name" and data-slot="user-email" for test assertions; UserShellData interface exported for TopBar reuse. T079 user section assertions pass.
-      > reviewed: PASS-WITH-NITS — data-testid/data-slot attrs ✓; Avatar+initials (G4) ✓; SidebarFooter placement ✓. Nit: account menu (Settings/Logout) placed in TopBar rather than UserSection as task `Do:` implies — intentional per note ("UserShellData exported for TopBar reuse"); T079 tests pass regardless.
+      > reviewed: PASS — data-testid/data-slot attrs ✓; Avatar+initials (G4) ✓; SidebarFooter placement ✓; design decision documented in source comment (Session 23 nit resolved ✓).
 
 - [x] T082 Implement the Sidebar shell composition
       Files: `apps/web/src/admin/shell/Sidebar.tsx`

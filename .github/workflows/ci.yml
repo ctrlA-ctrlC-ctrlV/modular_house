@@ -144,6 +144,12 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5433/test_db
           NODE_ENV: test
+          MAIL_HOST: localhost
+          MAIL_FROM_EMAIL: ci@example.com
+          MAIL_INTERNAL_TO: ci@example.com
+          JWT_SECRET: ci-jwt-secret-placeholder
+          REFRESH_TOKEN_SECRET: ci-refresh-token-placeholder
+          IP_SALT: ci-ip-salt-placeholder
 
       - name: Run API tests with coverage
         working-directory: apps/api
@@ -260,6 +266,12 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5433/test_db
           NODE_ENV: test
+          MAIL_HOST: localhost
+          MAIL_FROM_EMAIL: ci@example.com
+          MAIL_INTERNAL_TO: ci@example.com
+          JWT_SECRET: ci-jwt-secret-placeholder
+          REFRESH_TOKEN_SECRET: ci-refresh-token-placeholder
+          IP_SALT: ci-ip-salt-placeholder
 
       - name: Enforce coverage thresholds
         run: pnpm test:coverage:enforce

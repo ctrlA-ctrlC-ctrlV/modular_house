@@ -116,8 +116,9 @@ Add clear, detailed, and professional inline comments to the attached files. The
 Before finishing the session, run the full verification set for every package you touched:
 
 - `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`
-- `pnpm --filter @modular-house/api lint`
-- `pnpm --filter @modular-house/api typecheck`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test:coverage`
 - If you touched `apps/web`: `pnpm --filter @modular-house/web test:run`
 
 Do not hand off a session where any of these fail.

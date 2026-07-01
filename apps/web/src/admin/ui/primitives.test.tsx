@@ -35,6 +35,7 @@ import {
   SheetContent,
 } from '../ui/sheet.js';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp.js';
+import { Field, FieldLabel, FieldError } from '../ui/form.js';
 
 describe('Primitive parity contract', () => {
   // ── Button ──────────────────────────────────────────────────────────
@@ -231,6 +232,45 @@ describe('Primitive parity contract', () => {
       );
       const el = screen.getByText('Open');
       expect(el).toHaveAttribute('data-slot', 'sheet-trigger');
+    });
+  });
+
+  // ── Form ────────────────────────────────────────────────────────────
+
+  describe('Form', () => {
+    it('renders Field with data-slot="field"', () => {
+      render(<Field>Content</Field>);
+      const el = screen.getByText('Content');
+      expect(el).toHaveAttribute('data-slot', 'field');
+    });
+
+    it('renders FieldLabel with data-slot="field-label"', () => {
+      render(<FieldLabel htmlFor="test">Name</FieldLabel>);
+      const el = screen.getByText('Name');
+      expect(el).toHaveAttribute('data-slot', 'field-label');
+    });
+
+    it('associates FieldLabel with an input via htmlFor', () => {
+      render(
+        <>
+          <FieldLabel htmlFor="form-input">Email</FieldLabel>
+          <input id="form-input" />
+        </>,
+      );
+      const input = screen.getByLabelText('Email');
+      expect(input).toHaveAttribute('id', 'form-input');
+    });
+
+    it('renders FieldError with role="alert"', () => {
+      render(<FieldError>Something went wrong</FieldError>);
+      const el = screen.getByRole('alert');
+      expect(el).toHaveAttribute('data-slot', 'field-error');
+      expect(el).toHaveTextContent('Something went wrong');
+    });
+
+    it('renders nothing when FieldError has no children or errors', () => {
+      const { container } = render(<FieldError />);
+      expect(container.firstChild).toBeNull();
     });
   });
 

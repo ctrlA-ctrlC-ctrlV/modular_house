@@ -1,19 +1,10 @@
-/**
- * Form field wrappers — Phase 1 admin design system.
- *
- * Composable field/label/description/error wrappers for form layouts.
- * Exposes validation errors to assistive technology via `role="alert"`
- * (FR-031). Ports the template's field.tsx, simplified for Phase 1.
- */
+// Form field wrappers — composable field/label/description/error for form layouts (FR-031).
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../lib/cn.js';
 import { Label } from './label.js';
 
-/**
- * Orientation variants for the field layout.
- * Vertical stacks label above input; horizontal aligns them side-by-side.
- */
+// Orientation variants: vertical stacks label above input, horizontal aligns side-by-side.
 const fieldVariants = cva(
   'group/field flex w-full gap-2 data-[invalid=true]:text-destructive',
   {
@@ -30,13 +21,7 @@ const fieldVariants = cva(
   },
 );
 
-/**
- * Field container — groups a label, input, description, and error.
- *
- * - `data-slot="field"` for slot-based styling.
- * - `data-orientation` drives layout direction.
- * - `data-invalid` is set when the field has a validation error.
- */
+// Field container — groups label, input, description, and error.
 function Field({
   className,
   orientation = 'vertical',
@@ -56,9 +41,6 @@ function Field({
   );
 }
 
-/**
- * Field content — holds the description and error text below the input.
- */
 function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -69,10 +51,7 @@ function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/**
- * Field label — wraps the Label primitive with field-specific styling.
- * Links to the associated input via `htmlFor` for AT (FR-031).
- */
+// Wraps Label primitive with field styling; htmlFor provides AT association (FR-031).
 function FieldLabel({
   className,
   ...props
@@ -90,10 +69,6 @@ function FieldLabel({
   );
 }
 
-/**
- * Field description — help text displayed below the input.
- * Muted styling to visually de-emphasize relative to the label.
- */
 function FieldDescription({
   className,
   ...props
@@ -107,14 +82,8 @@ function FieldDescription({
   );
 }
 
-/**
- * Field error — validation error message exposed to AT.
- *
- * - `role="alert"` ensures screen readers announce the error (FR-031).
- * - Accepts either explicit `children` or an `errors` array from
- *   React Hook Form / Zod for automatic deduplication and rendering.
- * - Renders nothing when there are no errors.
- */
+// Validation error exposed to AT via role="alert" (FR-031).
+// Accepts children or a Zod/RHF errors array with automatic deduplication.
 function FieldError({
   className,
   children,
@@ -132,7 +101,6 @@ function FieldError({
       return null;
     }
 
-    // Deduplicate error messages.
     const uniqueErrors = [
       ...new Map(errors.map((error) => [error?.message, error])).values(),
     ];

@@ -1153,4 +1153,71 @@ pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
 | T074 | PASS-WITH-NITS (TDD gap + JSDoc) | PASS | 5 Form tests added (136/0/0); JSDoc ✓; TDD gap closed |
 
 **Overall: GO** — All Session 21 corrective items resolved. Web suite 136/0/0, API suite 296/0/0, lint and typecheck clean. Proceed to T075 (Sonner toast) and T076 (InputOTP).
+
+---
+
+## Session 22 — 2026-07-01 (reviewer: supervisor)
+
+**Scope:** T075–T078 (Pass 1 — Sonner toast host, InputOTP, ThemeProvider test + implementation).
+
+**Verification results (supervisor-run, full parallelism):**
+- `pnpm --filter @modular-house/web test:run` — ✅ **147 passed / 0 failed / 0 skipped** (20 files; +11 from T077)
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (37 files — no regression)
+- `pnpm --filter @modular-house/web test:run -- src/admin/theme/ThemeProvider.test.tsx` — ✅ **11/11 passed** (isolation run)
+- Lint: clean (carry-forward from Session 21 re-check; no new API changes)
+- Typecheck: clean (noted in implementing agent note)
+- `@modular-house/ui` diff vs `main` — no files changed (admin DS correctly isolated)
+- Emoji scan (`admin/ui/sonner.tsx`, `admin/ui/input-otp.tsx`, `admin/theme/**`) — ✅ none found
+
+**Source-of-truth re-derivation (independent):**
+
+| Check | Detail | Result |
+|-------|--------|--------|
+| T075 CSS token vars | `sonner.tsx:96-99` `--normal-bg: var(--popover)` / `--normal-text: var(--popover-foreground)` / `--normal-border: var(--border)` / `--border-radius: var(--radius)` | ✅ all map to tokens.css vars |
+| T075 MutationObserver | `sonner.tsx:72-81` observes `class` attribute on `document.documentElement` | ✅ correct |
+| T075 no lucide-react | 5 inline SVG icon components (SuccessIcon, InfoIcon, WarningIcon, ErrorIcon, LoadingIcon) | ✅ no external icon dep |
+| T076 uses input-otp package | `input-otp.tsx:7` `import { OTPInput, OTPInputContext } from 'input-otp'` | ✅ (Session 18 reminder resolved) |
+| T076 H4 focus ring | `input-otp.tsx:75` `data-[active=true]:ring-3 data-[active=true]:ring-ring/50` | ✅ H4 exact (3px at ring/50) |
+| T076 aria-invalid | `input-otp.tsx:75` `aria-invalid:border-destructive` on slot; `input-otp-group.tsx` `has-aria-invalid:ring-3 has-aria-invalid:ring-destructive/20` | ✅ correct |
+| T076 data-slot | `data-slot="input-otp"` (line 25), `data-slot="input-otp-group"` (line 45), `data-slot="input-otp-slot"` (line 72), `data-slot="input-otp-separator"` (line 101) | ✅ all 4 subcomponents |
+| T077 TDD red phase | `> note:` "boot.js/ThemeProvider.js not found → fails" confirmed | ✅ |
+| T077 test count | 7 boot-script + 4 ThemeProvider tests = 11 total | ✅ matches `147 - 136 = 11` |
+| T078 cookie names | `boot.ts:6-7`, `ThemeProvider.tsx:9-10`, `index.html:150-156` all use `admin_theme_mode` / `admin_sidebar_collapsed` | ✅ consistent |
+| T078 IIFE placement | `index.html:140-160` — `<script>` in `<head>` before `<script type="module" src="/src/main.tsx">` in `<body>` | ✅ synchronous pre-paint |
+| T078 graceful degradation | `index.html:158` `catch (e) { /* silent */ }` | ✅ |
+| T078 IIFE behavior parity | boot.ts and index.html IIFE perform identical steps (read → validate → resolve → set data-theme-mode → toggle .dark → set colorScheme → set data-sidebar-collapsed) | ✅ |
+| T078 matchMedia subscription | `ThemeProvider.tsx:128-138` `useEffect` subscribes when `themeMode === 'system'` | ✅ |
+| Scope | No changes to public site routes/components, `@modular-house/ui`, or non-admin source | ✅ |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T075 | PASS-WITH-NITS | Implementation correct: MutationObserver wired, 5 inline SVG icons, CSS token vars (popover/border/radius) mapped correctly. **Nit 1 (TDD gap):** no automated test covers the Sonner component at all — "Done when: relevant T065 assertions pass" is vacuously true (no T065 Sonner import or assertions). Less severe than T074's gap (Sonner is a mount-only host; meaningful assertions require DOM CSS — untestable in jsdom) but a smoke test (`renders without throwing`) is missing. **Nit 2:** multi-paragraph JSDoc blocks reintroduced after being cleaned in Session 21 re-check — carry-forward style violation. |
+| T076 | PASS-WITH-NITS | T065 3/3 InputOTP assertions pass ✓; uses `input-otp` npm package (Session 18 reminder fulfilled) ✓; H4 focus ring exact on active slot (`ring-3 ring-ring/50`) ✓; aria-invalid error states on slot + group ✓; role="separator" on InputOTPSeparator ✓; inline SVG dash avoids lucide-react ✓. **Nit:** multi-paragraph JSDoc blocks reintroduced (carry-forward style violation). |
+| T077 | PASS | 11/11 tests verified at runtime; TDD red phase confirmed ✓; all H1 paths covered: light, dark, system→OS-dark, system→OS-light, no-cookie default=system, sidebar-true, sidebar-default=false; ThemeProvider toggle (DOM+cookie), sidebar toggle (DOM+cookie), useTheme-outside-provider throw all tested ✓; no injected clock needed (no time logic) ✓. |
+| T078 | PASS | boot.ts exports `applyBootTheme()` for programmatic/test use ✓; index.html IIFE runs synchronously in `<head>` before React bundle — zero FOUC ✓; try/catch for graceful degradation ✓; cookie names consistent across all three files ✓; ThemeProvider reads cookies on mount, writes on toggle, subscribes to OS matchMedia for system mode ✓; useTheme() throws outside provider ✓; T077 11/11 confirmed ✓. |
+
+**Overall: GO** — All four tasks PASS / PASS-WITH-NITS. Web suite 147/0/0, API suite 296/0/0 confirmed with full parallelism. `@modular-house/ui` untouched; all new code under `apps/web/src/admin/`; no scope creep; no emoji; lint and typecheck clean.
+
+**Must-run before proceeding to T079+:**
+```
+pnpm install                               # carry-forward T001 — lock file not yet updated
+pnpm --filter @modular-house/web test:run  # confirmed 147/0/0 ✅
+pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
+```
+
+**Non-blocking follow-ups for implementing agent (recommended before T079):**
+
+1. **T075 TDD gap** — Add a basic smoke test for the `Toaster` component in a new `sonner.test.tsx` or alongside the existing primitives test:
+   ```tsx
+   import { render } from '@testing-library/react';
+   import { Toaster } from '../ui/sonner.js';
+   it('renders Toaster without throwing', () => {
+     expect(() => render(<Toaster />)).not.toThrow();
+   });
+   ```
+   This is less critical than the T074 gap (Form primitives have testable AT semantics; Sonner is a mount-only host), but a smoke test is better than zero coverage.
+
+2. **T075/T076/T077/T078 comment style** — Multi-paragraph JSDoc blocks reappear in `sonner.tsx`, `input-otp.tsx`, `ThemeProvider.tsx`, and `boot.ts` despite being cleaned in Session 21 re-check (commit 661101f). Reduce all multi-line JSDoc blocks to one-line comments per CLAUDE.md. Pattern: the implementing agent should make this a checklist item before every commit.
+
+**Performance: 91%** — T077/T078 are clean, correct, and fully verified at runtime; T076 is functionally solid with correct H4 ring, package usage, and accessibility attributes. T075 implementation is correct by inspection. Score docked for: TDD gap on T075 (no smoke test for Sonner — less severe than T074 but same category) and for the recurring multi-paragraph JSDoc pattern reappearing across all four files immediately after the Session 21 style cleanup. The team should internalize the one-line comment rule rather than requiring a post-hoc review nit each session.
    in-test role+permission upsert would make the dependency explicit.

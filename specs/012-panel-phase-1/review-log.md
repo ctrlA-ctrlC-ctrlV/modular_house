@@ -1104,4 +1104,53 @@ pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
 3. **T071–T074 comment style** — Reduce multi-line JSDoc blocks to one-line comments per CLAUDE.md (carry-forward from Sessions 18–20).
 
 **Performance: 91%** — All four implementations are correct and contract-faithful. H3 values are exact; Ctrl/Cmd+B and cookie mirror are correctly wired; G4 initials fallback and FR-031 role="alert" are both present; AT associations via Radix primitives are correct. Score docked for: TDD gap on T074 (no Form assertions — structural, not cosmetic), focus-ring deviation from H4 on sidebar/sheet controls (spec deviation, non-blocking due to template precedent), and carry-forward multi-line JSDoc comment pattern.
+
+---
+
+## Session 21 — Re-check after corrective items (2026-07-01)
+
+**Trigger:** Session 21 left three corrective items (T074 TDD gap, H4 focus ring on sidebar/sheet controls, multi-line JSDoc style). Two commits applied all three.
+
+**Commits reviewed:**
+- `7023720 test(admin/ui): add Form primitive assertions to close T074 TDD gap`
+- `661101f style(admin/ui): fix H4 focus ring and reduce JSDoc to one-line comments`
+
+**Verification results:**
+- `pnpm --filter @modular-house/web test:run` — ✅ **136 passed / 0 failed / 0 skipped** (+5 Form tests; was 131)
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (no regression)
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/web exec tsc --noEmit` — ✅ clean
+
+**Corrective-item audit:**
+
+| Item | Change | Verified |
+|------|--------|---------|
+| T074 TDD gap | 5 Form tests added to `primitives.test.tsx`: `Field` data-slot, `FieldLabel` data-slot, `FieldLabel` htmlFor AT association, `FieldError` role="alert" + data-slot + text content, `FieldError` null-render | ✅ all 5 pass |
+| H4 focus ring — `SidebarTrigger` | `ring-2 ring-sidebar-ring` → `ring-3 ring-ring/50` (`sidebar.tsx:239`) | ✅ H4 exact |
+| H4 focus ring — `SidebarMenuButton` | `ring-2 ring-sidebar-ring` → `ring-3 ring-ring/50` (`sidebar.tsx:403`) | ✅ H4 exact |
+| H4 focus ring — `SheetContent` close | `ring-2 ring-ring` → `ring-3 ring-ring/50` (`sheet.tsx:91`) | ✅ H4 exact |
+| Multi-line JSDoc — `avatar.tsx` | All multi-line JSDoc blocks reduced to one-line comments | ✅ |
+| Multi-line JSDoc — `sidebar.tsx` | All multi-line JSDoc blocks reduced to one-line comments | ✅ |
+| Multi-line JSDoc — `sheet.tsx` | All multi-line JSDoc blocks reduced to one-line comments | ✅ |
+| Multi-line JSDoc — `form.tsx` | All multi-line JSDoc blocks reduced to one-line comments (in test commit) | ✅ |
+
+**Form test correctness (independent verification):**
+- `Field` → `<div role="group" data-slot="field">Content</div>`; `getByText('Content')` returns div; attribute assertion passes ✓
+- `FieldLabel` → `data-slot="field-label"` overrides Label's `data-slot="label"` via prop-spread order; `getByText('Name')` returns `<label data-slot="field-label">` ✓
+- `htmlFor` → Radix Label renders native `<label htmlFor="form-input">`; `getByLabelText('Email')` finds the input ✓
+- `FieldError role="alert"` → children path renders `<div role="alert" data-slot="field-error">` ✓
+- `FieldError` null-render → no children/errors → `content = null` → component returns `null` → `container.firstChild === null` ✓
+
+**No regressions found.** All three corrective items fully applied and verified.
+
+**Verdict updates:**
+
+| Task | Session 21 | Re-check | Change |
+|------|-----------|----------|--------|
+| T071 | PASS-WITH-NITS (JSDoc nit) | PASS | JSDoc nit resolved ✓ |
+| T072 | PASS-WITH-NITS (H4 ring + JSDoc) | PASS | H4 ring-3/ring/50 on SidebarTrigger + SidebarMenuButton ✓; JSDoc ✓ |
+| T073 | PASS-WITH-NITS (SheetPortal slot + H4 ring + JSDoc) | PASS-WITH-NITS | H4 ring ✓; JSDoc ✓. **Remaining nit:** SheetPortal data-slot still silently dropped (Radix Portal, no DOM node) — was non-blocking in Session 21 and remains non-blocking. |
+| T074 | PASS-WITH-NITS (TDD gap + JSDoc) | PASS | 5 Form tests added (136/0/0); JSDoc ✓; TDD gap closed |
+
+**Overall: GO** — All Session 21 corrective items resolved. Web suite 136/0/0, API suite 296/0/0, lint and typecheck clean. Proceed to T075 (Sonner toast) and T076 (InputOTP).
    in-test role+permission upsert would make the dependency explicit.

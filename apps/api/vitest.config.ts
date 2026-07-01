@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    globalSetup: ['./src/test/globalSetup.ts'],
     setupFiles: ['./src/test/setup.ts'],
     typecheck: {
       tsconfig: './tsconfig.test.json',
@@ -19,6 +20,7 @@ export default defineConfig({
       exclude: [
         'src/**/*.{test,spec}.ts',
         'src/test/**',
+        'src/seed/**', // Shared seed data, exercised by globalSetup (uninstrumented)
         'src/**/*.d.ts',
         'src/server.ts', // Entry point, covered by integration tests
       ],

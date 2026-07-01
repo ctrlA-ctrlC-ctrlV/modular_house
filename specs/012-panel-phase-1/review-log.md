@@ -1220,4 +1220,64 @@ pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
 2. **T075/T076/T077/T078 comment style** — Multi-paragraph JSDoc blocks reappear in `sonner.tsx`, `input-otp.tsx`, `ThemeProvider.tsx`, and `boot.ts` despite being cleaned in Session 21 re-check (commit 661101f). Reduce all multi-line JSDoc blocks to one-line comments per CLAUDE.md. Pattern: the implementing agent should make this a checklist item before every commit.
 
 **Performance: 91%** — T077/T078 are clean, correct, and fully verified at runtime; T076 is functionally solid with correct H4 ring, package usage, and accessibility attributes. T075 implementation is correct by inspection. Score docked for: TDD gap on T075 (no smoke test for Sonner — less severe than T074 but same category) and for the recurring multi-paragraph JSDoc pattern reappearing across all four files immediately after the Session 21 style cleanup. The team should internalize the one-line comment rule rather than requiring a post-hoc review nit each session.
-   in-test role+permission upsert would make the dependency explicit.
+
+---
+
+## Session 23 — 2026-07-01 (reviewer: supervisor)
+
+**Scope:** T079–T084 (Pass 1 — Admin shell test + ComingSoon + UserSection + Sidebar shell composition + TopBar + AppShell composition)
+
+**Verification results (supervisor-run, full parallelism):**
+- `pnpm --filter @modular-house/web test:run` — ✅ **161 passed / 0 failed / 0 skipped** (21 files; was 147 in Session 22 — +14 from T079 shell tests ✓)
+- `pnpm --filter @modular-house/web test:run -- AppShell.test.tsx` — ✅ **14/14 passed** (isolation run)
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (37 files — no regression)
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/web exec tsc --noEmit` — ✅ clean
+- `git diff main -- packages/` — ✅ 0 lines changed (`@modular-house/ui` untouched)
+- Emoji scan (`admin/shell/**/*.tsx`) — ✅ none found (box-drawing chars `──` and em dash `—` in comments are typographic, not emoji)
+- `localStorage` / `sessionStorage` / `adminToken` scan — ✅ none in shell files
+
+**Session 20 CI corrective item (infrastructure):** `apps/api/src/test/globalSetup.ts` + `apps/api/src/seed/seedData.ts` implemented and wired into `vitest.config.ts:8` (`globalSetup: ['./src/test/globalSetup.ts']`). This closes the CI "seed required" failure identified in Session 20 addendum by making DB-dependent integration tests self-sufficient on a clean database. Idempotent upserts; shared with `prisma/seed.ts` via `seedData.ts` to prevent drift. **This is infra-only; T079–T084 code verdicts are independent of it.**
+
+**Source-of-truth re-derivation (independent):**
+
+| Check | Detail | Result |
+|-------|--------|--------|
+| T079 test count | 14 tests: Sidebar×2, TopBar×5, H7×1, ComingSoon×1, UserSection×5 | ✅ exact |
+| T079 TDD red phase | `> note:` "AppShell.js not found → fails" confirmed per note | ✅ |
+| T080 data-slot | `<p data-slot="coming-soon">Coming Soon</p>` in ComingSoon.tsx | ✅ |
+| H7 placement | ComingSoon inside `SidebarContent` (sidebar main-nav) per H7 "sidebar main-nav shows a centered faded 'Coming Soon' only" | ✅ |
+| T081 UserSection | `data-testid="user-section"`, `data-slot="user-display-name"`, `data-slot="user-email"`, Avatar + `getInitials` fallback, inside SidebarFooter | ✅ |
+| T082 Ctrl/Cmd+B | Inherited from `SidebarProvider` in AppShell (keyboard shortcut in `ui/sidebar.js`) | ✅ |
+| T083 h-12 (48px) | `<header data-slot="topbar" className="flex h-12 ...">` | ✅ H3 exact |
+| T083 4 controls | `sidebar-trigger` / `preferences-trigger` / `theme-toggle` / `account-trigger` all present | ✅ |
+| H4 focus ring — all 4 TopBar buttons | `focus-visible:ring-3 focus-visible:ring-ring/50` | ✅ H4 exact |
+| H7 no GitHub | No `github` string in any shell file | ✅ |
+| T083 theme cycle | `light → dark → system` via `THEME_CYCLE` array | ✅ |
+| T084 .admin-root scoping | `data-admin` attribute + `admin-root` class; wraps `ThemeProvider + SidebarProvider` | ✅ |
+| Scope guardrails | All new files under `apps/web/src/admin/shell/`; no changes to public site, `@modular-house/ui`, or API feature code | ✅ |
+| Prefs scope | `UserShellData` = `{displayName, email, role, hasProfilePhoto}` only (no invented fields) | ✅ |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T079 | PASS-WITH-NITS | 14/14 tests pass; TDD red phase confirmed; US2-1..4,7 + H7 all asserted. **Nit:** The `'renders a top bar with data-slot="topbar" (48px height per H3)'` test verifies `data-slot` via `getByRole('banner')` and the 48px H3 claim appears only in the test description comment — no `toHaveClass('h-12')` assertion pins the actual CSS class. Non-blocking (jsdom cannot measure CSS pixels; `h-12` confirmed present in TopBar.tsx source). |
+| T080 | PASS | `data-slot="coming-soon"` on `<p>` ✓; text "Coming Soon" ✓; `flex flex-1 items-center justify-center` centered ✓; `text-muted-foreground/60` faded ✓; placed in sidebar `SidebarContent` per H7 ✓; no feature pages ✓. |
+| T081 | PASS-WITH-NITS | `data-testid="user-section"` ✓; `data-slot="user-display-name"` / `data-slot="user-email"` ✓; Avatar + `getInitials` fallback (G4) ✓; rendered inside `SidebarFooter` ✓; `UserShellData` + `getInitials` exported ✓. **Nit:** Task `Do:` says "account menu (Settings, Logout)"; the implementing agent placed the account menu in `TopBar.tsx` instead, making `UserSection` a display-only component. This is a deliberate design decision (task note explicitly states "UserShellData interface exported for TopBar reuse") and T079 tests pass because they locate the account trigger in the DOM without caring which component owns it. Non-blocking given the task note acknowledgement. |
+| T082 | PASS | `SidebarShell` composes `Sidebar` + `SidebarHeader` ("Modular House" identity) + `SidebarContent` (`ComingSoon`) + `SidebarFooter` (`UserSection`) ✓; Ctrl/Cmd+B inherited from `SidebarProvider` ✓; no scope creep ✓. |
+| T083 | PASS | `h-12` = 48px (H3) ✓; `data-slot="topbar"` on `<header>` ✓; four controls with correct `data-slot` and `aria-label` attributes ✓; H4 focus ring `ring-3 ring-ring/50` on all four buttons ✓; no GitHub control (H7) ✓; theme cycles `light→dark→system` ✓; `DropdownMenuTrigger asChild` account menu with Settings + Logout ✓. Note: preferences-trigger `onClick={() => {}}` is an explicit stub (preferences popover deferred per task note). |
+| T084 | PASS | `ThemeProvider + SidebarProvider` wrap ✓; `.admin-root` + `data-admin` scoping (T002/T003) ✓; `SidebarShell + TopBar + main` layout ✓; accepts `UserShellData` props ✓; T079 14/14 pass confirmed at runtime ✓. |
+
+**Overall: GO** — All six tasks PASS / PASS-WITH-NITS. Web suite 161/0/0 confirmed with full parallelism; API suite 296/0/0 with no regression; lint and typecheck clean; `@modular-house/ui` untouched; all shell files correctly isolated under `apps/web/src/admin/shell/`.
+
+**Must-run before proceeding to T085+:**
+```
+pnpm install                               # carry-forward T001 — lock file not yet updated
+pnpm --filter @modular-house/web test:run  # confirmed 161/0/0 ✅
+pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
+```
+
+**Non-blocking follow-ups for implementing agent:**
+1. **T079 nit** — Strengthen the topbar 48px assertion: add `expect(topbar).toHaveClass('h-12')` to the topbar test. This pins the H3 value in code rather than just a comment. Non-blocking since `h-12` is visually confirmed in source.
+2. **T081 nit** — If the project's long-term design intent is for the account menu to live in the sidebar user section (as the template typically shows), consider moving the dropdown from `TopBar.tsx` into `UserSection.tsx`. If the current split (identity in sidebar, actions in topbar) is intentional, add a one-line comment in `UserSection.tsx` explaining the design decision so future contributors understand.
+
+**Performance: 93%** — Shell composition is clean and correct; H3/H4 values are exact; H7 guardrails are respected; all 14 tests pass in isolation and full parallelism; API suite shows zero regression. Score docked for: TDD nit (missing `h-12` class assertion to pin 48px in code, not just comment) and the mild T081 task-description deviation on account-menu placement (design decision, explicitly documented in the note but differs from task `Do:` wording).

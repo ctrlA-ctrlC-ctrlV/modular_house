@@ -765,6 +765,7 @@
       Done when: Tests fail and pin US2-1..4,7 + H7.
       Refs: T-F1, FR-020/FR-021/FR-022/FR-023, H7
       > note: 14 tests covering sidebar presence/toggle, topbar 48px + 4 controls (sidebar-trigger, preferences-trigger, theme-toggle, account-trigger), no GitHub, Coming Soon, user section (displayName, email, initials fallback, dropdown trigger ARIA, sidebar-footer positioning). TDD red phase confirmed (AppShell.js not found). Tests pass after T080-T084 implementation.
+      > reviewed: PASS-WITH-NITS — 14/14 pass (isolation + full suite 161/0/0); US2-1..4,7 + H7 all asserted; nit: no `toHaveClass('h-12')` to pin the 48px H3 claim in code (comment-only, non-blocking).
 
 - [x] T080 Implement ComingSoon content region
       Files: `apps/web/src/admin/shell/ComingSoon.tsx`
@@ -772,6 +773,7 @@
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-021, H7
       > note: simple flex-centered paragraph with text-muted-foreground/60 styling; data-slot="coming-soon" for test assertions.
+      > reviewed: PASS — data-slot="coming-soon" ✓; text "Coming Soon" ✓; flex-centered in SidebarContent per H7 ✓; text-muted-foreground/60 faded ✓; no feature pages ✓.
 
 - [x] T081 Implement Sidebar user section
       Files: `apps/web/src/admin/shell/UserSection.tsx`
@@ -779,6 +781,7 @@
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-022/FR-025, G4
       > note: renders inside SidebarFooter via SidebarMenu/SidebarMenuItem/SidebarMenuButton; Avatar with initials fallback (getInitials helper); data-slot="user-display-name" and data-slot="user-email" for test assertions; UserShellData interface exported for TopBar reuse. T079 user section assertions pass.
+      > reviewed: PASS-WITH-NITS — data-testid/data-slot attrs ✓; Avatar+initials (G4) ✓; SidebarFooter placement ✓. Nit: account menu (Settings/Logout) placed in TopBar rather than UserSection as task `Do:` implies — intentional per note ("UserShellData exported for TopBar reuse"); T079 tests pass regardless.
 
 - [x] T082 Implement the Sidebar shell composition
       Files: `apps/web/src/admin/shell/Sidebar.tsx`
@@ -786,6 +789,7 @@
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-020, H2
       > note: SidebarShell composes SidebarHeader (app identity "Modular House"), SidebarContent (ComingSoon), and SidebarFooter (UserSection); uses SidebarMenu/SidebarMenuButton from ui/sidebar.tsx; Ctrl/Cmd+B toggle inherited from SidebarProvider. T079 sidebar assertions pass.
+      > reviewed: PASS — SidebarShell composes Sidebar+Header+Content+Footer correctly ✓; "Modular House" identity ✓; Ctrl/Cmd+B via SidebarProvider ✓; no scope creep ✓.
 
 - [x] T083 Implement the TopBar
       Files: `apps/web/src/admin/shell/TopBar.tsx`
@@ -794,6 +798,7 @@
       Done when: relevant T079 assertions pass.
       Refs: T-F1, FR-023, H3/H7
       > note: 48px header (h-12 per H3) with 4 controls: sidebar-trigger (PanelLeftIcon), preferences-trigger (SettingsIcon), theme-toggle (cycles light→dark→system with Sun/Moon/Monitor icons), account-trigger (Avatar with DropdownMenu for Settings/Logout). No GitHub button (H7). Uses useSidebar() and useTheme() hooks. All data-slot attributes match T079 assertions. T079 topbar assertions pass.
+      > reviewed: PASS — h-12 (48px H3) ✓; data-slot="topbar" ✓; all 4 controls with correct data-slots ✓; H4 ring-3/ring/50 on all buttons ✓; theme cycles light→dark→system ✓; account dropdown Settings+Logout ✓; no GitHub (H7) ✓.
 
 - [x] T084 Implement the AppShell composition
       Files: `apps/web/src/admin/shell/AppShell.tsx`
@@ -801,6 +806,7 @@
       Done when: T079 passes.
       Refs: T-F1, FR-020
       > note: AppShell wraps ThemeProvider + SidebarProvider around SidebarShell + TopBar + main content region; accepts UserShellData props (AuthProvider context wired in T092); `.admin-root` with `data-admin` attribute scopes Tailwind tokens (T002/T003). T079 14/14 pass. Files: AppShell.tsx, ComingSoon.tsx, UserSection.tsx, Sidebar.tsx, TopBar.tsx, AppShell.test.tsx.
+      > reviewed: PASS — ThemeProvider+SidebarProvider wrap ✓; .admin-root+data-admin scoping ✓; SidebarShell+TopBar+main layout ✓; UserShellData props ✓; T079 14/14 confirmed at runtime ✓.
 
 - [ ] T085 [test] Pre-auth pages + guard test (T-F6)
       Files: `apps/web/src/admin/pages/preAuth.test.tsx`

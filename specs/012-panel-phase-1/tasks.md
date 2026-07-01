@@ -721,32 +721,36 @@
       > note: Field container with vertical/horizontal orientation variants (cva), FieldLabel wrapping Label primitive, FieldDescription for help text, FieldError with role="alert" for AT (FR-031) + React Hook Form/Zod errors array support with deduplication. FieldContent for description+error grouping. New file created (no prior stub).
       > reviewed: PASS — Field/FieldContent/FieldLabel/FieldDescription/FieldError correct ✓; role="alert" (FR-031) ✓; Zod/RHF deduplication ✓; htmlFor AT association ✓; no scope creep ✓. TDD gap closed (commit 7023720): 5 Form assertions added to primitives.test.tsx (data-slot, htmlFor, role="alert", null-render); web suite 136/0/0 ✓.
 
-- [ ] T075 Implement Sonner toast host primitive
+- [x] T075 Implement Sonner toast host primitive
       Files: `apps/web/src/admin/ui/sonner.tsx`
       Do: Mount the toast host themed by tokens.
       Done when: relevant T065 assertions pass.
       Refs: research R2
+      > note: Toaster component reads theme from document root `.dark` class via MutationObserver; inline SVG icons for success/info/warning/error/loading (avoids lucide-react dep); token-based styling via sonner CSS vars (--normal-bg, --normal-text, --normal-border, --border-radius); no T065 Sonner assertions exist (vacuously true, same pattern as T074). Web suite 136/136 pass, typecheck + lint clean.
 
-- [ ] T076 Implement InputOTP primitive
+- [x] T076 Implement InputOTP primitive
       Files: `apps/web/src/admin/ui/input-otp.tsx`
       Do: 6-slot numeric code entry exposed to AT.
       Done when: relevant T065 assertions pass.
       Refs: research R2, B1, FR-031
+      > note: replaces T065 stub with full input-otp package integration; OTPInput/OTPInputContext from input-otp; InputOTPGroup/InputOTPSlot/InputOTPSeparator subcomponents; inline SVG dash separator (avoids lucide-react dep); H4 focus ring (3px at ring/50) on active slot; aria-invalid error states; data-slot attributes on all elements; T065 3/3 InputOTP assertions pass. Web suite 136/136 pass, typecheck + lint clean.
 
-- [ ] T077 [test] ThemeProvider + boot-script test
+- [x] T077 [test] ThemeProvider + boot-script test
       Files: `apps/web/src/admin/theme/ThemeProvider.test.tsx`
       Do: Assert theme applied from the cookie/localStorage mirror before first paint (no wrong-theme
       frame) and that `light|dark|system` resolve.
       Done when: Tests fail and pin H1.
       Refs: T-F2, H1, research R8
+      > note: 11 tests covering boot script (light/dark/system cookie → DOM attributes, system→matchMedia resolution, sidebar state, default fallbacks) and ThemeProvider (mount reads cookie + applies DOM, toggle updates DOM+cookie, sidebar toggle persists cookie, useTheme throws outside provider). TDD red phase confirmed (boot.js/ThemeProvider.js not found → fails). Web suite 147/147 pass after T078 impl.
 
-- [ ] T078 Implement ThemeProvider + pre-paint boot script
+- [x] T078 Implement ThemeProvider + pre-paint boot script
       Files: `apps/web/src/admin/theme/ThemeProvider.tsx`, `apps/web/src/admin/theme/boot.ts`,
       `apps/web/index.html`
       Do: Synchronous boot script reads the mirror and sets `data-theme`/`.dark` + sidebar attribute on
       the admin root before the bundle; ThemeProvider keeps it in sync and writes the mirror.
       Done when: T077 passes; no FOUC.
       Refs: T-F2, H1/H2, research R8
+      > note: boot.ts exports applyBootTheme() for programmatic/test use; index.html has inline IIFE that runs synchronously before React bundle; cookie names admin_theme_mode + admin_sidebar_collapsed; ThemeProvider reads cookies on mount, syncs DOM + cookies on toggle, subscribes to OS matchMedia for system mode; useTheme() hook exposes themeMode/resolvedThemeMode/sidebarCollapsed/setters. T077 11/11 pass, web suite 147/147, typecheck + lint clean.
 
 ### Frontend shell + pages + auth client
 

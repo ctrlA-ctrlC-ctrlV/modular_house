@@ -1041,5 +1041,67 @@ Push the branch and confirm the GitHub Actions `test-api` + `coverage-check` job
 1. Consider making the DB-dependent integration tests self-sufficient via a Vitest `globalSetup` that
    ensures the RBAC roles/permissions exist, so a clean local `vitest run` (no out-of-band seed) also
    passes. This removes the hidden dependency on externally-seeded state that masked this gap.
-2. The `auth-me` permissions assertion (`> 0`) silently depended on seed data; a globalSetup or an
+2. The `auth-me` permissions assertion (`> 0`) silently depended on seed data; a globalSetup or an explicit RBAC-seed helper in the integration test would remove this hidden dependency.
+
+---
+
+## Session 21 — 2026-07-01 (reviewer: supervisor)
+
+**Scope:** T071–T074 (Pass 1 — Avatar, Sidebar, Sheet, Form field wrappers frontend primitives)
+
+**Verification results (supervisor-run, full parallelism):**
+- `pnpm --filter @modular-house/web test:run` — ✅ **131 passed / 0 failed / 0 skipped** (19 files — same count as Sessions 18/20; correct, T071–T074 are impl tasks with no new tests)
+- `pnpm --filter @modular-house/api test:run` — ✅ **296 passed / 0 failed / 0 skipped** (37 files — no regression)
+- `pnpm lint` — ✅ clean (all workspaces)
+- `pnpm --filter @modular-house/web exec tsc --noEmit` — ✅ clean
+- `@modular-house/ui` diff vs `main` — ✅ no files changed (admin design system correctly isolated)
+- Emoji scan (`admin/ui/**/*.{ts,tsx}`) — ✅ none found
+
+**Source-of-truth re-derivation (independent):**
+
+| Check | Detail | Result |
+|-------|--------|--------|
+| H3 sidebar widths | `sidebar.tsx:132-133` `'--sidebar-width': '17rem'`, `'--sidebar-width-icon': '3rem'` | ✅ exact |
+| H3 mobile drawer | `sidebar.tsx:212` `'--sidebar-width-mobile': '18rem'`; `sheet.tsx:90` `data-[side=left/right]:sm:max-w-[18rem]` | ✅ exact |
+| H2 Ctrl/Cmd+B | `sidebar.tsx:100–108` `event.key === 'b' && (event.metaKey \|\| event.ctrlKey)` | ✅ exact |
+| H2 cookie mirror | `sidebar.tsx:89` `document.cookie = 'sidebar_state=…'` | ✅ correct |
+| H5 mobile breakpoint | `sidebar.tsx:67` `window.matchMedia('(max-width: 767px)')` | ✅ `< 768px` |
+| H4 focus ring — Sidebar controls | `sidebar.tsx:280` `focus-visible:ring-2 focus-visible:ring-sidebar-ring` | ⚠️ 2px / sidebar-ring; H4 specifies 3px at ring/50 |
+| H4 focus ring — Sheet close button | `sheet.tsx:113` `focus-visible:ring-2 focus-visible:ring-ring` | ⚠️ 2px / without /50; H4 specifies 3px at ring/50 |
+| G4 initials fallback | `avatar.tsx:75–84` `AvatarFallback` with `bg-muted text-muted-foreground` | ✅ correct |
+| Avatar DOM stability | `avatar.tsx:54` `<span data-slot="avatar-image" className="contents">` wraps Radix Image | ✅ valid workaround — Radix omits `<img>` on load failure; wrapper ensures data-slot always in DOM |
+| FR-031 FieldError AT | `form.tsx:159` `role="alert"` on `FieldError` | ✅ correct |
+| Prefs scope creep | No extra sidebar context fields; Form exports only Field/FieldContent/FieldLabel/FieldDescription/FieldError | ✅ no scope creep |
+| SheetPortal data-slot | `sheet.tsx:36` `<DialogPrimitive.Portal data-slot="sheet-portal">` — Radix Portal renders no DOM element | ⚠️ silently dropped (same T070 pattern) |
+| T065 Form assertions | `primitives.test.tsx` — zero Form tests | ❌ TDD gap — see T074 finding |
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T071 | PASS-WITH-NITS | `data-slot` on Avatar/AvatarImage/AvatarFallback matches T065 3/3 assertions ✓; AvatarImage span wrapper (`contents`) is correct DOM-stability workaround ✓; size variants (default/sm/lg) ✓; `bg-muted` fallback for G4 ✓. **Nit:** multi-line JSDoc blocks violate CLAUDE.md style (carry-forward pattern from Sessions 18–20). |
+| T072 | PASS-WITH-NITS | H3 values exact (17rem/3rem/18rem) ✓; Ctrl/Cmd+B toggle ✓; cookie mirror ✓; H5 `< 768px` breakpoint ✓; fallback-to-simple-div for test isolation ✓; T065 1/1 Sidebar assertion passes ✓. **Nit 1 (H4):** `SidebarTrigger` and `SidebarMenuButton` use `focus-visible:ring-2 focus-visible:ring-sidebar-ring` (2px + sidebar-specific token); H4 specifies the focus ring as **3px at `ring/50`**. Template precedent explains the choice (sidebar elements use `sidebar-ring` for visual differentiation), but it diverges from §2.8 H4. **Nit 2:** multi-line JSDoc blocks violate CLAUDE.md style. |
+| T073 | PASS-WITH-NITS | Radix Dialog-based AT ✓; H3 mobile drawer `sm:max-w-[18rem]` ✓; side variants (top/right/bottom/left) ✓; T065 1/1 SheetTrigger assertion passes ✓. **Nit 1:** `SheetPortal` passes `data-slot="sheet-portal"` to `DialogPrimitive.Portal`; Radix Portal renders no DOM element so the attribute is silently dropped (same non-blocking pattern as T070 DropdownMenu Root/Portal). **Nit 2:** SheetContent close button uses `focus-visible:ring-2 focus-visible:ring-ring` (2px, no `/50`); H4 specifies 3px at ring/50. **Nit 3:** multi-line JSDoc blocks violate CLAUDE.md style. |
+| T074 | PASS-WITH-NITS | Field/FieldContent/FieldLabel/FieldDescription/FieldError all implemented ✓; `role="alert"` on FieldError (FR-031) ✓; Zod/RHF errors array with deduplication ✓; FieldLabel wraps Label for `htmlFor` AT association ✓; no scope creep ✓. **Finding (TDD gap):** `primitives.test.tsx` (T065) contains **zero Form assertions**. T074's "Done when: relevant T065 assertions pass" is vacuously true — no test validates any Form component. The Form implementation is correct by inspection but has no automated test coverage. This is a TDD discipline gap. |
+
+**Overall: GO** — All four tasks PASS-WITH-NITS. Web suite 131/0/0 and API suite 296/0/0 confirmed with full parallelism; lint and typecheck clean; `@modular-house/ui` untouched; no scope creep; no emoji.
+
+**Must-run before proceeding to T075+:**
+```
+pnpm install                               # carry-forward T001 — lock file not yet updated
+pnpm --filter @modular-house/web test:run  # confirmed 131/0/0 ✅
+pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
+```
+
+**Corrective items for implementing agent (non-blocking, recommended before T079 shell tasks):**
+
+1. **T074 TDD gap** — Add Form assertions to `primitives.test.tsx` (T065) or create a new `form.test.tsx`:
+   - `Field` renders with `data-slot="field"`
+   - `FieldError` has `role="alert"` (FR-031)
+   - `FieldLabel` with `htmlFor` associates with an input via AT
+   This closes the only untested primitive in the Phase 1 set before the shell and page tasks consume it.
+
+2. **T072/T073 focus ring (H4 nit)** — Align `SidebarTrigger`, `SidebarMenuButton`, and `SheetContent` close button to H4 by changing `ring-2 … ring-sidebar-ring` → `ring-3 … ring-ring/50`. If sidebar elements intentionally use `sidebar-ring` for design-system differentiation, document that as a deliberate §2.8 exception so reviewers can verify it is not an oversight.
+
+3. **T071–T074 comment style** — Reduce multi-line JSDoc blocks to one-line comments per CLAUDE.md (carry-forward from Sessions 18–20).
+
+**Performance: 91%** — All four implementations are correct and contract-faithful. H3 values are exact; Ctrl/Cmd+B and cookie mirror are correctly wired; G4 initials fallback and FR-031 role="alert" are both present; AT associations via Radix primitives are correct. Score docked for: TDD gap on T074 (no Form assertions — structural, not cosmetic), focus-ring deviation from H4 on sidebar/sheet controls (spec deviation, non-blocking due to template precedent), and carry-forward multi-line JSDoc comment pattern.
    in-test role+permission upsert would make the dependency explicit.

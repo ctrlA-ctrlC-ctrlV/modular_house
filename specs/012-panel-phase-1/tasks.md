@@ -695,6 +695,7 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, G4
       > note: Avatar with size variants (default/sm/lg), AvatarImage wrapper span for DOM stability on load failure, AvatarFallback with bg-muted for initials (G4). T065 Avatar 3/3 pass.
+      > reviewed: PASS-WITH-NITS — data-slot (avatar/avatar-image/avatar-fallback) + size variants + bg-muted fallback (G4) ✓; AvatarImage span wrapper (contents) is correct DOM-stability workaround ✓; T065 3/3 pass. Nit: multi-line JSDoc blocks violate CLAUDE.md style.
 
 - [x] T072 Implement Sidebar primitive
       Files: `apps/web/src/admin/ui/sidebar.tsx`
@@ -702,6 +703,7 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, H3, FR-020
       > note: SidebarProvider with context (state/open/isMobile/toggleSidebar), Sidebar with desktop collapsible rail (17rem/3rem per H3) + mobile Sheet drawer (18rem), SidebarTrigger with inline SVG icon, SidebarRail, SidebarHeader/Footer/Content/Group/GroupLabel/GroupContent/GroupContent, SidebarMenu/MenuItem/MenuButton. Falls back to simple div when no provider (test isolation). Ctrl/Cmd+B keyboard shortcut (H2). Cookie mirror for pre-paint boot. T065 Sidebar 1/1 pass.
+      > reviewed: PASS-WITH-NITS — H3 exact (17rem/3rem/18rem) ✓; Ctrl/Cmd+B ✓; cookie mirror ✓; H5 <768px ✓; T065 1/1 pass ✓. Nit 1 (H4): SidebarTrigger + SidebarMenuButton use ring-2/sidebar-ring instead of H4's ring-3/ring/50. Nit 2: multi-line JSDoc blocks.
 
 - [x] T073 Implement Sheet (mobile drawer) primitive
       Files: `apps/web/src/admin/ui/sheet.tsx`
@@ -709,6 +711,7 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, H3/H5
       > note: Sheet/SheetTrigger/SheetClose/SheetPortal/SheetOverlay/SheetContent with side variants (top/right/bottom/left), 18rem max on sm (H3), entry/exit animations, inline X close button. SheetHeader/Footer/Title/Description subcomponents. T065 Sheet 1/1 pass.
+      > reviewed: PASS-WITH-NITS — Radix Dialog AT ✓; H3 sm:max-w-[18rem] ✓; side variants ✓; T065 1/1 pass ✓. Nit 1: SheetPortal data-slot silently dropped (Radix Portal renders no DOM element — same T070 pattern). Nit 2 (H4): close button uses ring-2/ring instead of ring-3/ring/50. Nit 3: multi-line JSDoc blocks.
 
 - [x] T074 Implement Form field wrappers primitive
       Files: `apps/web/src/admin/ui/form.tsx`
@@ -716,6 +719,7 @@
       Done when: relevant T065 assertions pass.
       Refs: research R2, FR-031
       > note: Field container with vertical/horizontal orientation variants (cva), FieldLabel wrapping Label primitive, FieldDescription for help text, FieldError with role="alert" for AT (FR-031) + React Hook Form/Zod errors array support with deduplication. FieldContent for description+error grouping. New file created (no prior stub).
+      > reviewed: PASS-WITH-NITS — Field/FieldContent/FieldLabel/FieldDescription/FieldError correct ✓; role="alert" on FieldError (FR-031) ✓; Zod/RHF deduplication ✓; htmlFor AT association via FieldLabel→Label ✓; no scope creep ✓. **TDD gap:** T065 (primitives.test.tsx) has zero Form assertions; "Done when: relevant T065 assertions pass" is vacuously true — Form primitive has no automated test coverage. Add Form assertions to T065 or a separate form.test.tsx before the shell tasks use it.
 
 - [ ] T075 Implement Sonner toast host primitive
       Files: `apps/web/src/admin/ui/sonner.tsx`

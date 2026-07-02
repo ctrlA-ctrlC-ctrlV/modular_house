@@ -1305,3 +1305,62 @@ pnpm --filter @modular-house/api test:run  # confirmed 296/0/0 ✅
 **Overall: GO** — All T079–T084 now PASS. No remaining corrective items.
 
 **Performance: 93%** — Shell composition is clean and correct; H3/H4 values are exact; H7 guardrails are respected; all 14 tests pass in isolation and full parallelism; API suite shows zero regression. Score docked for: TDD nit (missing `h-12` class assertion to pin 48px in code, not just comment) and the mild T081 task-description deviation on account-menu placement (design decision, explicitly documented in the note but differs from task `Do:` wording).
+
+---
+
+## Session 24 — 2026-07-02 (reviewer: supervisor)
+
+**Scope:** T085–T086 (pre-auth pages test + Login page implementation)
+
+**Verification run this session:**
+```
+pnpm --filter @modular-house/web test:run   → 22 files / 171 tests passed (preAuth.test.tsx 10/10)
+pnpm --filter @modular-house/web exec tsc --noEmit -p .   → clean
+pnpm --filter @modular-house/web exec eslint src/admin/pages/Login.tsx src/admin/pages/preAuth.test.tsx   → clean
+pnpm lint (root, all workspaces)   → clean
+git show --stat e5d031e   → only Login.tsx, preAuth.test.tsx, tasks.md changed (no package.json, no @modular-house/ui, no public-site files)
+```
+API suite (`test:run`/`test:coverage`/`prisma validate`/`migrate dev`/`docs:validate`) not re-run this session — no backend files touched by T085/T086 and the local test-DB Docker container was not up; re-run only needed if backend drift is suspected.
+
+| Task | Verdict | Key finding |
+|------|---------|-------------|
+| T085 | PASS-WITH-NITS | 10/10 pass confirmed; FR-005/FR-006 assertions correct. Nits: TDD red phase unverifiable retroactively (test+impl same commit, precedented); "Settings route guard" sub-test is vacuous (`GuardStub` unconditionally redirects — proves `Navigate` works, not that a guard exists; correctly deferred to T093); TwoFactor/ForgotPassword/ResetPassword sub-tests use local in-file stubs, to be replaced by real imports/assertions in T087–T089. |
+| T086 | PASS-WITH-NITS | Functionally correct (email/password fields, no Google, "Forgot password" link, form structure — FR-005/FR-006 met); no scope creep; lint/typecheck clean. **Spec-fidelity gap (SC-004/FR-005):** implementer's `> note:` claims a "two-column login v1 layout (branded left panel + form)" was built — it was not. `Login.tsx` renders a single centered column; the reference `login v1` template is a split-screen with a `bg-primary lg:w-1/3` branded left panel. Not caught by T085 (layout untested), so "Done when" is technically met, but this is a real, measurable divergence from FR-005/SC-004 that should be fixed before the SC-004 design-parity review and before T087–T089 repeat the same shape. |
+
+**Overall: GO** — Both tasks meet their literal "Done when" bar; no security, contract, or regression issues. The layout-fidelity gap is non-blocking for proceeding to T087+ but should be corrected soon (see corrective items) so it isn't replicated across the remaining three pre-auth pages.
+
+**Corrective items (for next implementing-agent session, non-blocking):**
+1. Add the reference template's two-column "login v1" split-screen (`hidden bg-primary lg:block lg:w-1/3` branded panel + form on the remaining width) to `Login.tsx`, matching `next_shadcn_admin_dashboard/src/app/(main)/auth/v1/login/page.tsx`. Consider factoring it as a shared pre-auth layout wrapper since T087–T089 (TwoFactor/ForgotPassword/ResetPassword) will need the same shell.
+2. Correct or annotate the T086 `> note:` claim about the two-column layout so future readers aren't misled by the handoff summary (this session's `> reviewed:` line already flags it).
+3. Wrap `apps/web/src/admin/ui/input.tsx`'s `Input` in `React.forwardRef` — react-hook-form's `Controller` passes a `ref` that is currently silently dropped (visible as a "Function components cannot be given refs" console warning during `preAuth.test.tsx`). Low impact today (onChange/onBlur/value/name still work via prop spread) but will recur every time `Controller` pairs with `Input`/`InputOTP` in T087–T089/T092+, and blocks RHF's ref-based features (`setFocus`, `shouldFocusError`).
+
+**Performance: 88%** — Both tasks functionally correct, no scope creep, no security issues, all literal "Done when" bars met, lint/typecheck clean. Docked for the FR-005/SC-004 layout-fidelity gap plus an inaccurate handoff-note claim that would have gone unchecked without comparing against the actual reference template file, and the pre-existing (now-flagged) `Input` ref-forwarding gap.
+
+---
+
+## Session 24 — Re-check after corrective items (2026-07-02)
+
+**Trigger:** Session 24 left 3 non-blocking corrective items (two-column layout, note correction, `Input` forwardRef). Implementing agent applied all three in commit `fed5c56`.
+
+**Changes reviewed:**
+
+| Item | Fix | Verified |
+|------|-----|---------|
+| 1 — two-column layout | `Login.tsx:84-99` — added `hidden bg-primary lg:block lg:w-1/3` branded left panel (`CommandIcon` + "Hello again" / "Login to continue"); right panel gained `py-24 lg:py-32` + full welcome copy, matching `next_shadcn_admin_dashboard/.../auth/v1/login/page.tsx` line-for-line | ✅ diffed against reference template source, structure matches |
+| 2 — note correction | T086 `> note:` in `tasks.md` updated to describe the actual two-column layout with `bg-primary`/`lg:w-1/3`/`lg:w-2/3` specifics | ✅ |
+| 3 — `Input` forwardRef | `input.tsx` — `Input` now `React.forwardRef<HTMLInputElement, ...>` with `ref` wired to the underlying `<input>` and `displayName = 'Input'` set | ✅ "Function components cannot be given refs" warning confirmed gone via targeted grep of `preAuth.test.tsx` run |
+
+**Verification:** `pnpm --filter @modular-house/web test:run` → 22 files / 171 tests, still green (`preAuth.test.tsx` 10/10). `tsc --noEmit` clean. `pnpm lint` (root, all workspaces) clean. Confirmed only `Login.tsx`/`primitives.test.tsx` import `Input`, so the forwardRef signature change has no other call sites to break.
+
+**New minor finding (not blocking):** the page now renders two `<h1>` elements — "Hello again" in the decorative branded panel and "Login" as the form heading. The reference template uses `<h1>` only for the decorative panel and a plain `<div>` for the form title. Not a WCAG hard failure (axe's default ruleset doesn't flag multiple h1s), but worth a follow-up nit if the design review is strict about single-h1 document outline.
+
+**Verdict updates:**
+
+| Task | Session 24 | Re-check | Change |
+|------|-----------|----------|--------|
+| T086 | PASS-WITH-NITS | PASS | Two-column layout matches reference exactly; note corrected; `Input` forwardRef fixed. Remaining item is new and cosmetic (duplicate `<h1>`), not a corrective-item carryover. |
+| T085 | PASS-WITH-NITS | PASS-WITH-NITS (unchanged) | Not touched by this commit; the two deferred-scope nits (vacuous guard stub, in-file page stubs) still stand pending T093/T087–T089. |
+
+**Overall: GO** — All 3 corrective items resolved and verified. No regressions. Proceed to T087.
+
+**Performance: 97%** — All three corrective items applied correctly and verified independently against the actual reference template file (not just the implementer's description); zero regressions across 171 tests, typecheck, and lint. Docked slightly for the newly-introduced duplicate-`<h1>` cosmetic nit.

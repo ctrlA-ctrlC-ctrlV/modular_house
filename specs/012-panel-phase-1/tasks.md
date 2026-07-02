@@ -876,6 +876,7 @@
       Refs: T-F4, FR-036
       > note: context hydrates via apiClient.fetchMe() on mount, exposes user/isAuthenticated/isLoading/logout; tests: 10 passing; deviations: none
       > reviewed: PASS-WITH-NITS — role/permissions accessible via user.role/user.permissions, not separate top-level context fields as literally worded; preference *load* is present (Me.preferences hydrated) but preference *application* to ThemeProvider is correctly deferred to T098 per ThemeProvider.tsx's own comment. Non-blocking.
+      > fix(T092 review, commit 59b2a0f): added top-level role/permissions fields to AuthContextValue (derived from user); new test asserts both readable from useAuth() once authenticated. Web suite 191/191, lint + typecheck clean.
 
 - [x] T093 Implement the route guard
       Files: `apps/web/src/admin/auth/guard.tsx`

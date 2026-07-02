@@ -1,4 +1,5 @@
-# The Change Log of Branch 012-panel-phase-
+# The Change Log of Branch 012-panel-phase-1
+Note: keep the most latest entry on top
 
 > ## [YYYY-MM-DDTHH:mm:ss.sss+00:00] - [git commit hash] - [commit title] (one line summary, only include section true to the commit)
 > ### Added 

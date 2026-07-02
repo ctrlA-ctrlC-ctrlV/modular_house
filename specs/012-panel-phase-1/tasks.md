@@ -858,6 +858,7 @@
       Done when: Tests fail and pin US2-8 + FR-003/FR-038/FR-040.
       Refs: T-F4, T-F6, E2/E5, FR-003/FR-038/FR-040
       > note: 10 tests across 4 describes (in-memory token, silent refresh, logout, guard redirect); mocks fetch + AuthProvider/AdminGuard; tests: 10 passing; deviations: none
+      > reviewed: PASS — 10/10 pass at runtime (full web suite 190/190); E2 verified (no storage.setItem for token keys); back-nav coverage is inferred from replace:true + persisted isAuthenticated:false rather than a literal history.back() assertion (non-blocking).
 
 - [x] T091 Implement the admin apiClient hooks
       Files: `apps/web/src/admin/auth/apiClient.ts`
@@ -866,6 +867,7 @@
       Done when: relevant T090 assertions pass.
       Refs: T-F4, E2/E3, FR-040
       > note: module-scope token var, authenticatedFetch retries once after refresh on 401; tests: 10 passing; deviations: apps/web/src/admin/auth/apiClient.ts — base URL fixed from hardcoded /api to VITE_API_BASE_URL to match apps/web/src/lib/apiClient.ts convention
+      > reviewed: PASS — E2/E3 satisfied (in-memory token, credentials:'include'); single non-recursive retry confirmed; no de-dup on concurrent 401s (non-blocking in Phase 1, single /me fetch on mount).
 
 - [x] T092 Implement the AuthProvider
       Files: `apps/web/src/admin/auth/AuthProvider.tsx`
@@ -873,6 +875,7 @@
       Done when: relevant T090 assertions pass.
       Refs: T-F4, FR-036
       > note: context hydrates via apiClient.fetchMe() on mount, exposes user/isAuthenticated/isLoading/logout; tests: 10 passing; deviations: none
+      > reviewed: PASS-WITH-NITS — role/permissions accessible via user.role/user.permissions, not separate top-level context fields as literally worded; preference *load* is present (Me.preferences hydrated) but preference *application* to ThemeProvider is correctly deferred to T098 per ThemeProvider.tsx's own comment. Non-blocking.
 
 - [x] T093 Implement the route guard
       Files: `apps/web/src/admin/auth/guard.tsx`
@@ -880,6 +883,7 @@
       Done when: relevant T090 assertions pass.
       Refs: T-F6, FR-003
       > note: AdminGuard reads useAuth(), renders Navigate to /admin/login when unauthenticated, loading state while hydrating; tests: 10 passing; deviations: none
+      > reviewed: PASS — FR-003 satisfied; Navigate replace + AuthProvider's navigate(...,{replace:true}) on logout together block back-nav reuse; loading state tested.
 
 - [ ] T094 [test] Settings page test (T-F6 settings slice)
       Files: `apps/web/src/admin/pages/Settings.test.tsx`

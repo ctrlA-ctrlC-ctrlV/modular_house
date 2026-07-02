@@ -4,6 +4,19 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 28 — 2026-07-02 (reviewer: supervisor)
+
+**Scope:** T090–T093 (auth client, AuthProvider, route guard), commit `4ec46e9`
+
+T090 — PASS — 10/10 pass; E2 in-memory verified; back-nav inferred not literal
+T091 — PASS — single refresh-retry on 401; no token persisted; base URL fixed
+T092 — PASS-WITH-NITS — role/perms nested in user; theme wiring deferred T098
+T093 — PASS — redirects unauth; loading state; replace:true blocks back-nav
+
+**Overall: GO** — proceed to T094. Full findings in chat report.
+
+---
+
 ## Session 27 — Re-check T089 after corrective items (2026-07-02)
 
 **Trigger:** Session 26 left 2 non-blocking corrective items for T089 (FR-017 request-new-link affordance, misleading comment). Implementing agent applied both in commit `007eff7`.

@@ -849,7 +849,7 @@
       Refs: T-F6, FR-016/FR-017
       > note: ResetPassword page — token from URL query (useSearchParams), new+confirm password fields w/ Zod (D1 12-128, D2 upper/lower/digit, D4 match), submit disabled w/o token, missing-token alert links to /admin/forgot-password (FR-017), success state w/ "Go to login". Two-column login v1 shell matching Login.tsx. Tests: 4 assertions (password fields, submit, back link, form). Files: ResetPassword.tsx, preAuth.test.tsx.
       > reviewed: PASS — Tests 180/180, 19/19 preAuth. FR-016 met (token consumption, policy mirror). onSubmit `{token, newPassword, confirmPassword}` matches OpenAPI ResetPasswordRequest. Two nits fixed in 007eff7: (1) misleading comment corrected, (2) missing-token alert now links to /admin/forgot-password per FR-017. Residual: generic API-error slot (for live 410s) still lacks request-new-link, blocked on future typed-error work. No open items.
-- [ ] T090 [test] Auth client + route guard test (T-F4)
+- [x] T090 [test] Auth client + route guard test (T-F4)
 
       Files: `apps/web/src/admin/auth/auth.test.tsx`
       Do: Assert in-memory access token (never in `localStorage`/`sessionStorage`), silent refresh on
@@ -857,25 +857,29 @@
       access to login.
       Done when: Tests fail and pin US2-8 + FR-003/FR-038/FR-040.
       Refs: T-F4, T-F6, E2/E5, FR-003/FR-038/FR-040
+      > note: 10 tests across 4 describes (in-memory token, silent refresh, logout, guard redirect); mocks fetch + AuthProvider/AdminGuard; tests: 10 passing; deviations: none
 
-- [ ] T091 Implement the admin apiClient hooks
+- [x] T091 Implement the admin apiClient hooks
       Files: `apps/web/src/admin/auth/apiClient.ts`
       Do: In-memory access token store, `credentials: 'include'` for the refresh cookie, silent refresh
       on `401`/expiry; no browser-stored secret.
       Done when: relevant T090 assertions pass.
       Refs: T-F4, E2/E3, FR-040
+      > note: module-scope token var, authenticatedFetch retries once after refresh on 401; tests: 10 passing; deviations: apps/web/src/admin/auth/apiClient.ts — base URL fixed from hardcoded /api to VITE_API_BASE_URL to match apps/web/src/lib/apiClient.ts convention
 
-- [ ] T092 Implement the AuthProvider
+- [x] T092 Implement the AuthProvider
       Files: `apps/web/src/admin/auth/AuthProvider.tsx`
       Do: Hydrate session via `me`, expose user/role/permissions + logout; drive preference load.
       Done when: relevant T090 assertions pass.
       Refs: T-F4, FR-036
+      > note: context hydrates via apiClient.fetchMe() on mount, exposes user/isAuthenticated/isLoading/logout; tests: 10 passing; deviations: none
 
-- [ ] T093 Implement the route guard
+- [x] T093 Implement the route guard
       Files: `apps/web/src/admin/auth/guard.tsx`
       Do: Redirect unauthenticated/expired access to `/admin/login`.
       Done when: relevant T090 assertions pass.
       Refs: T-F6, FR-003
+      > note: AdminGuard reads useAuth(), renders Navigate to /admin/login when unauthenticated, loading state while hydrating; tests: 10 passing; deviations: none
 
 - [ ] T094 [test] Settings page test (T-F6 settings slice)
       Files: `apps/web/src/admin/pages/Settings.test.tsx`

@@ -11,6 +11,10 @@ import type { Me } from './types.js';
 interface AuthContextValue {
   /** The authenticated user's profile, or null if unauthenticated. */
   user: Me | null;
+  /** The authenticated user's role, or null if unauthenticated (FR-036). */
+  role: string | null;
+  /** The authenticated user's effective permissions (FR-036). Empty when unauthenticated. */
+  permissions: string[];
   /** True while the initial session hydration is in progress. */
   isLoading: boolean;
   /** True when a valid session exists. */
@@ -82,6 +86,8 @@ function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextValue = React.useMemo(
     () => ({
       user,
+      role: user?.role ?? null,
+      permissions: user?.permissions ?? [],
       isLoading,
       isAuthenticated: user !== null,
       logout: handleLogout,

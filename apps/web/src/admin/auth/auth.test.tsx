@@ -144,6 +144,8 @@ function AuthConsumer() {
       <span data-testid="is-authenticated">{String(auth.isAuthenticated)}</span>
       <span data-testid="is-loading">{String(auth.isLoading)}</span>
       <span data-testid="user-email">{auth.user?.email ?? 'none'}</span>
+      <span data-testid="user-role">{auth.role ?? 'none'}</span>
+      <span data-testid="user-permissions">{auth.permissions.join(',')}</span>
       <button data-testid="do-logout" onClick={() => auth.logout()}>Logout</button>
     </div>
   );
@@ -214,6 +216,28 @@ describe('Auth client + route guard (T-F4)', () => {
         expect(key).not.toBe('adminToken');
         expect(key).not.toMatch(/token/i);
       }
+    });
+  });
+
+  // ── AuthProvider exposes role/permissions (FR-036) ──────────────────
+
+  describe('AuthProvider exposes role/permissions (FR-036)', () => {
+    // FR-036: role + effective permissions must be available to downstream
+    // consumers, not just nested inside the raw user profile.
+
+    it('exposes role and permissions as top-level context fields once authenticated', async () => {
+      mockMeSuccess();
+
+      renderWithAuth(<AuthConsumer />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated')).toHaveTextContent('true');
+      });
+
+      expect(screen.getByTestId('user-role')).toHaveTextContent(testMeResponse.role);
+      expect(screen.getByTestId('user-permissions')).toHaveTextContent(
+        testMeResponse.permissions.join(','),
+      );
     });
   });
 

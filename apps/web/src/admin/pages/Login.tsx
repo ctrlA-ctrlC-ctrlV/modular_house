@@ -1,6 +1,7 @@
-// Login page — "login v1" layout for the admin panel (FR-005, FR-006).
-// Renders an email + password form with a "Forgot password" link.  No Google
-// sign-in option.  Uses react-hook-form + zod for client-side validation.
+// Login page — "login v1" two-column layout for the admin panel (FR-005, FR-006).
+// Split-screen: branded left panel (lg+) + centered form on the right.
+// No Google sign-in option (FR-005).  "Forgot password" link instead of
+// registration (FR-006).  Uses react-hook-form + zod for client-side validation.
 // The onSubmit callback is a placeholder until the apiClient (T091) wires in.
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,9 +40,29 @@ interface LoginProps {
   className?: string;
 }
 
-// "Login v1" layout — full-height centered form with title and "Forgot password"
-// link.  No Google sign-in (FR-005).  Registration replaced by password-reset
-// entry (FR-006).
+// Inline SVG for the branded command icon (avoids lucide-react dependency).
+function CommandIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+    </svg>
+  );
+}
+
+// "Login v1" two-column layout — branded left panel (visible on lg+) with a
+// centered form on the right.  Matches the reference template's
+// `next_shadcn_admin_dashboard/src/app/(main)/auth/v1/login/page.tsx`.
+// No Google sign-in (FR-005).  Registration replaced by "Forgot password"
+// link (FR-006).
 function Login({ onSubmit, error, isSubmitting = false, className }: LoginProps) {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -58,101 +79,119 @@ function Login({ onSubmit, error, isSubmitting = false, className }: LoginProps)
   return (
     <div
       data-testid="login-page"
-      className={cn(
-        'flex min-h-svh items-center justify-center bg-background p-8',
-        className,
-      )}
+      className={cn('flex min-h-svh', className)}
     >
-      <div className="w-full max-w-md space-y-10">
-        {/* Title and description — "login v1" header. */}
-        <div className="space-y-4 text-center">
-          <h1 className="font-medium tracking-tight">Login</h1>
-          <p className="text-muted-foreground">
-            Welcome back. Enter your email and password to sign in.
-          </p>
+      {/* Branded left panel — hidden below lg, visible on lg+. */}
+      <div className="hidden bg-primary lg:block lg:w-1/3">
+        <div className="flex h-full flex-col items-center justify-center p-12 text-center">
+          <div className="space-y-6">
+            <CommandIcon className="mx-auto size-12 text-primary-foreground" />
+            <div className="space-y-2">
+              <h1 className="font-light text-5xl text-primary-foreground">
+                Hello again
+              </h1>
+              <p className="text-primary-foreground/80 text-xl">
+                Login to continue
+              </p>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          {/* Generic error message (e.g. invalid credentials from API). */}
-          {error && (
-            <div
-              role="alert"
-              data-slot="login-error"
-              className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center text-sm text-destructive"
-            >
-              {error}
-            </div>
-          )}
+      {/* Form panel — full width on mobile, 2/3 on lg+. */}
+      <div className="flex w-full items-center justify-center bg-background p-8 lg:w-2/3">
+        <div className="w-full max-w-md space-y-10 py-24 lg:py-32">
+          {/* Title and description. */}
+          <div className="space-y-4 text-center">
+            <h1 className="font-medium tracking-tight">Login</h1>
+            <p className="mx-auto max-w-xl text-muted-foreground">
+              Welcome back. Enter your email and password, let&apos;s hope you
+              remember them this time.
+            </p>
+          </div>
 
-          {/* Login form — email + password fields. */}
-          <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-4">
-              {/* Email field — htmlFor provides AT association (FR-031). */}
-              <Controller
-                control={form.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="login-email">Email</FieldLabel>
-                    <Input
-                      {...field}
-                      id="login-email"
-                      type="email"
-                      placeholder="admin@example.com"
-                      autoComplete="email"
-                      aria-invalid={fieldState.invalid}
-                      disabled={isSubmitting}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
+          <div className="space-y-6">
+            {/* Generic error message (e.g. invalid credentials from API). */}
+            {error && (
+              <div
+                role="alert"
+                data-slot="login-error"
+                className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center text-sm text-destructive"
+              >
+                {error}
+              </div>
+            )}
 
-              {/* Password field. */}
-              <Controller
-                control={form.control}
-                name="password"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="login-password">Password</FieldLabel>
-                    <Input
-                      {...field}
-                      id="login-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      autoComplete="current-password"
-                      aria-invalid={fieldState.invalid}
-                      disabled={isSubmitting}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
+            {/* Login form — email + password fields. */}
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
+                {/* Email field — htmlFor provides AT association (FR-031). */}
+                <Controller
+                  control={form.control}
+                  name="email"
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="login-email">Email</FieldLabel>
+                      <Input
+                        {...field}
+                        id="login-email"
+                        type="email"
+                        placeholder="admin@example.com"
+                        autoComplete="email"
+                        aria-invalid={fieldState.invalid}
+                        disabled={isSubmitting}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
 
-            {/* Submit button. */}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
+                {/* Password field. */}
+                <Controller
+                  control={form.control}
+                  name="password"
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="login-password">Password</FieldLabel>
+                      <Input
+                        {...field}
+                        id="login-password"
+                        type="password"
+                        placeholder="Enter your password"
+                        autoComplete="current-password"
+                        aria-invalid={fieldState.invalid}
+                        disabled={isSubmitting}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              </div>
 
-          {/* FR-006: "Forgot password" link replaces registration entry. */}
-          <p className="text-center text-sm text-muted-foreground">
-            <Link
-              to="/admin/forgot-password"
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </p>
+              {/* Submit button. */}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Signing in...' : 'Login'}
+              </Button>
+            </form>
+
+            {/* FR-006: "Forgot password" link replaces registration entry. */}
+            <p className="text-center text-sm text-muted-foreground">
+              <Link
+                to="/admin/forgot-password"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

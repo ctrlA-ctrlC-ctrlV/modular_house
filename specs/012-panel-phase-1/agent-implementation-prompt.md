@@ -7,7 +7,7 @@
 ---
 
 **SESSION GOAL:** Implement implement the next unchecked tasks in order up to a natural checkpoint
-(4 tasks), then stop. A natural checkpoint is usually a coherent milestone: a route + its test (e.g., T032/T033), a throttle mechanism + its test (T034/T035), or a set of related endpoints that share a file (T036–T039). If the next task would leave a file half-implemented, extend the batch to finish the coherent unit; do not split a route handler across sessions.
+(2 tasks), then stop. A natural checkpoint is usually a coherent milestone: a route + its test (e.g., T032/T033), a throttle mechanism + its test (T034/T035), or a set of related endpoints that share a file (T036–T039). If the next task would leave a file half-implemented, extend the batch to finish the coherent unit; do not split a route handler across sessions.
 
 You are implementing Phase 1 of the admin panel in this monorepo (`apps/web`, `apps/api`)
 on branch `012-panel-phase-1`. The full plan already exists — your job is to execute it
@@ -92,6 +92,7 @@ For each task, in order:
   OTP codes, reset tokens) are hashed-only and never logged or returned raw.
 - **Contracts:** Match the OpenAPI status codes and bodies exactly (e.g. login `423` on
   lockout, reset `410` on used/expired link, neutral `429` on throttle).
+- **Implementation step:** Strickt follow the per-task loop, perform the same loop for each task
 - **Style:** No emoji in code. Conventional naming. Keep the admin layer isolated under
   `apps/web/src/admin/` with its own scoped Tailwind.
 - **Migrations are additive only** — no destructive changes to reused feature-006 models.

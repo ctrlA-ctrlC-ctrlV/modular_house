@@ -1,30 +1,19 @@
 // T085 — Pre-auth pages + guard test (T-F6).
 // Asserts login renders "login v1" with NO Google option and a "Forgot password"
-// entry, the two-factor code-entry renders, the reset page renders, and the
-// settings route is guarded.  Pins US1-1,2 / US3 / US4-8 + FR-005/FR-006/FR-031/FR-034.
+// entry, the two-factor code-entry renders with InputOTP, the forgot-password
+// page renders with email entry, the reset-password page renders with password
+// fields, and the settings route is guarded.
+// Pins US1-1,2 / US3 / US4-8 + FR-005/FR-006/FR-014/FR-015/FR-016/FR-017/FR-031/FR-034.
 import { describe, it, expect, beforeEach } from 'vitest';
 import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// ── Login page (FR-005 / FR-006 / T-F6) ─────────────────────────────────────
-
-// Import the Login page component.  This import fails until T086 implements it,
-// satisfying the TDD "red phase" requirement.
+// ── Real page imports (T086–T089) ─────────────────────────────────────────────
 import { Login } from './Login.js';
-
-// Stub components for pages not yet implemented (T087–T089).
-// These render minimal content so the test file compiles and the "renders"
-// smoke assertions pass; real implementations will replace them.
-function TwoFactorStub() {
-  return <div data-testid="two-factor-stub">Two-Factor</div>;
-}
-function ForgotPasswordStub() {
-  return <div data-testid="forgot-password-stub">Forgot Password</div>;
-}
-function ResetPasswordStub() {
-  return <div data-testid="reset-password-stub">Reset Password</div>;
-}
+import { TwoFactor } from './TwoFactor.js';
+import { ForgotPassword } from './ForgotPassword.js';
+import { ResetPassword } from './ResetPassword.js';
 
 // Guard stub — redirects to /admin/login (simulates unauthenticated access).
 // The real implementation (T093) will check AuthProvider context; this stub
@@ -34,9 +23,9 @@ function GuardStub() {
 }
 
 // Wrapper that renders a component inside a MemoryRouter with admin root.
-function renderInAdminRoot(ui: React.ReactElement, initialPath = '/admin/login') {
+function renderInAdminRoot(ui: React.ReactElement, initialEntries = ['/admin/login']) {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
+    <MemoryRouter initialEntries={initialEntries}>
       <div data-admin className="admin-root">
         {ui}
       </div>
@@ -65,7 +54,6 @@ describe('Pre-auth pages (T-F6)', () => {
           <Route path="/admin/login" element={<Login />} />
         </Routes>,
       );
-      // The email field must be present and accessible via label text.
       const emailInput = screen.getByLabelText(/email/i);
       expect(emailInput).toBeInTheDocument();
       expect(emailInput).toHaveAttribute('type', 'email');
@@ -88,7 +76,6 @@ describe('Pre-auth pages (T-F6)', () => {
           <Route path="/admin/login" element={<Login />} />
         </Routes>,
       );
-      // The submit button must be present with accessible text.
       const submitButton = screen.getByRole('button', { name: /sign in|log in|login/i });
       expect(submitButton).toBeInTheDocument();
       expect(submitButton).toHaveAttribute('type', 'submit');
@@ -101,12 +88,10 @@ describe('Pre-auth pages (T-F6)', () => {
           <Route path="/admin/login" element={<Login />} />
         </Routes>,
       );
-      // No element mentioning "Google" anywhere in the login page.
       const googleButton = screen.queryByRole('button', { name: /google/i });
       expect(googleButton).toBeNull();
       const googleLink = screen.queryByRole('link', { name: /google/i });
       expect(googleLink).toBeNull();
-      // Also check for generic "Continue with" (covers any third-party).
       const continueWith = screen.queryByRole('button', { name: /continue with/i });
       expect(continueWith).toBeNull();
     });
@@ -118,15 +103,12 @@ describe('Pre-auth pages (T-F6)', () => {
           <Route path="/admin/login" element={<Login />} />
         </Routes>,
       );
-      // "Forgot password" link must be present.
       const forgotLink = screen.getByRole('link', { name: /forgot password/i });
       expect(forgotLink).toBeInTheDocument();
-      // Registration link must NOT be present.
       const registerLink = screen.queryByRole('link', { name: /register|sign up/i });
       expect(registerLink).toBeNull();
     });
 
-    // US1-2: the login form accepts email + password; verify form structure.
     it('wraps the inputs in a form element', () => {
       renderInAdminRoot(
         <Routes>
@@ -138,52 +120,180 @@ describe('Pre-auth pages (T-F6)', () => {
     });
   });
 
-  // ── Two-factor code entry (T-F6) ────────────────────────────────────
+  // ── Two-factor code entry (T087 — FR-031, B9) ───────────────────────
 
   describe('Two-factor code-entry page', () => {
-    it('renders the two-factor code-entry page', () => {
-      render(
-        <MemoryRouter initialEntries={['/admin/two-factor']}>
-          <Routes>
-            <Route path="/admin/two-factor" element={<TwoFactorStub />} />
-          </Routes>
-        </MemoryRouter>,
+    // FR-031: The two-factor page MUST render an accessible OTP code entry.
+    // B9: The challengeId binds the code-entry step to the user.
+
+    it('renders the two-factor page with OTP input slots', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route
+            path="/admin/two-factor"
+            element={<TwoFactor challengeId="test-challenge-id" />}
+          />
+        </Routes>,
+        ['/admin/two-factor'],
       );
-      // The page must render some content (not blank).
-      const page = screen.getByTestId('two-factor-stub');
+      // The page container must be present.
+      const page = screen.getByTestId('two-factor-page');
       expect(page).toBeInTheDocument();
+      // The OTP input slots must render (6 digit slots).
+      const otpSlots = document.querySelectorAll('[data-slot="input-otp-slot"]');
+      expect(otpSlots).toHaveLength(6);
+    });
+
+    it('renders a verify submit button', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route
+            path="/admin/two-factor"
+            element={<TwoFactor challengeId="test-challenge-id" />}
+          />
+        </Routes>,
+        ['/admin/two-factor'],
+      );
+      const verifyButton = screen.getByRole('button', { name: /verify/i });
+      expect(verifyButton).toBeInTheDocument();
+      expect(verifyButton).toHaveAttribute('type', 'submit');
+    });
+
+    it('renders a resend code button', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route
+            path="/admin/two-factor"
+            element={<TwoFactor challengeId="test-challenge-id" />}
+          />
+        </Routes>,
+        ['/admin/two-factor'],
+      );
+      const resendButton = screen.getByRole('button', { name: /resend code/i });
+      expect(resendButton).toBeInTheDocument();
+    });
+
+    it('renders a "Back to login" link', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route
+            path="/admin/two-factor"
+            element={<TwoFactor challengeId="test-challenge-id" />}
+          />
+        </Routes>,
+        ['/admin/two-factor'],
+      );
+      const backLink = screen.getByRole('link', { name: /back to login/i });
+      expect(backLink).toBeInTheDocument();
     });
   });
 
-  // ── Forgot password request (T-F6 / FR-014/FR-015) ──────────────────
+  // ── Forgot password request (T088 — FR-014/FR-015) ──────────────────
 
   describe('Forgot password page', () => {
-    it('renders the forgot-password page', () => {
-      render(
-        <MemoryRouter initialEntries={['/admin/forgot-password']}>
-          <Routes>
-            <Route path="/admin/forgot-password" element={<ForgotPasswordStub />} />
-          </Routes>
-        </MemoryRouter>,
+    // FR-014: The forgot-password page MUST render an email entry form.
+    // FR-015: The server returns a neutral confirmation regardless of account existence.
+
+    it('renders an email input field', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        </Routes>,
+        ['/admin/forgot-password'],
       );
-      const page = screen.getByTestId('forgot-password-stub');
-      expect(page).toBeInTheDocument();
+      const emailInput = screen.getByLabelText(/email/i);
+      expect(emailInput).toBeInTheDocument();
+      expect(emailInput).toHaveAttribute('type', 'email');
+    });
+
+    it('renders a submit button for sending reset link', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        </Routes>,
+        ['/admin/forgot-password'],
+      );
+      const submitButton = screen.getByRole('button', { name: /send reset link/i });
+      expect(submitButton).toBeInTheDocument();
+      expect(submitButton).toHaveAttribute('type', 'submit');
+    });
+
+    it('renders a "Back to login" link', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        </Routes>,
+        ['/admin/forgot-password'],
+      );
+      const backLink = screen.getByRole('link', { name: /back to login/i });
+      expect(backLink).toBeInTheDocument();
+    });
+
+    it('wraps the email input in a form element', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        </Routes>,
+        ['/admin/forgot-password'],
+      );
+      const form = document.querySelector('form');
+      expect(form).not.toBeNull();
     });
   });
 
-  // ── Reset password (T-F6 / FR-016/FR-017) ───────────────────────────
+  // ── Reset password (T089 — FR-016/FR-017) ───────────────────────────
 
   describe('Reset password page', () => {
-    it('renders the reset-password page', () => {
-      render(
-        <MemoryRouter initialEntries={['/admin/reset-password']}>
-          <Routes>
-            <Route path="/admin/reset-password" element={<ResetPasswordStub />} />
-          </Routes>
-        </MemoryRouter>,
+    // FR-016: The reset page MUST consume the link token and accept a new password.
+    // FR-017: Client mirrors the password policy (server authoritative).
+
+    it('renders new password and confirm password fields', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/reset-password" element={<ResetPassword />} />
+        </Routes>,
+        ['/admin/reset-password?token=test-token'],
       );
-      const page = screen.getByTestId('reset-password-stub');
-      expect(page).toBeInTheDocument();
+      const newPasswordInput = screen.getByLabelText(/new password/i);
+      expect(newPasswordInput).toBeInTheDocument();
+      expect(newPasswordInput).toHaveAttribute('type', 'password');
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+      expect(confirmPasswordInput).toBeInTheDocument();
+      expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+    });
+
+    it('renders a reset password submit button', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/reset-password" element={<ResetPassword />} />
+        </Routes>,
+        ['/admin/reset-password?token=test-token'],
+      );
+      const submitButton = screen.getByRole('button', { name: /reset password/i });
+      expect(submitButton).toBeInTheDocument();
+      expect(submitButton).toHaveAttribute('type', 'submit');
+    });
+
+    it('renders a "Back to login" link', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/reset-password" element={<ResetPassword />} />
+        </Routes>,
+        ['/admin/reset-password?token=test-token'],
+      );
+      const backLink = screen.getByRole('link', { name: /back to login/i });
+      expect(backLink).toBeInTheDocument();
+    });
+
+    it('wraps the password inputs in a form element', () => {
+      renderInAdminRoot(
+        <Routes>
+          <Route path="/admin/reset-password" element={<ResetPassword />} />
+        </Routes>,
+        ['/admin/reset-password?token=test-token'],
+      );
+      const form = document.querySelector('form');
+      expect(form).not.toBeNull();
     });
   });
 
@@ -198,10 +308,6 @@ describe('Pre-auth pages (T-F6)', () => {
     // assertions are deferred to T094.
 
     it('redirects unauthenticated access to the login screen', () => {
-      // Render the guard stub with a Navigate-to-login redirect.
-      // The real guard (T093) will check AuthProvider context; this assertion
-      // verifies the guard mechanism exists by asserting the login form renders
-      // when navigating to /admin/settings without a session.
       render(
         <MemoryRouter initialEntries={['/admin/settings']}>
           <div data-admin className="admin-root">

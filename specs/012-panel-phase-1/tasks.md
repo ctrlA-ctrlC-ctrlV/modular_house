@@ -826,24 +826,27 @@
       > reviewed: PASS-WITH-NITS — T085 10/10 confirmed at runtime; email/password fields, no-Google, "Forgot password" link, form structure all correct (FR-005/FR-006); no scope creep; lint + typecheck clean; `apps/web/package.json` untouched (react-hook-form/zod/@hookform/resolvers were already present pre-branch). **Finding (spec fidelity, non-blocking):** the `> note:` above claims a "two-column 'login v1' layout (branded left panel on lg + centered form on right)" — this is **not what the code does**. `Login.tsx:58-65` renders a single centered column only (`flex min-h-svh items-center justify-center` → one `max-w-md` block); there is no `lg:w-1/3` branded panel. The actual reference template (`next_shadcn_admin_dashboard/src/app/(main)/auth/v1/login/page.tsx:10-21`) is a split-screen: a `hidden bg-primary lg:block lg:w-1/3` left panel ("Hello again" + icon) plus the form on the right two-thirds. FR-005 requires the login screen to "follow the template's 'login v1' layout" and SC-004 measures a ≥90% visual-parity checklist against the Studio Admin reference — the missing branded panel is a real, measurable gap against both, not just cosmetic. It is not caught by T085 (which only asserts form fields/no-Google/forgot-link, not layout), so the task's literal "Done when" is met and this does not block proceeding, but it should be corrected before the SC-004 design review and before T087–T089 repeat the same single-column shape for the other pre-auth pages. See corrective items.
       > reviewed (re-check, commit fed5c56): PASS — all 3 Session 24 corrective items verified: (1) `Login.tsx:84-99` now renders the exact `hidden bg-primary lg:block lg:w-1/3` branded left panel with `CommandIcon` + "Hello again"/"Login to continue" copy, matching the reference template line-for-line; right panel now also carries the reference's `py-24 lg:py-32` spacing and full welcome copy. (2) `input.tsx` `Input` now wrapped in `React.forwardRef` with `displayName` set; the "Function components cannot be given refs" console warning is gone from the `preAuth.test.tsx` run (confirmed by direct grep of test output). (3) T086 `> note:` corrected to describe the actual two-column layout. Re-ran `pnpm --filter @modular-house/web test:run` (22 files / 171 tests, still green), `tsc --noEmit` (clean), `pnpm lint` (clean, all workspaces). Only remaining item, new and very minor: the page now has two `<h1>` elements ("Hello again" in the decorative branded panel and "Login" as the form heading) — the reference template uses `<h1>` only for the decorative panel and a plain `<div>` for the form title, so this diverges slightly from single-h1-per-page convention (WCAG 2.4.6/1.3.1 adjacent, not a hard failure, axe's default ruleset does not flag it). Cosmetic, not blocking.
 
-- [ ] T087 Implement the TwoFactor page
+- [x] T087 Implement the TwoFactor page
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`
       Do: InputOTP code entry bound to `challengeId`; resend control; posts to `verify-2fa`.
       Done when: relevant T085 assertions pass.
       Refs: T-F6, B9, FR-031
+      > note: TwoFactor component with two-column "login v1" layout (branded left panel with ShieldIcon + "Verification" copy, form on right); 6-digit InputOTP with separator (3-3 grouping); resend button with cooldown disabled state; "Back to login" link; Zod schema for 6-digit regex; error/message display areas; challengeId prop binds the code-entry step (B9); onSubmit/onResend callbacks for API integration. preAuth.test.tsx updated to import real TwoFactor (replaces TwoFactorStub) with 4 assertions: OTP slots (6), verify button, resend button, back-to-login link. Files: TwoFactor.tsx, preAuth.test.tsx.
 
-- [ ] T088 Implement the ForgotPassword page
+- [x] T088 Implement the ForgotPassword page
       Files: `apps/web/src/admin/pages/ForgotPassword.tsx`
       Do: Email entry; neutral confirmation; posts to `forgot-password`.
       Done when: relevant T085 assertions pass.
       Refs: T-F6, FR-014/FR-015
+      > note: ForgotPassword component with two-column "login v1" layout (branded left panel with LockIcon + "Reset password" copy, form on right); email input with Zod validation; "Send reset link" submit button; neutral confirmation state (C4 — no account-existence disclosure) with "try again" control; "Back to login" link. preAuth.test.tsx updated to import real ForgotPassword (replaces ForgotPasswordStub) with 4 assertions: email field, submit button, back-to-login link, form structure. Files: ForgotPassword.tsx, preAuth.test.tsx.
 
-- [ ] T089 Implement the ResetPassword page
+- [x] T089 Implement the ResetPassword page
       Files: `apps/web/src/admin/pages/ResetPassword.tsx`
       Do: Consume link token, new password twice; client mirror of policy (server authoritative);
       posts to `reset-password`.
       Done when: relevant T085 assertions pass.
       Refs: T-F6, FR-016/FR-017
+      > note: ResetPassword component with two-column "login v1" layout (branded left panel with KeyIcon + "New password" copy, form on right); reads token from URL query string via useSearchParams; new-password + confirm-password fields with Zod schema mirroring D1 (min 12/max 128), D2 (lower+upper+digit), D4 (match); "Reset password" submit button (disabled when no token); missing-token error alert; success confirmation state with "Go to login" link; "Back to login" link. preAuth.test.tsx updated to import real ResetPassword (replaces ResetPasswordStub) with 4 assertions: new-password + confirm-password fields, submit button, back-to-login link, form structure. Files: ResetPassword.tsx, preAuth.test.tsx.
 
 - [ ] T090 [test] Auth client + route guard test (T-F4)
       Files: `apps/web/src/admin/auth/auth.test.tsx`

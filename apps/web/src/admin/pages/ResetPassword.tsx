@@ -175,14 +175,21 @@ function ResetPassword({
                   onSubmit={handleSubmit}
                   className="flex flex-col gap-4"
                 >
-                  {/* Hidden token field — token comes from URL query string. */}
+                  {/* Visible alert when no token is present in the URL query string. */}
                   {!token && (
                     <div
                       role="alert"
-                      className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center text-sm text-destructive"
+                      className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center text-sm text-destructive space-y-2"
                     >
-                      No reset token found. Please use the link from your email
-                      or request a new one.
+                      <p>No reset token found. Please use the link from your email.</p>
+                      <p>
+                        <Link
+                          to="/admin/forgot-password"
+                          className="underline underline-offset-4"
+                        >
+                          Request a new reset link
+                        </Link>
+                      </p>
                     </div>
                   )}
 

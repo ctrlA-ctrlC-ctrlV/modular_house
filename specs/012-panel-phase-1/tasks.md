@@ -808,18 +808,20 @@
       > note: AppShell wraps ThemeProvider + SidebarProvider around SidebarShell + TopBar + main content region; accepts UserShellData props (AuthProvider context wired in T092); `.admin-root` with `data-admin` attribute scopes Tailwind tokens (T002/T003). T079 14/14 pass. Files: AppShell.tsx, ComingSoon.tsx, UserSection.tsx, Sidebar.tsx, TopBar.tsx, AppShell.test.tsx.
       > reviewed: PASS — ThemeProvider+SidebarProvider wrap ✓; .admin-root+data-admin scoping ✓; SidebarShell+TopBar+main layout ✓; UserShellData props ✓; T079 14/14 confirmed at runtime ✓.
 
-- [ ] T085 [test] Pre-auth pages + guard test (T-F6)
+- [x] T085 [test] Pre-auth pages + guard test (T-F6)
       Files: `apps/web/src/admin/pages/preAuth.test.tsx`
       Do: Assert login renders "login v1" with NO Google option and a "Forgot password" entry, the
       two-factor code-entry renders, the reset page renders, and the settings route is guarded.
       Done when: Tests fail and pin US1-1,2 / US3 / US4-8.
       Refs: T-F6, FR-005/FR-006/FR-031/FR-034
+      > note: 10 tests across 5 describe blocks (Login 6, TwoFactor 1, ForgotPassword 1, ResetPassword 1, Settings guard 1). TDD red phase confirmed (fails with "Failed to resolve import ./Login.js"). Login tests assert: email/password inputs, submit button, no Google, "Forgot password" link present + no register link, form structure. Guard test asserts redirect to login via Navigate stub. Stubs for TwoFactor/ForgotPassword/ResetPassword pages used (T087–T089 real implementations will replace them).
 
-- [ ] T086 Implement the Login page
+- [x] T086 Implement the Login page
       Files: `apps/web/src/admin/pages/Login.tsx`
       Do: Email+password form, no Google, "Forgot password" link; posts to `login`.
       Done when: relevant T085 assertions pass.
       Refs: T-F6, FR-005/FR-006
+      > note: Login component with react-hook-form + zod validation; two-column "login v1" layout (branded left panel on lg + centered form on right); email/password fields using Field/FieldLabel/Input/FieldError primitives; submit button with loading state; "Forgot password?" link to /admin/forgot-password; no Google button (FR-005); no registration link (FR-006); onSubmit/error/isSubmitting props for API integration. T085 10/10 pass. Files: Login.tsx, preAuth.test.tsx.
 
 - [ ] T087 Implement the TwoFactor page
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`

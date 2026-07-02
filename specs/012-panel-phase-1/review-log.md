@@ -4,6 +4,16 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 29 — Re-check T092 after corrective fix (2026-07-02)
+
+**Trigger:** Session 28 flagged T092's `role`/`permissions` as reachable only via `user.role`/`user.permissions`, not top-level context fields as literally worded. Implementer applied the fix in commit `59b2a0f`.
+
+T092 — PASS (re-check) — role/permissions now top-level; new test pins both
+
+**Overall: GO** — fix verified: `AuthContextValue.role`/`.permissions` added (`AuthProvider.tsx:14-17,89-90`), purely additive (no other `useAuth()` consumer exists yet), new test (`auth.test.tsx:222-243`) asserts both from a live `useAuth()` call, not vacuous. Full web suite 191/191, typecheck clean, lint clean. No regressions, no scope creep.
+
+---
+
 ## Session 28 — 2026-07-02 (reviewer: supervisor)
 
 **Scope:** T090–T093 (auth client, AuthProvider, route guard), commit `4ec46e9`

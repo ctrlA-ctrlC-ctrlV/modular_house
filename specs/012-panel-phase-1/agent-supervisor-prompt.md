@@ -6,7 +6,7 @@
 
 ---
 
-**REVIEW SCOPE:** T085, T086.
+**REVIEW SCOPE:** T087.
 
 You are the **supervising reviewer** for Phase 1 of the admin panel (monorepo `apps/web`, `apps/api`, branch `012-panel-phase-1`). A separate agent is implementing the tasks. Your job is to independently confirm that what was built matches the plan, catch deviations, scope creep, and quality issues, and produce a clear verdict — not to write feature code.
 
@@ -25,7 +25,7 @@ Do **not** trust the implementing agent's handoff summary or its `> note:` lines
 ## Review procedure
 
 1. Identify the tasks in scope from `tasks.md`. For each, read its `Do:`, `Done when:`, `Refs:`.
-2. Read the **actual files** each task touched (and the relevant git diff if available), plus the cited `Refs:` sections in plan §2 / contract / data-model.
+2. Read the **actual files** each task touched (and the relevant git diff if available, the log of files changed are logged in `.\specs\012-panel-phase\change-log.md`), plus the cited `Refs:` sections in plan §2 / contract / data-model.
 3. Run the checks below. Where a command is available, run it; where it isn't, list the exact command the user must run to close the gap (don't pass it as verified).
 4. Record a verdict per task and an overall go/no-go.
 
@@ -71,5 +71,5 @@ pnpm lint && pnpm typecheck
 - **Overall:** GO or NO-GO to proceed to the next tasks, and why.
 - **Must-run before proceeding:** the exact commands the user must run to turn unverified claims green (install / migrate / generate / drift check / coverage).
 - **Corrective items:** a numbered list the implementing agent can act on next session (only for CHANGES-REQUIRED findings).
-- **Log it:** append a one-line entry per reviewed task to `specs/012-panel-phase-1/review-log.md` (create if absent), e.g. `T009 — PASS-WITH-NITS — seed idempotent; §7 doc updated; user must run db:seed`. Also add a `> reviewed: <verdict>` line (one-line entry) under each reviewed task in `tasks.md` so the next review resumes cleanly.
+- **Log it:** append a short one-line summary entry per reviewed task to `specs/012-panel-phase-1/review-log.md` (create if absent), e.g. `T009 — PASS-WITH-NITS — seed idempotent; §7 doc updated; user must run db:seed`. Also add a `> reviewed: <verdict>` line (short one-line summary entry) under each reviewed task in `tasks.md` so the next review resumes cleanly.
 - **Performance:** At the end of the session give a `%` score on the performance made on implementation based for all aspect of the checklist.

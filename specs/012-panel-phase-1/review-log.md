@@ -1363,4 +1363,18 @@ API suite (`test:run`/`test:coverage`/`prisma validate`/`migrate dev`/`docs:vali
 
 **Overall: GO** — All 3 corrective items resolved and verified. No regressions. Proceed to T087.
 
+---
+
+## Session 25 — 2026-07-02 (reviewer: supervisor)
+
+**Scope:** T087 (Implement the TwoFactor page), commit `cdb455f`. (Commit also bundles T088/T089 — ForgotPassword/ResetPassword — which are out of this session's scope and not reviewed here.)
+
+T087 — PASS — `TwoFactor.tsx` renders 6-slot InputOTP (`data-slot="input-otp-slot"` × 6) bound to a required `challengeId` prop, resend control, verify submit button, and "Back to login" link; `preAuth.test.tsx` 4/4 TwoFactor assertions pass at runtime (full web suite 180/180, `preAuth.test.tsx` 19/19). `onSubmit` payload `{ challengeId, code }` matches `VerifyTwoFactorRequest` in the OpenAPI contract exactly, incl. the `^\d{6}$` code pattern mirrored in the client Zod schema. No numeric resend countdown — correctly deferred to T116 per its own task text. `onSubmit`/`onResend` are placeholder callbacks pending T091 API wiring — correct per `Done when:` scope (T085 assertions only). No scope creep, no `@modular-house/ui`/public-site changes, no new deps. Lint + typecheck clean. Non-blocking nits: (1) test+impl landed in one commit, same accepted precedent as T086/T048/T050; (2) duplicate `<h1>` per page, same cosmetic pattern already accepted non-blocking on T086.
+
+**Verification commands run:** `pnpm --filter @modular-house/web test:run` (180/180 pass), `pnpm typecheck` (clean, all 4 workspaces), `pnpm lint` (clean, all 4 workspaces).
+
+**Not run this session (no backend files touched by T087):** `pnpm --filter @modular-house/api test:run`, `test:coverage`, `prisma validate`, `prisma migrate dev`, `docs:validate` — none of these are implicated by a frontend-only page component; deferred to the session that reviews the next backend-touching task.
+
+**Overall: GO** — Proceed to review T088/T089 (already implemented in the same commit, unreviewed) or T090.
+
 **Performance: 97%** — All three corrective items applied correctly and verified independently against the actual reference template file (not just the implementer's description); zero regressions across 171 tests, typecheck, and lint. Docked slightly for the newly-introduced duplicate-`<h1>` cosmetic nit.

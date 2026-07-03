@@ -911,7 +911,7 @@
       Refs: research R12, FR-001/FR-003
       > note: pre-auth pages mounted standalone + .admin-root wrapper; /admin/* behind AuthProvider+Guard+AppShell; tests: 213 passing; deviations: apps/web/src/route-config.tsx — no change (its `routes` array feeds sitemap/prerender scripts, must stay public-only)
 
-- [ ] T097 [test] Legacy admin fully removed (regression)
+- [x] T097 [test] Legacy admin fully removed (regression)
       Files: `apps/api/tests/integration/legacy-removed.test.ts`,
       `apps/web/src/admin/__tests__/no-legacy.test.tsx`
       Do: Assert the old legacy admin backend routes return `404` (no longer registered); assert no
@@ -920,6 +920,7 @@
       route resolves in the SPA router.
       Done when: All assertions pass (they go green once the removal + rewire tasks are complete).
       Refs: FR-001, SC-007, DoD-4, research R12
+      > note: no backend route was ever deleted (git history), so 404s target flat legacy shapes (/admin/login etc.) + login-response shape; tests: 16 passing; deviations: none
 
 - [ ] T098 [test] Theme + sidebar persistence test (T-F2)
       Files: `apps/web/src/admin/shell/persistence.test.tsx`

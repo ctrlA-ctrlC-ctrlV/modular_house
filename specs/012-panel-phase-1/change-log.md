@@ -73,6 +73,29 @@ Note: keep the most latest entry on top
 
 ---
 
+## [2026-07-03T09:45:00.000+00:00] - [pending] - test(admin): T097 legacy admin fully removed regression
+
+### Added
+- `apps/api/tests/integration/legacy-removed.test.ts` — 11 tests. Git history confirms no backend admin
+  route file was ever deleted (the `/admin/auth/*` mount point is unchanged since the very first commit),
+  so the "old legacy route returns 404" assertion targets flat/legacy-shaped paths that never existed
+  under the current nested router (`GET /admin`, `GET|POST /admin/login`, `POST /admin/logout`,
+  `GET /admin/dashboard`) as a regression guard against reintroducing one, plus a check that
+  `POST /admin/auth/login` never returns `token`/`accessToken`/`user`/`roles` (the pre-Phase-1 contract),
+  plus a consolidated re-gation spot-check across the five retained content endpoints.
+- `apps/web/src/admin/__tests__/no-legacy.test.tsx` — 5 tests using `import.meta.glob` (not `node:fs`,
+  which isn't typed in this app's browser-targeted tsconfig) to scan every non-test source file under
+  `apps/web/src` for the literal string `adminToken`, confirm `src/routes/admin/**` has zero remaining
+  modules, and render the real `App` tree at `/admin`, `/admin/login`, and an unmatched `/admin/*` path
+  to confirm only the new login page ever resolves (never a legacy dashboard).
+
+### Verification
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` — 307/307 pass.
+- `pnpm --filter @modular-house/web test:run` — 213/213 pass.
+- Both new files' lint + typecheck clean.
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

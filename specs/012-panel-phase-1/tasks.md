@@ -894,6 +894,7 @@
       Done when: Tests fail and pin US4-1..8.
       Refs: T-F6, FR-032/FR-033/FR-034/FR-035
       > note: 17 tests across 5 describes (password form, photo, read-only info, super_admin, unauth); real AuthProvider+AdminGuard; confirmed red (missing Settings.js import); tests: 17 failing; deviations: none
+      > reviewed: PASS-WITH-NITS — real AuthProvider/AdminGuard (not stubs) ✓; US4-4/5's "sidebar user section" half is untested (Settings.test.tsx renders Settings standalone, never AppShell/UserSection) — see review-log Session 30.
 
 - [x] T095 Implement the Settings page
       Files: `apps/web/src/admin/pages/Settings.tsx`
@@ -902,6 +903,7 @@
       Done when: T094 passes.
       Refs: T-F6, G6, FR-032/FR-033/FR-034/FR-035
       > note: reads useAuth() for identity, apiClient.fetch() for password/photo PUT/DELETE/GET; tests: 17 passing; deviations: none
+      > reviewed: PASS-WITH-NITS — password/photo wiring, super_admin gating, G1/G2/G6 all correct. Bug found (pre-existing, exposed here): `UserSection.tsx:43` uses a bare `<img src="/admin/settings/photo">`, which cannot carry the in-memory Bearer token — the request 401s and the sidebar avatar always falls back to initials, never showing an uploaded photo (breaks US4-4/US4-5's sidebar half). Corrective item — see chat report.
 
 - [x] T096 Wire admin routing into the SPA
       Files: `apps/web/src/App.tsx`, `apps/web/src/route-config.tsx`
@@ -910,6 +912,7 @@
       Done when: All `/admin` routes resolve to the new layer; no legacy import remains.
       Refs: research R12, FR-001/FR-003
       > note: pre-auth pages mounted standalone + .admin-root wrapper; /admin/* behind AuthProvider+Guard+AppShell; tests: 213 passing; deviations: apps/web/src/route-config.tsx — no change (its `routes` array feeds sitemap/prerender scripts, must stay public-only)
+      > reviewed: PASS-WITH-NITS — literal Done-when met (routes resolve, no legacy imports). Confirmed by grep: `<Login />`, `<TwoFactor />`, `<ForgotPassword />`, `<ResetPassword />` are mounted in App.tsx with zero props — `onSubmit`/`onResend` are undefined everywhere outside tests, so the real login/2FA/forgot/reset flow does nothing when submitted in a browser. No task in tasks.md assigns this wiring (confirmed by full-file grep); implementer's own change-log note already flagged this as a blocker. Not a T096-specific defect (plan gap, not a Done-when miss) but a critical corrective item — see chat report.
 
 - [x] T097 [test] Legacy admin fully removed (regression)
       Files: `apps/api/tests/integration/legacy-removed.test.ts`,
@@ -921,6 +924,7 @@
       Done when: All assertions pass (they go green once the removal + rewire tasks are complete).
       Refs: FR-001, SC-007, DoD-4, research R12
       > note: no backend route was ever deleted (git history), so 404s target flat legacy shapes (/admin/login etc.) + login-response shape; tests: 16 passing; deviations: none
+      > reviewed: PASS — verified app.ts mounts only nested `/admin/auth|pages|gallery|faqs|submissions|redirects|uploads|settings` (no flat overlap); no-legacy.test.tsx renders the real App tree (not a stub); full suites 307/307 (api) + 213/213 (web) confirmed at runtime.
 
 - [ ] T098 [test] Theme + sidebar persistence test (T-F2)
       Files: `apps/web/src/admin/shell/persistence.test.tsx`

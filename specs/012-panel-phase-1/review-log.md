@@ -4,6 +4,17 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 30 — T094–T097 review (2026-07-03)
+
+T094 — PASS-WITH-NITS — real guard used; US4-4/5 sidebar untested
+T095 — PASS-WITH-NITS — wired correctly; sidebar avatar bug (bare img)
+T096 — PASS-WITH-NITS — routes clean; login/2FA/reset onSubmit unwired
+T097 — PASS — verified 307/213 green; app.ts confirms no flat route
+
+**Overall: GO** (conditional — see chat report for the pre-auth wiring gap)
+
+---
+
 ## Session 29 — Re-check T092 after corrective fix (2026-07-02)
 
 **Trigger:** Session 28 flagged T092's `role`/`permissions` as reachable only via `user.role`/`user.permissions`, not top-level context fields as literally worded. Implementer applied the fix in commit `59b2a0f`.

@@ -18,6 +18,17 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-03T09:00:00.000+00:00] - [pending] - test(admin/pages): add Settings page test (T094)
+
+### Added
+- `apps/web/src/admin/pages/Settings.test.tsx` — 17 tests across 5 describe blocks: password-change
+  form (current + new twice, mismatch rejection, server-error surfacing), profile photo (initials
+  fallback, upload/remove wiring, client-side G1/G2 rejection), read-only name/email (FR-034),
+  super_admin read-only (FR-035), and unauthenticated redirect via the real `AuthProvider`/`AdminGuard`
+  (not a stub). Confirmed red: fails on missing `./Settings.js` import before T095.
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

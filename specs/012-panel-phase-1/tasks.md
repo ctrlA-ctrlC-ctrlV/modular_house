@@ -887,12 +887,13 @@
       > note: AdminGuard reads useAuth(), renders Navigate to /admin/login when unauthenticated, loading state while hydrating; tests: 10 passing; deviations: none
       > reviewed: PASS — FR-003 satisfied; Navigate replace + AuthProvider's navigate(...,{replace:true}) on logout together block back-nav reuse; loading state tested.
 
-- [ ] T094 [test] Settings page test (T-F6 settings slice)
+- [x] T094 [test] Settings page test (T-F6 settings slice)
       Files: `apps/web/src/admin/pages/Settings.test.tsx`
       Do: Assert password-change form (current + new twice), photo upload/remove with initials fallback,
       read-only name + email, `super_admin` read-only, and that the page is unreachable unauthenticated.
       Done when: Tests fail and pin US4-1..8.
       Refs: T-F6, FR-032/FR-033/FR-034/FR-035
+      > note: 17 tests across 5 describes (password form, photo, read-only info, super_admin, unauth); real AuthProvider+AdminGuard; confirmed red (missing Settings.js import); tests: 17 failing; deviations: none
 
 - [ ] T095 Implement the Settings page
       Files: `apps/web/src/admin/pages/Settings.tsx`

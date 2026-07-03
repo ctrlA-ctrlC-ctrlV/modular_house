@@ -926,6 +926,61 @@
       > note: no backend route was ever deleted (git history), so 404s target flat legacy shapes (/admin/login etc.) + login-response shape; tests: 16 passing; deviations: none
       > reviewed: PASS — verified app.ts mounts only nested `/admin/auth|pages|gallery|faqs|submissions|redirects|uploads|settings` (no flat overlap); no-legacy.test.tsx renders the real App tree (not a stub); full suites 307/307 (api) + 213/213 (web) confirmed at runtime.
 
+---
+
+> **Corrective insertion (Session 30 review, 2026-07-03).** T085–T089 built the pre-auth pages as
+> presentational components (`onSubmit`/`onResend` optional props); T090–T093 built the apiClient/
+> AuthProvider/guard; T096 mounted the pre-auth pages into the live route tree. No task ever assigned
+> connecting the two: `App.tsx` mounts `<Login />`, `<TwoFactor />`, `<ForgotPassword />`,
+> `<ResetPassword />` with zero props, so `onSubmit`/`onResend` are `undefined` outside tests and the
+> login/2FA/forgot/reset-password flow does nothing when submitted in a browser. See review-log.md
+> Session 30 and tasks.md T096's `> reviewed:` note. `apiClient.ts` already exposes everything this
+> needs (`fetch(url, { skipAuth: true, ... })` for unauthenticated calls, `setAccessToken`), so this is
+> integration wiring, not new plumbing.
+
+- [ ] T097a [test] Pre-auth page wiring integration test
+      Files: `apps/web/src/admin/pages/preAuthWiring.test.tsx`
+      Do: Render the real `App` (per the `no-legacy.test.tsx` pattern — not a stubbed route table) at
+      `/admin/login`; mock `fetch` for `/admin/auth/login`, `/admin/auth/verify-2fa`,
+      `/admin/auth/resend-code`, `/admin/auth/forgot-password`, `/admin/auth/reset-password`, and
+      `/admin/auth/me`. Assert: submitting the login form calls `POST /admin/auth/login` and navigates
+      to `/admin/two-factor` carrying the returned `challengeId`; submitting a correct code calls
+      `POST /admin/auth/verify-2fa`, stores the returned `accessToken`, and lands on `/admin/settings`
+      (via a successful `/me` hydration); clicking resend calls `POST /admin/auth/resend-code` with the
+      same `challengeId`; submitting forgot-password calls `POST /admin/auth/forgot-password` and always
+      shows the neutral confirmation (C4) regardless of response; submitting reset-password (with a
+      `?token=` query param) calls `POST /admin/auth/reset-password` and navigates to `/admin/login` on
+      success. Also assert the 401/423/429/400/410 error paths surface the server's `message` through
+      each page's existing `error` prop, without a token ever being stored.
+      Done when: Tests fail (the current build never issues any of these requests).
+      Refs: T-F6, FR-005/FR-006/FR-010–FR-018, contracts `login`/`verify-2fa`/`resend-code`/
+      `forgot-password`/`reset-password`
+
+- [ ] T097b Wire the pre-auth pages to the auth client
+      Files: `apps/web/src/App.tsx` (thin container wrappers only, matching the existing
+      `AdminRoot`/`AdminShell` local-component pattern already in this file). Keep `Login.tsx`,
+      `TwoFactor.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx` presentational/unchanged — they already
+      take the right props.
+      Do: Add a container per pre-auth page that owns `error`/`isSubmitting`/`message` state and calls
+      `apiClient.fetch(url, { skipAuth: true, ... })`:
+        - Login → `POST /admin/auth/login` → `200` navigate to `/admin/two-factor` passing `challengeId`
+          via router state; `401`/`423`/`429` → surface the response `message` via the `error` prop.
+        - TwoFactor → read `challengeId` from router state (redirect to `/admin/login` if absent);
+          `POST /admin/auth/verify-2fa` → `200` call `apiClient.setAccessToken(session.accessToken)`,
+          then navigate to `/admin` (the `AuthProvider` mounted there hydrates via its own `fetchMe()` —
+          no extra glue needed); `401` → `error` prop. `onResend` → `POST /admin/auth/resend-code`;
+          disable the button while in flight only — the cooldown *countdown* UI stays deferred to T116
+          per the existing T085 note; do not build it here.
+        - ForgotPassword → `POST /admin/auth/forgot-password` → set `isSubmitted=true` on any `200`
+          (C4 neutral confirmation, regardless of body).
+        - ResetPassword → `POST /admin/auth/reset-password` with the URL's `token` → `200` navigate to
+          `/admin/login`; `400`/`410` → `error` prop.
+      Done when: T097a passes; a manual browser walk-through of login → OTP → `/admin/settings`
+      succeeds against a real dev API (record the walk-through in quickstart.md §5 evidence).
+      Refs: T-F6, FR-005/FR-006/FR-010–FR-018, research R3/R4, `apps/web/src/admin/auth/apiClient.ts`
+
+---
+
 - [ ] T098 [test] Theme + sidebar persistence test (T-F2)
       Files: `apps/web/src/admin/shell/persistence.test.tsx`
       Do: Toggle dark mode + sidebar collapse, remount, assert state restored with no flash and that

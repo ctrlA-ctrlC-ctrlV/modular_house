@@ -13,6 +13,8 @@ T097 — PASS — verified 307/213 green; app.ts confirms no flat route
 
 **Overall: GO** (conditional — see chat report for the pre-auth wiring gap)
 
+Corrective tasks added: T097a/T097b (pre-auth pages never wired to apiClient — see tasks.md).
+
 ---
 
 ## Session 29 — Re-check T092 after corrective fix (2026-07-02)

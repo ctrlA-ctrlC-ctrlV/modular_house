@@ -29,6 +29,21 @@ Note: keep the most latest entry on top
 
 ---
 
+## [2026-07-03T09:15:00.000+00:00] - [pending] - feat(admin/pages): implement Settings page (T095)
+
+### Added
+- `apps/web/src/admin/pages/Settings.tsx` — own-account settings page. Reads identity/role from
+  `useAuth()`; wires password change (`PUT /admin/settings/password`) and profile-photo
+  upload/remove/fetch (`PUT`/`DELETE`/`GET /admin/settings/photo`) directly to the admin `apiClient`.
+  Photo bytes are fetched with the authenticated client and rendered via an object URL (G6) rather
+  than a bare `<img src>`, since the endpoint requires a Bearer token. Client-side mirrors of G1
+  (accepted MIME types) and G2 (5 MB max) give immediate feedback; the server stays authoritative.
+  Name/email render as read-only text (FR-034). The `super_admin` account hides both the
+  password-change and photo-edit cards entirely and shows a database-only notice (FR-035).
+  All 17 T094 tests pass; `pnpm --filter @modular-house/web test:run` 208/208, lint + typecheck clean.
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

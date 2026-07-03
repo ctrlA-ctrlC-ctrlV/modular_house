@@ -895,12 +895,13 @@
       Refs: T-F6, FR-032/FR-033/FR-034/FR-035
       > note: 17 tests across 5 describes (password form, photo, read-only info, super_admin, unauth); real AuthProvider+AdminGuard; confirmed red (missing Settings.js import); tests: 17 failing; deviations: none
 
-- [ ] T095 Implement the Settings page
+- [x] T095 Implement the Settings page
       Files: `apps/web/src/admin/pages/Settings.tsx`
       Do: Wire password change, photo upload/remove (GET `settings/photo` for bytes vs initials),
       read-only name/email; hide edit controls for `super_admin`.
       Done when: T094 passes.
       Refs: T-F6, G6, FR-032/FR-033/FR-034/FR-035
+      > note: reads useAuth() for identity, apiClient.fetch() for password/photo PUT/DELETE/GET; tests: 17 passing; deviations: none
 
 - [ ] T096 Wire admin routing into the SPA
       Files: `apps/web/src/App.tsx`, `apps/web/src/route-config.tsx`

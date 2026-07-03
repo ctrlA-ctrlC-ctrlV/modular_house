@@ -96,6 +96,33 @@ Note: keep the most latest entry on top
 
 ---
 
+## [2026-07-03T11:00:00.000+00:00] - [pending] - fix(admin/shell): apply Session 30 corrective item for T095
+
+### Added
+- `apps/web/src/admin/auth/usePhotoUrl.ts` — hook that fetches the authenticated user's profile-photo
+  bytes via `apiClient.fetch()` and exposes them as an object URL, re-fetching only when
+  `hasProfilePhoto` changes; revokes the previous object URL on cleanup.
+- `apps/web/src/admin/shell/AppShell.test.tsx` — 2 new tests covering `hasProfilePhoto: true`: assert
+  the authenticated `/admin/settings/photo` fetch fires and that no `<img src="/admin/settings/photo">`
+  ever renders directly; assert no fetch fires at all when `hasProfilePhoto` is `false`. This path was
+  previously untested (existing tests only covered `hasProfilePhoto: false`), which is how the bug went
+  unnoticed until the T095 review.
+
+### Fixed
+- `apps/web/src/admin/shell/UserSection.tsx` — sidebar avatar now uses `usePhotoUrl()` instead of a bare
+  `<img src="/admin/settings/photo">`. `GET /admin/settings/photo` requires a Bearer token (G6); a plain
+  `<img>` tag sends no `Authorization` header, so the request always 401'd and the sidebar silently fell
+  back to initials even when a photo was uploaded (broke the sidebar half of US4-4/US4-5).
+- `apps/web/src/admin/shell/TopBar.tsx` — same bug, same fix, found by inspection while fixing
+  `UserSection.tsx` (the review cited only `UserSection.tsx:43`, but the top-bar account-menu avatar had
+  the identical unauthenticated `<img src>` pattern at line 229).
+
+### Verification
+- `pnpm --filter @modular-house/web test:run` — 215/215 pass.
+- Lint + typecheck clean on all four touched files.
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

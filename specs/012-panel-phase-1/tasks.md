@@ -904,6 +904,7 @@
       Refs: T-F6, G6, FR-032/FR-033/FR-034/FR-035
       > note: reads useAuth() for identity, apiClient.fetch() for password/photo PUT/DELETE/GET; tests: 17 passing; deviations: none
       > reviewed: PASS-WITH-NITS — password/photo wiring, super_admin gating, G1/G2/G6 all correct. Bug found (pre-existing, exposed here): `UserSection.tsx:43` uses a bare `<img src="/admin/settings/photo">`, which cannot carry the in-memory Bearer token — the request 401s and the sidebar avatar always falls back to initials, never showing an uploaded photo (breaks US4-4/US4-5's sidebar half). Corrective item — see chat report.
+      > fix(Session 30 review): added `usePhotoUrl` hook (authenticated fetch → object URL); `UserSection.tsx` + `TopBar.tsx` (same bare-`<img>` bug, not just the line cited) now use it instead of a raw endpoint `src`. 2 new tests in `AppShell.test.tsx` pin the authenticated fetch + assert no `img[src="/admin/settings/photo"]` remains. Web suite 215/215, lint + typecheck clean.
 
 - [x] T096 Wire admin routing into the SPA
       Files: `apps/web/src/App.tsx`, `apps/web/src/route-config.tsx`

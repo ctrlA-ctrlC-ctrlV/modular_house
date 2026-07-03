@@ -4,6 +4,7 @@
 // so it remains accessible when the sidebar is collapsed to icon rail.
 // UserSection is display-only; TopBar owns the account DropdownMenu (FR-025).
 import { cn } from '../lib/cn.js';
+import { usePhotoUrl } from '../auth/usePhotoUrl.js';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar.js';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '../ui/sidebar.js';
 
@@ -31,6 +32,11 @@ interface UserSectionProps {
 // Sidebar footer user section: avatar, name, email. Clicking opens the
 // account menu (handled by the TopBar account trigger for now).
 function UserSection({ user, className }: UserSectionProps) {
+  // G6: photo bytes require an authenticated fetch (Bearer token), so a bare
+  // <img src="/admin/settings/photo"> would always 401 and silently fall
+  // back to initials — usePhotoUrl resolves an authenticated object URL.
+  const photoUrl = usePhotoUrl(user.hasProfilePhoto);
+
   return (
     <div data-testid="user-section" className={cn('', className)}>
       <SidebarMenu>
@@ -39,8 +45,8 @@ function UserSection({ user, className }: UserSectionProps) {
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-12"
           >
             <Avatar size="sm" className="grayscale">
-              {user.hasProfilePhoto && (
-                <AvatarImage src="/admin/settings/photo" alt={user.displayName} />
+              {photoUrl && (
+                <AvatarImage src={photoUrl} alt={user.displayName} />
               )}
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>

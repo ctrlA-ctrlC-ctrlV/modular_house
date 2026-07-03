@@ -2,8 +2,8 @@
 // Asserts collapsible sidebar, 48px top bar with four controls (collapse,
 // UI-preference, dark-mode, account), centered faded "Coming Soon", bottom
 // user section, and NO GitHub button.  Pins US2-1..4,7 + H7.
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import type React from 'react';
 import { AppShell } from './AppShell.js';
 
@@ -15,6 +15,21 @@ const testUser = {
   role: 'admin',
   hasProfilePhoto: false,
 };
+
+// Mocks the authenticated GET /admin/settings/photo response used by
+// usePhotoUrl (Session 30 corrective fix). jsdom has no createObjectURL.
+const mockFetch = vi.fn((_url: string, _init?: Parameters<typeof fetch>[1]) =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    blob: () => Promise.resolve(new Blob(['fake-image-bytes'], { type: 'image/png' })),
+  }),
+);
+vi.stubGlobal('fetch', mockFetch);
+vi.stubGlobal('URL', Object.assign(URL, {
+  createObjectURL: vi.fn(() => 'blob:mock-preview-url'),
+  revokeObjectURL: vi.fn(),
+}));
 
 function renderShell(overrides?: Partial<React.ComponentProps<typeof AppShell>>) {
   return render(<AppShell user={testUser} {...overrides} />);
@@ -29,6 +44,7 @@ describe('Admin shell (AppShell)', () => {
     document.documentElement.style.removeProperty('color-scheme');
     document.cookie = 'admin_theme_mode=; path=/; max-age=0';
     document.cookie = 'admin_sidebar_collapsed=; path=/; max-age=0';
+    mockFetch.mockClear();
   });
 
   // ── Sidebar presence and collapse ──────────────────────────────────
@@ -172,6 +188,44 @@ describe('Admin shell (AppShell)', () => {
       const footer = document.querySelector('[data-slot="sidebar-footer"]');
       expect(footer).not.toBeNull();
       expect(footer).toContainElement(userSection);
+    });
+  });
+
+  // ── Profile photo — corrective fix (Session 30 review, G6) ───────────
+  //
+  // The sidebar user section and top-bar account avatar both used to render
+  // a bare `<img src="/admin/settings/photo">`, which cannot carry the
+  // in-memory Bearer token; the request always 401'd and silently fell back
+  // to initials. Both now resolve the photo via the authenticated apiClient
+  // (usePhotoUrl) instead.
+
+  describe('Profile photo (G6, corrective fix)', () => {
+    it('fetches the photo via the authenticated apiClient rather than a bare <img src>', async () => {
+      renderShell({ user: { ...testUser, hasProfilePhoto: true } });
+
+      // Both the sidebar and top-bar avatars resolve an authenticated
+      // object-URL image once the fetch succeeds.
+      await waitFor(() => {
+        expect(document.querySelectorAll('[data-slot="avatar-image"]').length).toBeGreaterThan(0);
+      });
+
+      const photoCalls = mockFetch.mock.calls.filter(([url]) =>
+        String(url).includes('/admin/settings/photo'),
+      );
+      expect(photoCalls.length).toBeGreaterThan(0);
+
+      // No element ever points a raw <img> tag directly at the
+      // unauthenticated endpoint path.
+      const rawImgs = document.querySelectorAll('img[src="/admin/settings/photo"]');
+      expect(rawImgs).toHaveLength(0);
+    });
+
+    it('does not fetch the photo when hasProfilePhoto is false', () => {
+      renderShell();
+      const photoCalls = mockFetch.mock.calls.filter(([url]) =>
+        String(url).includes('/admin/settings/photo'),
+      );
+      expect(photoCalls).toHaveLength(0);
     });
   });
 });

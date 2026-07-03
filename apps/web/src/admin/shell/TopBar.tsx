@@ -5,6 +5,7 @@ import * as React from 'react';
 import { cn } from '../lib/cn.js';
 import { useSidebar } from '../ui/sidebar.js';
 import { useTheme, type ThemeMode } from '../theme/ThemeProvider.js';
+import { usePhotoUrl } from '../auth/usePhotoUrl.js';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar.js';
 import {
   DropdownMenu,
@@ -139,6 +140,9 @@ interface TopBarProps {
 function TopBar({ user, onSettingsClick, onLogoutClick, className }: TopBarProps) {
   const { toggleSidebar } = useSidebar();
   const { themeMode, setThemeMode } = useTheme();
+  // G6: photo bytes require an authenticated fetch (Bearer token); see
+  // usePhotoUrl for why a bare <img src> cannot be used here.
+  const photoUrl = usePhotoUrl(user.hasProfilePhoto);
 
   // Cycle to the next theme mode.
   const cycleTheme = React.useCallback(() => {
@@ -225,8 +229,8 @@ function TopBar({ user, onSettingsClick, onLogoutClick, className }: TopBarProps
                 )}
               >
                 <Avatar size="sm" className="grayscale">
-                  {user.hasProfilePhoto && (
-                    <AvatarImage src="/admin/settings/photo" alt={user.displayName} />
+                  {photoUrl && (
+                    <AvatarImage src={photoUrl} alt={user.displayName} />
                   )}
                   <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                 </Avatar>

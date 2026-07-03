@@ -123,6 +123,18 @@ Note: keep the most latest entry on top
 
 ---
 
+## [2026-07-03T11:30:00.000+00:00] - [pending] - test(admin/pages): T097a pre-auth page wiring test
+
+### Added
+- `apps/web/src/admin/pages/preAuthWiring.test.tsx` — 10 tests rendering the real `App` tree (not a
+  stubbed route table) driving Login → TwoFactor → session, resend-code, ForgotPassword's neutral
+  confirmation, and ResetPassword's consume-and-navigate flow, plus one representative error case for
+  each of 423/429 (login), 401 (verify-2fa), and 400/410 (reset-password) — covering all five status
+  codes named in the task text. All 10 fail against the current build (no fetch is issued from any
+  pre-auth page today), confirming the TDD red phase per T097a's own "Done when".
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

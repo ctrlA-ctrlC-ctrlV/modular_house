@@ -939,7 +939,7 @@
 > needs (`fetch(url, { skipAuth: true, ... })` for unauthenticated calls, `setAccessToken`), so this is
 > integration wiring, not new plumbing.
 
-- [ ] T097a [test] Pre-auth page wiring integration test
+- [x] T097a [test] Pre-auth page wiring integration test
       Files: `apps/web/src/admin/pages/preAuthWiring.test.tsx`
       Do: Render the real `App` (per the `no-legacy.test.tsx` pattern — not a stubbed route table) at
       `/admin/login`; mock `fetch` for `/admin/auth/login`, `/admin/auth/verify-2fa`,
@@ -956,6 +956,7 @@
       Done when: Tests fail (the current build never issues any of these requests).
       Refs: T-F6, FR-005/FR-006/FR-010–FR-018, contracts `login`/`verify-2fa`/`resend-code`/
       `forgot-password`/`reset-password`
+      > note: 10 tests over Login/TwoFactor/ForgotPassword/ResetPassword incl. all 5 named status codes; confirmed red (no fetch issued); tests: 10 failing; deviations: none
 
 - [ ] T097b Wire the pre-auth pages to the auth client
       Files: `apps/web/src/App.tsx` (thin container wrappers only, matching the existing

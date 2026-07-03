@@ -44,6 +44,35 @@ Note: keep the most latest entry on top
 
 ---
 
+## [2026-07-03T09:30:00.000+00:00] - [pending] - feat(admin): T096 wire admin routing into the SPA
+
+### Added
+- `apps/web/src/App.tsx` — mounts the full `/admin/*` route tree: `/admin/login`, `/admin/two-factor`,
+  `/admin/forgot-password`, and `/admin/reset-password` render standalone (each wrapped in a new local
+  `AdminRoot` helper that applies the `.admin-root`/`[data-admin]` scoping the Tailwind v4 + OKLCH
+  token layer requires — the pre-auth pages don't self-apply this wrapper). `/admin` and `/admin/settings`
+  sit behind a new local `AdminShell` layout component (`AuthProvider` → `AdminRoot` → `AdminGuard` →
+  `AdminShell`) that derives the sidebar/top-bar `UserShellData` from `useAuth()` and renders `AppShell`
+  around an `<Outlet />`; the index route and any unmatched `/admin/*` path redirect to `/admin/settings`
+  (no dashboard/widgets in Phase 1 per plan §5.2). `admin.css` is imported once here so the token layer
+  reaches the real bundle for the first time (previously wired by T002/T003 but never imported anywhere).
+
+### Changed
+- `apps/web/src/App.tsx` — replaced the "admin routes will be wired in" placeholder comment with the
+  live route tree; updated the file's docstring to explain why admin routes are NOT added to
+  `route-config.tsx`.
+
+### Notes
+- `apps/web/src/route-config.tsx` — intentionally left unchanged. Its `routes` array also feeds
+  `scripts/sitemap-generator.ts` and `scripts/prerender.ts`; the admin panel is client-only and
+  authenticated, so it must never appear in the sitemap or prerendered output.
+- Scope note: no task explicitly assigns wiring the pre-auth pages' `onSubmit`/`onResend` callbacks to
+  real `apiClient` calls (login → OTP → session → navigate). T096's own Files:/Done-when are limited to
+  routing/mounting, so those callbacks remain the placeholder no-ops they were left as in T086–T089.
+  Flagged as a blocker for the next planning pass — see handoff.
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

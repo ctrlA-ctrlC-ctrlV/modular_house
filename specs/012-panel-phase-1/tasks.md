@@ -903,12 +903,13 @@
       Refs: T-F6, G6, FR-032/FR-033/FR-034/FR-035
       > note: reads useAuth() for identity, apiClient.fetch() for password/photo PUT/DELETE/GET; tests: 17 passing; deviations: none
 
-- [ ] T096 Wire admin routing into the SPA
+- [x] T096 Wire admin routing into the SPA
       Files: `apps/web/src/App.tsx`, `apps/web/src/route-config.tsx`
       Do: Mount `/admin/*` under AppShell + guard with the new pages; remove the legacy admin route
       imports.
       Done when: All `/admin` routes resolve to the new layer; no legacy import remains.
       Refs: research R12, FR-001/FR-003
+      > note: pre-auth pages mounted standalone + .admin-root wrapper; /admin/* behind AuthProvider+Guard+AppShell; tests: 213 passing; deviations: apps/web/src/route-config.tsx — no change (its `routes` array feeds sitemap/prerender scripts, must stay public-only)
 
 - [ ] T097 [test] Legacy admin fully removed (regression)
       Files: `apps/api/tests/integration/legacy-removed.test.ts`,

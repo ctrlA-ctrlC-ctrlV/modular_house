@@ -958,7 +958,7 @@
       `forgot-password`/`reset-password`
       > note: 10 tests over Login/TwoFactor/ForgotPassword/ResetPassword incl. all 5 named status codes; confirmed red (no fetch issued); tests: 10 failing; deviations: none
 
-- [ ] T097b Wire the pre-auth pages to the auth client
+- [x] T097b Wire the pre-auth pages to the auth client
       Files: `apps/web/src/App.tsx` (thin container wrappers only, matching the existing
       `AdminRoot`/`AdminShell` local-component pattern already in this file). Keep `Login.tsx`,
       `TwoFactor.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx` presentational/unchanged — they already
@@ -980,6 +980,7 @@
       Done when: T097a passes; a manual browser walk-through of login → OTP → `/admin/settings`
       succeeds against a real dev API (record the walk-through in quickstart.md §5 evidence).
       Refs: T-F6, FR-005/FR-006/FR-010–FR-018, research R3/R4, `apps/web/src/admin/auth/apiClient.ts`
+      > note: 4 containers added to App.tsx per spec; T097a 10/10 pass; literal browser walkthrough NOT run — `.env` points to real SMTP/prod DB, see quickstart.md §5a; tests: 225 passing; deviations: apps/web/src/App.tsx only (as scoped)
 
 ---
 

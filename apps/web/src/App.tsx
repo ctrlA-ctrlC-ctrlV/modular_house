@@ -28,8 +28,9 @@
  * =============================================================================
  */
 
+import * as React from 'react'
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { Routes, Route, Navigate, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { TemplateLayout } from './components/TemplateLayout'
 import { TrailingSlashRedirect } from './components/TrailingSlashRedirect'
 import { routes } from './route-config'
@@ -40,13 +41,14 @@ import GardenRoomConfigurator from './routes/GardenRoomConfigurator'
 // Tailwind v4 + OKLCH token layer is scoped to `.admin-root` throughout the
 // whole admin subtree without ever reaching the public Bootstrap pages above.
 import './admin/theme/admin.css'
+import { apiClient } from './admin/auth/apiClient'
 import { AuthProvider, useAuth } from './admin/auth/AuthProvider'
 import { AdminGuard } from './admin/auth/guard'
 import { AppShell } from './admin/shell/AppShell'
 import type { UserShellData } from './admin/shell/UserSection'
-import { Login } from './admin/pages/Login'
+import { Login, type LoginFormData } from './admin/pages/Login'
 import { TwoFactor } from './admin/pages/TwoFactor'
-import { ForgotPassword } from './admin/pages/ForgotPassword'
+import { ForgotPassword, type ForgotPasswordFormData } from './admin/pages/ForgotPassword'
 import { ResetPassword } from './admin/pages/ResetPassword'
 import { Settings } from './admin/pages/Settings'
 
@@ -70,6 +72,246 @@ function AdminRoot({ children }: { children: ReactNode }) {
     <div data-admin className="admin-root">
       {children}
     </div>
+  );
+}
+
+/**
+ * Parses a JSON error body defensively, falling back to a generic message
+ * when the response has no body or is not JSON (e.g. a network failure).
+ */
+async function readErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const body = (await response.json()) as { message?: string };
+    return body.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * LoginContainer
+ *
+ * Wires the presentational Login page to `POST /admin/auth/login` (T-B1).
+ * On success (200 TwoFactorChallenge, no token minted per B7), navigates to
+ * the two-factor step carrying the opaque `challengeId` via router state —
+ * never in the URL, since B9 requires it stay unguessable but not secret.
+ * On failure (401/423/429), surfaces the server's message through the
+ * page's own `error` prop; no session state changes on any failure path.
+ */
+function LoginContainer() {
+  const navigate = useNavigate();
+  const [error, setError] = React.useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (data: LoginFormData) => {
+    setError(undefined);
+    setIsSubmitting(true);
+    try {
+      const response = await apiClient.fetch('/admin/auth/login', {
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        setError(await readErrorMessage(response, 'Unable to sign in. Please try again.'));
+        return;
+      }
+      const body = (await response.json()) as { challengeId: string };
+      navigate('/admin/two-factor', { state: { challengeId: body.challengeId } });
+    } catch {
+      setError('Unable to reach the server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <AdminRoot>
+      <Login onSubmit={handleSubmit} error={error} isSubmitting={isSubmitting} />
+    </AdminRoot>
+  );
+}
+
+/**
+ * TwoFactorContainer
+ *
+ * Wires the presentational TwoFactor page to `POST /admin/auth/verify-2fa`
+ * and `POST /admin/auth/resend-code`. Reads the `challengeId` carried from
+ * LoginContainer via router state (B9); a direct/refreshed visit with no
+ * state redirects back to login rather than rendering a non-functional
+ * form. On a correct code, stores the minted access token in memory (E2)
+ * and navigates to `/admin`, where the AuthProvider mounted there hydrates
+ * the session itself via its own `fetchMe()` call — no extra glue needed.
+ */
+function TwoFactorContainer() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const challengeId = (location.state as { challengeId?: string } | null)?.challengeId;
+
+  const [error, setError] = React.useState<string | undefined>(undefined);
+  const [message, setMessage] = React.useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [resendDisabled, setResendDisabled] = React.useState(false);
+
+  if (!challengeId) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  const handleSubmit = async (data: { challengeId: string; code: string }) => {
+    setError(undefined);
+    setIsSubmitting(true);
+    try {
+      const response = await apiClient.fetch('/admin/auth/verify-2fa', {
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        setError(await readErrorMessage(response, 'Invalid or expired code. Please try again.'));
+        return;
+      }
+      const body = (await response.json()) as { accessToken: string };
+      apiClient.setAccessToken(body.accessToken);
+      navigate('/admin');
+    } catch {
+      setError('Unable to reach the server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // F1: cooldown countdown UI stays deferred to T116 per the existing T085
+  // note — this only disables the control while the request is in flight.
+  const handleResend = async (id: string) => {
+    setError(undefined);
+    setMessage(undefined);
+    setResendDisabled(true);
+    try {
+      const response = await apiClient.fetch('/admin/auth/resend-code', {
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: id }),
+      });
+      if (response.ok) {
+        setMessage('A new code has been sent to your email.');
+      } else {
+        setError(await readErrorMessage(response, 'Unable to resend the code. Please try again.'));
+      }
+    } finally {
+      setResendDisabled(false);
+    }
+  };
+
+  return (
+    <AdminRoot>
+      <TwoFactor
+        challengeId={challengeId}
+        onSubmit={handleSubmit}
+        onResend={handleResend}
+        error={error}
+        message={message}
+        isSubmitting={isSubmitting}
+        resendDisabled={resendDisabled}
+      />
+    </AdminRoot>
+  );
+}
+
+/**
+ * ForgotPasswordContainer
+ *
+ * Wires the presentational ForgotPassword page to
+ * `POST /admin/auth/forgot-password`. C4 requires the same neutral
+ * confirmation for known and unknown email alike, so any successful (2xx)
+ * response — regardless of body — flips the page to its confirmation state;
+ * only a transport/server failure surfaces an error.
+ */
+function ForgotPasswordContainer() {
+  const [error, setError] = React.useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
+
+  const handleSubmit = async (data: ForgotPasswordFormData) => {
+    setError(undefined);
+    setIsSubmitting(true);
+    try {
+      const response = await apiClient.fetch('/admin/auth/forgot-password', {
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (response.ok) {
+        setIsSubmitted(true);
+        return;
+      }
+      setError(await readErrorMessage(response, 'Unable to reach the server. Please try again.'));
+    } catch {
+      setError('Unable to reach the server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <AdminRoot>
+      <ForgotPassword
+        onSubmit={handleSubmit}
+        error={error}
+        isSubmitting={isSubmitting}
+        isSubmitted={isSubmitted}
+      />
+    </AdminRoot>
+  );
+}
+
+/**
+ * ResetPasswordContainer
+ *
+ * Wires the presentational ResetPassword page to
+ * `POST /admin/auth/reset-password`. The page itself reads the `token`
+ * query parameter (FR-016); on success, navigates straight back to login
+ * (C2/C3: the link is single-use, so there is nothing left to show on this
+ * page) rather than lingering on a confirmation state.
+ */
+function ResetPasswordContainer() {
+  const navigate = useNavigate();
+  const [error, setError] = React.useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (data: {
+    token: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
+    setError(undefined);
+    setIsSubmitting(true);
+    try {
+      const response = await apiClient.fetch('/admin/auth/reset-password', {
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        setError(await readErrorMessage(response, 'Unable to reset your password. Please try again.'));
+        return;
+      }
+      navigate('/admin/login');
+    } catch {
+      setError('Unable to reach the server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <AdminRoot>
+      <ResetPassword onSubmit={handleSubmit} error={error} isSubmitting={isSubmitting} />
+    </AdminRoot>
   );
 }
 
@@ -160,10 +402,10 @@ function App() {
           AppShell (sidebar + 48px top bar), matched via nested routes so
           AdminShell's <Outlet /> swaps only the main content region.
         */}
-        <Route path="/admin/login" element={<AdminRoot><Login /></AdminRoot>} />
-        <Route path="/admin/two-factor" element={<AdminRoot><TwoFactor /></AdminRoot>} />
-        <Route path="/admin/forgot-password" element={<AdminRoot><ForgotPassword /></AdminRoot>} />
-        <Route path="/admin/reset-password" element={<AdminRoot><ResetPassword /></AdminRoot>} />
+        <Route path="/admin/login" element={<LoginContainer />} />
+        <Route path="/admin/two-factor" element={<TwoFactorContainer />} />
+        <Route path="/admin/forgot-password" element={<ForgotPasswordContainer />} />
+        <Route path="/admin/reset-password" element={<ResetPasswordContainer />} />
         <Route
           path="/admin"
           element={

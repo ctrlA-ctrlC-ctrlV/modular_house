@@ -135,6 +135,42 @@ Note: keep the most latest entry on top
 
 ---
 
+## [2026-07-03T12:00:00.000+00:00] - [pending] - feat(admin): T097b wire pre-auth pages to the auth client
+
+### Added
+- `apps/web/src/App.tsx` — four new local container components (`LoginContainer`,
+  `TwoFactorContainer`, `ForgotPasswordContainer`, `ResetPasswordContainer`), matching the existing
+  `AdminRoot`/`AdminShell` in-file pattern. Each owns its own `error`/`isSubmitting`/`message` state and
+  calls `apiClient.fetch(url, { skipAuth: true, ... })`:
+  - Login → `POST /admin/auth/login` → `200` navigates to `/admin/two-factor` passing `challengeId` via
+    router state (never the URL, per B9); non-2xx surfaces the response `message` via `error`.
+  - TwoFactor → reads `challengeId` from router state (redirects to `/admin/login` if absent);
+    `POST /admin/auth/verify-2fa` → `200` calls `apiClient.setAccessToken()` then navigates to `/admin`
+    (the mounted `AuthProvider` hydrates itself via `fetchMe()`); `onResend` → `POST
+    /admin/auth/resend-code`, disabling the button only while in flight (the cooldown countdown stays
+    deferred to T116 per the existing T085 note).
+  - ForgotPassword → `POST /admin/auth/forgot-password` → any 2xx sets `isSubmitted=true` regardless of
+    body (C4 neutral confirmation).
+  - ResetPassword → `POST /admin/auth/reset-password` with the URL's `token` → `200` navigates to
+    `/admin/login`; `400`/`410` surface the response `message` via `error`.
+  - The routes for `/admin/login`, `/admin/two-factor`, `/admin/forgot-password`, and
+    `/admin/reset-password` now render these containers instead of the bare presentational pages;
+    `Login.tsx`/`TwoFactor.tsx`/`ForgotPassword.tsx`/`ResetPassword.tsx` are unchanged.
+
+### Verification
+- `apps/web/src/admin/pages/preAuthWiring.test.tsx` (T097a) — 10/10 pass (was 10/10 failing before this
+  commit).
+- `pnpm --filter @modular-house/web test:run` — 225/225 pass.
+- Lint + typecheck clean.
+
+### Notes
+- **Literal browser walk-through not performed** — see `quickstart.md` §5a. `apps/api/.env` (the file
+  `pnpm dev` loads by default) points at the real production SMTP relay and a non-test database port;
+  starting the dev server against it risks sending a real email, which isn't a reversible action to take
+  without explicit sign-off. Flagged as an open item for a human operator to close with a safe env.
+
+---
+
 ## [2026-07-02T16:35:00.000+00:00] - 59b2a0f - fix(admin/auth): apply Session 28 corrective item for T092
 
 ### Fixed

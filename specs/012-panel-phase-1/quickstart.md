@@ -73,6 +73,34 @@ pnpm --filter @modular-house/api test:coverage   # security modules must hit 100
 pnpm --filter @modular-house/api docs:validate    # OpenAPI contract validation
 ```
 
+### 5a. T097b evidence — pre-auth wiring walkthrough (2026-07-03)
+
+T097b's `Done when:` calls for "a manual browser walk-through of login → OTP →
+`/admin/settings` ... against a real dev API." That literal browser walk-through was **not**
+performed in this session — `apps/api/.env` (the file `pnpm --filter @modular-house/api dev` loads by
+default) points at the real production SMTP relay (`MAIL_HOST=mail.modularhouse.ie`,
+`MAIL_USER=info@modularhouse.ie`) and a non-test database port (`5432`, not the Docker test container's
+`5434`). Starting the dev server against that config risks sending a real email through the company's
+mail account; that's not a reversible action to take without explicit sign-off, so it was skipped.
+
+**What was verified instead:**
+- `preAuthWiring.test.tsx` (T097a) — 10/10 pass, driving the real `App` route tree end-to-end
+  (Login → POST `/admin/auth/login` → navigate to two-factor with `challengeId` in router state →
+  POST `/admin/auth/verify-2fa` → `apiClient.setAccessToken()` → navigate to `/admin` →
+  `AuthProvider`'s own `fetchMe()` hydrates → lands on `/admin/settings`), plus resend, forgot-password
+  neutral confirmation, and reset-password consume-and-navigate, plus one representative error case per
+  423/429/401/400/410.
+- Full suites green against the real Docker test DB (port 5434): `apps/api` 307/307,
+  `apps/web` 225/225. Every endpoint these containers call (`login`, `verify-2fa`, `resend-code`,
+  `forgot-password`, `reset-password`) has its own dedicated integration test hitting the real database.
+
+**Still needed to fully close this item:** a human operator should run
+`pnpm --filter @modular-house/api dev` with a safe env (e.g. copy `.env.test` values, or point
+`MAIL_HOST`/`MAIL_USER` at MailHog on `localhost:1025` and `DATABASE_URL` at the Docker test DB on
+`5434`) alongside `pnpm --filter @modular-house/web dev`, then literally click through
+login → email code → `/admin/settings` in a browser once to confirm no UI-only defect exists that the
+mocked-fetch integration test cannot see (e.g. real network timing, real cookie behavior).
+
 ---
 
 ## 6. FR -> Test traceability (DoD-2)

@@ -18,6 +18,13 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T14:05:00.000+00:00] - [pending] - test(admin/shell): add keyboard operability test (T099)
+
+### Added
+- `apps/web/src/admin/shell/keyboard.test.tsx` — 7 tests pinning T-F3: every always-visible shell control (sidebar identity, user-section, sidebar-trigger, preferences, theme-toggle, account) is keyboard-focusable with the H4 focus-visible ring (`ring-3 ring-ring/50`), and Ctrl/Cmd+B toggles the sidebar (H2) via the SidebarProvider window listener driving the controlled ThemeProvider collapse state (`data-sidebar-collapsed`). Plain B without a modifier is ignored.
+
+---
+
 ## [2026-07-06T12:41:16.510+00:00] - [f552f87] - feat(admin/shell): wire theme + sidebar server round-trip (T098)
 
 ### Added

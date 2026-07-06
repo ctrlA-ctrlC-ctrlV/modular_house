@@ -6,7 +6,7 @@
 
 ---
 
-**SESSION GOAL:** T087. If the next task would leave a file half-implemented, extend the batch to finish the coherent unit; do not split a route handler across sessions.
+**SESSION GOAL:** T098. If the next task would leave a file half-implemented, extend the batch to finish the coherent unit; do not split a route handler across sessions.
 
 You are implementing Phase 1 of the admin panel in this monorepo (`apps/web`, `apps/api`) on branch `012-panel-phase-1`. The full plan already exists — your job is to execute it faithfully, not to redesign it.
 

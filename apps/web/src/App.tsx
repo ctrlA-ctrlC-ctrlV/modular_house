@@ -349,11 +349,20 @@ function AdminShell() {
         // optimistically, so the UI never waits on the network; a failed PUT
         // leaves the UI in the user's chosen state and the next /me hydration
         // re-syncs. The full object is sent so the round-trip is explicit.
-        void apiClient.fetch('/admin/settings/preferences', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(prefs),
-        });
+        void apiClient
+          .fetch('/admin/settings/preferences', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(prefs),
+          })
+          .catch(() => {
+            // Swallow network-level rejections only: apiClient.fetch
+            // resolves on non-2xx HTTP statuses (returns the Response)
+            // but rejects on a genuine transport failure (DNS, connection
+            // refused, CORS). The optimistic local state + cookie mirror
+            // already applied, so the UI stays correct and the next /me
+            // hydration re-syncs — same recovery path as a failed PUT.
+          });
       }}
       onSettingsClick={() => navigate('/admin/settings')}
       onLogoutClick={() => {

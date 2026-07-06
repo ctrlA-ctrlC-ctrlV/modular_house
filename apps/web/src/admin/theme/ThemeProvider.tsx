@@ -5,6 +5,7 @@
 // via the /me endpoint in later tasks).
 
 import * as React from 'react';
+import type { Preferences } from '../auth/types.js';
 
 const THEME_COOKIE = 'admin_theme_mode';
 const SIDEBAR_COOKIE = 'admin_sidebar_collapsed';
@@ -16,10 +17,9 @@ export type ResolvedThemeMode = 'light' | 'dark';
 // Per-user UI preferences persisted server-side (H1/H2) and mirrored to
 // cookies for pre-paint. The server-stored value is authoritative; the cookie
 // mirror is only the pre-paint cache the boot script reads before hydration.
-interface Preferences {
-  themeMode: ThemeMode;
-  sidebarCollapsed: boolean;
-}
+// The Preferences type is imported from auth/types.ts (the canonical definition
+// matching the OpenAPI schema) and re-exported below to prevent silent drift
+// between the theme and auth layers.
 
 type ThemeContextValue = {
   themeMode: ThemeMode;

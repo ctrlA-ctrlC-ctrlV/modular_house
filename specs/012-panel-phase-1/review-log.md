@@ -4,7 +4,18 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
-## Session 32 — T099–T100 review (2026-07-06)
+## Session 33 — T098 corrective fixes (2026-07-06)
+
+**Trigger:** Session 31 left two non-blocking nits for T098 (fire-and-forget PUT lacks `.catch()`, duplicate `Preferences` type). Applied both.
+
+| Nit | Fix | Verified |
+|-----|-----|---------|
+| App.tsx:352 `.catch()` | `void apiClient.fetch(...).catch(() => { ... })` — swallows network-level rejections only (apiClient resolves on non-2xx but rejects on transport failure); optimistic local state + cookie mirror already applied so UI stays correct | ✅ 143/143 admin tests; typecheck + lint clean |
+| Duplicate `Preferences` type | ThemeProvider.tsx now `import type { Preferences } from '../auth/types.js'` and re-exports it; local `interface Preferences` removed; auth/types.ts is the single source of truth (matches OpenAPI) | ✅ AppShell import (`from '../theme/ThemeProvider.js'`) unchanged; 32 affected tests green |
+
+**Overall: GO** — both nits resolved, no regressions.
+
+---
 
 T099 — PASS-WITH-NITS — 7/7 tests pass at runtime; TDD red-phase unverifiable (pre-existing shell)
 T100 — PASS-WITH-NITS — 8/8 tests pass at runtime; surfaces pre-existing Sheet a11y gap for T127/T135

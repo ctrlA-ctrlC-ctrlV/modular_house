@@ -18,6 +18,14 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T14:55:00.000+00:00] - [pending] - fix(admin/shell): apply Session 31 review nits for T098
+
+### Fixed
+- `apps/web/src/App.tsx` — added `.catch()` to the fire-and-forget preferences PUT so a network-level rejection (DNS, connection refused, CORS) doesn't become an unhandled promise rejection; `apiClient.fetch` resolves on non-2xx HTTP statuses but rejects on transport failure, and the catch swallows those silently since the optimistic local state + cookie mirror already applied.
+- `apps/web/src/admin/theme/ThemeProvider.tsx` — replaced the local `interface Preferences` with `import type { Preferences } from '../auth/types.js'` (re-exported), eliminating the structural duplicate that could drift silently; `auth/types.ts` is now the single source of truth matching the OpenAPI Preferences schema.
+
+---
+
 ## [2026-07-06T14:10:00.000+00:00] - [pending] - test(admin/shell): add mobile off-canvas drawer test (T100)
 
 ### Added

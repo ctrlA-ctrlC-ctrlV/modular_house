@@ -4,6 +4,14 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 31 — T098 review (2026-07-06)
+
+T098 — PASS-WITH-NITS — 5/5 new tests pass, server round-trip verified end-to-end; fire-and-forget PUT lacks `.catch()` (App.tsx:352); duplicate `Preferences` type (ThemeProvider.tsx vs auth/types.ts)
+
+**Overall: GO** — proceed to T099/T100. Full findings in chat report.
+
+---
+
 ## Session 30 — T094–T097 review (2026-07-03)
 
 T094 — PASS-WITH-NITS — real guard used; US4-4/5 sidebar untested

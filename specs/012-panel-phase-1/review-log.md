@@ -4,6 +4,15 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 35 — T100a/T101 review (2026-07-06)
+
+T100a — PASS-WITH-NITS — 9 sites/8 actions exact; 317/317 green; dup email lookup nit
+T101 — PASS — 10/10 tests; I1/I2/I3 fully covered; TDD-order deviation (pre-approved)
+
+**Overall: GO** — proceed to T102. Full findings in chat report.
+
+---
+
 ## Session 34 — T098 fix verification + T101 scope-gap fix (2026-07-06)
 
 T098 — PASS — both Session 31 nits verified fixed; 143/143 admin tests, lint+typecheck clean

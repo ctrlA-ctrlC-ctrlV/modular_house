@@ -1032,6 +1032,7 @@
       Refs: I1â€“I3, FR-037, T015/T016, data-model.md Â§AuditLog
       > note: 9 call sites for 8 I1 actions (OTP_ISSUED x2 per spec), entity='user', null userId on unknown email; tests: 33 passing; deviations: none
       > note: §9 fix — auth.spec.ts beforeAll/afterAll clear audit_logs before user delete (RESTRICT FK); tests: 317 passing; deviations: apps/api/tests/integration/auth.spec.ts — audit FK blocked cleanup
+      > reviewed: PASS-WITH-NITS — 9/8 sites exact, 317/317 green, no drift; nit: dup email lookup in /login
 
 - [x] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`
@@ -1042,6 +1043,7 @@
       > note (Session 33): BLOCKED â€” scope gap. T101 is labeled [test]-only with "Done when: Tests pass against the implemented routes," but no audit-log call exists in apps/api/src/routes/admin/ (confirmed via grep). T033/T051 notes explicitly deferred audit logging to T101 ("Audit logging is deferred to T101"), yet no paired impl task exists. The AuditLogService (T016) is built and unit-tested but never called from any route. Next session must decide: (a) extend T101 to also wire AuditLogService into auth/settings routes (test+impl in one coherent unit), or (b) insert an explicit T101b impl task. Also requires Docker/test DB on port 5434 to verify.
       > note (Session 34, supervisor): resolved via option (b) â€” T100a inserted immediately above as the dedicated impl task; T101 now runs against a real implementation instead of an empty gap.
       > note: 10 tests cover all 8 I1 actions + I2 null-skip + I3 no-secrets; tests: 10 passing; deviations: none
+      > reviewed: PASS — 10/10 confirmed at runtime; I1/I2/I3 fully covered; TDD-order deviation pre-approved
 
 - [ ] T102 [test] Log-line secret-redaction test
       Files: `apps/api/tests/integration/log-redaction.test.ts`

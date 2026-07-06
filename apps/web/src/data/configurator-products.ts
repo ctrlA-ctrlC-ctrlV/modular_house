@@ -327,7 +327,7 @@ const COMPACT_15: HydratedProduct = {
   dimensionsDisplay: '5.0m \u00D7 3.0m',
 
   /* --- Pricing --------------------------------------------------- */
-  basePriceCentsInclVat: 2_950_000,
+  basePriceCentsInclVat: 3_245_000,
   // Pre-sale "original" base price in euro cents incl. VAT. Rendered as
   // a strikethrough alongside `basePriceCentsInclVat` when a consuming
   // component opts in via the `showOriginalPrice` prop. Omit this field
@@ -477,7 +477,7 @@ const STUDIO_25: HydratedProduct = {
   dimensionsDisplay: '5m \u00D7 5m or 6m \u00D7 4.15m',
 
   /* --- Pricing --------------------------------------------------- */
-  basePriceCentsInclVat: 3_950_000,
+  basePriceCentsInclVat: 4_345_000,
   // Pre-sale "original" base price in euro cents incl. VAT. Studio 25
   // carries three layout-dependent originals (Box / En Suite / Bedroom);
   // the scalar field below is the "Box" fallback used when a consumer
@@ -760,7 +760,7 @@ const LIVING_35: HydratedProduct = {
   dimensionsDisplay: '7.0m \u00D7 5.0m',
 
   /* --- Pricing --------------------------------------------------- */
-  basePriceCentsInclVat: 6_850_000,
+  basePriceCentsInclVat: 7_535_000,
   // Pre-sale "original" base price in euro cents incl. VAT. See the
   // `compact-15` record for the full rationale on this field.
   originalBasePriceCentsInclVat: 8_100_000,
@@ -937,7 +937,7 @@ const GRAND_45: HydratedProduct = {
   dimensionsDisplay: '9.0m \u00D7 5.0m or 7.5m \u00D7 6.0m',
 
   /* --- Pricing --------------------------------------------------- */
-  basePriceCentsInclVat: 8_350_000,
+  basePriceCentsInclVat: 9_185_000,
   // Pre-sale "original" base price in euro cents incl. VAT. See the
   // `compact-15` record for the full rationale on this field.
   originalBasePriceCentsInclVat: 10_600_000,

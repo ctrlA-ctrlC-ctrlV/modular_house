@@ -1031,6 +1031,7 @@
       behavior change to their response shapes/status codes. Unblocks T101.
       Refs: I1â€“I3, FR-037, T015/T016, data-model.md Â§AuditLog
       > note: 9 call sites for 8 I1 actions (OTP_ISSUED x2 per spec), entity='user', null userId on unknown email; tests: 33 passing; deviations: none
+      > note: §9 fix — auth.spec.ts beforeAll/afterAll clear audit_logs before user delete (RESTRICT FK); tests: 317 passing; deviations: apps/api/tests/integration/auth.spec.ts — audit FK blocked cleanup
 
 - [x] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`

@@ -32,7 +32,16 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
   beforeAll(async () => {
     await ensureAdminRole();
 
-    // Clean up any existing test user
+    // Clean up any existing test user. Audit rows referencing the user must be
+    // removed first (RESTRICT FK on audit_logs.user_id — see afterAll note) so
+    // a leftover user from a previously interrupted run does not block setup.
+    const existing = await prisma.user.findUnique({
+      where: { email: testUser.email },
+      select: { id: true },
+    });
+    if (existing) {
+      await prisma.auditLog.deleteMany({ where: { userId: existing.id } });
+    }
     await prisma.user.deleteMany({
       where: { email: testUser.email },
     });
@@ -42,7 +51,18 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
   });
 
   afterAll(async () => {
-    // Clean up test user
+    // Clean up test user. The reused AuditLog table has a RESTRICT foreign key
+    // on user_id, so audit rows referencing this user must be removed before
+    // the user row can be deleted. Phase 1 (T100a) wires audit writes into the
+    // auth routes, so the login/logout flows above now emit audit rows for this
+    // user that would otherwise block the delete.
+    const user = await prisma.user.findUnique({
+      where: { email: testUser.email },
+      select: { id: true },
+    });
+    if (user) {
+      await prisma.auditLog.deleteMany({ where: { userId: user.id } });
+    }
     await prisma.user.deleteMany({
       where: { email: testUser.email },
     });

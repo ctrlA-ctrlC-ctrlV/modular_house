@@ -18,6 +18,13 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T15:55:00.000+00:00] - [pending] - fix(admin-auth): T100a followup — clear audit_logs before user delete in auth.spec.ts
+
+### Fixed
+- `apps/api/tests/integration/auth.spec.ts` — the pre-existing feature-006 Admin Auth Endpoints suite creates a test user and deletes it in `beforeAll`/`afterAll`; T100a's audit wiring now writes `audit_logs` rows for that user during the login/logout flows, and the reused `AuditLog` table has a RESTRICT foreign key on `user_id`, so the bare `prisma.user.deleteMany` began failing with a FK violation (caught at the §9 full-suite gate). Both `beforeAll` and `afterAll` now look up the user and delete its `audit_logs` rows before deleting the user, restoring the suite to green (317/317) without changing any assertion or response shape.
+
+---
+
 ## [2026-07-06T15:50:00.000+00:00] - [pending] - test(admin-auth): T101 audit events integration test
 
 ### Added

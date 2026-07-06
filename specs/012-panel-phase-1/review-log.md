@@ -4,6 +4,15 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 34 — T098 fix verification + T101 scope-gap fix (2026-07-06)
+
+T098 — PASS — both Session 31 nits verified fixed; 143/143 admin tests, lint+typecheck clean
+T101 — scope gap confirmed (no route calls AuditLogService); added T100a impl task to unblock it
+
+**Overall: GO** — proceed to T100a then T101. Full findings in chat report.
+
+---
+
 ## Session 33 — T098 corrective fixes (2026-07-06)
 
 **Trigger:** Session 31 left two non-blocking nits for T098 (fire-and-forget PUT lacks `.catch()`, duplicate `Preferences` type). Applied both.

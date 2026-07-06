@@ -993,6 +993,7 @@
       > note: 5 tests over /me hydration (server authoritative), theme toggle → PUT /admin/settings/preferences, sidebar toggle → PUT, remount restore + cookie-mirror no-flash, cross-device correction. Confirmed red first (no PUT issued, cookie default not overridden), then green. Implementation (coherent unit, no separate impl task listed): ThemeProvider gained optional `initialPreferences`/`onPreferencesChange` (adopt server prefs once, notify on toggle, cookie mirror kept in sync — `apps/web/src/admin/theme/ThemeProvider.tsx`); AppShell passes prefs through + drives SidebarProvider as controlled (`open=!sidebarCollapsed`) via inner ShellLayout (`apps/web/src/admin/shell/AppShell.tsx`); AdminShell wires `auth.user.preferences` → AppShell and PUTs the full object fire-and-forget (`apps/web/src/App.tsx`). Backend /me + GET/PUT preferences already return/save both fields. Existing AppShell.test.tsx (16) + ThemeProvider.test.tsx (11) still green; deviations: none.
       > reviewed: PASS-WITH-NITS — 5/5+16+11 confirmed at runtime; H1/H2/FR-024 exact, no invented prefs; fire-and-forget PUT lacks `.catch()` (App.tsx:352); duplicate `Preferences` type (ThemeProvider.tsx vs auth/types.ts).
       > fix(Session 31 review): added `.catch()` to the fire-and-forget PUT in App.tsx so network-level rejections don't become unhandled promise rejections; replaced ThemeProvider's local `Preferences` interface with an import from auth/types.ts (re-exported) to eliminate the silent-drift duplicate. 143/143 admin tests green, lint + typecheck clean.
+      > reviewed (Session 34, re-check): PASS — both nits verified fixed by inspection + runtime; `.catch()` swallows only transport-level rejections (apiClient resolves on non-2xx); `Preferences` now single-sourced from auth/types.ts; 143/143 admin tests, lint+typecheck clean, no regressions.
 
 - [x] T099 [test] Keyboard operability test (T-F3)
       Files: `apps/web/src/admin/shell/keyboard.test.tsx`
@@ -1011,6 +1012,25 @@
       > note: mobile drawer test, 8 tests (off-canvas open/close, fixed overlay, top-bar reachable, no-hscroll via structural contract); tests: 8 passing; deviations: none
       > reviewed: PASS-WITH-NITS — 8/8 confirmed at runtime; H5 767px breakpoint + off-canvas/fixed structural claims re-derived against sidebar.tsx/sheet.tsx. Test run surfaces a pre-existing Radix a11y warning (SheetContent used by the mobile Sidebar lacks a DialogTitle/Description, apps/web/src/admin/ui/sidebar.tsx:172-181) — real H6 gap, not introduced by T100, forward to T127/T135.
 
+- [ ] T100a Wire AuditLogService into the auth + settings routes (impl gap — blocks T101)
+      Files: `apps/api/src/routes/admin/auth.ts`, `apps/api/src/routes/admin/settings.ts`
+      Do: Call the existing `AuditLogService.log()` (T016) at exactly one call site per I1 action —
+      confirmed via grep that no route currently calls it. `LOGIN_SUCCESS`/`LOGIN_FAILURE` in
+      `POST /login` (pass `userId: null` on unknown-email per I2); `OTP_ISSUED` in `POST /login`
+      (success branch) and again in `POST /resend-code`; `OTP_VERIFIED` in `POST /verify-2fa`
+      (success branch only); `LOGOUT` in `POST /logout`; `PASSWORD_RESET_REQUESTED` in
+      `POST /forgot-password` (known-email, non-throttled branch only — throttled/unknown-email
+      responses stay unaudited so they don't leak account existence); `PASSWORD_RESET_COMPLETED` in
+      `POST /reset-password`; `PASSWORD_CHANGED` in `PUT /admin/settings/password`. Source
+      `ipAddress` from `req.ip` and `userAgent` from `req.headers['user-agent'] ?? null` (I2). Pass
+      only the action/entity/id fields to `.log()` — never a code, token, or password value (I3). Do
+      not add audit actions beyond the I1 set (no OTP-verify-failure, no refresh-rotation event).
+      Done when: All 8 I1 actions have exactly one call site across the two route files; `entity`
+      is a consistent value (e.g. `'user'`) identifying the acting/target account for every call; no
+      secret value is ever passed to `.log()`; existing route tests (T032–T057) still pass with no
+      behavior change to their response shapes/status codes. Unblocks T101.
+      Refs: I1â€“I3, FR-037, T015/T016, data-model.md Â§AuditLog
+
 - [ ] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`
       Do: Drive login/logout/OTP/reset/change flows and assert each writes its expected I1 action with
@@ -1018,6 +1038,7 @@
       Done when: Tests pass against the implemented routes.
       Refs: T-B6, I1â€“I3, FR-037
       > note (Session 33): BLOCKED â€” scope gap. T101 is labeled [test]-only with "Done when: Tests pass against the implemented routes," but no audit-log call exists in apps/api/src/routes/admin/ (confirmed via grep). T033/T051 notes explicitly deferred audit logging to T101 ("Audit logging is deferred to T101"), yet no paired impl task exists. The AuditLogService (T016) is built and unit-tested but never called from any route. Next session must decide: (a) extend T101 to also wire AuditLogService into auth/settings routes (test+impl in one coherent unit), or (b) insert an explicit T101b impl task. Also requires Docker/test DB on port 5434 to verify.
+      > note (Session 34, supervisor): resolved via option (b) â€” T100a inserted immediately above as the dedicated impl task; T101 now runs against a real implementation instead of an empty gap.
 
 - [ ] T102 [test] Log-line secret-redaction test
       Files: `apps/api/tests/integration/log-redaction.test.ts`
@@ -1310,10 +1331,10 @@
   `lastUsedAt` (schema T007/08, enforce T121/122, E7); `GET settings/photo` bytes + `hasProfilePhoto`
   (T054/55, T048/49, G6); preferences read-back via `me` / `GET preferences` for cross-device load
   (T048/49, T058/59, H1/H2); `super_admin` 403 on settings (T125/126, FR-035); audit of settings
-  password change (T051, T101, I1); log-line secret redaction (T102/103, FR-039); legacy admin fully
-  removed â€” backend 404 + no `adminToken` storage + no legacy routes (T097, FR-001/SC-007/DoD-4).
+  password change (T051, T100a/T101, I1); log-line secret redaction (T102/103, FR-039); legacy admin
+  fully removed â€” backend 404 + no `adminToken` storage + no legacy routes (T097, FR-001/SC-007/DoD-4).
 - **Â§4 test IDs covered:** T-B1 (T032/36), T-B2 (T040/42), T-B3 (T050), T-B4 (T052/54), T-B5 (T048),
-  T-B6 (T101), T-B7 (T058/60); T-F1 (T079), T-F2 (T077/098), T-F3 (T099), T-F4 (T090), T-F5 (T100),
+  T-B6 (T100a/T101), T-B7 (T058/60); T-F1 (T079), T-F2 (T077/098), T-F3 (T099), T-F4 (T090), T-F5 (T100),
   T-F6 (T085/094); E-OTP, E-LOCK, E-CREDS, E-RESET, E-POLICY, E-THROTTLE, E-PHOTO, E-SESSION,
   E-A11Y/THEME, E-SUPERADMIN, E-IDLE, E-MAILFAIL (T104â€“T128).
 - **Â§2 assertions enforced:** A1â€“A6 (T030/31, T104â€“107); B1â€“B9 (T017/18, T108/109); C1â€“C6 (T019/20,

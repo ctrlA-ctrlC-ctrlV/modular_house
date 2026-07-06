@@ -991,7 +991,7 @@
       Done when: Tests fail then pass against the implemented shell + preferences.
       Refs: T-F2, H1/H2, FR-024
       > note: 5 tests over /me hydration (server authoritative), theme toggle → PUT /admin/settings/preferences, sidebar toggle → PUT, remount restore + cookie-mirror no-flash, cross-device correction. Confirmed red first (no PUT issued, cookie default not overridden), then green. Implementation (coherent unit, no separate impl task listed): ThemeProvider gained optional `initialPreferences`/`onPreferencesChange` (adopt server prefs once, notify on toggle, cookie mirror kept in sync — `apps/web/src/admin/theme/ThemeProvider.tsx`); AppShell passes prefs through + drives SidebarProvider as controlled (`open=!sidebarCollapsed`) via inner ShellLayout (`apps/web/src/admin/shell/AppShell.tsx`); AdminShell wires `auth.user.preferences` → AppShell and PUTs the full object fire-and-forget (`apps/web/src/App.tsx`). Backend /me + GET/PUT preferences already return/save both fields. Existing AppShell.test.tsx (16) + ThemeProvider.test.tsx (11) still green; deviations: none.
-      > reviewed: PASS-WITH-NITS — re-derived independently: bf5aef9 (test-only, 282 lines) then f552f87 (impl-only, 4 files) confirms genuine red→green split; 5/5 new + 16 AppShell + 11 ThemeProvider tests verified at runtime; H1/H2/FR-024 satisfied exactly; only `themeMode`/`sidebarCollapsed` persisted (no invented prefs, data-model.md §UserPreference match exact); `@modular-house/ui`/public site untouched; lint+typecheck clean root-wide. Nits (non-blocking): (1) `App.tsx:352` fire-and-forget `void apiClient.fetch(...)` PUT has no `.catch()` — the only such call site in the codebase; a genuine network-level rejection (not just non-2xx) becomes an unhandled promise rejection. (2) `ThemeProvider.tsx:19-22` declares its own `Preferences` interface, structurally duplicating `auth/types.ts:5-8` (T090) — defensible as a decoupling choice but drifts silently if either changes. 4 unrelated pre-existing test failures found in full suite run (`configurator-products.test.ts`, `useConfiguratorState.originalTotal.test.ts`) — confirmed via git diff that T098's two commits touched zero files under `data/`/`ProductConfigurator/`; out of scope, likely from the separate garden-room product-data commit.
+      > reviewed: PASS-WITH-NITS — 5/5+16+11 confirmed at runtime; H1/H2/FR-024 exact, no invented prefs; fire-and-forget PUT lacks `.catch()` (App.tsx:352); duplicate `Preferences` type (ThemeProvider.tsx vs auth/types.ts).
 
 - [x] T099 [test] Keyboard operability test (T-F3)
       Files: `apps/web/src/admin/shell/keyboard.test.tsx`
@@ -999,6 +999,7 @@
       Done when: Tests fail then pass against the shell.
       Refs: T-F3, H6, FR-030
       > note: 6 shell controls keyboard-focusable + H4 focus-visible ring, Ctrl/Cmd+B toggles sidebar (H2); tests: 7 passing; deviations: none
+      > reviewed: PASS-WITH-NITS — 7/7 confirmed at runtime; all 6 controls + H4 ring verified against TopBar.tsx/Sidebar.tsx/UserSection.tsx; H2 toggle re-derived from sidebar.tsx; TDD red-phase unverifiable (shell pre-built in T072/79-84, same non-blocking pattern as T023/T065).
 
 - [x] T100 [test] Mobile off-canvas drawer test (T-F5)
       Files: `apps/web/src/admin/shell/mobile.test.tsx`
@@ -1007,6 +1008,7 @@
       Done when: Tests fail then pass against the shell.
       Refs: T-F5, H5, FR-026/FR-027
       > note: mobile drawer test, 8 tests (off-canvas open/close, fixed overlay, top-bar reachable, no-hscroll via structural contract); tests: 8 passing; deviations: none
+      > reviewed: PASS-WITH-NITS — 8/8 confirmed at runtime; H5 767px breakpoint + off-canvas/fixed structural claims re-derived against sidebar.tsx/sheet.tsx. Test run surfaces a pre-existing Radix a11y warning (SheetContent used by the mobile Sidebar lacks a DialogTitle/Description, apps/web/src/admin/ui/sidebar.tsx:172-181) — real H6 gap, not introduced by T100, forward to T127/T135.
 
 - [ ] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`
@@ -1014,6 +1016,7 @@
       no secrets.
       Done when: Tests pass against the implemented routes.
       Refs: T-B6, I1â€“I3, FR-037
+      > note (Session 33): BLOCKED â€” scope gap. T101 is labeled [test]-only with "Done when: Tests pass against the implemented routes," but no audit-log call exists in apps/api/src/routes/admin/ (confirmed via grep). T033/T051 notes explicitly deferred audit logging to T101 ("Audit logging is deferred to T101"), yet no paired impl task exists. The AuditLogService (T016) is built and unit-tested but never called from any route. Next session must decide: (a) extend T101 to also wire AuditLogService into auth/settings routes (test+impl in one coherent unit), or (b) insert an explicit T101b impl task. Also requires Docker/test DB on port 5434 to verify.
 
 - [ ] T102 [test] Log-line secret-redaction test
       Files: `apps/api/tests/integration/log-redaction.test.ts`
@@ -1197,6 +1200,7 @@
       focus on every control, and no wrong-theme frame on first paint.
       Done when: Tests fail for H1/H6.
       Refs: E-A11Y/THEME, H1/H6, FR-030/FR-031
+      > note (T100 review, Session 32): mobile `SheetContent` (`apps/web/src/admin/ui/sidebar.tsx:172-181`) has no `SheetTitle`/`SheetDescription` — axe/screen-reader will flag the off-canvas drawer; add a `VisuallyHidden` title+description here.
 
 - [ ] T128 Harden contrast, focus, and pre-paint theme
       Files: `apps/web/src/admin/theme/tokens.css`, `apps/web/src/admin/theme/boot.ts`,

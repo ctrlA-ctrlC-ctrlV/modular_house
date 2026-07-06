@@ -4,6 +4,15 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 32 — T099–T100 review (2026-07-06)
+
+T099 — PASS-WITH-NITS — 7/7 tests pass at runtime; TDD red-phase unverifiable (pre-existing shell)
+T100 — PASS-WITH-NITS — 8/8 tests pass at runtime; surfaces pre-existing Sheet a11y gap for T127/T135
+
+**Overall: GO** — proceed to T101+. Full findings in chat report.
+
+---
+
 ## Session 31 — T098 review (2026-07-06)
 
 T098 — PASS-WITH-NITS — 5/5 new tests pass, server round-trip verified end-to-end; fire-and-forget PUT lacks `.catch()` (App.tsx:352); duplicate `Preferences` type (ThemeProvider.tsx vs auth/types.ts)

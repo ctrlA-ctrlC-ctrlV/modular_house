@@ -1000,12 +1000,13 @@
       Refs: T-F3, H6, FR-030
       > note: 6 shell controls keyboard-focusable + H4 focus-visible ring, Ctrl/Cmd+B toggles sidebar (H2); tests: 7 passing; deviations: none
 
-- [ ] T100 [test] Mobile off-canvas drawer test (T-F5)
+- [x] T100 [test] Mobile off-canvas drawer test (T-F5)
       Files: `apps/web/src/admin/shell/mobile.test.tsx`
       Do: At <768px assert the sidebar renders as an off-canvas drawer, top-bar controls reachable, no
       horizontal scroll at â‰¥320px.
       Done when: Tests fail then pass against the shell.
       Refs: T-F5, H5, FR-026/FR-027
+      > note: mobile drawer test, 8 tests (off-canvas open/close, fixed overlay, top-bar reachable, no-hscroll via structural contract); tests: 8 passing; deviations: none
 
 - [ ] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`

@@ -18,6 +18,13 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T14:10:00.000+00:00] - [pending] - test(admin/shell): add mobile off-canvas drawer test (T100)
+
+### Added
+- `apps/web/src/admin/shell/mobile.test.tsx` — 8 tests pinning T-F5: below the 768px breakpoint (matchMedia `(max-width: 767px)` mocked to match) the desktop sidebar is absent from normal flow and the sidebar renders as an off-canvas Radix Dialog drawer (`data-mobile="true"`, `fixed` overlay) that opens via the sidebar trigger and closes on a second toggle; all four top-bar controls remain present and keyboard-focusable on mobile; the no-horizontal-scroll contract at >=320px is pinned structurally (admin root `w-full`, drawer `fixed` out of flow, no in-flow `sidebar-gap`) since jsdom cannot compute layout.
+
+---
+
 ## [2026-07-06T14:05:00.000+00:00] - [pending] - test(admin/shell): add keyboard operability test (T099)
 
 ### Added

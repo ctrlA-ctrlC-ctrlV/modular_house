@@ -18,6 +18,13 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T15:50:00.000+00:00] - [pending] - test(admin-auth): T101 audit events integration test
+
+### Added
+- `apps/api/tests/integration/audit-events.test.ts` — 10 integration tests driving every authentication flow against the test DB and asserting the reused `AuditLog` table receives exactly the expected I1 action: LOGIN_SUCCESS + OTP_ISSUED (login success), LOGIN_FAILURE (known-account wrong password), OTP_VERIFIED (verify-2fa success), OTP_ISSUED (resend-code success), LOGOUT, PASSWORD_RESET_REQUESTED (forgot-password known non-throttled), PASSWORD_RESET_COMPLETED (reset-password), PASSWORD_CHANGED (settings password). I2 coverage: unknown-email login failure and unknown-email forgot-password produce NO audit row (null userId skipped by AuditLogService). I3 coverage: the raw password, OTP code, and reset token are asserted absent from every audit row's writable fields. MailerService mocked at the module boundary; per-test audit slate scoped to the test user. TDD red-phase unverifiable retroactively — T100a (impl) precedes T101 (test) by explicit Session 34 task ordering (option b), same accepted non-blocking pattern as T023/T065/T086.
+
+---
+
 ## [2026-07-06T15:45:00.000+00:00] - [pending] - feat(admin-auth): T100a wire AuditLogService into auth and settings routes
 
 ### Added

@@ -18,6 +18,25 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T12:41:16.510+00:00] - [f552f87] - feat(admin/shell): wire theme + sidebar server round-trip (T098)
+
+### Added
+- `apps/web/src/admin/theme/ThemeProvider.tsx` — optional `initialPreferences` + `onPreferencesChange` props; adopts the server-stored preference from /me once as authoritative (H1/H2), refreshes the cookie mirror for pre-paint, and notifies the parent with the full preferences object on every local toggle. Exports the `Preferences` type.
+- `apps/web/src/admin/shell/AppShell.tsx` — `preferences`/`onPreferencesChange` props forwarded to ThemeProvider; inner `ShellLayout` reads `useTheme()` and drives `SidebarProvider` as a controlled component (`open = !sidebarCollapsed`, `onOpenChange` inverts) so the sidebar's open/closed state binds to the single server-persisted source of truth.
+- `apps/web/src/App.tsx` — `AdminShell` wires `auth.user.preferences` into AppShell and PUTs the full object to `/admin/settings/preferences` fire-and-forget (FR-024); local state + cookie mirror update optimistically so the UI never waits on the network.
+
+### Changed
+- Sidebar collapse now flows through ThemeProvider (server-persisted, cookie `admin_sidebar_collapsed`) instead of the SidebarProvider's own `sidebar_state` cookie as the source of truth; the primitive still writes `sidebar_state` as a side effect but it is no longer authoritative.
+
+---
+
+## [2026-07-06T12:40:00.000+00:00] - [bf5aef9] - test(admin/shell): add theme + sidebar persistence test (T098)
+
+### Added
+- `apps/web/src/admin/shell/persistence.test.tsx` — 5 integration tests rendering the real App at `/admin/settings` with a mocked transport and pre-set access token: /me hydration adopts server preferences as authoritative (H1/H2), theme toggle PUTs the full preferences object to `/admin/settings/preferences` (FR-024), sidebar toggle PUTs the new `sidebarCollapsed`, remount restores state from the server with the cookie mirror kept in sync (no flash, T-F2), and a stale cookie is corrected from the server on hydration. Confirmed red before the wiring landed.
+
+---
+
 ## [2026-07-03T09:00:00.000+00:00] - [pending] - test(admin/pages): add Settings page test (T094)
 
 ### Added

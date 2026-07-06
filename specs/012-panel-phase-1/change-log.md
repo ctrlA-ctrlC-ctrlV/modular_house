@@ -18,6 +18,17 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-06T15:45:00.000+00:00] - [pending] - feat(admin-auth): T100a wire AuditLogService into auth and settings routes
+
+### Added
+- `apps/api/src/routes/admin/auth.ts` — wired `AuditLogService.log()` (T016) into all seven auth-route I1 call sites: `LOGIN_SUCCESS` + `OTP_ISSUED` (POST /login success branch), `LOGIN_FAILURE` (POST /login failure branch), `OTP_VERIFIED` (POST /verify-2fa success only), `OTP_ISSUED` (POST /resend-code success), `PASSWORD_RESET_REQUESTED` (POST /forgot-password known-email non-throttled branch only), `PASSWORD_RESET_COMPLETED` (POST /reset-password success), `LOGOUT` (POST /logout). Added a module-level `AuditLogService` (sharing the existing Prisma client) and a `recordAudit` helper that awaits the write but swallows+logs any failure so audit never alters the HTTP response (FR-037). `entity: 'user'` is consistent across all calls; only action/entity/userId/ipAddress/userAgent are passed (I3 — no code, token, or password). `ipAddress` from `req.ip ?? 'unknown'`, `userAgent` from `req.headers['user-agent'] ?? null` (I2). POST /login resolves the acting userId by email once for both branches (null on unknown email → AuditLogService skips the write per the non-null FK constraint, I2); `verifyCredentials` surfaces userId on neither branch so the lookup is required.
+- `apps/api/src/routes/admin/settings.ts` — wired `PASSWORD_CHANGED` (I1) into PUT /admin/settings/password success branch via the same `AuditLogService` + `recordAudit` pattern; placed after the successful `changePassword` so 401/403/400 branches return before any audit write.
+
+### Security
+- FR-037 / I1–I3: every authentication-related event in the I1 set is now persisted to the reused `AuditLog` table. Unknown-email login failures pass `userId: null` and are silently skipped (no row) so the audit trail never records a non-existent account, while known-account failures (wrong password, deactivated, locked) record the real userId for brute-force traceability. No secret (password, OTP code, reset token) is ever passed to the audit writer.
+
+---
+
 ## [2026-07-06T14:55:00.000+00:00] - [pending] - fix(admin/shell): apply Session 31 review nits for T098
 
 ### Fixed

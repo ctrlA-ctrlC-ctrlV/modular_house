@@ -10,6 +10,7 @@ import { LoginCodeService } from '../../services/loginCode.js';
 import { PasswordResetTokenService } from '../../services/passwordResetToken.js';
 import { validatePassword } from '../../services/passwordPolicy.js';
 import { MailerService } from '../../services/mailer.js';
+import { AuditLogService, AUDIT_ACTIONS, type AuditLogInput } from '../../services/auditLog.js';
 import { config } from '../../config/env.js';
 import {
   ACCESS_TOKEN_TTL_MS,
@@ -21,10 +22,29 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Reused audit-log writer (T016).  Shares the module-level Prisma client so
+// audit writes do not open an extra connection pool.
+const auditLogService = new AuditLogService(prisma);
+
 const router: Router = Router();
 
 // Apply the auth-route IP rate limit to every endpoint under /admin/auth (F4).
 router.use(authRateLimit);
+
+/**
+ * Persist a single audit event (I1) without letting a write failure alter the
+ * HTTP response — audit logging is best-effort relative to the request outcome
+ * (FR-037).  A `null` userId is silently skipped by AuditLogService itself
+ * because the reused AuditLog table requires a non-null FK (I2, unknown email).
+ * Only action/entity/id metadata is ever passed; secrets are excluded (I3).
+ */
+async function recordAudit(input: AuditLogInput): Promise<void> {
+  try {
+    await auditLogService.log(input);
+  } catch (error) {
+    logger.error({ error, action: input.action }, 'Audit log write failed');
+  }
+}
 
 // Login request schema
 const loginSchema = z.object({
@@ -36,11 +56,37 @@ const loginSchema = z.object({
 router.post('/login', validate({ body: loginSchema }), async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
     const authService = new AuthService();
 
-    const result = await authService.verifyCredentials(email.toLowerCase().trim(), password);
+    // Request metadata sourced once for both success/failure audit branches (I2).
+    const ipAddress = req.ip ?? 'unknown';
+    const userAgent = req.headers['user-agent'] ?? null;
+
+    // Resolve the acting user's id for audit.  verifyCredentials does not
+    // surface userId on either branch (success returns only challengeId,
+    // failure is generic per A5/A6), so a single email lookup is required.
+    // null here means the email is unknown — AuditLogService then skips the
+    // write (I2, non-null FK constraint on the reused AuditLog table).
+    const auditUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
+    const auditUserId = auditUser?.id ?? null;
+
+    const result = await authService.verifyCredentials(normalizedEmail, password);
 
     if (!result.success) {
+      // LOGIN_FAILURE — recorded for known-account failures (wrong password,
+      // deactivated, locked).  Skipped silently for unknown email (null userId).
+      await recordAudit({
+        userId: auditUserId,
+        action: AUDIT_ACTIONS.LOGIN_FAILURE,
+        entity: 'user',
+        ipAddress,
+        userAgent,
+      });
+
       res.status(result.status).json({
         error: result.status === 423 ? 'Locked' : 'Unauthorized',
         message: result.message,
@@ -48,7 +94,24 @@ router.post('/login', validate({ body: loginSchema }), async (req: Request, res:
       return;
     }
 
-    logger.info({ email: email.toLowerCase().trim() }, 'Credentials verified; OTP issued');
+    // Credentials verified — record the successful login and the OTP issuance
+    // (I1: LOGIN_SUCCESS and OTP_ISSUED both occur at this step).
+    await recordAudit({
+      userId: auditUserId,
+      action: AUDIT_ACTIONS.LOGIN_SUCCESS,
+      entity: 'user',
+      ipAddress,
+      userAgent,
+    });
+    await recordAudit({
+      userId: auditUserId,
+      action: AUDIT_ACTIONS.OTP_ISSUED,
+      entity: 'user',
+      ipAddress,
+      userAgent,
+    });
+
+    logger.info({ email: normalizedEmail }, 'Credentials verified; OTP issued');
 
     res.status(200).json({
       challengeId: result.challengeId,
@@ -139,6 +202,15 @@ router.post('/verify-2fa', validate({ body: verify2faSchema }), async (req: Requ
       });
       return;
     }
+
+    // OTP_VERIFIED — recorded only on successful verification (I1).
+    await recordAudit({
+      userId: result.userId,
+      action: AUDIT_ACTIONS.OTP_VERIFIED,
+      entity: 'user',
+      ipAddress: req.ip ?? 'unknown',
+      userAgent: req.headers['user-agent'] ?? null,
+    });
 
     logger.info({ userId: result.userId }, 'OTP verified; session established');
 
@@ -273,6 +345,15 @@ router.post('/resend-code', validate({ body: resendCodeSchema }), async (req: Re
       text: `Your verification code is: ${resendResult.code}\n\nThis code expires in 10 minutes.`,
     });
 
+    // OTP_ISSUED — a new code was generated and emailed for an existing challenge (I1).
+    await recordAudit({
+      userId: user.id,
+      action: AUDIT_ACTIONS.OTP_ISSUED,
+      entity: 'user',
+      ipAddress: req.ip ?? 'unknown',
+      userAgent: req.headers['user-agent'] ?? null,
+    });
+
     logger.info({ userId: user.id }, 'OTP resent');
 
     res.status(200).json({
@@ -366,6 +447,16 @@ router.post('/forgot-password', validate({ body: forgotPasswordSchema }), async 
         to: user.email,
         subject: 'Password reset request',
         text: `A password reset was requested for your account.\n\nReset link: ${resetUrl}\n\nThis link expires in 60 minutes and can only be used once.`,
+      });
+
+      // PASSWORD_RESET_REQUESTED — only for a known, non-throttled account so
+      // the audit trail never leaks account existence via timing or row presence (I1).
+      await recordAudit({
+        userId: user.id,
+        action: AUDIT_ACTIONS.PASSWORD_RESET_REQUESTED,
+        entity: 'user',
+        ipAddress: req.ip ?? 'unknown',
+        userAgent: req.headers['user-agent'] ?? null,
       });
 
       logger.info({ userId: user.id }, 'Password reset link issued');
@@ -471,6 +562,16 @@ router.post('/reset-password', validate({ body: resetPasswordSchema }), async (r
       }),
     ]);
 
+    // PASSWORD_RESET_COMPLETED — the reset link was consumed and the new
+    // password persisted (I1).  Only action/entity/id metadata is recorded (I3).
+    await recordAudit({
+      userId,
+      action: AUDIT_ACTIONS.PASSWORD_RESET_COMPLETED,
+      entity: 'user',
+      ipAddress: req.ip ?? 'unknown',
+      userAgent: req.headers['user-agent'] ?? null,
+    });
+
     logger.info({ userId }, 'Password reset completed');
 
     res.status(200).json({
@@ -558,6 +659,15 @@ router.post('/logout', authenticateJWT, async (req: Request, res: Response): Pro
 
     // Clear the refresh cookie regardless of whether it was present (idempotent).
     res.clearCookie('refreshToken', { path: '/', domain: config.security.cookieDomain });
+
+    // LOGOUT — the acting user is resolved from the access token (authenticateJWT).
+    await recordAudit({
+      userId: req.user?.userId ?? null,
+      action: AUDIT_ACTIONS.LOGOUT,
+      entity: 'user',
+      ipAddress: req.ip ?? 'unknown',
+      userAgent: req.headers['user-agent'] ?? null,
+    });
 
     logger.info({ userId: req.user?.userId }, 'Session ended');
 

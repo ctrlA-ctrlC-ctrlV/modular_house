@@ -1012,7 +1012,7 @@
       > note: mobile drawer test, 8 tests (off-canvas open/close, fixed overlay, top-bar reachable, no-hscroll via structural contract); tests: 8 passing; deviations: none
       > reviewed: PASS-WITH-NITS — 8/8 confirmed at runtime; H5 767px breakpoint + off-canvas/fixed structural claims re-derived against sidebar.tsx/sheet.tsx. Test run surfaces a pre-existing Radix a11y warning (SheetContent used by the mobile Sidebar lacks a DialogTitle/Description, apps/web/src/admin/ui/sidebar.tsx:172-181) — real H6 gap, not introduced by T100, forward to T127/T135.
 
-- [ ] T100a Wire AuditLogService into the auth + settings routes (impl gap — blocks T101)
+- [x] T100a Wire AuditLogService into the auth + settings routes (impl gap — blocks T101)
       Files: `apps/api/src/routes/admin/auth.ts`, `apps/api/src/routes/admin/settings.ts`
       Do: Call the existing `AuditLogService.log()` (T016) at exactly one call site per I1 action —
       confirmed via grep that no route currently calls it. `LOGIN_SUCCESS`/`LOGIN_FAILURE` in
@@ -1030,6 +1030,7 @@
       secret value is ever passed to `.log()`; existing route tests (T032–T057) still pass with no
       behavior change to their response shapes/status codes. Unblocks T101.
       Refs: I1â€“I3, FR-037, T015/T016, data-model.md Â§AuditLog
+      > note: 9 call sites for 8 I1 actions (OTP_ISSUED x2 per spec), entity='user', null userId on unknown email; tests: 33 passing; deviations: none
 
 - [ ] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`

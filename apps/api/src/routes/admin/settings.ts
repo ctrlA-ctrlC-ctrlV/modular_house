@@ -18,6 +18,7 @@ import { validate } from '../../middleware/validate.js';
 import { logger } from '../../middleware/logger.js';
 import { AuthService } from '../../services/auth.js';
 import { validatePassword } from '../../services/passwordPolicy.js';
+import { AuditLogService, AUDIT_ACTIONS, type AuditLogInput } from '../../services/auditLog.js';
 import { config } from '../../config/env.js';
 import { PrismaClient } from '@prisma/client';
 import {
@@ -26,7 +27,22 @@ import {
 } from '../../config/adminAuth.js';
 
 const prisma = new PrismaClient();
+// Reused audit-log writer (T016), sharing the module-level Prisma client.
+const auditLogService = new AuditLogService(prisma);
 const router: Router = Router();
+
+/**
+ * Persist a single audit event (I1) without letting a write failure alter the
+ * HTTP response — audit logging is best-effort relative to the request outcome
+ * (FR-037).  Only action/entity/id metadata is passed; secrets are excluded (I3).
+ */
+async function recordAudit(input: AuditLogInput): Promise<void> {
+  try {
+    await auditLogService.log(input);
+  } catch (error) {
+    logger.error({ error, action: input.action }, 'Audit log write failed');
+  }
+}
 
 /**
  * Multer memory-storage middleware for profile-photo uploads.
@@ -192,6 +208,16 @@ router.put(
         domain: config.security.cookieDomain,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
+      });
+
+      // PASSWORD_CHANGED — recorded only after a successful password change (I1).
+      // No password value is passed to the audit writer (I3).
+      await recordAudit({
+        userId,
+        action: AUDIT_ACTIONS.PASSWORD_CHANGED,
+        entity: 'user',
+        ipAddress: req.ip ?? 'unknown',
+        userAgent: req.headers['user-agent'] ?? null,
       });
 
       logger.info({ userId }, 'Password changed; other sessions revoked');

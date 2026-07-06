@@ -68,9 +68,9 @@ describe('CONFIGURATOR_PRODUCTS — promotional original prices', () => {
     // authoring the original-price fields. The sale price is the
     // value actually charged and must remain the source of truth for
     // the configurator's running total.
-    expect(getProductBySlug('compact-15').basePriceCentsInclVat).toBe(2_950_000);
-    expect(getProductBySlug('living-35').basePriceCentsInclVat).toBe(6_850_000);
-    expect(getProductBySlug('grand-45').basePriceCentsInclVat).toBe(8_350_000);
+    expect(getProductBySlug('compact-15').basePriceCentsInclVat).toBe(3_245_000);
+    expect(getProductBySlug('living-35').basePriceCentsInclVat).toBe(7_535_000);
+    expect(getProductBySlug('grand-45').basePriceCentsInclVat).toBe(9_185_000);
   });
 
   describe('studio-25 layout-dependent originals', () => {

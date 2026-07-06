@@ -55,7 +55,7 @@ function getStudio25Product(): ConfiguratorProduct {
  * by reading the same number from both sides of the equation. */
 
 /** Live (sale) base price in euro cents incl. VAT. */
-const LIVE_BASE_CENTS = 3_950_000;
+const LIVE_BASE_CENTS = 4_345_000;
 
 /** Layout IDs exposed by the Studio 25 product. */
 const LAYOUT_BOX_ID       = 'lo-studio-box';
@@ -72,8 +72,8 @@ const ORIGINAL_BASE_BY_LAYOUT: Record<string, number> = {
 /** Layout price deltas applied to both the live and original totals. */
 const LAYOUT_DELTA_BY_ID: Record<string, number> = {
   [LAYOUT_BOX_ID]:              0,
-  [LAYOUT_EN_SUITE_ID]: 1_200_000,
-  [LAYOUT_BEDROOM_ID]:  1_400_000,
+  [LAYOUT_EN_SUITE_ID]: 1_320_000,
+  [LAYOUT_BEDROOM_ID]:  1_540_000,
 };
 
 

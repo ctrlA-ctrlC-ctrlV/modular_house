@@ -984,12 +984,13 @@
 
 ---
 
-- [ ] T098 [test] Theme + sidebar persistence test (T-F2)
+- [x] T098 [test] Theme + sidebar persistence test (T-F2)
       Files: `apps/web/src/admin/shell/persistence.test.tsx`
       Do: Toggle dark mode + sidebar collapse, remount, assert state restored with no flash and that
       the server preference round-trips.
       Done when: Tests fail then pass against the implemented shell + preferences.
       Refs: T-F2, H1/H2, FR-024
+      > note: 5 tests over /me hydration (server authoritative), theme toggle → PUT /admin/settings/preferences, sidebar toggle → PUT, remount restore + cookie-mirror no-flash, cross-device correction. Confirmed red first (no PUT issued, cookie default not overridden), then green. Implementation (coherent unit, no separate impl task listed): ThemeProvider gained optional `initialPreferences`/`onPreferencesChange` (adopt server prefs once, notify on toggle, cookie mirror kept in sync — `apps/web/src/admin/theme/ThemeProvider.tsx`); AppShell passes prefs through + drives SidebarProvider as controlled (`open=!sidebarCollapsed`) via inner ShellLayout (`apps/web/src/admin/shell/AppShell.tsx`); AdminShell wires `auth.user.preferences` → AppShell and PUTs the full object fire-and-forget (`apps/web/src/App.tsx`). Backend /me + GET/PUT preferences already return/save both fields. Existing AppShell.test.tsx (16) + ThemeProvider.test.tsx (11) still green; deviations: none.
 
 - [ ] T099 [test] Keyboard operability test (T-F3)
       Files: `apps/web/src/admin/shell/keyboard.test.tsx`

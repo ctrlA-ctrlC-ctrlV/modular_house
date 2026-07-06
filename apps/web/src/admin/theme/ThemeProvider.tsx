@@ -13,6 +13,14 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedThemeMode = 'light' | 'dark';
 
+// Per-user UI preferences persisted server-side (H1/H2) and mirrored to
+// cookies for pre-paint. The server-stored value is authoritative; the cookie
+// mirror is only the pre-paint cache the boot script reads before hydration.
+interface Preferences {
+  themeMode: ThemeMode;
+  sidebarCollapsed: boolean;
+}
+
 type ThemeContextValue = {
   themeMode: ThemeMode;
   resolvedThemeMode: ResolvedThemeMode;
@@ -83,8 +91,29 @@ function applySidebarToDOM(collapsed: boolean) {
  * ThemeProvider — wraps the admin UI tree, providing theme state and mutation
  * functions via React context.  On mount, reads the cookie mirror to initialise
  * state, then keeps the DOM and cookies synchronised on every change.
+ *
+ * Server round-trip (H1/H2, FR-024): when `initialPreferences` arrives from
+ * /me it is adopted once as the authoritative value (overriding the cookie
+ * mirror) and the cookie is refreshed for the next pre-paint.  Every local
+ * toggle calls `onPreferencesChange` with the full preferences object so the
+ * parent can PUT it to /admin/settings/preferences; the local state and cookie
+ * mirror update optimistically so the UI never waits on the network.
  */
-function ThemeProvider({ children }: { children: React.ReactNode }) {
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  /** Authoritative server-stored preferences (from /me). Adopted once on
+   * arrival; null/undefined leaves the cookie mirror as the source. */
+  initialPreferences?: Preferences | null;
+  /** Called on every local toggle with the full preferences object so the
+   * parent can persist it to /admin/settings/preferences (FR-024). */
+  onPreferencesChange?: (preferences: Preferences) => void;
+}
+
+function ThemeProvider({
+  children,
+  initialPreferences,
+  onPreferencesChange,
+}: ThemeProviderProps) {
   // Initialise from cookie mirror (boot.ts has already applied the DOM state
   // synchronously before this component mounts).
   const [themeMode, setThemeModeState] = React.useState<ThemeMode>(() => {
@@ -100,20 +129,49 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
     () => readCookie(SIDEBAR_COOKIE) === 'true',
   );
 
-  // Apply theme to DOM + cookie whenever themeMode changes.
+  // Ref holding the latest full preferences so each toggle callback can notify
+  // the parent with both fields without a stale-closure read of the other.
+  const preferencesRef = React.useRef<Preferences>({ themeMode, sidebarCollapsed });
+  preferencesRef.current = { themeMode, sidebarCollapsed };
+
+  // Guards against re-adopting the server value after the user starts toggling
+  // locally; /me is fetched once per mount, so a single adoption is correct and
+  // prevents a stale server snapshot from clobbering local edits.
+  const serverHydratedRef = React.useRef(false);
+
+  const notify = React.useCallback(
+    (next: Preferences) => {
+      onPreferencesChange?.(next);
+    },
+    [onPreferencesChange],
+  );
+
+  // Apply theme to DOM + cookie + notify parent of the full preferences.
   const setThemeMode = React.useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
     const resolved = applyThemeToDOM(mode);
     setResolvedThemeMode(resolved);
     writeCookie(THEME_COOKIE, mode);
-  }, []);
+    const next: Preferences = {
+      themeMode: mode,
+      sidebarCollapsed: preferencesRef.current.sidebarCollapsed,
+    };
+    preferencesRef.current = next;
+    notify(next);
+  }, [notify]);
 
-  // Apply sidebar state to DOM + cookie whenever collapsed changes.
+  // Apply sidebar state to DOM + cookie + notify parent of the full preferences.
   const setSidebarCollapsed = React.useCallback((collapsed: boolean) => {
     setSidebarCollapsedState(collapsed);
     applySidebarToDOM(collapsed);
     writeCookie(SIDEBAR_COOKIE, String(collapsed));
-  }, []);
+    const next: Preferences = {
+      themeMode: preferencesRef.current.themeMode,
+      sidebarCollapsed: collapsed,
+    };
+    preferencesRef.current = next;
+    notify(next);
+  }, [notify]);
 
   // Sync DOM with initial state on mount.  In production the boot script has
   // already applied the correct attributes synchronously before hydration, so
@@ -123,6 +181,25 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyThemeToDOM(themeMode);
     applySidebarToDOM(sidebarCollapsed);
   }, []);
+
+  // Adopt the server-stored preference once /me hydrates (H1/H2: server is
+  // authoritative; the cookie mirror is only the pre-paint cache). Runs once
+  // per mount so local toggles are never clobbered by a stale server snapshot.
+  React.useEffect(() => {
+    if (!initialPreferences || serverHydratedRef.current) return;
+    serverHydratedRef.current = true;
+    const { themeMode: serverMode, sidebarCollapsed: serverCollapsed } = initialPreferences;
+    setThemeModeState(serverMode);
+    const resolved = applyThemeToDOM(serverMode);
+    setResolvedThemeMode(resolved);
+    writeCookie(THEME_COOKIE, serverMode);
+    setSidebarCollapsedState(serverCollapsed);
+    applySidebarToDOM(serverCollapsed);
+    writeCookie(SIDEBAR_COOKIE, String(serverCollapsed));
+    preferencesRef.current = { themeMode: serverMode, sidebarCollapsed: serverCollapsed };
+    // No notify: the server is the source of this value, so there is nothing
+    // to PUT back. The cookie mirror is refreshed for the next pre-paint.
+  }, [initialPreferences]);
 
   // Subscribe to OS theme changes when mode is "system".
   React.useEffect(() => {
@@ -163,3 +240,4 @@ function useTheme(): ThemeContextValue {
 }
 
 export { ThemeProvider, useTheme };
+export type { Preferences };

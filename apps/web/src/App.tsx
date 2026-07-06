@@ -342,6 +342,19 @@ function AdminShell() {
   return (
     <AppShell
       user={shellUser}
+      preferences={auth.user.preferences}
+      onPreferencesChange={(prefs) => {
+        // FR-024: persist the new themeMode/sidebarCollapsed to the server.
+        // Fire-and-forget — the local state + cookie mirror already updated
+        // optimistically, so the UI never waits on the network; a failed PUT
+        // leaves the UI in the user's chosen state and the next /me hydration
+        // re-syncs. The full object is sent so the round-trip is explicit.
+        void apiClient.fetch('/admin/settings/preferences', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(prefs),
+        });
+      }}
       onSettingsClick={() => navigate('/admin/settings')}
       onLogoutClick={() => {
         void auth.logout();

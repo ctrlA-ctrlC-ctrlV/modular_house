@@ -18,6 +18,19 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-07T13:00:00.000+00:00] - [pending] - fix(admin-auth): T105 review nits — verifyOtp isActive recheck + argon2 call-assert
+
+### Changed
+- `apps/api/src/services/auth.ts` — `verifyOtp` now re-checks `!user.isActive` after `loadUser` and before minting the access token. A6's full text says "cannot complete sign-in even with correct credentials and a valid code"; previously `verifyOtp` did not re-check `isActive`, so a deactivated account that obtained a valid OTP (e.g., deactivated after the OTP was issued but before the 2FA verify step) could complete sign-in and receive an access + refresh token. The new check returns `{ success: false, status: 401, message: 'Invalid credentials' }` — the same generic 401 as the credential-step block, preserving A5 byte-identity. `services/auth.ts` stays at 100% branch/stmt/func/line (the new `if (!user.isActive)` is a simple true/false branch; true path covered by the new unit test, false path by the existing verifyOtp success tests).
+
+### Fixed
+- `apps/api/tests/unit/auth.test.ts` — two corrections addressing Session 38 review nits: (1) The A6 `verifyCredentials` unit test now stores the mock user in a variable and asserts `expect(mockArgon2.verify).toHaveBeenCalledWith(user.passwordHash, 'CorrectPassword1!')` — this pins the T105 post-credential ordering so a future refactor cannot silently move the `isActive` check back before `argon2.verify` without breaking the test. (2) A new unit test "returns failure when the account is deactivated even with a valid code (A6)" exercises the `verifyOtp` `isActive` recheck: a deactivated user with a valid OTP code gets `{ success: false, status: 401 }` and no `accessToken`/`rawRefreshToken`. Unit suite goes from 32 → 33 tests; full API suite 331 → 332.
+
+### Security
+- A6 closed end-to-end: a deactivated account is now blocked at BOTH the credential step (`verifyCredentials`, post-argon2) AND the 2FA verify step (`verifyOtp`, post-loadUser). The race window where an account is deactivated between OTP issue and 2FA verify is now closed — the deactivated account cannot obtain an access token even with a valid, unexpired code.
+
+---
+
 ## [2026-07-07T12:15:00.000+00:00] - [pending] - fix(admin-auth): T105 block inactive accounts post-credential (A6)
 
 ### Changed

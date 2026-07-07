@@ -18,7 +18,18 @@ Note: keep the most latest entry on top
 > - 
 ---
 
-## [2026-07-07T09:45:00.000+00:00] - [pending] - test(admin-auth): T102 log-line secret-redaction test
+## [2026-07-07T09:50:00.000+00:00] - [pending] - feat(admin-auth): T103 add Pino log redaction
+
+### Added
+- `apps/api/src/middleware/logger.ts` — exported `REDACT_PATHS` constant (16 field paths: 8 top-level credential keys `password`, `newPassword`, `currentPassword`, `confirmPassword`, `token`, `code`, `otp`, `refreshToken` plus the 8 nested `body.*` counterparts) and wired a `redact: { paths, censor: '[Redacted]' }` option into the base `pino({...})` instance. Pino walks these paths at serialization time and replaces each matching value with `[Redacted]` before the line reaches the output stream, so secrets never appear in log output regardless of how a caller constructs the log object. The primary vector this closes is `validate.ts` line 223, which logs `body: req.body` verbatim on Zod validation failure — a malformed login / reset / change request would otherwise write the raw password, OTP code, or reset token to stdout. The `REDACT_PATHS` export ties the T102 test to the exact production configuration via `importOriginal`. Additive only — the array is open for new field names without touching existing entries (Open-Closed).
+
+### Security
+- FR-039 / I3: secrets (passwords, OTP codes, reset tokens) are now redacted at the Pino serialization layer, complementing the audit-entry I3 check (T101) by closing the log-line channel. The redaction is defense in depth — it catches both the known `validate.ts` body-logging vector and any future accidental `logger.info({ password })` call.
+
+### Notes
+- Deviation from task file path: T103 lists `apps/api/src/config/logger.ts`, but the Pino logger instance was created at `apps/api/src/middleware/logger.ts` by an earlier task (the `config/` directory holds `env.ts` and `adminAuth.ts` only). Redaction must be applied where the `pino({...})` instance is constructed, so the `redact` option and `REDACT_PATHS` export were added to `middleware/logger.ts`. Creating a separate `config/logger.ts` would either duplicate the singleton (breaking the single-source-of-truth) or be a dead module that nothing imports.
+
+---
 
 ### Added
 - `apps/api/tests/integration/log-redaction.test.ts` — 10 integration tests verifying no raw password, OTP code, or reset token ever reaches a Pino log line across the four authentication flows (login, 2FA, reset, change) plus direct redaction of top-level and `body.*` secret field paths. The test mocks `middleware/logger.js` via `vi.mock` + `importOriginal` so every `logger.*` call routes to an in-memory `Writable` capture stream configured with the SAME redact paths the production logger exports (`REDACT_PATHS`, added in T103). Before T103 the paths array is empty and 6 tests fail because secrets leak — the primary vector is `validate.ts` line 223 which logs `body: req.body` verbatim on Zod validation failure (e.g. a malformed login body includes the raw password in the log stream). The 4 success-flow tests pass in both phases because validation succeeds and the body is never logged. MailerService mocked at the module boundary; per-test slate scoped to the test user (same pattern as audit-events.test.ts). Runs against the test DB on port 5434.

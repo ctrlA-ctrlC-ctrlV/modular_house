@@ -1054,11 +1054,12 @@
       Refs: FR-039, I3
       > note: 10 tests for secret-free log lines across 4 flows + direct redaction; tests: 4 passing (6 red pre-T103); deviations: none
 
-- [ ] T103 Add log redaction (only if leakage is exposed)
+- [x] T103 Add log redaction (only if leakage is exposed)
       Files: `apps/api/src/config/logger.ts`
       Do: Add Pino redaction so passwords, OTP codes, and reset tokens never reach logs.
       Done when: T102 passes.
       Refs: FR-039
+      > note: REDACT_PATHS + pino redact added (16 paths: 8 top-level + 8 body.*); tests: 10 passing; deviations: apps/api/src/config/logger.ts — Pino instance lives at apps/api/src/middleware/logger.ts
 
 ---
 

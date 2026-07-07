@@ -1087,12 +1087,13 @@
       > fix(T105 review): (1) added expect(mockArgon2.verify).toHaveBeenCalledWith to A6 unit test — pins post-credential ordering; (2) added if(!user.isActive) recheck in verifyOtp + unit test — closes full A6 "valid code" gap; auth.ts 100% branch; 332/332 green.
       > reviewed (Session 39, re-check): PASS — both corrective items independently verified fixed; 332/332 green; auth.ts 100% branch; lint+typecheck clean.
 
-- [ ] T106 [test] E-LOCK â€” lockout boundary tests
+- [x] T106 [test] E-LOCK â€” lockout boundary tests
       Files: `apps/api/tests/integration/edge-lockout.test.ts`
       Do: With the injected clock assert 5th consecutive bad password locks (`423`), attempts during
       lock are blocked, and a successful reset clears the lock.
       Done when: Tests fail for A2/A3/C5.
       Refs: E-LOCK, A2/A3/C5, FR-009/FR-018
+      > note: 3 tests pin A2 boundary + A3 15m/during-lock 423 + C5 reset-clears-lock; impl already correct (no gaps exposed); injected clock for reset token; tests: 3 passing; deviations: none
 
 - [ ] T107 Harden account lockout + reset-clears-lock
       Files: `apps/api/src/services/auth.ts`

@@ -1096,11 +1096,12 @@
       > note: 3 tests pin A2 boundary + A3 15m/during-lock 423 + C5 reset-clears-lock; impl already correct (no gaps exposed); injected clock for reset token; tests: 3 passing; deviations: none
       > reviewed: PASS — 3/3 confirmed at runtime; A2 boundary (4≠lock), A3 (423 + 15m window), C5 (reset clears lock, follow-up login 200) all pinned against LOCKOUT_THRESHOLD/LOCKOUT_DURATION_MS constants; 335/335 full api suite green; security modules still 100% branch.
 
-- [ ] T107 Harden account lockout + reset-clears-lock
+- [x] T107 Harden account lockout + reset-clears-lock
       Files: `apps/api/src/services/auth.ts`
       Do: Enforce `failedLoginAttempts>=5` â†’ `lockedUntil=now+15m`; reset clears counters.
       Done when: T106 passes; 100% branch on lockout paths.
       Refs: E-LOCK, A2/A3/A4/C5
+      > note: verified pre-existing; A2/A3/A4 in verifyCredentials, C5 in reset-password route txn; tests: 335 passing; deviations: none (no code change needed)
 
 - [ ] T108 [test] E-OTP â€” OTP edge tests
       Files: `apps/api/tests/integration/edge-otp.test.ts`

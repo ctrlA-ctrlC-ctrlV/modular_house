@@ -1084,6 +1084,7 @@
       Refs: E-CREDS, A5/A6
       > note: isActive moved post-argon2 (post-credential timing); route already normalized; tests: 4 passing; deviations: apps/api/src/routes/admin/auth.ts — listed in Files: but already byte-identical
       > reviewed: PASS-WITH-NITS — reorder verified correct; 331/331 green; nits: no call-assertion pinning argon2.verify for A6 path; verifyOtp still lacks isActive recheck (full A6 "valid code" text) — see review-log 2026-07-07.
+      > fix(T105 review): (1) added expect(mockArgon2.verify).toHaveBeenCalledWith to A6 unit test — pins post-credential ordering; (2) added if(!user.isActive) recheck in verifyOtp + unit test — closes full A6 "valid code" gap; auth.ts 100% branch; 332/332 green.
 
 - [ ] T106 [test] E-LOCK â€” lockout boundary tests
       Files: `apps/api/tests/integration/edge-lockout.test.ts`

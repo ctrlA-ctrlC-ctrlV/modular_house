@@ -18,6 +18,19 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-07T11:50:00.000+00:00] - [pending] - test(admin-auth): T104 E-CREDS edge-case tests (A5/A6)
+
+### Added
+- `apps/api/tests/integration/edge-creds.test.ts` — 4 integration tests pinning the generic-credential non-enumeration contract on `POST /admin/auth/login` (A5/A6, FR-008). Three single-case tests assert each failure path returns a generic `401` with body `{ error: 'Unauthorized', message: 'Invalid credentials' }` and leaks no `accessToken`/`challengeId`: (1) unknown email, (2) wrong password on a known active account, (3) a deactivated account (`isActive=false`) submitted with the correct password. The fourth test sends all three requests in sequence and asserts **byte-identity** by comparing the raw response body string (`res.text`) and the `content-type` header — no field, value, or key-ordering difference may leak which case triggered the failure. The suite seeds one active and one deactivated user (both with the same correct password) via `prisma.user.create` in `beforeAll`; `beforeEach` resets Phase 1 tables, audit rows, and lockout counters per user so failure counters never accumulate toward the A2 threshold. `afterAll` deletes audit rows before users (RESTRICT FK on `audit_logs.user_id`, same pattern as auth.spec.ts/audit-events.test.ts). The `MailerService` is mocked at the module boundary (`vi.mock('../../src/services/mailer.js', ...)`) so no SMTP call leaves the test process. Runs against the Phase 1 test DB on port 5434.
+
+### Security
+- A5 / FR-008: the byte-identity assertion (`res.text` comparison, not just parsed shape) closes the enumeration vector at the response-body level — an attacker cannot distinguish unknown-email from wrong-password from deactivated by inspecting the raw bytes. A6: the deactivated-account test confirms `isActive=false` accounts cannot even reach the OTP-issue step when the password is correct (the service checks `isActive` before `argon2.verify`). Note: a timing side-channel remains (wrong-password runs argon2 ≈120ms; unknown-email/deactivated return in ≈30ms) — that is a T105 concern, not an A5 body-identity defect.
+
+### Notes
+- The implementation in `AuthService.verifyCredentials` (T031) and the login route (T033) already satisfy A5/A6: all three failure cases return the identical 56-byte body `{"error":"Unauthorized","message":"Invalid credentials"}` (confirmed by `content-length: 56` in the request logs). The test therefore passes immediately — this is the "expose gaps" branch of `Done when: Tests fail (or expose gaps)`; no gaps were exposed. The test now pins the behavior against future regressions (same accepted TDD pattern as T023/T065 where the impl preceded the test).
+
+---
+
 ## [2026-07-07T09:50:00.000+00:00] - [pending] - feat(admin-auth): T103 add Pino log redaction
 
 ### Added

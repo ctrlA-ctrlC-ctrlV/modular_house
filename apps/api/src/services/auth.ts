@@ -270,6 +270,13 @@ export class AuthService {
       return { success: false, status: 401, message: 'Invalid credentials' };
     }
 
+    // A6: deactivated account cannot complete sign-in even with a valid code.
+    // Guards the race where the account is deactivated after an OTP was issued
+    // but before the 2FA verify step completes (post-credential recheck).
+    if (!user.isActive) {
+      return { success: false, status: 401, message: 'Invalid credentials' };
+    }
+
     // E1: effective permissions from Role → RolePermission → Permission
     const permissions = derivePermissions(user);
 

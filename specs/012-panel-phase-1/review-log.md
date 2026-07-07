@@ -4,6 +4,14 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 39 — T105 nit fixes re-check (2026-07-07)
+
+T105 — PASS (re-check) — verifyOtp isActive added; call-assert added; 332/332 green
+
+**Overall: GO** — proceed to T106. Full findings in chat report.
+
+---
+
 ## Session 38 — T105 review (2026-07-07)
 
 T105 — PASS-WITH-NITS — argon2 order fixed; verifyOtp isActive gap; no call-assert test

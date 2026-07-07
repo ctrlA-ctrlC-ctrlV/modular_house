@@ -18,6 +18,20 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-07T12:15:00.000+00:00] - [pending] - fix(admin-auth): T105 block inactive accounts post-credential (A6)
+
+### Changed
+- `apps/api/src/services/auth.ts` — `verifyCredentials` reordered: the `!user.isActive` (A6) check was moved from **before** `argon2.verify` to **after** it ("post-credential"). Previously a deactivated account returned `401` in ≈30ms (no argon2 work), while an active account with a wrong password took ≈120ms (argon2 verify) — a timing side-channel leaking whether the account is active. Now `argon2.verify` runs for ALL accounts (including deactivated), so the deactivated-with-correct-password path takes the same argon2 time as the active-with-correct-password path. The lockout-increment path (`!isValid` branch) is now only reachable for active accounts because deactivated accounts are caught by the `!user.isActive` check first — this prevents a deactivated account from accumulating `failedLoginAttempts` and transitioning to `423` (which would break A5/A6's byte-identical `401`). All three failure cases (unknown email, wrong password, deactivated) still return the identical 56-byte body `{"error":"Unauthorized","message":"Invalid credentials"}`; `services/auth.ts` stays at 100% branch/stmt/func/line coverage (the reordered `if (!user.isActive)` is a simple true/false branch covered by the existing A6 unit test for the true path and the wrong-password/success tests for the false path; no new branch introduced). No change to any response shape, status code, or audit behavior.
+
+### Security
+- A6 / A5 timing hardening: the deactivated-account check now happens post-credential (after `argon2.verify`), closing the timing side-channel where a deactivated account responded faster than a wrong-password attempt on an active account. The response body remains byte-identical across all three 401 cases (A5 preserved). A residual timing side-channel remains for **unknown email** (no `argon2.verify` runs because no user row is found) — equalizing that would require a dummy argon2 hash verification, which is beyond T105's `Do:` scope ("block inactive accounts post-credential") and not pinned by T104's byte-identity test (which checks body bytes, not timing).
+
+### Notes
+- **Route not touched.** The task `Files:` lists `apps/api/src/routes/admin/auth.ts`, but the route's response construction (`res.status(result.status).json({ error: result.status === 423 ? 'Locked' : 'Unauthorized', message: result.message })`) was already normalized — all 401 cases produce the identical body. T104's byte-identity test (`res.text` comparison) confirmed this in the previous session. No route change was needed; the `Do:` directive "Normalize responses to byte-identical 401" was already satisfied.
+- **`verifyOtp` not touched.** A6's full text says "cannot complete sign-in even with correct credentials and a valid code." The `verifyOtp` path does not re-check `isActive`, so a deactivated account that somehow obtains a valid code (e.g., deactivated after OTP issue but before 2FA verify) could complete sign-in. This is beyond T105's `Do:` ("block inactive accounts post-credential" = the credential step, not the OTP step) and was flagged in the T104 handoff for the reviewer to decide whether a future task owns it.
+
+---
+
 ## [2026-07-07T11:50:00.000+00:00] - [pending] - test(admin-auth): T104 E-CREDS edge-case tests (A5/A6)
 
 ### Added

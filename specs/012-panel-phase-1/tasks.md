@@ -1077,11 +1077,12 @@
       > note: 4 tests pin byte-identical 401 (res.text) for unknown email/wrong password/deactivated, impl already correct (no gaps exposed); tests: 4 passing; deviations: none
       > reviewed: PASS — 4/4 pass at runtime (isolated + full suite 331/331); res.text byte-identity + content-type asserted; A6 checked before argon2 verify; no scope creep.
 
-- [ ] T105 Harden generic-credential + deactivated handling
+- [x] T105 Harden generic-credential + deactivated handling
       Files: `apps/api/src/services/auth.ts`, `apps/api/src/routes/admin/auth.ts`
       Do: Normalize responses to byte-identical `401`; block inactive accounts post-credential.
       Done when: T104 passes.
       Refs: E-CREDS, A5/A6
+      > note: isActive moved post-argon2 (post-credential timing); route already normalized; tests: 4 passing; deviations: apps/api/src/routes/admin/auth.ts — listed in Files: but already byte-identical
 
 - [ ] T106 [test] E-LOCK â€” lockout boundary tests
       Files: `apps/api/tests/integration/edge-lockout.test.ts`

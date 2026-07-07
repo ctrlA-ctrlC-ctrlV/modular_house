@@ -1034,6 +1034,7 @@
       > note: §9 fix — auth.spec.ts beforeAll/afterAll clear audit_logs before user delete (RESTRICT FK); tests: 317 passing; deviations: apps/api/tests/integration/auth.spec.ts — audit FK blocked cleanup
       > reviewed: PASS-WITH-NITS — 9/8 sites exact, 317/317 green, no drift; nit: dup email lookup in /login
       > note: Session 35 nit fix — CredentialResult carries userId (service loads it once); route dup lookup removed; tests: 317 passing; deviations: apps/api/src/services/auth.ts — additive field to resolve nit
+      > reviewed (Session 36, re-check): PASS — userId threading verified on all 5 return points; auth.ts 100% branch; 327/327 api tests green; no regressions.
 
 - [x] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`
@@ -1053,6 +1054,7 @@
       Done when: Tests fail on any leaked secret.
       Refs: FR-039, I3
       > note: 10 tests for secret-free log lines across 4 flows + direct redaction; tests: 4 passing (6 red pre-T103); deviations: none
+      > reviewed: PASS — 10/10 pass at runtime after T103; direct + flow-based redaction assertions both verified; importOriginal ties test to production REDACT_PATHS.
 
 - [x] T103 Add log redaction (only if leakage is exposed)
       Files: `apps/api/src/config/logger.ts`
@@ -1060,6 +1062,7 @@
       Done when: T102 passes.
       Refs: FR-039
       > note: REDACT_PATHS + pino redact added (16 paths: 8 top-level + 8 body.*); tests: 10 passing; deviations: apps/api/src/config/logger.ts — Pino instance lives at apps/api/src/middleware/logger.ts
+      > reviewed: PASS-WITH-NITS — redact config correct (16 paths, censor works); nit: Files: path in this task still says config/logger.ts vs. actual middleware/logger.ts — harmless, already self-documented by implementer's note.
 
 ---
 

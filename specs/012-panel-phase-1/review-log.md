@@ -4,6 +4,16 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 36 — T100a re-check + T102/T103 review (2026-07-07)
+
+T100a — PASS — userId threaded via service; dup lookup gone; 327/327 green
+T102 — PASS — 10 tests pin redaction; red-phase to green confirmed
+T103 — PASS-WITH-NITS — REDACT_PATHS wired; task Files: path deviates (documented)
+
+**Overall: GO** — proceed past Pass 1. Full findings in chat report.
+
+---
+
 ## Session 35 — T100a/T101 review (2026-07-06)
 
 T100a — PASS-WITH-NITS — 9 sites/8 actions exact; 317/317 green; dup email lookup nit

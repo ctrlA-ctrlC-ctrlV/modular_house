@@ -123,6 +123,41 @@
       dynamically in the browser, so no static fallback is required here either.
     -->
     <!--head-meta-->
+
+    <!--
+      Admin Theme Boot Script (H1: no wrong-theme frame on first paint)
+      ==========================================================================
+      Synchronous IIFE that reads the admin theme-mode and sidebar-collapsed
+      cookies before the React bundle hydrates.  Sets data-theme-mode, toggles
+      the `.dark` class, and applies colorScheme on <html> so the very first
+      paint uses the correct theme — no FOUC.
+
+      Cookie names must match those in apps/web/src/admin/theme/boot.ts.
+      Default theme = "system" (resolves via prefers-color-scheme media query).
+      Default sidebar = expanded (false).
+      ==========================================================================
+    -->
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          function readCookie(name) {
+            var m = document.cookie.split('; ').find(function (c) {
+              return c.startsWith(name + '=');
+            });
+            return m ? decodeURIComponent(m.split('=')[1]) : null;
+          }
+          var raw = readCookie('admin_theme_mode');
+          var mode = (raw === 'light' || raw === 'dark' || raw === 'system') ? raw : 'system';
+          var dark = mode === 'dark' || (mode === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          root.setAttribute('data-theme-mode', mode);
+          if (dark) root.classList.add('dark');
+          root.style.colorScheme = dark ? 'dark' : 'light';
+          var sb = readCookie('admin_sidebar_collapsed');
+          root.setAttribute('data-sidebar-collapsed', sb === 'true' ? 'true' : 'false');
+        } catch (e) { /* silent — degrade gracefully if cookies are blocked */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"><!--app-html--></div>

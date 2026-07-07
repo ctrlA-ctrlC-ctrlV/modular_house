@@ -1,0 +1,55 @@
+/*
+ * Admin-layer CSS — imported ONLY by admin components; NEVER by public-site pages.
+ *
+ * Isolation strategy (research R1, FR-004, SC-008):
+ * - Tailwind preflight is deliberately excluded to avoid conflicting with Bootstrap 5
+ *   on the public marketing site.  Only the @theme bridge and @utilities layers are
+ *   imported from Tailwind itself.
+ * - All base resets are re-issued inside `.admin-root` so they cannot cascade out.
+ */
+
+/* Tailwind v4: design-token bridge (CSS vars) + utility classes; no preflight. */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+/* OKLCH tokens — light/dark, scoped to .admin-root (T003) */
+@import "./tokens.css";
+
+/* Admin-scoped base reset (replaces preflight; confined to .admin-root subtree) */
+@layer base {
+  .admin-root *,
+  .admin-root *::before,
+  .admin-root *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: var(--color-border, currentColor);
+  }
+
+  .admin-root {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  /* Heading normalisation inside admin */
+  .admin-root h1,
+  .admin-root h2,
+  .admin-root h3,
+  .admin-root h4,
+  .admin-root h5,
+  .admin-root h6 {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  /* Default focus ring: plan H4 — 3 px at ring/50 */
+  .admin-root *:focus-visible {
+    outline: 3px solid color-mix(in oklch, var(--color-ring) 50%, transparent);
+    outline-offset: 2px;
+  }
+}

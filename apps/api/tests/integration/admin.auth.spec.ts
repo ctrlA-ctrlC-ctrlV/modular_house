@@ -9,12 +9,13 @@ describe('Admin Auth Integration', () => {
   let expiredToken: string;
 
   beforeAll(() => {
-    // Generate a valid token
+    // Generate a valid token — includes pages:view so it can access GET /admin/pages
     validToken = jwt.sign(
       { 
         userId: 'test-admin-id', 
         email: 'admin@example.com', 
-        role: 'admin' 
+        role: 'admin',
+        permissions: ['pages:view'],
       },
       JWT_SECRET,
       { expiresIn: '1h' }
@@ -25,7 +26,8 @@ describe('Admin Auth Integration', () => {
       { 
         userId: 'test-admin-id', 
         email: 'admin@example.com', 
-        role: 'admin' 
+        role: 'admin',
+        permissions: ['pages:view'],
       },
       JWT_SECRET,
       { expiresIn: '-1h' }
@@ -92,12 +94,13 @@ describe('Admin Auth Integration', () => {
       expect(response.status).not.toBe(403);
     });
     
-    it('should return 403 when user lacks required role', async () => {
+    it('should return 403 when user lacks required permission', async () => {
       const userToken = jwt.sign(
         { 
           userId: 'test-user-id', 
           email: 'user@example.com', 
-          role: 'user' // Not admin
+          role: 'user',
+          permissions: [], // no pages:view
         },
         JWT_SECRET,
         { expiresIn: '1h' }

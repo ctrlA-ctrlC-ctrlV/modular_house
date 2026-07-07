@@ -5,7 +5,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    globalSetup: ['./src/test/globalSetup.ts'],
     setupFiles: ['./src/test/setup.ts'],
+    typecheck: {
+      tsconfig: './tsconfig.test.json',
+    },
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules', 'dist', 'prisma/migrations'],
     coverage: {
@@ -16,6 +20,7 @@ export default defineConfig({
       exclude: [
         'src/**/*.{test,spec}.ts',
         'src/test/**',
+        'src/seed/**', // Shared seed data, exercised by globalSetup (uninstrumented)
         'src/**/*.d.ts',
         'src/server.ts', // Entry point, covered by integration tests
       ],
@@ -34,7 +39,7 @@ export default defineConfig({
           branches: 30,
         },
         'src/services/auth.ts': {
-          branches: 70,
+          branches: 100,
         },
         'src/config/env.ts': {
           branches: 40,

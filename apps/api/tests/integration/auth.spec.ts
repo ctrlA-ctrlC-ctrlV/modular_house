@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
+import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app.js';
 import { AuthService } from '../../src/services/auth.js';
@@ -31,7 +32,16 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
   beforeAll(async () => {
     await ensureAdminRole();
 
-    // Clean up any existing test user
+    // Clean up any existing test user. Audit rows referencing the user must be
+    // removed first (RESTRICT FK on audit_logs.user_id — see afterAll note) so
+    // a leftover user from a previously interrupted run does not block setup.
+    const existing = await prisma.user.findUnique({
+      where: { email: testUser.email },
+      select: { id: true },
+    });
+    if (existing) {
+      await prisma.auditLog.deleteMany({ where: { userId: existing.id } });
+    }
     await prisma.user.deleteMany({
       where: { email: testUser.email },
     });
@@ -41,7 +51,18 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
   });
 
   afterAll(async () => {
-    // Clean up test user
+    // Clean up test user. The reused AuditLog table has a RESTRICT foreign key
+    // on user_id, so audit rows referencing this user must be removed before
+    // the user row can be deleted. Phase 1 (T100a) wires audit writes into the
+    // auth routes, so the login/logout flows above now emit audit rows for this
+    // user that would otherwise block the delete.
+    const user = await prisma.user.findUnique({
+      where: { email: testUser.email },
+      select: { id: true },
+    });
+    if (user) {
+      await prisma.auditLog.deleteMany({ where: { userId: user.id } });
+    }
     await prisma.user.deleteMany({
       where: { email: testUser.email },
     });
@@ -58,11 +79,9 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         })
         .expect(200);
 
-      expect(response.body).toHaveProperty('token');
-      expect(response.body).toHaveProperty('user');
-      expect(response.body.user).toHaveProperty('id');
-      expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user.role).toBe('admin');
+      // Phase 1: login step 1 returns a 2FA challenge, not a session token.
+      expect(response.body).toHaveProperty('challengeId');
+      expect(response.body).toHaveProperty('message');
     });
 
     it('should reject invalid email', async () => {
@@ -74,7 +93,7 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         })
         .expect(401);
 
-      expect(response.body).toHaveProperty('error', 'Invalid credentials');
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
     });
 
     it('should reject invalid password', async () => {
@@ -86,7 +105,7 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
         })
         .expect(401);
 
-      expect(response.body).toHaveProperty('error', 'Invalid credentials');
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
     });
 
     it('should validate required fields', async () => {
@@ -132,28 +151,24 @@ describe.runIf(dbAvailable)('Admin Auth Endpoints', () => {
 
   describe('POST /admin/auth/logout', () => {
     it('should accept logout request with valid token', async () => {
-      // First login to get a token
-      const loginResponse = await request(app)
-        .post('/admin/auth/login')
-        .send({
-          email: testUser.email,
-          password: testUser.password,
-        })
-        .expect(200);
+      // Phase 1: login step 1 returns a challengeId, not an access token.
+      // Sign a test access token directly to exercise the logout endpoint.
+      const token = jwt.sign(
+        { userId: 'test-id', email: testUser.email, role: 'admin', permissions: [] },
+        process.env.JWT_SECRET ?? 'test-jwt-secret',
+        { expiresIn: '15m' },
+      );
 
-      const token = loginResponse.body.token;
-
-      // Then logout with the token
       await request(app)
         .post('/admin/auth/logout')
         .set('Authorization', `Bearer ${token}`)
         .expect(204);
     });
 
-    it('should accept logout request without token', async () => {
+    it('should reject logout request without token', async () => {
       await request(app)
         .post('/admin/auth/logout')
-        .expect(204);
+        .expect(401);
     });
   });
 });

@@ -3,6 +3,7 @@ import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 
 // Import config
 import { config } from './config/env.js';
@@ -21,6 +22,7 @@ import { faqsRouter } from './routes/admin/faqs.js';
 import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/submissions.js';
 import { redirectsRouter } from './routes/admin/redirects.js';
 import { uploadsRouter } from './routes/admin/uploads.js';
+import { settingsRouter } from './routes/admin/settings.js';
 
 const app: Application = express();
 
@@ -40,6 +42,9 @@ app.use(cors(corsOptions));
 
 // Compression middleware
 app.use(compression());
+
+// Cookie parsing (needed for refresh-token cookie reads in admin auth routes).
+app.use(cookieParser());
 
 // Body parsing with size limit
 app.use(express.json({ limit: '10mb' }));
@@ -61,6 +66,7 @@ app.use('/admin/faqs', faqsRouter);
 app.use('/admin/submissions', adminSubmissionsRouter);
 app.use('/admin/redirects', redirectsRouter);
 app.use('/admin/uploads', uploadsRouter);
+app.use('/admin/settings', settingsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

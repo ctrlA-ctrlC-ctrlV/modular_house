@@ -131,41 +131,341 @@ paths:
         '429':
           description: Rate limit exceeded
 
+  # ─── Admin Auth (Phase 1 — 2FA login flow) ────────────────────────────
+
   /admin/auth/login:
     post:
-      summary: Admin login
+      tags: [auth]
+      summary: Step 1 — verify credentials and issue a one-time code (no session yet)
+      description: >
+        Verifies email + password against the database. On success, issues a 6-digit OTP
+        (hashed, 10m TTL), emails it via the SMTP mailer, and returns a challenge id. No access
+        token is granted at this step. Account lockout (5 fails / 15m) and a generic 401 apply.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Authenticated
+          description: Credentials valid; OTP issued and emailed. Code-entry step required.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+                $ref: '#/components/schemas/TwoFactorChallenge'
         '401':
-          description: Invalid credentials
+          description: Generic invalid-credentials (also returned for unknown email or inactive account).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '423':
+          description: Account temporarily locked after repeated failures.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: Too many requests (IP rate limit).
+
+  /admin/auth/verify-2fa:
+    post:
+      tags: [auth]
+      summary: Step 2 — verify the one-time code and establish a session
+      description: >
+        Verifies the OTP for the given challenge. On success, returns a 15m access token and sets
+        the rotating refresh-token cookie. Wrong code increments the per-code attempt count;
+        5 wrong attempts or expiry invalidates the code.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyTwoFactorRequest'
+      responses:
+        '200':
+          description: Code valid; authenticated session established.
+          headers:
+            Set-Cookie:
+              description: httpOnly, Secure, SameSite=Strict refresh token.
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400':
+          description: Malformed request.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Incorrect, expired, consumed, or locked-out code.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/auth/resend-code:
+    post:
+      tags: [auth]
+      summary: Request a new one-time code (subject to cooldown + window cap)
+      description: >
+        Invalidates any prior unexpired code and issues a new one. Enforces a 60s resend cooldown
+        and a 5-per-15-minute window cap. Responses are neutral and never reveal account existence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendCodeRequest'
+      responses:
+        '200':
+          description: If eligible, a new code was issued and emailed (neutral response).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NeutralAck' }
+        '429':
+          description: Cooldown not elapsed or window cap exceeded (neutral message).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/auth/forgot-password:
+    post:
+      tags: [auth]
+      summary: Request a password-reset link
+      description: >
+        Always returns the same neutral confirmation regardless of whether the account exists.
+        A single-use, 60m reset link is emailed only when the account exists. Cooldown 60s,
+        window cap 5/15m apply.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Neutral confirmation (no account-existence disclosure).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NeutralAck' }
+        '429':
+          description: Cooldown not elapsed or window cap exceeded (neutral message).
+
+  /admin/auth/reset-password:
+    post:
+      tags: [auth]
+      summary: Consume a reset link and set a new password
+      description: >
+        Requires the new password twice (must match) and to satisfy the password policy
+        (min 12, lower+upper+digit, not equal to current). On success, clears lockout and revokes
+        all of the account's sessions; the user must sign in again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password updated; all sessions revoked.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NeutralAck' }
+        '400':
+          description: Policy violation, mismatch, or malformed request (specific message).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '410':
+          description: Reset link already used or expired.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/auth/refresh:
+    post:
+      tags: [auth]
+      summary: Rotate the refresh token and mint a new access token
+      description: >
+        Reads the refresh cookie, rotates the token within its family (revoking the old one), and
+        returns a new 15m access token. Reuse of a revoked token revokes the entire family.
+      responses:
+        '200':
+          description: New access token issued; refresh cookie rotated.
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '401':
+          description: Missing, expired, or reused refresh token (family revoked on reuse).
+
   /admin/auth/logout:
     post:
-      security:
-        - bearerAuth: []
-      summary: Admin logout
+      tags: [auth]
+      summary: End the current session
+      description: Revokes the current session's refresh-token family and clears the cookie.
+      security: [{ bearerAuth: [] }]
       responses:
         '204':
-          description: Logged out
+          description: Session ended.
+        '401':
+          description: No valid session.
+
+  /admin/auth/me:
+    get:
+      tags: [auth]
+      summary: Current user identity, role, permissions, and profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Authenticated user profile.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401':
+          description: No valid session.
+
+  # ─── Admin Settings (Phase 1) ────────────────────────────────────────
+
+  /admin/settings/password:
+    put:
+      tags: [settings]
+      summary: Change own password (settings page)
+      description: >
+        Requires the correct current password plus the new password twice (must match + meet policy).
+        On success, revokes the account's other sessions; the acting session stays valid.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed; other sessions revoked.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NeutralAck' }
+        '400':
+          description: Policy violation, mismatch, or wrong current password.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: No valid session.
+        '403':
+          description: super_admin account is read-only in the panel.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/settings/photo:
+    get:
+      tags: [settings]
+      summary: Retrieve the current profile photo bytes
+      description: >
+        Returns the authenticated user's profile photo as an image. 404 when none is set, so the
+        client renders the initials fallback (G4/G6).
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profile photo image.
+          content:
+            image/png:
+              schema: { type: string, format: binary }
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/webp:
+              schema: { type: string, format: binary }
+        '401':
+          description: No valid session.
+        '404':
+          description: No profile photo set (client renders initials fallback).
+    put:
+      tags: [settings]
+      summary: Upload or replace the profile photo
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  format: binary
+              required: [photo]
+      responses:
+        '200':
+          description: Photo saved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '400':
+          description: Unsupported type (not png/jpeg/webp) or over 5 MB.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: No valid session.
+        '403':
+          description: super_admin account is read-only in the panel.
+    delete:
+      tags: [settings]
+      summary: Remove the profile photo (fall back to initials)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Photo removed; default avatar (initials) used.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401':
+          description: No valid session.
+        '403':
+          description: super_admin account is read-only in the panel.
+
+  /admin/settings/preferences:
+    get:
+      tags: [settings]
+      summary: Read the persisted theme mode and sidebar collapse state
+      description: >
+        Returns the server-stored preferences for authoritative cross-device load (the cookie/
+        localStorage mirror is only the pre-paint cache).
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current preferences.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Preferences' }
+        '401':
+          description: No valid session.
+    put:
+      tags: [settings]
+      summary: Persist theme mode and sidebar collapse state
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencesRequest'
+      responses:
+        '200':
+          description: Preferences saved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Preferences' }
+        '400':
+          description: Invalid themeMode.
+        '401':
+          description: No valid session.
+
+  # ─── Admin Content (feature-006, re-gated) ────────────────────────────
 
   /admin/pages:
     get:
@@ -615,3 +915,94 @@ components:
         consent:
           type: boolean
           const: true
+
+    # ─── Phase 1 Auth + Settings schemas ─────────────────────────────
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 255 }
+        password: { type: string, minLength: 1, maxLength: 128 }
+    TwoFactorChallenge:
+      type: object
+      required: [challengeId, message]
+      properties:
+        challengeId:
+          type: string
+          description: >
+            Opaque, unguessable id binding the code-entry step to the user; stable across
+            resend-code; resolves server-side to the account without exposing the email.
+        message: { type: string, example: A verification code has been sent to your email. }
+    VerifyTwoFactorRequest:
+      type: object
+      required: [challengeId, code]
+      properties:
+        challengeId: { type: string }
+        code: { type: string, pattern: '^\d{6}$' }
+    ResendCodeRequest:
+      type: object
+      required: [challengeId]
+      properties:
+        challengeId: { type: string }
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 255 }
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword, confirmPassword]
+      properties:
+        token: { type: string }
+        newPassword: { type: string, minLength: 12, maxLength: 128 }
+        confirmPassword: { type: string, minLength: 12, maxLength: 128 }
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword, confirmPassword]
+      properties:
+        currentPassword: { type: string, minLength: 1, maxLength: 128 }
+        newPassword: { type: string, minLength: 12, maxLength: 128 }
+        confirmPassword: { type: string, minLength: 12, maxLength: 128 }
+    PreferencesRequest:
+      type: object
+      properties:
+        themeMode: { type: string, enum: [light, dark, system] }
+        sidebarCollapsed: { type: boolean }
+    Preferences:
+      type: object
+      properties:
+        themeMode: { type: string, enum: [light, dark, system] }
+        sidebarCollapsed: { type: boolean }
+    Session:
+      type: object
+      required: [accessToken, expiresIn, user]
+      properties:
+        accessToken: { type: string, description: JWT, 15-minute lifetime }
+        expiresIn: { type: integer, example: 900 }
+        user: { $ref: '#/components/schemas/Me' }
+    Me:
+      type: object
+      required: [id, email, role, permissions]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string, nullable: true }
+        role: { type: string, example: admin }
+        permissions:
+          type: array
+          items: { type: string, example: 'pages:view' }
+        hasProfilePhoto: { type: boolean }
+        isSuperAdmin: { type: boolean }
+        preferences: { $ref: '#/components/schemas/Preferences' }
+    NeutralAck:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error: { type: string }
+        message: { type: string }

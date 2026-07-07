@@ -18,7 +18,14 @@ describe.runIf(dbAvailable)('Admin Content Integration', () => {
       { 
         userId: 'test-admin-id', 
         email: 'admin@example.com', 
-        role: 'admin' 
+        role: 'admin',
+        permissions: [
+          'pages:view', 'pages:create', 'pages:edit', 'pages:delete',
+          'gallery:view', 'gallery:create', 'gallery:edit', 'gallery:delete',
+          'faqs:view', 'faqs:create', 'faqs:edit', 'faqs:delete',
+          'submissions:view', 'submissions:export',
+          'redirects:view', 'redirects:create', 'redirects:edit', 'redirects:delete',
+        ],
       },
       JWT_SECRET,
       { expiresIn: '1h' }

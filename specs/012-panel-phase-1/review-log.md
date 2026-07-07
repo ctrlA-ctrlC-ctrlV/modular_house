@@ -4,6 +4,14 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 38 — T105 review (2026-07-07)
+
+T105 — PASS-WITH-NITS — argon2 order fixed; verifyOtp isActive gap; no call-assert test
+
+**Overall: GO** — proceed to T106. Full findings in chat report.
+
+---
+
 ## Session 37 — T104 review (2026-07-07)
 
 T104 — PASS — byte-identical 401 verified; 4/4 pass; 331/331 api suite green

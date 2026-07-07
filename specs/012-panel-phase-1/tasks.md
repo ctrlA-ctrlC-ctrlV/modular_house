@@ -1068,12 +1068,13 @@
 
 ## Pass 2 â€” Make it right (turns every Â§4.2 edge case green)
 
-- [ ] T104 [test] E-CREDS â€” generic-credential + deactivated tests
+- [x] T104 [test] E-CREDS â€” generic-credential + deactivated tests
       Files: `apps/api/tests/integration/edge-creds.test.ts`
       Do: Assert unknown-email and wrong-password responses are byte-identical generic `401`;
       deactivated account (`isActive=false`) blocked with the same `401`.
       Done when: Tests fail (or expose gaps) for A5/A6.
       Refs: E-CREDS, A5/A6, FR-008
+      > note: 4 tests pin byte-identical 401 (res.text) for unknown email/wrong password/deactivated, impl already correct (no gaps exposed); tests: 4 passing; deviations: none
 
 - [ ] T105 Harden generic-credential + deactivated handling
       Files: `apps/api/src/services/auth.ts`, `apps/api/src/routes/admin/auth.ts`

@@ -18,6 +18,18 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-07T10:20:00.000+00:00] - [pending] - refactor(admin-auth): T100a nit fix — eliminate duplicate email lookup in /login
+
+### Changed
+- `apps/api/src/services/auth.ts` — `CredentialResult` now carries `userId` on both arms: `{ success: true; challengeId; userId: string }` and `{ success: false; status; message; userId: string | null }`. The five return points in `verifyCredentials` thread through the `user.id` the method already loads (real id on every known-account branch; `null` on unknown email per I2). This is purely additive — existing callers that ignore `userId` are unaffected — and makes the service the single source of truth for user resolution, eliminating the duplicate `prisma.user.findUnique` the route previously performed. `services/auth.ts` stays at 100% branch coverage (no new branches, only added fields on existing returns).
+- `apps/api/src/routes/admin/auth.ts` — POST `/login` no longer performs its own `prisma.user.findUnique` to resolve the audit userId; it reads `result.userId` directly from `verifyCredentials` for both the LOGIN_FAILURE and LOGIN_SUCCESS/OTP_ISSUED audit calls. Removes one DB query per login request with no change to any response shape or status code.
+- `apps/api/tests/unit/auth.test.ts` — three `verifyCredentials` tests now pin the new `userId` contract: `null` on unknown email (A5), the known account's id on wrong-password failure (A5), and the authenticated account's id on success (B7).
+
+### Security
+- I2 preserved: unknown-email login failures still pass `userId: null` and AuditLogService skips the write (no account-existence leak in the audit trail). Known-account failures (wrong password, deactivated, locked) now attribute the real userId from the service's own lookup — no second query, no timing side channel.
+
+---
+
 ## [2026-07-06T15:55:00.000+00:00] - [pending] - fix(admin-auth): T100a followup — clear audit_logs before user delete in auth.spec.ts
 
 ### Fixed

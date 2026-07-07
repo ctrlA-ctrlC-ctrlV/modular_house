@@ -163,6 +163,8 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       const result = await service.verifyCredentials('noone@example.com', 'AnyPassword1!');
 
       expect(result).toMatchObject({ success: false, status: 401, message: 'Invalid credentials' });
+      // userId is null on unknown email so audit attribution is skipped (I2).
+      expect(result.userId).toBeNull();
     });
 
     // -----------------------------------------------------------------------
@@ -176,6 +178,8 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       const result = await service.verifyCredentials('admin@example.com', 'WrongPassword1!');
 
       expect(result).toMatchObject({ success: false, status: 401, message: 'Invalid credentials' });
+      // userId is the known account's id so LOGIN_FAILURE can be attributed (I2).
+      expect(result.userId).toBe('user-1');
     });
 
     // -----------------------------------------------------------------------
@@ -294,6 +298,8 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       if (result.success) {
         expect(result.challengeId).toBeTruthy();
         expect(result).not.toHaveProperty('accessToken');
+        // userId is the authenticated account's id for LOGIN_SUCCESS / OTP_ISSUED audit.
+        expect(result.userId).toBe('user-1');
       }
     });
 

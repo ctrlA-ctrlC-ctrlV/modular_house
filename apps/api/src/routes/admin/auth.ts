@@ -63,24 +63,18 @@ router.post('/login', validate({ body: loginSchema }), async (req: Request, res:
     const ipAddress = req.ip ?? 'unknown';
     const userAgent = req.headers['user-agent'] ?? null;
 
-    // Resolve the acting user's id for audit.  verifyCredentials does not
-    // surface userId on either branch (success returns only challengeId,
-    // failure is generic per A5/A6), so a single email lookup is required.
-    // null here means the email is unknown — AuditLogService then skips the
-    // write (I2, non-null FK constraint on the reused AuditLog table).
-    const auditUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: { id: true },
-    });
-    const auditUserId = auditUser?.id ?? null;
-
+    // verifyCredentials loads the user row once and returns its id on every
+    // branch (null only for unknown email, per I2).  Reusing that id avoids a
+    // duplicate email lookup in the route — the service is the single source
+    // of truth for user resolution, and AuditLogService skips the write on a
+    // null userId (non-null FK constraint on the reused AuditLog table).
     const result = await authService.verifyCredentials(normalizedEmail, password);
 
     if (!result.success) {
       // LOGIN_FAILURE — recorded for known-account failures (wrong password,
       // deactivated, locked).  Skipped silently for unknown email (null userId).
       await recordAudit({
-        userId: auditUserId,
+        userId: result.userId,
         action: AUDIT_ACTIONS.LOGIN_FAILURE,
         entity: 'user',
         ipAddress,
@@ -97,14 +91,14 @@ router.post('/login', validate({ body: loginSchema }), async (req: Request, res:
     // Credentials verified — record the successful login and the OTP issuance
     // (I1: LOGIN_SUCCESS and OTP_ISSUED both occur at this step).
     await recordAudit({
-      userId: auditUserId,
+      userId: result.userId,
       action: AUDIT_ACTIONS.LOGIN_SUCCESS,
       entity: 'user',
       ipAddress,
       userAgent,
     });
     await recordAudit({
-      userId: auditUserId,
+      userId: result.userId,
       action: AUDIT_ACTIONS.OTP_ISSUED,
       entity: 'user',
       ipAddress,

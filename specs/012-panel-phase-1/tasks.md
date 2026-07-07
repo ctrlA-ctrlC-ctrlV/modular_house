@@ -1033,6 +1033,7 @@
       > note: 9 call sites for 8 I1 actions (OTP_ISSUED x2 per spec), entity='user', null userId on unknown email; tests: 33 passing; deviations: none
       > note: §9 fix — auth.spec.ts beforeAll/afterAll clear audit_logs before user delete (RESTRICT FK); tests: 317 passing; deviations: apps/api/tests/integration/auth.spec.ts — audit FK blocked cleanup
       > reviewed: PASS-WITH-NITS — 9/8 sites exact, 317/317 green, no drift; nit: dup email lookup in /login
+      > note: Session 35 nit fix — CredentialResult carries userId (service loads it once); route dup lookup removed; tests: 317 passing; deviations: apps/api/src/services/auth.ts — additive field to resolve nit
 
 - [x] T101 [test] Audit events integration test (T-B6)
       Files: `apps/api/tests/integration/audit-events.test.ts`

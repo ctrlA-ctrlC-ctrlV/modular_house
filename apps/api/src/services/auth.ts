@@ -47,8 +47,8 @@ export interface TokenPayload {
 }
 
 export type CredentialResult =
-  | { success: true; challengeId: string }
-  | { success: false; status: 401 | 423; message: string };
+  | { success: true; challengeId: string; userId: string }
+  | { success: false; status: 401 | 423; message: string; userId: string | null };
 
 export type OtpResult =
   | { success: true; accessToken: string; rawRefreshToken: string; userId: string }
@@ -199,19 +199,21 @@ export class AuthService {
       },
     });
 
-    // A5: unknown email — identical response to wrong password (no enumeration)
+    // A5: unknown email — identical response to wrong password (no enumeration).
+    // userId is null so audit callers can attribute the failure only when the
+    // account actually exists (I2); AuditLogService skips the write on null.
     if (!user) {
-      return { success: false, status: 401, message: 'Invalid credentials' };
+      return { success: false, status: 401, message: 'Invalid credentials', userId: null };
     }
 
     // A3: account currently locked
     if (user.lockedUntil && user.lockedUntil > now) {
-      return { success: false, status: 423, message: 'Account temporarily locked' };
+      return { success: false, status: 423, message: 'Account temporarily locked', userId: user.id };
     }
 
     // A6: deactivated account — same generic 401 as wrong credentials
     if (!user.isActive) {
-      return { success: false, status: 401, message: 'Invalid credentials' };
+      return { success: false, status: 401, message: 'Invalid credentials', userId: user.id };
     }
 
     // A1: verify password with argon2id
@@ -225,8 +227,8 @@ export class AuthService {
         updateData.lockedUntil = new Date(now.getTime() + LOCKOUT_DURATION_MS);
       }
       await this.prisma.user.update({ where: { id: user.id }, data: updateData });
-      // A5: same generic response as unknown email
-      return { success: false, status: 401, message: 'Invalid credentials' };
+      // A5: same generic response as unknown email (but userId is known for audit)
+      return { success: false, status: 401, message: 'Invalid credentials', userId: user.id };
     }
 
     // A4: successful verify — reset lockout counters
@@ -245,7 +247,7 @@ export class AuthService {
       text: `Your verification code is: ${code}\n\nThis code expires in 10 minutes.`,
     });
 
-    return { success: true, challengeId };
+    return { success: true, challengeId, userId: user.id };
   }
 
   /**

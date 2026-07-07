@@ -1075,6 +1075,7 @@
       Done when: Tests fail (or expose gaps) for A5/A6.
       Refs: E-CREDS, A5/A6, FR-008
       > note: 4 tests pin byte-identical 401 (res.text) for unknown email/wrong password/deactivated, impl already correct (no gaps exposed); tests: 4 passing; deviations: none
+      > reviewed: PASS — 4/4 pass at runtime (isolated + full suite 331/331); res.text byte-identity + content-type asserted; A6 checked before argon2 verify; no scope creep.
 
 - [ ] T105 Harden generic-credential + deactivated handling
       Files: `apps/api/src/services/auth.ts`, `apps/api/src/routes/admin/auth.ts`

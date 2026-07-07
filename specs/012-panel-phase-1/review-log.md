@@ -4,6 +4,14 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 37 — T104 review (2026-07-07)
+
+T104 — PASS — byte-identical 401 verified; 4/4 pass; 331/331 api suite green
+
+**Overall: GO** — proceed to T105. Full findings in chat report.
+
+---
+
 ## Session 36 — T100a re-check + T102/T103 review (2026-07-07)
 
 T100a — PASS — userId threaded via service; dup lookup gone; 327/327 green

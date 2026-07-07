@@ -1103,12 +1103,13 @@
       Refs: E-LOCK, A2/A3/A4/C5
       > note: verified pre-existing; A2/A3/A4 in verifyCredentials, C5 in reset-password route txn; tests: 335 passing; deviations: none (no code change needed)
 
-- [ ] T108 [test] E-OTP â€” OTP edge tests
+- [x] T108 [test] E-OTP â€” OTP edge tests
       Files: `apps/api/tests/integration/edge-otp.test.ts`
       Do: With the injected clock assert wrong code increments, expiry at `expiresAt+1s`, reuse rejected,
       6th wrong attempt invalidates, new-code supersedes prior, unknown/expired `challengeId` â†’ `401`.
       Done when: Tests fail for B3â€“B6/B9.
       Refs: E-OTP, B3/B4/B5/B6/B9, FR-012/FR-013
+      > note: 6 tests pin B3-B6/B9 boundaries; closes prior-uncovered resend-code unknown-challengeId branch; tests: 6 passing; deviations: none
 
 - [ ] T109 Harden OTP invalidation + challenge resolution
       Files: `apps/api/src/services/loginCode.ts`, `apps/api/src/routes/admin/auth.ts`

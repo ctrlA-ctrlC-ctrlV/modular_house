@@ -4,6 +4,14 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 40 — T106 review (2026-07-07)
+
+T106 — PASS — 3/3 pass; A2/A3/C5 pinned; 335/335 api suite green
+
+**Overall: GO** — proceed to T107. Full findings in chat report.
+
+---
+
 ## Session 39 — T105 nit fixes re-check (2026-07-07)
 
 T105 — PASS (re-check) — verifyOtp isActive added; call-assert added; 332/332 green

@@ -1094,6 +1094,7 @@
       Done when: Tests fail for A2/A3/C5.
       Refs: E-LOCK, A2/A3/C5, FR-009/FR-018
       > note: 3 tests pin A2 boundary + A3 15m/during-lock 423 + C5 reset-clears-lock; impl already correct (no gaps exposed); injected clock for reset token; tests: 3 passing; deviations: none
+      > reviewed: PASS — 3/3 confirmed at runtime; A2 boundary (4≠lock), A3 (423 + 15m window), C5 (reset clears lock, follow-up login 200) all pinned against LOCKOUT_THRESHOLD/LOCKOUT_DURATION_MS constants; 335/335 full api suite green; security modules still 100% branch.
 
 - [ ] T107 Harden account lockout + reset-clears-lock
       Files: `apps/api/src/services/auth.ts`

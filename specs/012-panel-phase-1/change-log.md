@@ -18,6 +18,19 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-07T16:05:00.000+00:00]- test(admin-auth): T108 E-OTP edge-case tests (B3/B4/B5/B6/B9)
+
+### Added
+- `apps/api/tests/integration/edge-otp.test.ts` — 6 integration tests pinning OTP boundary behavior beyond the coarser Pass-1 coverage in `auth-verify-2fa.test.ts` (T036) and `auth-resend-code.test.ts` (T038). (1) B5: a single wrong-code submission increments `attemptCount` by exactly 1 (not just the aggregate-after-5 check the Pass-1 test already had). (2) B3: a code issued via the injected clock so its `expiresAt` lands exactly 1 second in the past is rejected, and — since expiry is checked before the single-use check in `LoginCodeService.verify()` — the row is never marked consumed. (3) B4: reuse of an already-consumed code is rejected end-to-end via HTTP. (4) B5 boundary: `OTP_MAX_ATTEMPTS - 1` wrong submissions each fail but leave the code usable (`attemptCount` pinned at the boundary); the next submission after `attemptCount` reaches `OTP_MAX_ATTEMPTS` is rejected even with the correct code. (5) B6/B9: a resend supersedes the prior code end-to-end — the code is captured from the mocked mailer's email body (B2 forbids returning it in the response), the OLD code is confirmed rejected post-resend, and the NEW code succeeds via the same stable `challengeId`. (6) B9: an unknown `challengeId` returns 401 on both `verify-2fa` and `resend-code`, with no email sent for the latter. The mailer is mocked at the module boundary (`vi.mock('../../src/services/mailer.js', ...)`) so no SMTP call leaves the test process. Runs against the Phase 1 test DB on port 5434.
+
+### Notes
+- **One real gap closed, not zero (unlike T104/T106/T107).** The unknown-`challengeId` branch in the `resend-code` route (`routes/admin/auth.ts:287`, `if (!existing) { ... 401 ... }`) had no prior test coverage — confirmed via `pnpm --filter @modular-house/api test:coverage` before this session (branch was in the uncovered list) and after (branch coverage for `routes/admin/auth.ts` moved from 81.31% to 82.41%). All other assertions passed immediately against the existing `LoginCodeService`/`verify-2fa`/`resend-code` implementation — no further gaps exposed. `services/loginCode.ts` and `services/auth.ts` stay at 100% branch/stmt/func/line.
+- **Injected clock scope.** Same constraint as T106: `verify-2fa` and `resend-code` construct `AuthService`/`LoginCodeService` with the default real-time clock, so TTL/expiry checks at request time use real `Date.now()`. The injected clock (via the `issueCodeAt` helper, matching the pattern already established in T036/T038) controls only the *stored* `issuedAt`/`expiresAt` on the seeded row, giving an exact, reproducible boundary (`expiresAt` precisely 1 second in the past) without waiting on real wall-clock time.
+- **Rate-limit isolation added defensively.** An initial `pnpm --filter @modular-house/api test:coverage` run flaked once on the unrelated `auth-login.test.ts` F4 test (1/3 runs); two immediate reruns passed cleanly (341/341), so it was not a deterministic failure. Since this file's ~15 HTTP requests originally shared the default (no `X-Forwarded-For`) IP bucket of the process-wide in-memory `authRateLimit` store, `verify2fa()`/`resendCode()` helpers were added that set a unique `X-Forwarded-For: 203.0.113.108` header on every request, matching the isolation pattern already established in `edge-lockout.test.ts`. Three subsequent `test:coverage` runs post-fix were all clean (341/341 each).
+- Full API suite: 335 → 341 tests (42 → 43 files).
+
+---
+
 ## [2026-07-07T15:45:00.000+00:00] - docs(admin-auth): T107 verify lockout hardening already complete (A2/A3/A4/C5)
 
 ### Notes

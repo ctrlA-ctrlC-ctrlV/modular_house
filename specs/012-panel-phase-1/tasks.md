@@ -1046,12 +1046,13 @@
       > note: 10 tests cover all 8 I1 actions + I2 null-skip + I3 no-secrets; tests: 10 passing; deviations: none
       > reviewed: PASS — 10/10 confirmed at runtime; I1/I2/I3 fully covered; TDD-order deviation pre-approved
 
-- [ ] T102 [test] Log-line secret-redaction test
+- [x] T102 [test] Log-line secret-redaction test
       Files: `apps/api/tests/integration/log-redaction.test.ts`
       Do: Capture Pino log output across login / 2FA / reset / change flows and assert no raw password,
       OTP code, or reset token ever appears in a log line (complements the audit-entry check).
       Done when: Tests fail on any leaked secret.
       Refs: FR-039, I3
+      > note: 10 tests for secret-free log lines across 4 flows + direct redaction; tests: 4 passing (6 red pre-T103); deviations: none
 
 - [ ] T103 Add log redaction (only if leakage is exposed)
       Files: `apps/api/src/config/logger.ts`

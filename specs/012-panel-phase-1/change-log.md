@@ -18,7 +18,15 @@ Note: keep the most latest entry on top
 > - 
 ---
 
-## [2026-07-07T10:20:00.000+00:00] - [pending] - refactor(admin-auth): T100a nit fix — eliminate duplicate email lookup in /login
+## [2026-07-07T09:45:00.000+00:00] - [pending] - test(admin-auth): T102 log-line secret-redaction test
+
+### Added
+- `apps/api/tests/integration/log-redaction.test.ts` — 10 integration tests verifying no raw password, OTP code, or reset token ever reaches a Pino log line across the four authentication flows (login, 2FA, reset, change) plus direct redaction of top-level and `body.*` secret field paths. The test mocks `middleware/logger.js` via `vi.mock` + `importOriginal` so every `logger.*` call routes to an in-memory `Writable` capture stream configured with the SAME redact paths the production logger exports (`REDACT_PATHS`, added in T103). Before T103 the paths array is empty and 6 tests fail because secrets leak — the primary vector is `validate.ts` line 223 which logs `body: req.body` verbatim on Zod validation failure (e.g. a malformed login body includes the raw password in the log stream). The 4 success-flow tests pass in both phases because validation succeeds and the body is never logged. MailerService mocked at the module boundary; per-test slate scoped to the test user (same pattern as audit-events.test.ts). Runs against the test DB on port 5434.
+
+### Security
+- FR-039 / I3: complements the audit-entry check (T101) by covering the log-line channel. Secrets that never reach the audit writer can still leak via the body-validation middleware's diagnostic log — this test pins that vector closed once T103 adds Pino redaction.
+
+---
 
 ### Changed
 - `apps/api/src/services/auth.ts` — `CredentialResult` now carries `userId` on both arms: `{ success: true; challengeId; userId: string }` and `{ success: false; status; message; userId: string | null }`. The five return points in `verifyCredentials` thread through the `user.id` the method already loads (real id on every known-account branch; `null` on unknown email per I2). This is purely additive — existing callers that ignore `userId` are unaffected — and makes the service the single source of truth for user resolution, eliminating the duplicate `prisma.user.findUnique` the route previously performed. `services/auth.ts` stays at 100% branch coverage (no new branches, only added fields on existing returns).

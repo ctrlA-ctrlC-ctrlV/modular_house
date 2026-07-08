@@ -1128,11 +1128,12 @@
       Refs: E-RESET, C2/C3/C4/C6, FR-015/FR-017/FR-041
       > note: 4 tests pin C2 expiry boundary/C3 reuse/C4 neutrality/C6 multi-family revoke; tests: 4 passing; deviations: none
 
-- [ ] T111 Harden reset neutrality + account-wide revoke
+- [x] T111 Harden reset neutrality + account-wide revoke
       Files: `apps/api/src/services/passwordResetToken.ts`, `apps/api/src/services/auth.ts`
       Do: Keep neutral responses, enforce single-use/expiry, revoke all families on success.
       Done when: T110 passes; 100% branch coverage.
       Refs: E-RESET, C2/C3/C4/C6
+      > note: verified pre-existing; C2/C3 in PasswordResetTokenService.consume, C4 in route, C6 in route txn; tests: 345 passing; deviations: none
 
 - [ ] T112 [test] E-POLICY â€” password policy edge tests
       Files: `apps/api/tests/integration/edge-policy.test.ts`

@@ -1113,11 +1113,12 @@
       > note: 6 tests pin B3-B6/B9 boundaries; closes prior-uncovered resend-code unknown-challengeId branch; tests: 6 passing; deviations: none
       > reviewed: PASS
 
-- [ ] T109 Harden OTP invalidation + challenge resolution
+- [x] T109 Harden OTP invalidation + challenge resolution
       Files: `apps/api/src/services/loginCode.ts`, `apps/api/src/routes/admin/auth.ts`
       Do: Apply attempt cap, TTL, single-use, supersede, and `challengeId` resolution exactly.
       Done when: T108 passes; 100% branch coverage.
       Refs: E-OTP, B3â€“B6/B9
+      > note: verified pre-existing; B3-B6/B9 in LoginCodeService verify/issue/resend; tests: 341 passing; deviations: none
 
 - [ ] T110 [test] E-RESET â€” reset edge tests
       Files: `apps/api/tests/integration/edge-reset.test.ts`

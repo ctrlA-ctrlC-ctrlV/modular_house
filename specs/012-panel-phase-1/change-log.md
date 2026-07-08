@@ -18,6 +18,13 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-08T10:30:00.000+00:00] — docs(specs): T111 verified pre-existing reset hardening (C2/C3/C4/C6)
+
+### Notes
+- **No code change required.** `PasswordResetTokenService.consume()` already implements C2 (TTL expiry check at line 112) and C3 (single-use `consumedAt` guard at line 108). The `forgot-password` route implements C4 (neutral response for both known and unknown email, email sent only for known accounts). The `reset-password` route implements C6 (account-wide `refreshToken.updateMany` revocation inside a `$transaction` at lines 544–557). All 4 T110 edge-reset tests pass against the existing code. Full API suite: 345/345 green. `passwordResetToken.ts` and `auth.ts` (service) remain at 100% branch coverage.
+
+---
+
 ## [2026-07-08T10:15:00.000+00:00] — test(admin-auth): T110 E-RESET edge-case tests (C2/C3/C4/C6)
 
 ### Added

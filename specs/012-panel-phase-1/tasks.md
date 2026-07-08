@@ -1146,6 +1146,7 @@
       Done when: Tests fail for D1â€”D7.
       Refs: E-POLICY, D1â€”D7, FR-019/FR-032
       > note: 14 tests cover D1-D7 on both reset + settings paths; all pass (pre-existing impl); tests: 14 passing; deviations: none
+      > reviewed: PASS — 14/14 pass at runtime; D1-D7 pinned on both HTTP paths; nit: "Done when: Tests fail" not literally met (pre-existing impl), same accepted precedent as T104/T106/T109.
 
 - [x] T113 Harden server-side policy enforcement on both paths
       Files: `apps/api/src/services/passwordPolicy.ts`, `apps/api/src/routes/admin/auth.ts`,
@@ -1154,6 +1155,7 @@
       Done when: T112 passes.
       Refs: E-POLICY, D1â€”D7
       > note: settings route now passes currentPasswordHash to validatePassword (D3 identical); tests: 14 passing; deviations: passwordPolicy.ts/auth.ts — no change needed
+      > reviewed: PASS — settings.ts:166-170 confirmed passing currentPasswordHash into validatePassword; D3 enforced identically on both paths; T112 14/14 pass.
 
 - [x] T114 [test] E-THROTTLE â€” cooldown + window-cap tests
       Files: `apps/api/tests/integration/edge-throttle.test.ts`
@@ -1162,6 +1164,7 @@
       Done when: Tests fail for F1/F2/F3.
       Refs: E-THROTTLE, F1/F2/F3, FR-042/FR-043
       > note: 5 tests pin resend-code 429+Retry-After+no-issue and forgot-password always-200 silent-skip + byte-identical neutral; tests: 0 passing (5 failing, TDD red for F1/F2/F3); deviations: none
+      > reviewed: PASS — TDD red confirmed pre-T115; 5/5 pass post-T115; F1/F2 (429+Retry-After), F3 (byte-identical 200) all correctly pinned.
 
 - [x] T115 Harden resend cooldown + rolling-window cap
       Files: `apps/api/src/services/loginCode.ts`, `apps/api/src/services/passwordResetToken.ts`,
@@ -1171,6 +1174,7 @@
       Done when: T114 passes.
       Refs: E-THROTTLE, F1/F2/F3
       > note: throttle to services + injected clock; resend-code 429+Retry-After; forgot-password always-200 silent-skip (F3); tests: 5 passing; deviations: auth-forgot-password.test.ts - F3 fix 429->200
+      > reviewed: PASS-WITH-NITS — F1/F2/F3 correct, 100% branch on both services; nit: contracts/admin-auth.openapi.yaml + apps/api/openapi.yaml still document 429 for forgot-password, now unreachable — doc drift, see review report.
 
 - [x] T116 Wire the resend countdown into the UI
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`, `apps/web/src/admin/pages/ForgotPassword.tsx`
@@ -1178,6 +1182,7 @@
       Done when: A frontend test asserts the disabled-with-countdown state.
       Refs: F1, FR-042
       > note: 60s client-side countdown disables resend/try-again with seconds label; tests: 2 passing; deviations: resendCountdown.test.tsx - Done-when requires a frontend test
+      > reviewed: PASS-WITH-NITS — 2/2 pass; countdown/disable state correct on both pages; nit: ForgotPassword "try again" onClick is a pre-existing (T097b) dead no-op — see review report.
 
 - [ ] T117 [test] E-PHOTO â€” photo validation edge tests
       Files: `apps/api/tests/integration/edge-photo.test.ts`

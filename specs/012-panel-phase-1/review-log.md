@@ -4,6 +4,18 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 43 — T112/T113/T114/T115/T116 review (2026-07-08)
+
+T112 — PASS — 14/14 pass; D1-D7 pinned both paths; "tests fail" nit (precedent)
+T113 — PASS — settings.ts passes currentPasswordHash; D3 identical both paths
+T114 — PASS — 5/5 pass; TDD red confirmed; Retry-After + byte-identical body
+T115 — PASS-WITH-NITS — F1/F2/F3 correct; openapi 429 for forgot-password now unreachable
+T116 — PASS-WITH-NITS — 2/2 pass; pre-existing "try again" click is a dead no-op (T097b carry-forward)
+
+**Overall: GO** — proceed to T117. Full findings in chat report.
+
+---
+
 ## Session 42 — T109/T110/T111 review (2026-07-08)
 
 T109 — PASS — pre-existing impl verified; B3-B6/B9 exact; 100% branch

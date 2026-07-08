@@ -1155,26 +1155,29 @@
       Refs: E-POLICY, D1â€”D7
       > note: settings route now passes currentPasswordHash to validatePassword (D3 identical); tests: 14 passing; deviations: passwordPolicy.ts/auth.ts — no change needed
 
-- [ ] T114 [test] E-THROTTLE â€” cooldown + window-cap tests
+- [x] T114 [test] E-THROTTLE â€” cooldown + window-cap tests
       Files: `apps/api/tests/integration/edge-throttle.test.ts`
       Do: With the injected clock assert resend within 60s issues nothing, the 6th request in 15m is
       blocked, and all throttle responses stay neutral; derive state from `created_at` rows.
       Done when: Tests fail for F1/F2/F3.
       Refs: E-THROTTLE, F1/F2/F3, FR-042/FR-043
+      > note: 5 tests pin resend-code 429+Retry-After+no-issue and forgot-password always-200 silent-skip + byte-identical neutral; tests: 0 passing (5 failing, TDD red for F1/F2/F3); deviations: none
 
-- [ ] T115 Harden resend cooldown + rolling-window cap
+- [x] T115 Harden resend cooldown + rolling-window cap
       Files: `apps/api/src/services/loginCode.ts`, `apps/api/src/services/passwordResetToken.ts`,
       `apps/api/src/routes/admin/auth.ts`
       Do: Derive 60s cooldown (latest row) and 5/15m cap (trailing-window count) from `created_at`;
       neutral `429`; surface countdown data to the UI.
       Done when: T114 passes.
       Refs: E-THROTTLE, F1/F2/F3
+      > note: throttle to services + injected clock; resend-code 429+Retry-After; forgot-password always-200 silent-skip (F3); tests: 5 passing; deviations: auth-forgot-password.test.ts - F3 fix 429->200
 
-- [ ] T116 Wire the resend countdown into the UI
+- [x] T116 Wire the resend countdown into the UI
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`, `apps/web/src/admin/pages/ForgotPassword.tsx`
       Do: Disable the resend control and show a countdown until the cooldown elapses.
       Done when: A frontend test asserts the disabled-with-countdown state.
       Refs: F1, FR-042
+      > note: 60s client-side countdown disables resend/try-again with seconds label; tests: 2 passing; deviations: resendCountdown.test.tsx - Done-when requires a frontend test
 
 - [ ] T117 [test] E-PHOTO â€” photo validation edge tests
       Files: `apps/api/tests/integration/edge-photo.test.ts`

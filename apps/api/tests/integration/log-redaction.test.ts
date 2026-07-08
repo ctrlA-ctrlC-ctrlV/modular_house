@@ -106,21 +106,21 @@ vi.mock('../../src/middleware/logger.js', async (importOriginal) => {
 // module-boundary pattern used across the integration suite (FR-039 testing
 // requirement: no real network call may leave the test process).
 // ---------------------------------------------------------------------------
-const { sendEmailMock } = vi.hoisted(() => ({
+const { sendEmailMock, closeMock } = vi.hoisted(() => ({
   sendEmailMock: vi.fn().mockResolvedValue({
     success: true,
     messageId: 'mock-message-id',
     attempt: 1,
     timestamp: new Date(),
   }),
+  closeMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../src/services/mailer.js', () => {
-  function MockMailerService() {
-    // No-op constructor — no SMTP connection is attempted.
+  class MockMailerService {
+    sendEmail = sendEmailMock;
+    close = closeMock;
   }
-  MockMailerService.prototype.sendEmail = sendEmailMock;
-  MockMailerService.prototype.close = vi.fn().mockResolvedValue(undefined);
   return {
     MailerService: MockMailerService,
     mailer: new MockMailerService(),

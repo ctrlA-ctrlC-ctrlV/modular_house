@@ -4,6 +4,15 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 41 — T107/T108 review (2026-07-08)
+
+T107 — PASS — pre-existing impl verified; A2/A3/A4/C5 exact; 100% branch
+T108 — PASS — 6/6 pass; B3-B6/B9 pinned; resend-code 401 branch closed
+
+**Overall: GO** — proceed to T109. Full findings in chat report.
+
+---
+
 ## Session 40 — T106 review (2026-07-07)
 
 T106 — PASS — 3/3 pass; A2/A3/C5 pinned; 335/335 api suite green

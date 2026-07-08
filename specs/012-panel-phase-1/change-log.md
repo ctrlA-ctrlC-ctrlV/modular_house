@@ -18,6 +18,25 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-08T11:10:00.000+00:00] — feat(admin-auth): T113 harden settings password policy (D3 identical)
+
+### Changed
+- `apps/api/src/routes/admin/settings.ts` — the PUT /admin/settings/password handler now loads the user's current password hash and passes `currentPasswordHash` to `validatePassword`, making the D3 (new ≠ current) policy check execute inside the shared policy service identically to the reset-password path (POST /admin/auth/reset-password). Previously D3 was only checked by `AuthService.changePassword` on the settings path, which produced the same HTTP-level behavior but via a different code path.
+
+### Notes
+- `apps/api/src/services/passwordPolicy.ts` — no change required; the service already checks D3 when `currentPasswordHash` is provided in the input.
+- `apps/api/src/routes/admin/auth.ts` — no change required; the reset-password handler already passes `currentPasswordHash` to `validatePassword`.
+- All 14 T112 edge-policy tests pass. Full API suite: 358 green (excluding the unrelated F4 timeout flake in auth-login.test.ts).
+
+---
+
+## [2026-07-08T11:00:00.000+00:00] — test(admin-auth): T112 E-POLICY edge-case tests (D1–D7)
+
+### Added
+- `apps/api/tests/integration/edge-policy.test.ts` — 14 integration tests covering password policy enforcement (D1–D7) on both reset-password (POST /admin/auth/reset-password) and settings-change (PUT /admin/settings/password) paths: D1 min-length 11 rejected / 12 accepted, D2 missing lowercase / uppercase / digit, D3 equals-current rejected, D4 confirmation mismatch, D5 wrong current password (settings only), D7 server-side enforcement via raw HTTP bypass simulation. All 14 pass against the pre-existing implementation.
+
+---
+
 ## [2026-07-08T10:30:00.000+00:00] — docs(specs): T111 verified pre-existing reset hardening (C2/C3/C4/C6)
 
 ### Notes

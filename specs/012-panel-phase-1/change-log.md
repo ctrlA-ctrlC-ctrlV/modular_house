@@ -18,6 +18,61 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-08T11:30:00.000+00:00] — test(admin-auth): cover changePassword D3 branch — T113 carry-forward coverage fix
+
+### Added
+- `apps/api/tests/unit/auth.test.ts` — one unit test added to the `changePassword (E6)` describe block: "rejects changePassword when the new password equals the current password (D3)". It calls `AuthService.changePassword` directly with `newPassword === currentPassword` and asserts the `{ success: false, status: 400, message: 'New password must be different from your current password.' }` response, plus that no sessions are revoked, no token is re-minted, and no rehash occurs. This covers the `if (sameAsCurrent) return 400` branch at `services/auth.ts:414`.
+
+### Fixed
+- `src/services/auth.ts` branch coverage restored to 100% (was 98.41%). T113 moved D3 enforcement into `validatePassword` (called in the settings route before `changePassword`), which made `changePassword`'s internal D3 branch at line 414 dead code via the route — regressing the enforced 100% branch threshold on `src/services/auth.ts`. The new direct-service unit test exercises that defense-in-depth branch so the §9 coverage gate passes without removing the redundant guard. No production code changed.
+
+### Notes
+- This is a carry-forward correction discovered during the T114/T115/T116 §9 coverage verification, not part of any T114–T116 task scope. User-approved resolution (option: add unit test covering the D3 branch). `auth.test.ts` is the only touched file; it is recorded as a deviation from the T114–T116 `Files:` lists.
+- `pnpm --filter @modular-house/api test:coverage -- --no-file-parallelism` now exits 0 (all thresholds pass); full suite 365/365 (was 364; +1 for this test).
+
+---
+
+## [2026-07-08T11:25:00.000+00:00] — feat(admin-ui): T116 wire resend countdown into TwoFactor + ForgotPassword
+
+### Added
+- `apps/web/src/admin/pages/TwoFactor.tsx` — added a client-side 60s resend-cooldown countdown (`cooldownSeconds` state + a `useEffect` interval that ticks down once per second and clears itself on unmount). Clicking "Resend code" now calls `onResend` AND starts the countdown; while `cooldownSeconds > 0` the resend button is disabled (`disabled={resendDisabled || isSubmitting || cooldownSeconds > 0}`) and its label becomes `Resend code (Ns)`, reverting to `Resend code` when the countdown reaches zero. This is the FR-042 UX mirror of the server's 60s cooldown (F1); the server stays authoritative (429 + `Retry-After` from T115), the client owns the visible countdown. A local `RESEND_COOLDOWN_SECONDS = 60` constant documents the F1 value. The previous placeholder "Resend code (cooldown active)" label (which only reflected the in-flight `resendDisabled` prop) is replaced by the numeric countdown.
+- `apps/web/src/admin/pages/ForgotPassword.tsx` — added the same client-side 60s countdown, driven by the `isSubmitted` prop: a `useEffect` starts the countdown at 60s when `isSubmitted` flips true (the neutral-confirmation state), and the "try again" control in the confirmation block is disabled with a `try again (Ns)` label while `cooldownSeconds > 0`, re-enabling as `try again` when it elapses. Because forgot-password never surfaces throttle state from the server (T115 F3 — no account-existence leak via 429), the client owns this countdown entirely. A disabled style (`cursor-not-allowed opacity-60 no-underline`) gives visual feedback.
+- `apps/web/src/admin/pages/resendCountdown.test.tsx` — 2 frontend tests (the T116 "Done when" gate) using vitest fake timers: (1) TwoFactor — the resend button is enabled before click, disabled with `Resend code (60s)` after click (and `onResend` is called with the challengeId), ticks to `Resend code (30s)` after 30s, and re-enables as `Resend code` after 60s; (2) ForgotPassword — the "try again" control is disabled with `try again (60s)` when `isSubmitted` is true, and re-enables as `try again` after 60s.
+
+### Notes
+- `apps/web/src/admin/pages/resendCountdown.test.tsx` is a new test file not listed in T116's `Files:` (which names only the two page components); it is required by T116's `Done when: A frontend test asserts the disabled-with-countdown state`. Recorded as a deviation in the T116 note.
+- No change to `App.tsx` — the `TwoFactorContainer`/`ForgotPasswordContainer` wiring still passes `resendDisabled`/`isSubmitted` as before; the countdown lives entirely inside the presentational components, so the container contracts are unchanged.
+- Full web suite: 247/247 pass (30 files), web lint + typecheck clean. The existing `preAuth.test.tsx` (19 assertions) and `preAuthWiring.test.tsx` (10 tests) still pass — the resend-label change is backward-compatible with their `/resend code/i` and `/send reset link/i` matchers.
+
+---
+
+## [2026-07-08T11:20:00.000+00:00] — feat(admin-auth): T115 harden resend cooldown + rolling-window cap (F1/F2/F3)
+
+### Changed
+- `apps/api/src/services/loginCode.ts` — added `checkResendThrottle(userId): Promise<ThrottleResult>` and the `ThrottleResult` interface. The method derives the 60s per-account cooldown (F1) from the latest `LoginCode` row's `created_at` and the 5-per-15m rolling-window cap (F2) from the trailing-window row count, using the injected `this.clock()` so tests advance time deterministically (R11). It returns `retryAfterMs` (remaining cooldown / window) so the route can surface a countdown. The cooldown check uses a single compound condition (`latest && elapsed < RESEND_COOLDOWN_MS`) so both branch arms are covered by the existing cooldown-active and cooldown-elapsed integration tests — no separate no-rows unit test is needed (resend-code always has a prior row, so the nested-`if (latest)` structure would have left an unreachable false arm and regressed 100% branch coverage on this security module). Imported `RESEND_COOLDOWN_MS`, `RATE_WINDOW_MAX_REQUESTS`, `RATE_WINDOW_MS` from `config/adminAuth.js`.
+- `apps/api/src/services/passwordResetToken.ts` — added `checkResetThrottle(userId): Promise<ThrottleResult>` mirroring the LoginCode throttle over `PasswordResetToken` rows (F1/F2, injected clock, `retryAfterMs`). The method's docstring notes the caller (forgot-password route) enforces F3 by silently skipping issuance rather than returning 429. Same compound-condition structure for 100% branch coverage. Imported the same three throttle constants.
+- `apps/api/src/routes/admin/auth.ts` — rewired both throttle consumers to the service methods and removed the two route-local `checkResendThrottle`/`checkResetThrottle` functions (their logic now lives in the services where the injected clock is available). `POST /resend-code`: calls `LoginCodeService.checkResendThrottle`; on `throttled: true` sets the standard HTTP `Retry-After` header (seconds, derived from `retryAfterMs`) and returns the neutral `429` `Error` body — the body schema is unchanged, so the contract is honored while countdown data is surfaced to the UI (FR-042). `POST /forgot-password`: calls `PasswordResetTokenService.checkResetThrottle`; when a known account is throttled it now SILENTLY SKIPS issuance + email + audit (F1 "issues/sends nothing") and still returns the identical neutral `200` — it never returns `429` for forgot-password. This closes the account-existence enumeration vector flagged in the T041 review nit (a 429 could only fire for known emails, leaking existence versus the unknown 200). The user-approved resolution (plan §2.6 F3 "never reveal whether an email is registered" + "no separate counter store" — row-derived throttle can't throttle unknown emails) is the always-200 silent-skip. The contract's optional `429` for forgot-password becomes an unused response. `PASSWORD_RESET_REQUESTED` audit is now written only on the non-throttled known-account branch (no throttled no-op audit row). Removed the now-unused `RATE_WINDOW_MAX_REQUESTS`/`RATE_WINDOW_MS` imports; kept `RESEND_COOLDOWN_MS` as the `Retry-After` fallback.
+
+### Fixed
+- F3 enumeration: `POST /admin/auth/forgot-password` no longer returns `429` for known throttled accounts (which leaked account existence via the status-code difference vs the unknown-email 200). All three paths (known non-throttled, known throttled, unknown) now return the byte-identical neutral `200`.
+
+### Notes
+- `apps/api/tests/integration/auth-forgot-password.test.ts` — updated (deviation from T115's `Files:` list) because the F3 fix changed the forgot-password throttle response from `429` to the silent-skip `200`. The two throttle tests ("cooldown" and "window-cap") were rewritten from "429" assertions to "200 + byte-identical body + no additional token row + no additional email" assertions; the header comment was updated to document the new F3 behavior. This touched file is required to keep the suite green after the behavior change.
+- T114 (`edge-throttle.test.ts`) 5/5 pass; `auth-resend-code.test.ts` 3/3 still pass (resend-code keeps 429); `edge-reset.test.ts` C4 neutrality 4/4 still pass; `audit-events.test.ts` 10/10 still pass (the known non-throttled forgot-password still writes `PASSWORD_RESET_REQUESTED`); `loginCode`/`passwordResetToken` unit tests still pass (the throttle methods are additive). api lint + typecheck clean.
+
+---
+
+## [2026-07-08T11:15:00.000+00:00] — test(admin-auth): T114 E-THROTTLE cooldown + window-cap tests
+
+### Added
+- `apps/api/tests/integration/edge-throttle.test.ts` — 5 integration tests pinning the hardened resend-cooldown + rolling-window-cap behavior (F1/F2/F3, FR-042/FR-043). Two tests cover `POST /admin/auth/resend-code`: (F1) a resend within 60s of the latest `LoginCode` row returns `429`, surfaces a `Retry-After` countdown header, and issues/sends nothing (no new row, no email); (F2) the 6th OTP request within a 15m trailing window is blocked with `429` + `Retry-After`. Three tests cover `POST /admin/auth/forgot-password`: (F1/F3) a throttled known account returns the byte-identical neutral `200` (never `429`) and issues/sends nothing (silent skip), with the body compared raw (`res.text`) against a non-throttled known-email response; (F2/F3) the 6th reset-link request in 15m returns the neutral `200` and issues nothing; (F3) an unknown email returns the same neutral `200` as a throttled known account — closing the account-existence enumeration vector flagged in the T041 review nit. Throttle state is derived from `created_at` rows seeded with the injected clock (`createClock` + `LoginCodeService`/`PasswordResetTokenService`) so the 60s/15m boundaries are exact. The mailer is mocked at the module boundary (`vi.mock('../../src/services/mailer.js', ...)`); a unique `X-Forwarded-For` IP (`203.0.113.120`) isolates this file from the process-wide in-memory auth rate-limit store (F4). TDD red confirmed: all 5 tests fail against the pre-T115 implementation (resend-code 429 lacks `Retry-After`; forgot-password returns `429` for known throttled accounts instead of the neutral `200`).
+
+### Notes
+- The forgot-password always-200 silent-skip behavior asserted here is the user-approved resolution of the §8.1 conflict between plan §2 F3 ("never reveal whether an email is registered") + the "no separate counter store" note (row-derived throttle can't throttle unknown emails) versus the contract's optional `429` for forgot-password. T115 implements it.
+- Full API suite green-status is gated on T115 (the implementation); this file alone is intentionally red until T115 lands.
+
+---
+
 ## [2026-07-08T11:10:00.000+00:00] — feat(admin-auth): T113 harden settings password policy (D3 identical)
 
 ### Changed

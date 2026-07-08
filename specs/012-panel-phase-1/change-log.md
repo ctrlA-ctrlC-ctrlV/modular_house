@@ -18,6 +18,16 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-08T10:15:00.000+00:00] — test(admin-auth): T110 E-RESET edge-case tests (C2/C3/C4/C6)
+
+### Added
+- `apps/api/tests/integration/edge-reset.test.ts` — 4 integration tests pinning password-reset boundary behavior beyond the coarser Pass-1 coverage in `auth-forgot-password.test.ts` (T040) and `auth-reset-password.test.ts` (T042). (1) C4: unknown email produces a byte-identical neutral response to a known email, and no email is dispatched — verified by asserting the response body `toEqual` the known-email body and the mailer mock call count. (2) C2: a reset token issued via the injected clock so its `expiresAt` lands exactly 1 second in the past is rejected with 410, and the token row is never marked consumed (expiry short-circuits ahead of C3). (3) C3: an already-consumed reset token is rejected with 410 and the response carries the "expired or already been used" message (FR-017). (4) C6: three independent refresh-token families seeded for the same user are ALL revoked (non-null `revokedAt`) after a successful password reset — verifying account-wide revocation, not just single-family. The mailer is mocked at the module boundary (`vi.mock('../../src/services/mailer.js', ...)`). A unique `X-Forwarded-For: 203.0.113.110` header isolates this file from the process-wide in-memory auth rate-limit store (F4).
+
+### Notes
+- All 4 tests passed immediately against the existing implementation — no gaps exposed. `passwordResetToken.ts` and `auth.ts` (service) stay at 100% branch coverage. Full API suite: 341 → 345 tests (43 → 44 files).
+
+---
+
 ## [2026-07-08T10:00:00.000+00:00] — docs(specs): T109 verified pre-existing OTP hardening (B3–B6/B9)
 
 ### Notes

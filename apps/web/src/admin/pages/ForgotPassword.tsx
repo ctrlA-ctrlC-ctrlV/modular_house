@@ -3,6 +3,7 @@
 // The server returns a neutral confirmation regardless of whether the account exists
 // (C4 — no account-existence disclosure).
 // Layout mirrors the Login page's two-column "login v1" split-screen.
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,6 +16,13 @@ import {
   FieldError,
   FieldLabel,
 } from '../ui/form.js';
+
+// F1: minimum resend cooldown in seconds.  The server silently enforces the 60s
+// cooldown for known accounts (forgot-password never returns 429 — that would
+// leak account existence per F3) so the client drives the countdown UX itself:
+// the "try again" control is disabled with a visible countdown until a new
+// reset-link request becomes available (FR-042).
+const RESEND_COOLDOWN_SECONDS = 60;
 
 // Zod schema — email validation (server is authoritative, client mirrors for UX).
 const forgotPasswordSchema = z.object({
@@ -72,6 +80,27 @@ function ForgotPassword({
       email: '',
     },
   });
+
+  // F1/FR-042: client-side resend cooldown countdown on the "try again" control.
+  // Starts at 60s when the form flips to the neutral-confirmation state
+  // (`isSubmitted` becomes true after a 2xx response) and ticks down once per
+  // second; while > 0 the "try again" control is disabled with a visible
+  // countdown.  forgot-password never surfaces throttle state from the server
+  // (F3 — no account-existence leak), so the client owns this countdown UX.
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!isSubmitted) return;
+    setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
+  }, [isSubmitted]);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return undefined;
+    const timer = window.setInterval(() => {
+      setCooldownSeconds((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownSeconds]);
 
   const handleSubmit = form.handleSubmit((data) => {
     onSubmit?.(data);
@@ -137,10 +166,16 @@ function ForgotPassword({
                   Didn&apos;t receive an email? Check your spam folder or{' '}
                   <button
                     type="button"
-                    className="text-primary underline-offset-4 hover:underline"
+                    disabled={cooldownSeconds > 0}
+                    className={cn(
+                      'text-primary underline-offset-4 hover:underline',
+                      cooldownSeconds > 0 && 'cursor-not-allowed opacity-60 no-underline',
+                    )}
                     onClick={() => form.reset()}
                   >
-                    try again
+                    {cooldownSeconds > 0
+                      ? `try again (${cooldownSeconds}s)`
+                      : 'try again'}
                   </button>
                   .
                 </p>

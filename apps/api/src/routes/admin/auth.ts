@@ -15,8 +15,6 @@ import { config } from '../../config/env.js';
 import {
   ACCESS_TOKEN_TTL_MS,
   RESEND_COOLDOWN_MS,
-  RATE_WINDOW_MAX_REQUESTS,
-  RATE_WINDOW_MS,
 } from '../../config/adminAuth.js';
 import { PrismaClient } from '@prisma/client';
 
@@ -237,43 +235,13 @@ const resendCodeSchema = z.object({
   challengeId: z.string({ required_error: 'Challenge ID is required' }).min(1, 'Challenge ID is required'),
 });
 
-/**
- * Check whether a resend-code request is currently throttled for `userId`.
- *
- * Cooldown (F1): the most recent LoginCode row for the user must be older than
- * RESEND_COOLDOWN_MS. Window cap (F2): the count of LoginCode rows created within
- * the trailing RATE_WINDOW_MS must be below RATE_WINDOW_MAX_REQUESTS.
- *
- * Returns `'cooldown' | 'window_cap' | null` where null means the request may proceed.
- */
-async function checkResendThrottle(userId: string): Promise<'cooldown' | 'window_cap' | null> {
-  const now = new Date();
-
-  const latest = await prisma.loginCode.findFirst({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  if (latest && now.getTime() - latest.createdAt.getTime() < RESEND_COOLDOWN_MS) {
-    return 'cooldown';
-  }
-
-  const windowStart = new Date(now.getTime() - RATE_WINDOW_MS);
-  const countInWindow = await prisma.loginCode.count({
-    where: {
-      userId,
-      createdAt: { gte: windowStart },
-    },
-  });
-
-  if (countInWindow >= RATE_WINDOW_MAX_REQUESTS) {
-    return 'window_cap';
-  }
-
-  return null;
-}
-
 // Resend a one-time code for an existing challenge (B6, B9, F1, F2).
+// The 60s cooldown + 5/15m window cap are derived from LoginCode `created_at`
+// rows by LoginCodeService.checkResendThrottle (T115).  A throttled request
+// returns a neutral 429 and surfaces the remaining cooldown via the standard
+// `Retry-After` header so the UI can render a countdown (FR-042); the body
+// stays the contract `Error` schema.  The challengeId is opaque (B9), so a 429
+// here never reveals account existence (unlike forgot-password — see below).
 router.post('/resend-code', validate({ body: resendCodeSchema }), async (req: Request, res: Response): Promise<void> => {
   try {
     const { challengeId } = req.body;
@@ -305,23 +273,23 @@ router.post('/resend-code', validate({ body: resendCodeSchema }), async (req: Re
       return;
     }
 
-    const throttle = await checkResendThrottle(user.id);
-    if (throttle === 'cooldown') {
+    // F1/F2: cooldown + rolling-window cap derived from created_at rows.
+    const loginCodeService = new LoginCodeService(prisma);
+    const throttle = await loginCodeService.checkResendThrottle(user.id);
+    if (throttle.throttled) {
+      // Surface countdown data to the UI via Retry-After (seconds, HTTP standard).
+      const retryAfterSec = Math.ceil((throttle.retryAfterMs ?? RESEND_COOLDOWN_MS) / 1000);
+      res.set('Retry-After', String(retryAfterSec));
       res.status(429).json({
         error: 'Too many requests',
-        message: 'Please wait before requesting a new code.',
-      });
-      return;
-    }
-    if (throttle === 'window_cap') {
-      res.status(429).json({
-        error: 'Too many requests',
-        message: 'Too many attempts. Please try again later.',
+        message:
+          throttle.reason === 'cooldown'
+            ? 'Please wait before requesting a new code.'
+            : 'Too many attempts. Please try again later.',
       });
       return;
     }
 
-    const loginCodeService = new LoginCodeService(prisma);
     const resendResult = await loginCodeService.resend(challengeId);
 
     if (!resendResult.success) {
@@ -367,43 +335,17 @@ const forgotPasswordSchema = z.object({
   email: z.string({ required_error: 'Email is required' }).email('Invalid email format').min(1, 'Email is required'),
 });
 
-/**
- * Check whether a forgot-password request is currently throttled for `userId`.
- *
- * Cooldown (F1): the most recent PasswordResetToken row for the user must be
- * older than RESEND_COOLDOWN_MS. Window cap (F2): the count of rows created
- * within the trailing RATE_WINDOW_MS must be below RATE_WINDOW_MAX_REQUESTS.
- *
- * Returns `'cooldown' | 'window_cap' | null` where null means the request may proceed.
- */
-async function checkResetThrottle(userId: string): Promise<'cooldown' | 'window_cap' | null> {
-  const now = new Date();
-
-  const latest = await prisma.passwordResetToken.findFirst({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  if (latest && now.getTime() - latest.createdAt.getTime() < RESEND_COOLDOWN_MS) {
-    return 'cooldown';
-  }
-
-  const windowStart = new Date(now.getTime() - RATE_WINDOW_MS);
-  const countInWindow = await prisma.passwordResetToken.count({
-    where: {
-      userId,
-      createdAt: { gte: windowStart },
-    },
-  });
-
-  if (countInWindow >= RATE_WINDOW_MAX_REQUESTS) {
-    return 'window_cap';
-  }
-
-  return null;
-}
-
-// Request a password-reset link (C4, F1, F2).
+// Request a password-reset link (C4, F1, F2, F3).
+//
+// F3 neutrality: the throttle response NEVER reveals account existence.  Because
+// throttle state is derived from PasswordResetToken `created_at` rows (plan §2.6
+// — no separate counter store) and rows only exist for KNOWN accounts, a 429
+// could only ever fire for known emails — leaking existence versus the unknown
+// 200.  The hardened behavior therefore ALWAYS returns the neutral 200: when a
+// known account is throttled (cooldown / window cap) the route silently skips
+// issuance + email + audit (F1: "issues/sends nothing") but still returns the
+// identical neutral 200.  An unknown email is never throttled (no rows) and also
+// returns the neutral 200 with no issuance.  All three paths are byte-identical.
 router.post('/forgot-password', validate({ body: forgotPasswordSchema }), async (req: Request, res: Response): Promise<void> => {
   try {
     const { email } = req.body;
@@ -416,47 +358,42 @@ router.post('/forgot-password', validate({ body: forgotPasswordSchema }), async 
     });
 
     if (user) {
-      const throttle = await checkResetThrottle(user.id);
-      if (throttle === 'cooldown') {
-        res.status(429).json({
-          error: 'Too many requests',
-          message: 'Please wait before requesting a new reset link.',
-        });
-        return;
-      }
-      if (throttle === 'window_cap') {
-        res.status(429).json({
-          error: 'Too many requests',
-          message: 'Too many attempts. Please try again later.',
-        });
-        return;
-      }
-
       const resetService = new PasswordResetTokenService(prisma);
-      const { rawToken } = await resetService.issue(user.id);
+      // F1/F2: cooldown + rolling-window cap derived from created_at rows.
+      const throttle = await resetService.checkResetThrottle(user.id);
 
-      const resetUrl = `${config.app.corsOrigin}/admin/reset-password?token=${encodeURIComponent(rawToken)}`;
-      const mailer = new MailerService();
-      await mailer.sendEmail({
-        to: user.email,
-        subject: 'Password reset request',
-        text: `A password reset was requested for your account.\n\nReset link: ${resetUrl}\n\nThis link expires in 60 minutes and can only be used once.`,
-      });
+      // Only issue + email + audit when the account is NOT throttled.  When
+      // throttled, silently skip (F1 "issues/sends nothing") and fall through to
+      // the neutral 200 below (F3 — no status/body difference from non-throttled
+      // or unknown-email paths).
+      if (!throttle.throttled) {
+        const { rawToken } = await resetService.issue(user.id);
 
-      // PASSWORD_RESET_REQUESTED — only for a known, non-throttled account so
-      // the audit trail never leaks account existence via timing or row presence (I1).
-      await recordAudit({
-        userId: user.id,
-        action: AUDIT_ACTIONS.PASSWORD_RESET_REQUESTED,
-        entity: 'user',
-        ipAddress: req.ip ?? 'unknown',
-        userAgent: req.headers['user-agent'] ?? null,
-      });
+        const resetUrl = `${config.app.corsOrigin}/admin/reset-password?token=${encodeURIComponent(rawToken)}`;
+        const mailer = new MailerService();
+        await mailer.sendEmail({
+          to: user.email,
+          subject: 'Password reset request',
+          text: `A password reset was requested for your account.\n\nReset link: ${resetUrl}\n\nThis link expires in 60 minutes and can only be used once.`,
+        });
 
-      logger.info({ userId: user.id }, 'Password reset link issued');
+        // PASSWORD_RESET_REQUESTED — only for a known, non-throttled account so
+        // the audit trail never leaks account existence via timing or row
+        // presence (I1), and never records a throttled no-op request.
+        await recordAudit({
+          userId: user.id,
+          action: AUDIT_ACTIONS.PASSWORD_RESET_REQUESTED,
+          entity: 'user',
+          ipAddress: req.ip ?? 'unknown',
+          userAgent: req.headers['user-agent'] ?? null,
+        });
+
+        logger.info({ userId: user.id }, 'Password reset link issued');
+      }
     }
 
-    // Neutral confirmation regardless of whether the account exists (C4).
+    // Neutral confirmation regardless of account existence or throttle state
+    // (C4/F3).  This is the ONLY response status/body the route ever returns.
     res.status(200).json({
       message: 'If an account exists for this email, a reset link has been sent.',
     });

@@ -205,14 +205,20 @@ const GardenRoom: React.FC = () => {
 
 
   return (
-    <div className="l-container py-16">
-
+    <>
       {/* ===================================================================
           Section 1 — Hero
           ===================================================================
           Full-width hero banner with bold bottom-aligned text, a primary CTA
           button, and a floating "Explore Our Ranges" anchor link that smooth-
           scrolls to the product range grid below.
+
+          Rendered outside the `.l-container.py-16` wrapper below so it
+          reaches the very top of the page (y: 0). The site header overlays
+          this section via `positionOver` (see HeaderContext); the `py-16`
+          top padding on the container would otherwise push the hero down,
+          leaving a blank gap for the transparent header to sit over instead
+          of the hero image.
           =================================================================== */}
       <div id="garden_room_hero" className="garden-room__hero">
         <HeroBoldBottomText
@@ -245,6 +251,7 @@ const GardenRoom: React.FC = () => {
         </button>
       </div>
 
+      <div className="l-container py-16">
       {/* ===================================================================
           Section 2 — Product Range (Detail Cards)
           ===================================================================
@@ -528,7 +535,8 @@ const GardenRoom: React.FC = () => {
         onSubmit={handleEnquirySubmit}
       />
 
-    </div>
+      </div>
+    </>
   );
 };
 

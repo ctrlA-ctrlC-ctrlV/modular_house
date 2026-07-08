@@ -1138,20 +1138,22 @@
       > note: verified pre-existing; C2/C3 in PasswordResetTokenService.consume, C4 in route, C6 in route txn; tests: 345 passing; deviations: none
       > reviewed: PASS
 
-- [ ] T112 [test] E-POLICY â€” password policy edge tests
+- [x] T112 [test] E-POLICY â€” password policy edge tests
       Files: `apps/api/tests/integration/edge-policy.test.ts`
       Do: Assert length 11 rejected / 12 accepted, missing character class rejected, equals-current
       rejected, mismatched entries rejected, wrong current password on settings change rejected, and the
       server rejects even when a client bypass is simulated.
-      Done when: Tests fail for D1â€“D7.
-      Refs: E-POLICY, D1â€“D7, FR-019/FR-032
+      Done when: Tests fail for D1â€”D7.
+      Refs: E-POLICY, D1â€”D7, FR-019/FR-032
+      > note: 14 tests cover D1-D7 on both reset + settings paths; all pass (pre-existing impl); tests: 14 passing; deviations: none
 
-- [ ] T113 Harden server-side policy enforcement on both paths
+- [x] T113 Harden server-side policy enforcement on both paths
       Files: `apps/api/src/services/passwordPolicy.ts`, `apps/api/src/routes/admin/auth.ts`,
       `apps/api/src/routes/admin/settings.ts`
       Do: Apply the identical policy at reset and settings change; `400` with specific messages.
       Done when: T112 passes.
-      Refs: E-POLICY, D1â€“D7
+      Refs: E-POLICY, D1â€”D7
+      > note: settings route now passes currentPasswordHash to validatePassword (D3 identical); tests: 14 passing; deviations: passwordPolicy.ts/auth.ts — no change needed
 
 - [ ] T114 [test] E-THROTTLE â€” cooldown + window-cap tests
       Files: `apps/api/tests/integration/edge-throttle.test.ts`

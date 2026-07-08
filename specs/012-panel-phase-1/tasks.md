@@ -1119,6 +1119,7 @@
       Done when: T108 passes; 100% branch coverage.
       Refs: E-OTP, B3â€“B6/B9
       > note: verified pre-existing; B3-B6/B9 in LoginCodeService verify/issue/resend; tests: 341 passing; deviations: none
+      > reviewed: PASS
 
 - [x] T110 [test] E-RESET â€” reset edge tests
       Files: `apps/api/tests/integration/edge-reset.test.ts`
@@ -1127,6 +1128,7 @@
       Done when: Tests fail for C2/C3/C4/C6.
       Refs: E-RESET, C2/C3/C4/C6, FR-015/FR-017/FR-041
       > note: 4 tests pin C2 expiry boundary/C3 reuse/C4 neutrality/C6 multi-family revoke; tests: 4 passing; deviations: none
+      > reviewed: PASS
 
 - [x] T111 Harden reset neutrality + account-wide revoke
       Files: `apps/api/src/services/passwordResetToken.ts`, `apps/api/src/services/auth.ts`
@@ -1134,6 +1136,7 @@
       Done when: T110 passes; 100% branch coverage.
       Refs: E-RESET, C2/C3/C4/C6
       > note: verified pre-existing; C2/C3 in PasswordResetTokenService.consume, C4 in route, C6 in route txn; tests: 345 passing; deviations: none
+      > reviewed: PASS
 
 - [ ] T112 [test] E-POLICY â€” password policy edge tests
       Files: `apps/api/tests/integration/edge-policy.test.ts`

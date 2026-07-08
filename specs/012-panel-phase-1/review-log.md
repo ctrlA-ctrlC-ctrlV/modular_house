@@ -4,6 +4,16 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 42 — T109/T110/T111 review (2026-07-08)
+
+T109 — PASS — pre-existing impl verified; B3-B6/B9 exact; 100% branch
+T110 — PASS — 4/4 pass; C2/C3/C4/C6 pinned; no gaps exposed
+T111 — PASS — pre-existing impl verified; C2/C3/C4/C6 exact; 100% branch
+
+**Overall: GO** — proceed to T112. Full findings in chat report.
+
+---
+
 ## Session 41 — T107/T108 review (2026-07-08)
 
 T107 — PASS — pre-existing impl verified; A2/A3/A4/C5 exact; 100% branch

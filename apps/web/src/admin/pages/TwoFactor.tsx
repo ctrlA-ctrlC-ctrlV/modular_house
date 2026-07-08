@@ -3,6 +3,7 @@
 // Receives the challengeId from the login step via react-router location state.
 // The onSubmit/onResend callbacks are placeholders until the apiClient (T091) wires in.
 // Layout mirrors the Login page's two-column "login v1" split-screen.
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,6 +21,12 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from '../ui/input-otp.js';
+
+// F1: minimum resend cooldown in seconds. The server authoritatively enforces
+// the 60s cooldown (returning 429 + Retry-After); this client-side countdown is
+// the UX mirror that disables the control and shows when a new request is
+// available (FR-042).  Kept as a local constant so the page stays self-contained.
+const RESEND_COOLDOWN_SECONDS = 60;
 
 // Zod schema — 6-digit numeric code (mirrors B1 server-side validation).
 const twoFactorSchema = z.object({
@@ -87,6 +94,20 @@ function TwoFactor({
     },
   });
 
+  // F1/FR-042: client-side resend cooldown countdown.  Starts at 60s when the
+  // user clicks resend and ticks down once per second; while > 0 the resend
+  // control is disabled and shows the remaining seconds.  The server is still
+  // authoritative (429 + Retry-After backs this up) — this is the UX mirror.
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return undefined;
+    const timer = window.setInterval(() => {
+      setCooldownSeconds((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownSeconds]);
+
   const handleSubmit = form.handleSubmit((data) => {
     if (challengeId) {
       onSubmit?.({ challengeId, code: data.code });
@@ -96,6 +117,9 @@ function TwoFactor({
   const handleResend = () => {
     if (challengeId) {
       onResend?.(challengeId);
+      // Begin the cooldown countdown immediately on click; the container's
+      // async handler deals with the API response, this drives the UI lock.
+      setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
     }
   };
 
@@ -205,17 +229,17 @@ function TwoFactor({
               </Button>
             </form>
 
-            {/* Resend control — disabled during cooldown. */}
+            {/* Resend control — disabled during cooldown (F1/FR-042). */}
             <div className="space-y-3 text-center">
               <Button
                 type="button"
                 variant="ghost"
                 className="w-full text-sm text-muted-foreground"
                 onClick={handleResend}
-                disabled={resendDisabled || isSubmitting}
+                disabled={resendDisabled || isSubmitting || cooldownSeconds > 0}
               >
-                {resendDisabled
-                  ? 'Resend code (cooldown active)'
+                {cooldownSeconds > 0
+                  ? `Resend code (${cooldownSeconds}s)`
                   : 'Resend code'}
               </Button>
 

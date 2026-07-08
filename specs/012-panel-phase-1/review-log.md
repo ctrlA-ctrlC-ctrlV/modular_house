@@ -4,6 +4,69 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 43 — T112/T113/T114/T115/T116 review (2026-07-08)
+
+T112 — PASS — 14/14 pass; D1-D7 pinned both paths; "tests fail" nit (precedent)
+T113 — PASS — settings.ts passes currentPasswordHash; D3 identical both paths
+T114 — PASS — 5/5 pass; TDD red confirmed; Retry-After + byte-identical body
+T115 — PASS-WITH-NITS — F1/F2/F3 correct; openapi 429 for forgot-password now unreachable
+T116 — PASS-WITH-NITS — 2/2 pass; pre-existing "try again" click is a dead no-op (T097b carry-forward)
+
+**Overall: GO** — proceed to T117. Full findings in chat report.
+
+---
+
+## Session 42 — T109/T110/T111 review (2026-07-08)
+
+T109 — PASS — pre-existing impl verified; B3-B6/B9 exact; 100% branch
+T110 — PASS — 4/4 pass; C2/C3/C4/C6 pinned; no gaps exposed
+T111 — PASS — pre-existing impl verified; C2/C3/C4/C6 exact; 100% branch
+
+**Overall: GO** — proceed to T112. Full findings in chat report.
+
+---
+
+## Session 41 — T107/T108 review (2026-07-08)
+
+T107 — PASS — pre-existing impl verified; A2/A3/A4/C5 exact; 100% branch
+T108 — PASS — 6/6 pass; B3-B6/B9 pinned; resend-code 401 branch closed
+
+**Overall: GO** — proceed to T109. Full findings in chat report.
+
+---
+
+## Session 40 — T106 review (2026-07-07)
+
+T106 — PASS — 3/3 pass; A2/A3/C5 pinned; 335/335 api suite green
+
+**Overall: GO** — proceed to T107. Full findings in chat report.
+
+---
+
+## Session 39 — T105 nit fixes re-check (2026-07-07)
+
+T105 — PASS (re-check) — verifyOtp isActive added; call-assert added; 332/332 green
+
+**Overall: GO** — proceed to T106. Full findings in chat report.
+
+---
+
+## Session 38 — T105 review (2026-07-07)
+
+T105 — PASS-WITH-NITS — argon2 order fixed; verifyOtp isActive gap; no call-assert test
+
+**Overall: GO** — proceed to T106. Full findings in chat report.
+
+---
+
+## Session 37 — T104 review (2026-07-07)
+
+T104 — PASS — byte-identical 401 verified; 4/4 pass; 331/331 api suite green
+
+**Overall: GO** — proceed to T105. Full findings in chat report.
+
+---
+
 ## Session 36 — T100a re-check + T102/T103 review (2026-07-07)
 
 T100a — PASS — userId threaded via service; dup lookup gone; 327/327 green

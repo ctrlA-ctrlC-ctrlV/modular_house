@@ -18,16 +18,15 @@ import { prisma, resetAdminTables, disconnectDb } from '../helpers/db.js';
 // Mock the SMTP mailer so the login call in this suite does not attempt a
 // real network send.
 vi.mock('../../src/services/mailer.js', () => {
-  function MockMailerService() {
-    // No-op constructor — no SMTP connection attempted.
+  class MockMailerService {
+    sendEmail = vi.fn().mockResolvedValue({
+      success: true,
+      messageId: 'mock-message-id',
+      attempt: 1,
+      timestamp: new Date(),
+    });
+    close = vi.fn().mockResolvedValue(undefined);
   }
-  MockMailerService.prototype.sendEmail = vi.fn().mockResolvedValue({
-    success: true,
-    messageId: 'mock-message-id',
-    attempt: 1,
-    timestamp: new Date(),
-  });
-  MockMailerService.prototype.close = vi.fn().mockResolvedValue(undefined);
   return {
     MailerService: MockMailerService,
     mailer: new MockMailerService(),

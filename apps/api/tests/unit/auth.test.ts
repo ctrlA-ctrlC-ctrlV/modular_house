@@ -187,12 +187,16 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
     // -----------------------------------------------------------------------
 
     it('returns generic 401 for an inactive account (A6)', async () => {
-      mockUser.findUnique.mockResolvedValue(makeUser({ isActive: false }));
+      const user = makeUser({ isActive: false });
+      mockUser.findUnique.mockResolvedValue(user);
       mockArgon2.verify.mockResolvedValue(true); // correct password
 
       const result = await service.verifyCredentials('admin@example.com', 'CorrectPassword1!');
 
       expect(result).toMatchObject({ success: false, status: 401, message: 'Invalid credentials' });
+      // T105 nit: argon2.verify MUST run for deactivated accounts so timing
+      // does not leak account-active status (post-credential check).
+      expect(mockArgon2.verify).toHaveBeenCalledWith(user.passwordHash, 'CorrectPassword1!');
     });
 
     // -----------------------------------------------------------------------
@@ -400,6 +404,21 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       expect(result.success).toBe(false);
       expect(result).not.toHaveProperty('accessToken');
+    });
+
+    // -----------------------------------------------------------------------
+    // A6: Deactivated account cannot complete sign-in even with a valid code
+    // -----------------------------------------------------------------------
+
+    it('returns failure when the account is deactivated even with a valid code (A6)', async () => {
+      mockUser.findUnique.mockResolvedValue(makeUser({ isActive: false }));
+
+      const result = await service.verifyOtp('challenge-abc', '123456');
+
+      expect(result.success).toBe(false);
+      expect(result).toMatchObject({ status: 401, message: 'Invalid credentials' });
+      expect(result).not.toHaveProperty('accessToken');
+      expect(result).not.toHaveProperty('rawRefreshToken');
     });
   });
 
@@ -677,6 +696,36 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
       );
 
       expect(result).toMatchObject({ success: false, status: 401 });
+    });
+
+    // D3: new password must not equal the current password.  The settings route
+    // now enforces D3 via validatePassword BEFORE changePassword is reached
+    // (T113), so this defense-in-depth branch inside changePassword is only
+    // exercised by a direct service call.  Pinned here to keep services/auth.ts
+    // at 100% branch coverage (the line-414 branch that T113 rendered dead via
+    // the route) and to document the redundant guard for future readers.
+    it('rejects changePassword when the new password equals the current password (D3)', async () => {
+      mockUser.findUnique.mockResolvedValue(makeUser());
+      // Both argon2.verify calls return true: D5 (current correct) passes, then
+      // D3 (new == current) evaluates sameAsCurrent=true ⇒ 400.
+      mockArgon2.verify.mockResolvedValue(true);
+
+      const result = await service.changePassword(
+        'user-1',
+        'SamePassword1!',
+        'SamePassword1!',
+        'family-1',
+      );
+
+      expect(result).toMatchObject({
+        success: false,
+        status: 400,
+        message: 'New password must be different from your current password.',
+      });
+      // No sessions revoked, no re-mint, no rehash on a D3 rejection.
+      expect(mockRefreshToken.updateMany).not.toHaveBeenCalled();
+      expect(mockRefreshToken.create).not.toHaveBeenCalled();
+      expect(mockArgon2.hash).not.toHaveBeenCalled();
     });
   });
 

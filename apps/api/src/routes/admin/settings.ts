@@ -153,8 +153,21 @@ router.put(
         return;
       }
 
-      // D1-D4/D6: apply the server-side password policy.
-      const policy = await validatePassword({ newPassword, confirmPassword });
+      // Load the user's current password hash so the D3 (equals-current)
+      // policy check runs identically to the reset-password path (T113).
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { passwordHash: true },
+      });
+
+      // D1-D4/D6: apply the server-side password policy identically to the
+      // reset-password path.  Passing currentPasswordHash enables the D3
+      // (new ≠ current) check inside the shared policy service (FR-019).
+      const policy = await validatePassword({
+        newPassword,
+        confirmPassword,
+        currentPasswordHash: targetUser?.passwordHash,
+      });
       if (!policy.valid) {
         const firstError = Object.values(policy.errors)[0] ?? 'Invalid password';
         res.status(400).json({

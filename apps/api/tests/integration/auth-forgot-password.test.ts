@@ -4,8 +4,14 @@
  * Asserts the Phase 1 password-reset request contract:
  *   - known email → neutral 200, reset token issued + emailed
  *   - unknown email → same neutral 200, no token issued, no email sent (C4)
- *   - cooldown not elapsed → neutral 429 (F1)
- *   - rolling-window cap exceeded → neutral 429 (F2)
+ *   - cooldown active → neutral 200, silent skip (no token/email) (F1/F3)
+ *   - rolling-window cap exceeded → neutral 200, silent skip (no token/email) (F2/F3)
+ *
+ * T115 hardened F3: the throttle response NEVER returns 429 for forgot-password
+ * (a 429 could only fire for known emails, leaking account existence versus the
+ * unknown 200).  A throttled known account now silently skips issuance and
+ * returns the byte-identical neutral 200.  The two throttle tests below were
+ * updated from "429" to "200 + no token/email" to match.
  *
  * The mailer is mocked so the suite does not require a real SMTP server.
  */
@@ -25,21 +31,21 @@ import {
 // Mock the SMTP mailer so reset emails are captured, not sent.
 // ---------------------------------------------------------------------------
 
-const { sendEmailMock } = vi.hoisted(() => ({
+const { sendEmailMock, closeMock } = vi.hoisted(() => ({
   sendEmailMock: vi.fn().mockResolvedValue({
     success: true,
     messageId: 'mock-message-id',
     attempt: 1,
     timestamp: new Date(),
   }),
+  closeMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../src/services/mailer.js', () => {
-  function MockMailerService() {
-    // No-op constructor — no SMTP connection attempted.
+  class MockMailerService {
+    sendEmail = sendEmailMock;
+    close = closeMock;
   }
-  MockMailerService.prototype.sendEmail = sendEmailMock;
-  MockMailerService.prototype.close = vi.fn().mockResolvedValue(undefined);
   return {
     MailerService: MockMailerService,
     mailer: new MockMailerService(),
@@ -133,25 +139,37 @@ describe('POST /admin/auth/forgot-password', () => {
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
-  it('returns neutral 429 when the reset cooldown has not elapsed (F1)', async () => {
-    // First request is eligible.
+  it('silently skips issuance and returns the neutral 200 when the reset cooldown is active (F1/F3)', async () => {
+    // First request is eligible: issues a token + email.
     const first = await request(app).post('/admin/auth/forgot-password').send({ email });
     expect(first.status).toBe(200);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const tokensAfterFirst = await prisma.passwordResetToken.findMany({
+      where: { userId },
+    });
+    expect(tokensAfterFirst).toHaveLength(1);
 
-    // Immediate second request is still inside the cooldown window.
+    // Immediate second request is inside the 60s cooldown: F3 keeps the
+    // response byte-identical (neutral 200, never 429) and F1 issues/sends
+    // nothing.
     const second = await request(app).post('/admin/auth/forgot-password').send({ email });
-    expect(second.status).toBe(429);
-    expect(second.body).toHaveProperty('error');
-    expect(second.body).toHaveProperty('message');
+    expect(second.status).toBe(200);
+    expect(second.body).toEqual(first.body);
+
+    // No additional token row, no additional email.
+    const tokensAfterSecond = await prisma.passwordResetToken.findMany({
+      where: { userId },
+    });
+    expect(tokensAfterSecond).toHaveLength(1);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
   });
 
-  it('returns neutral 429 when the rolling reset-link cap is exceeded (F2)', async () => {
+  it('silently skips issuance and returns the neutral 200 when the rolling reset-link cap is exceeded (F2/F3)', async () => {
     const now = Date.now();
     const baseTime = now - RATE_WINDOW_MS + 60_000; // inside the trailing window
 
     // Seed the maximum number of prior reset-token rows for this user, each
-    // spaced past the cooldown so the window cap (not cooldown) blocks the
-    // next request.
+    // spaced past the cooldown so the window cap (not cooldown) governs.
     for (let i = 0; i < RATE_WINDOW_MAX_REQUESTS; i += 1) {
       const issuedAt = new Date(baseTime + i * (RESEND_COOLDOWN_MS + 1_000));
       await prisma.passwordResetToken.create({
@@ -164,10 +182,18 @@ describe('POST /admin/auth/forgot-password', () => {
       });
     }
 
-    // The next request must be throttled by the window cap.
+    // The next request is over the cap: F3 returns the neutral 200 (never 429)
+    // and F2 issues/sends nothing.
     const res = await request(app).post('/admin/auth/forgot-password').send({ email });
-    expect(res.status).toBe(429);
-    expect(res.body).toHaveProperty('error');
+    expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('message');
+    expect(res.body).not.toHaveProperty('token');
+
+    // No additional token row, no email.
+    const tokens = await prisma.passwordResetToken.findMany({
+      where: { userId },
+    });
+    expect(tokens).toHaveLength(RATE_WINDOW_MAX_REQUESTS);
+    expect(sendEmailMock).not.toHaveBeenCalled();
   });
 });

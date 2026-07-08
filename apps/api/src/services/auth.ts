@@ -211,16 +211,19 @@ export class AuthService {
       return { success: false, status: 423, message: 'Account temporarily locked', userId: user.id };
     }
 
-    // A6: deactivated account — same generic 401 as wrong credentials
+    // A1: verify password with argon2id for ALL accounts (including
+    // deactivated) so timing does not leak account-active status (T105).
+    const isValid = await argon2.verify(user.passwordHash, password);
+
+    // A6: deactivated account — blocked POST-credential with the same
+    // generic 401. Checked after argon2.verify to equalize timing;
+    // deactivated accounts never reach the lockout-increment path below.
     if (!user.isActive) {
       return { success: false, status: 401, message: 'Invalid credentials', userId: user.id };
     }
 
-    // A1: verify password with argon2id
-    const isValid = await argon2.verify(user.passwordHash, password);
-
     if (!isValid) {
-      // A2/A3: increment failure counter; lock at threshold
+      // A2/A3: increment failure counter; lock at threshold.
       const newCount = user.failedLoginAttempts + 1;
       const updateData: Record<string, unknown> = { failedLoginAttempts: newCount };
       if (newCount >= LOCKOUT_THRESHOLD) {
@@ -264,6 +267,13 @@ export class AuthService {
 
     const user = await this.loadUser(verifyResult.userId);
     if (!user) {
+      return { success: false, status: 401, message: 'Invalid credentials' };
+    }
+
+    // A6: deactivated account cannot complete sign-in even with a valid code.
+    // Guards the race where the account is deactivated after an OTP was issued
+    // but before the 2FA verify step completes (post-credential recheck).
+    if (!user.isActive) {
       return { success: false, status: 401, message: 'Invalid credentials' };
     }
 

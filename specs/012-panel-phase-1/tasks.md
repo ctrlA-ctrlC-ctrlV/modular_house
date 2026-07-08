@@ -1075,87 +1075,114 @@
       Done when: Tests fail (or expose gaps) for A5/A6.
       Refs: E-CREDS, A5/A6, FR-008
       > note: 4 tests pin byte-identical 401 (res.text) for unknown email/wrong password/deactivated, impl already correct (no gaps exposed); tests: 4 passing; deviations: none
+      > reviewed: PASS — 4/4 pass at runtime (isolated + full suite 331/331); res.text byte-identity + content-type asserted; A6 checked before argon2 verify; no scope creep.
 
-- [ ] T105 Harden generic-credential + deactivated handling
+- [x] T105 Harden generic-credential + deactivated handling
       Files: `apps/api/src/services/auth.ts`, `apps/api/src/routes/admin/auth.ts`
       Do: Normalize responses to byte-identical `401`; block inactive accounts post-credential.
       Done when: T104 passes.
       Refs: E-CREDS, A5/A6
+      > note: isActive moved post-argon2 (post-credential timing); route already normalized; tests: 4 passing; deviations: apps/api/src/routes/admin/auth.ts — listed in Files: but already byte-identical
+      > reviewed: PASS-WITH-NITS — reorder verified correct; 331/331 green; nits: no call-assertion pinning argon2.verify for A6 path; verifyOtp still lacks isActive recheck (full A6 "valid code" text) — see review-log 2026-07-07.
+      > fix(T105 review): (1) added expect(mockArgon2.verify).toHaveBeenCalledWith to A6 unit test — pins post-credential ordering; (2) added if(!user.isActive) recheck in verifyOtp + unit test — closes full A6 "valid code" gap; auth.ts 100% branch; 332/332 green.
+      > reviewed (Session 39, re-check): PASS — both corrective items independently verified fixed; 332/332 green; auth.ts 100% branch; lint+typecheck clean.
 
-- [ ] T106 [test] E-LOCK â€” lockout boundary tests
+- [x] T106 [test] E-LOCK â€” lockout boundary tests
       Files: `apps/api/tests/integration/edge-lockout.test.ts`
       Do: With the injected clock assert 5th consecutive bad password locks (`423`), attempts during
       lock are blocked, and a successful reset clears the lock.
       Done when: Tests fail for A2/A3/C5.
       Refs: E-LOCK, A2/A3/C5, FR-009/FR-018
+      > note: 3 tests pin A2 boundary + A3 15m/during-lock 423 + C5 reset-clears-lock; impl already correct (no gaps exposed); injected clock for reset token; tests: 3 passing; deviations: none
+      > reviewed: PASS — 3/3 confirmed at runtime; A2 boundary (4≠lock), A3 (423 + 15m window), C5 (reset clears lock, follow-up login 200) all pinned against LOCKOUT_THRESHOLD/LOCKOUT_DURATION_MS constants; 335/335 full api suite green; security modules still 100% branch.
 
-- [ ] T107 Harden account lockout + reset-clears-lock
+- [x] T107 Harden account lockout + reset-clears-lock
       Files: `apps/api/src/services/auth.ts`
       Do: Enforce `failedLoginAttempts>=5` â†’ `lockedUntil=now+15m`; reset clears counters.
       Done when: T106 passes; 100% branch on lockout paths.
       Refs: E-LOCK, A2/A3/A4/C5
+      > note: verified pre-existing; A2/A3/A4 in verifyCredentials, C5 in reset-password route txn; tests: 335 passing; deviations: none (no code change needed)
+      > reviewed: PASS
 
-- [ ] T108 [test] E-OTP â€” OTP edge tests
+- [x] T108 [test] E-OTP â€” OTP edge tests
       Files: `apps/api/tests/integration/edge-otp.test.ts`
       Do: With the injected clock assert wrong code increments, expiry at `expiresAt+1s`, reuse rejected,
       6th wrong attempt invalidates, new-code supersedes prior, unknown/expired `challengeId` â†’ `401`.
       Done when: Tests fail for B3â€“B6/B9.
       Refs: E-OTP, B3/B4/B5/B6/B9, FR-012/FR-013
+      > note: 6 tests pin B3-B6/B9 boundaries; closes prior-uncovered resend-code unknown-challengeId branch; tests: 6 passing; deviations: none
+      > reviewed: PASS
 
-- [ ] T109 Harden OTP invalidation + challenge resolution
+- [x] T109 Harden OTP invalidation + challenge resolution
       Files: `apps/api/src/services/loginCode.ts`, `apps/api/src/routes/admin/auth.ts`
       Do: Apply attempt cap, TTL, single-use, supersede, and `challengeId` resolution exactly.
       Done when: T108 passes; 100% branch coverage.
       Refs: E-OTP, B3â€“B6/B9
+      > note: verified pre-existing; B3-B6/B9 in LoginCodeService verify/issue/resend; tests: 341 passing; deviations: none
+      > reviewed: PASS
 
-- [ ] T110 [test] E-RESET â€” reset edge tests
+- [x] T110 [test] E-RESET â€” reset edge tests
       Files: `apps/api/tests/integration/edge-reset.test.ts`
       Do: Unknown email â†’ same neutral message + no email; reused/expired link â†’ `410`; account-wide
       revoke verified across other sessions.
       Done when: Tests fail for C2/C3/C4/C6.
       Refs: E-RESET, C2/C3/C4/C6, FR-015/FR-017/FR-041
+      > note: 4 tests pin C2 expiry boundary/C3 reuse/C4 neutrality/C6 multi-family revoke; tests: 4 passing; deviations: none
+      > reviewed: PASS
 
-- [ ] T111 Harden reset neutrality + account-wide revoke
+- [x] T111 Harden reset neutrality + account-wide revoke
       Files: `apps/api/src/services/passwordResetToken.ts`, `apps/api/src/services/auth.ts`
       Do: Keep neutral responses, enforce single-use/expiry, revoke all families on success.
       Done when: T110 passes; 100% branch coverage.
       Refs: E-RESET, C2/C3/C4/C6
+      > note: verified pre-existing; C2/C3 in PasswordResetTokenService.consume, C4 in route, C6 in route txn; tests: 345 passing; deviations: none
+      > reviewed: PASS
 
-- [ ] T112 [test] E-POLICY â€” password policy edge tests
+- [x] T112 [test] E-POLICY â€” password policy edge tests
       Files: `apps/api/tests/integration/edge-policy.test.ts`
       Do: Assert length 11 rejected / 12 accepted, missing character class rejected, equals-current
       rejected, mismatched entries rejected, wrong current password on settings change rejected, and the
       server rejects even when a client bypass is simulated.
-      Done when: Tests fail for D1â€“D7.
-      Refs: E-POLICY, D1â€“D7, FR-019/FR-032
+      Done when: Tests fail for D1â€”D7.
+      Refs: E-POLICY, D1â€”D7, FR-019/FR-032
+      > note: 14 tests cover D1-D7 on both reset + settings paths; all pass (pre-existing impl); tests: 14 passing; deviations: none
+      > reviewed: PASS — 14/14 pass at runtime; D1-D7 pinned on both HTTP paths; nit: "Done when: Tests fail" not literally met (pre-existing impl), same accepted precedent as T104/T106/T109.
 
-- [ ] T113 Harden server-side policy enforcement on both paths
+- [x] T113 Harden server-side policy enforcement on both paths
       Files: `apps/api/src/services/passwordPolicy.ts`, `apps/api/src/routes/admin/auth.ts`,
       `apps/api/src/routes/admin/settings.ts`
       Do: Apply the identical policy at reset and settings change; `400` with specific messages.
       Done when: T112 passes.
-      Refs: E-POLICY, D1â€“D7
+      Refs: E-POLICY, D1â€”D7
+      > note: settings route now passes currentPasswordHash to validatePassword (D3 identical); tests: 14 passing; deviations: passwordPolicy.ts/auth.ts — no change needed
+      > reviewed: PASS — settings.ts:166-170 confirmed passing currentPasswordHash into validatePassword; D3 enforced identically on both paths; T112 14/14 pass.
 
-- [ ] T114 [test] E-THROTTLE â€” cooldown + window-cap tests
+- [x] T114 [test] E-THROTTLE â€” cooldown + window-cap tests
       Files: `apps/api/tests/integration/edge-throttle.test.ts`
       Do: With the injected clock assert resend within 60s issues nothing, the 6th request in 15m is
       blocked, and all throttle responses stay neutral; derive state from `created_at` rows.
       Done when: Tests fail for F1/F2/F3.
       Refs: E-THROTTLE, F1/F2/F3, FR-042/FR-043
+      > note: 5 tests pin resend-code 429+Retry-After+no-issue and forgot-password always-200 silent-skip + byte-identical neutral; tests: 0 passing (5 failing, TDD red for F1/F2/F3); deviations: none
+      > reviewed: PASS — TDD red confirmed pre-T115; 5/5 pass post-T115; F1/F2 (429+Retry-After), F3 (byte-identical 200) all correctly pinned.
 
-- [ ] T115 Harden resend cooldown + rolling-window cap
+- [x] T115 Harden resend cooldown + rolling-window cap
       Files: `apps/api/src/services/loginCode.ts`, `apps/api/src/services/passwordResetToken.ts`,
       `apps/api/src/routes/admin/auth.ts`
       Do: Derive 60s cooldown (latest row) and 5/15m cap (trailing-window count) from `created_at`;
       neutral `429`; surface countdown data to the UI.
       Done when: T114 passes.
       Refs: E-THROTTLE, F1/F2/F3
+      > note: throttle to services + injected clock; resend-code 429+Retry-After; forgot-password always-200 silent-skip (F3); tests: 5 passing; deviations: auth-forgot-password.test.ts - F3 fix 429->200
+      > reviewed: PASS-WITH-NITS — F1/F2/F3 correct, 100% branch on both services; nit: contracts/admin-auth.openapi.yaml + apps/api/openapi.yaml still document 429 for forgot-password, now unreachable — doc drift, see review report.
 
-- [ ] T116 Wire the resend countdown into the UI
+- [x] T116 Wire the resend countdown into the UI
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`, `apps/web/src/admin/pages/ForgotPassword.tsx`
       Do: Disable the resend control and show a countdown until the cooldown elapses.
       Done when: A frontend test asserts the disabled-with-countdown state.
       Refs: F1, FR-042
+      > note: 60s client-side countdown disables resend/try-again with seconds label; tests: 2 passing; deviations: resendCountdown.test.tsx - Done-when requires a frontend test
+      > reviewed: PASS-WITH-NITS — 2/2 pass; countdown/disable state correct on both pages; nit: ForgotPassword "try again" onClick is a pre-existing (T097b) dead no-op — see review report.
 
 - [ ] T117 [test] E-PHOTO â€” photo validation edge tests
       Files: `apps/api/tests/integration/edge-photo.test.ts`

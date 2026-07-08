@@ -20,21 +20,21 @@ import { IP_RATE_LIMIT_MAX } from '../../src/config/adminAuth.js';
 // Mock the SMTP mailer so login emails are captured, not sent.
 // ---------------------------------------------------------------------------
 
-const { sendEmailMock } = vi.hoisted(() => ({
+const { sendEmailMock, closeMock } = vi.hoisted(() => ({
   sendEmailMock: vi.fn().mockResolvedValue({
     success: true,
     messageId: 'mock-message-id',
     attempt: 1,
     timestamp: new Date(),
   }),
+  closeMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../src/services/mailer.js', () => {
-  function MockMailerService() {
-    // No-op constructor — no SMTP connection attempted.
+  class MockMailerService {
+    sendEmail = sendEmailMock;
+    close = closeMock;
   }
-  MockMailerService.prototype.sendEmail = sendEmailMock;
-  MockMailerService.prototype.close = vi.fn().mockResolvedValue(undefined);
   return {
     MailerService: MockMailerService,
     mailer: new MockMailerService(),
@@ -162,27 +162,33 @@ describe('POST /admin/auth/login', () => {
     });
   });
 
-  it('returns 429 when the auth-route IP rate limit is exceeded (F4)', async () => {
-    // Use a unique synthetic IP so this test is not affected by earlier
-    // requests from the same process (the in-memory rate-limit store is
-    // keyed by IP).
-    const uniqueIp = '203.0.113.10';
+  it(
+    'returns 429 when the auth-route IP rate limit is exceeded (F4)',
+    async () => {
+      // Use a unique synthetic IP so this test is not affected by earlier
+      // requests from the same process (the in-memory rate-limit store is
+      // keyed by IP).
+      const uniqueIp = '203.0.113.10';
 
-    // Consume the entire per-IP request budget.
-    for (let i = 0; i < IP_RATE_LIMIT_MAX; i++) {
-      const req = request(app)
+      // Consume the entire per-IP request budget.
+      for (let i = 0; i < IP_RATE_LIMIT_MAX; i++) {
+        const req = request(app)
+          .post('/admin/auth/login')
+          .set('X-Forwarded-For', uniqueIp)
+          .send({ email, password });
+        const res = await req;
+        expect(res.status).toBe(200);
+      }
+
+      // The next request from the same IP must be throttled.
+      const res = await request(app)
         .post('/admin/auth/login')
         .set('X-Forwarded-For', uniqueIp)
         .send({ email, password });
-      const res = await req;
-      expect(res.status).toBe(200);
-    }
-
-    // The next request from the same IP must be throttled.
-    const res = await request(app)
-      .post('/admin/auth/login')
-      .set('X-Forwarded-For', uniqueIp)
-      .send({ email, password });
-    expect(res.status).toBe(429);
-  });
+      expect(res.status).toBe(429);
+    },
+    // IP_RATE_LIMIT_MAX (20) sequential real argon2-verifying logins exceed the
+    // global 10s testTimeout under v8 coverage instrumentation (`pnpm test:coverage`).
+    30000,
+  );
 });

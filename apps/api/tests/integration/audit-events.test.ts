@@ -34,21 +34,21 @@ import { RESEND_COOLDOWN_MS } from '../../src/config/adminAuth.js';
 // The mock matches the module boundary pattern used by the rest of the suite.
 // ---------------------------------------------------------------------------
 
-const { sendEmailMock } = vi.hoisted(() => ({
+const { sendEmailMock, closeMock } = vi.hoisted(() => ({
   sendEmailMock: vi.fn().mockResolvedValue({
     success: true,
     messageId: 'mock-message-id',
     attempt: 1,
     timestamp: new Date(),
   }),
+  closeMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../src/services/mailer.js', () => {
-  function MockMailerService() {
-    // No-op constructor — no SMTP connection is attempted.
+  class MockMailerService {
+    sendEmail = sendEmailMock;
+    close = closeMock;
   }
-  MockMailerService.prototype.sendEmail = sendEmailMock;
-  MockMailerService.prototype.close = vi.fn().mockResolvedValue(undefined);
   return {
     MailerService: MockMailerService,
     mailer: new MockMailerService(),

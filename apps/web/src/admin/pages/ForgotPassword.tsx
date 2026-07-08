@@ -106,6 +106,18 @@ function ForgotPassword({
     onSubmit?.(data);
   });
 
+  // F1/FR-042: "try again" resends the reset-link request using the email
+  // already captured in the form state, then restarts the 60s cooldown.
+  // Mirrors the TwoFactor handleResend pattern — the callback fires
+  // unconditionally and the cooldown restarts on click, independent of the
+  // API response (the container's onSubmit owns the transport).  The email
+  // was validated on the first submit, so no re-validation is needed here.
+  const handleTryAgain = () => {
+    const email = form.getValues('email');
+    onSubmit?.({ email });
+    setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
+  };
+
   return (
     <div
       data-testid="forgot-password-page"
@@ -166,12 +178,13 @@ function ForgotPassword({
                   Didn&apos;t receive an email? Check your spam folder or{' '}
                   <button
                     type="button"
-                    disabled={cooldownSeconds > 0}
+                    disabled={cooldownSeconds > 0 || isSubmitting}
                     className={cn(
                       'text-primary underline-offset-4 hover:underline',
-                      cooldownSeconds > 0 && 'cursor-not-allowed opacity-60 no-underline',
+                      (cooldownSeconds > 0 || isSubmitting) &&
+                        'cursor-not-allowed opacity-60 no-underline',
                     )}
-                    onClick={() => form.reset()}
+                    onClick={handleTryAgain}
                   >
                     {cooldownSeconds > 0
                       ? `try again (${cooldownSeconds}s)`

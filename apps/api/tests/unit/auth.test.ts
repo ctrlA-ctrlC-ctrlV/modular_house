@@ -697,6 +697,36 @@ describe('AuthService — Phase 1 rewrite (A1–A6, B7, C5/C6, E1–E7)', () => 
 
       expect(result).toMatchObject({ success: false, status: 401 });
     });
+
+    // D3: new password must not equal the current password.  The settings route
+    // now enforces D3 via validatePassword BEFORE changePassword is reached
+    // (T113), so this defense-in-depth branch inside changePassword is only
+    // exercised by a direct service call.  Pinned here to keep services/auth.ts
+    // at 100% branch coverage (the line-414 branch that T113 rendered dead via
+    // the route) and to document the redundant guard for future readers.
+    it('rejects changePassword when the new password equals the current password (D3)', async () => {
+      mockUser.findUnique.mockResolvedValue(makeUser());
+      // Both argon2.verify calls return true: D5 (current correct) passes, then
+      // D3 (new == current) evaluates sameAsCurrent=true ⇒ 400.
+      mockArgon2.verify.mockResolvedValue(true);
+
+      const result = await service.changePassword(
+        'user-1',
+        'SamePassword1!',
+        'SamePassword1!',
+        'family-1',
+      );
+
+      expect(result).toMatchObject({
+        success: false,
+        status: 400,
+        message: 'New password must be different from your current password.',
+      });
+      // No sessions revoked, no re-mint, no rehash on a D3 rejection.
+      expect(mockRefreshToken.updateMany).not.toHaveBeenCalled();
+      expect(mockRefreshToken.create).not.toHaveBeenCalled();
+      expect(mockArgon2.hash).not.toHaveBeenCalled();
+    });
   });
 
   // =========================================================================

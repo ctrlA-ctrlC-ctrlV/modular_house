@@ -35,21 +35,21 @@ import { OTP_MAX_ATTEMPTS, OTP_TTL_MS } from '../../src/config/adminAuth.js';
 
 // Mock the SMTP mailer at the module boundary so resend-code emails are
 // captured (to read back the new raw code), not sent over a real connection.
-const { sendEmailMock } = vi.hoisted(() => ({
+const { sendEmailMock, closeMock } = vi.hoisted(() => ({
   sendEmailMock: vi.fn().mockResolvedValue({
     success: true,
     messageId: 'mock-message-id',
     attempt: 1,
     timestamp: new Date(),
   }),
+  closeMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../src/services/mailer.js', () => {
-  function MockMailerService() {
-    // No-op constructor — no SMTP connection attempted.
+  class MockMailerService {
+    sendEmail = sendEmailMock;
+    close = closeMock;
   }
-  MockMailerService.prototype.sendEmail = sendEmailMock;
-  MockMailerService.prototype.close = vi.fn().mockResolvedValue(undefined);
   return {
     MailerService: MockMailerService,
     mailer: new MockMailerService(),

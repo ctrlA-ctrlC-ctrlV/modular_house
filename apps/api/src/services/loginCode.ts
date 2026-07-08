@@ -1,7 +1,14 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import * as argon2 from 'argon2';
 import { PrismaClient } from '@prisma/client';
-import { OTP_DIGIT_COUNT, OTP_MAX_ATTEMPTS, OTP_TTL_MS } from '../config/adminAuth.js';
+import {
+  OTP_DIGIT_COUNT,
+  OTP_MAX_ATTEMPTS,
+  OTP_TTL_MS,
+  RESEND_COOLDOWN_MS,
+  RATE_WINDOW_MAX_REQUESTS,
+  RATE_WINDOW_MS,
+} from '../config/adminAuth.js';
 
 // ---------------------------------------------------------------------------
 // Return types
@@ -37,6 +44,25 @@ export interface VerifySuccess {
 export interface VerifyFailure {
   success: false;
   reason: string;
+}
+
+// ---------------------------------------------------------------------------
+// Throttle result (F1/F2) — returned by checkResendThrottle()
+// ---------------------------------------------------------------------------
+
+/**
+ * Outcome of a resend-cooldown / rolling-window-cap check for one account.
+ *
+ * - `throttled: false`  → the request may proceed.
+ * - `throttled: true`   → the request is blocked; `reason` distinguishes the
+ *   60s per-account cooldown (F1) from the 5-per-15m rolling-window cap (F2),
+ *   and `retryAfterMs` is the milliseconds until the block elapses so the
+ *   caller can surface a countdown to the UI (T115 / FR-042).
+ */
+export interface ThrottleResult {
+  throttled: boolean;
+  reason?: 'cooldown' | 'window_cap';
+  retryAfterMs?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -217,6 +243,65 @@ export class LoginCodeService {
     });
 
     return { success: true, code, challengeId };
+  }
+
+  // -------------------------------------------------------------------------
+  // checkResendThrottle() — F1, F2
+  // -------------------------------------------------------------------------
+
+  /**
+   * Check whether a resend-code request for `userId` is currently throttled.
+   *
+   * All throttle state is derived from the `created_at` timestamps of existing
+   * `LoginCode` rows (plan §2.6 — no separate counter store):
+   *   - Cooldown (F1): the most recent row must be older than RESEND_COOLDOWN_MS
+   *     (60s).  `retryAfterMs` is the remaining time until the cooldown elapses.
+   *   - Window cap (F2): the count of rows created within the trailing
+   *     RATE_WINDOW_MS (15m) must be below RATE_WINDOW_MAX_REQUESTS (5).
+   *     `retryAfterMs` is the time until the oldest in-window row ages out.
+   *
+   * Uses the injected clock so tests can advance time deterministically (R11).
+   * Returns `{ throttled: false }` when the request may proceed.
+   */
+  async checkResendThrottle(userId: string): Promise<ThrottleResult> {
+    const now = this.clock();
+
+    // F1: 60s per-account cooldown measured from the latest row's created_at.
+    // A missing latest row (no prior code) short-circuits the compound
+    // condition to false, so no cooldown can apply — covered by the
+    // cooldown-elapsed branch where `latest` exists but is older than 60s.
+    const latest = await this.prisma.loginCode.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (latest && now.getTime() - latest.createdAt.getTime() < RESEND_COOLDOWN_MS) {
+      const elapsedMs = now.getTime() - latest.createdAt.getTime();
+      return {
+        throttled: true,
+        reason: 'cooldown',
+        retryAfterMs: RESEND_COOLDOWN_MS - elapsedMs,
+      };
+    }
+
+    // F2: rolling 15m window cap on the count of rows created in that window.
+    const windowStart = new Date(now.getTime() - RATE_WINDOW_MS);
+    const countInWindow = await this.prisma.loginCode.count({
+      where: {
+        userId,
+        createdAt: { gte: windowStart },
+      },
+    });
+
+    if (countInWindow >= RATE_WINDOW_MAX_REQUESTS) {
+      return {
+        throttled: true,
+        reason: 'window_cap',
+        retryAfterMs: RATE_WINDOW_MS,
+      };
+    }
+
+    return { throttled: false };
   }
 
   // -------------------------------------------------------------------------

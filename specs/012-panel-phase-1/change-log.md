@@ -18,6 +18,14 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-08T10:00:00.000+00:00] — docs(specs): T109 verified pre-existing OTP hardening (B3–B6/B9)
+
+### Notes
+- **No code change required.** `LoginCodeService.verify()` already implements B3 (TTL expiry check), B4 (single-use `consumedAt` guard), B5 (attempt-count cap at `OTP_MAX_ATTEMPTS`), B6 (supersede via `issue()`/`resend()` invalidating prior unconsumed codes), and B9 (`challengeId` resolution returning `unknown_challenge` for missing rows). `LoginCodeService.resend()` reuses the same `challengeId` across resends (B9 stability) and invalidates the prior code (B6). The `verify-2fa` route delegates to `AuthService.verifyOtp()` which calls `LoginCodeService.verify()`. The `resend-code` route resolves the `challengeId` to a user row and delegates to `LoginCodeService.resend()`, returning 401 for unknown challenges.
+- All 6 T108 edge-otp tests pass (B3/B4/B5/B5-boundary/B6+B9/B9-unknown). Full API suite: 341/341 green. `loginCode.ts` and `auth.ts` (service) remain at 100% branch/stmt/func/line coverage. Lint and typecheck clean.
+
+---
+
 ## [2026-07-07T16:05:00.000+00:00]- test(admin-auth): T108 E-OTP edge-case tests (B3/B4/B5/B6/B9)
 
 ### Added

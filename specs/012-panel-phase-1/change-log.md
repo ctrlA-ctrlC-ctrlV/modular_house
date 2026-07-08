@@ -18,7 +18,33 @@ Note: keep the most latest entry on top
 > - 
 ---
 
-## [2026-07-08T11:30:00.000+00:00] — test(admin-auth): cover changePassword D3 branch — T113 carry-forward coverage fix
+## [2026-07-08T15:42:00.000+00:00] — docs(admin-auth): T118 verify pre-existing profile-photo validation (G1/G2/G3/G4)
+
+### Notes
+- No production code changed. T118's `Done when: T117 passes` is met (3/3 edge tests green). The profile-photo type/size validation and removal fallback were already implemented in T053 (PUT route: MIME allow-list check at `settings.ts:296-307`, 5 MB size cap at `settings.ts:309-316`, both pre-persist before `prisma.user.update`) and T057 (DELETE route: nulls `profilePhoto` + `profilePhotoMime` at `settings.ts:433-440`, returning Me with `hasProfilePhoto=false`). T117's edge tests verified the "no change" guarantee (G3 — rejected uploads preserve the existing photo byte-for-byte) and the full G4/G6 fallback cycle (DELETE → `hasProfilePhoto=false` → subsequent GET → 404, the signal that triggers the client's initials fallback). Same "verified pre-existing" pattern as T109/T111.
+
+---
+
+### Added
+- `apps/api/tests/integration/edge-photo.test.ts` — 3 edge-case integration tests that pin the profile-photo validation + removal behavior beyond the Pass-1 coverage in T052/T056: (1) G1/G3 — `image/gif` is rejected with 400 AND the user's previously stored PNG photo is preserved byte-for-byte via a follow-up GET (the "no change" guarantee that T052 never tested because it ran with a clean photo slate); (2) G2/G3 — a file of exactly `PHOTO_MAX_BYTES + 1` (5 MB + 1 byte) is rejected with 400 AND the existing photo is preserved (same "no change" guarantee); (3) G4/G6 — removing the photo returns 200 Me with `hasProfilePhoto=false` AND a subsequent authenticated GET returns 404 (the signal that makes the client render the initials fallback, completing the fallback cycle that T056 only asserted on the DELETE response). Uses the injected clock for the verify-2fa session helper (mirroring the T052/T056 pattern); no TTL/expiry assertions in the photo path itself.
+
+### Notes
+- All 3 tests pass immediately (pre-existing implementation from T053/T057). "Done when: Tests fail for G1/G2/G4" is not literally met — same accepted precedent as T104/T106/T109/T112 (pre-existing impl verified by the edge tests rather than driving a TDD red→green cycle). The tests serve as rigorous pinning of the "no change" guarantee and the full G4/G6 fallback cycle that the Pass-1 tests did not cover.
+- `pnpm --filter @modular-house/api exec vitest run tests/integration/edge-photo.test.ts --no-file-parallelism` → 3/3 pass; `eslint` + `tsc --noEmit` clean.
+
+---
+
+### Fixed
+- `apps/web/src/admin/pages/ForgotPassword.tsx` — the "try again" control's `onClick` was `() => form.reset()`, a dead no-op: it cleared an email field that is not rendered in the confirmation state, did not call `onSubmit` to request a new reset link, and did not restart the cooldown. Replaced with `handleTryAgain`, which reads the retained email from RHF form state via `form.getValues('email')`, calls `onSubmit?.({ email })` to resend the reset-link request, and calls `setCooldownSeconds(RESEND_COOLDOWN_SECONDS)` to restart the 60s countdown — mirroring the TwoFactor `handleResend` pattern (F1/FR-042). Also added `isSubmitting` to the button's `disabled` guard and its disabled-style condition so the control is locked during the in-flight request (prevents double-clicks), matching TwoFactor's `disabled={… || isSubmitting || cooldownSeconds > 0}` pattern.
+
+### Added
+- `apps/web/src/admin/pages/resendCountdown.test.tsx` — one new test in the `ForgotPassword page` describe block: "clicking try-again after the cooldown elapses calls onSubmit and restarts the countdown". Advances fake timers past the initial 60s cooldown, clicks the now-enabled "try again" button, and asserts `onSubmit` was called once and the control re-disables with `try again (60s)` (cooldown restarted). This is the TDD red→green proof for the nit fix.
+
+### Notes
+- This is a carry-forward nit from the Session 43 review of T116 ("ForgotPassword 'try again' onClick is a pre-existing (T097b) dead no-op"). Applied per §4.4 before starting T117/T118. T116's `Files:` list names only the two page components; `resendCountdown.test.tsx` was already recorded as a deviation in the original T116 note (required by `Done when: A frontend test asserts the disabled-with-countdown state`). The test-file addition for the nit fix is covered by that same deviation.
+- TDD: the new test was confirmed red first (`onSubmit` expected 1 call, got 0 — the `form.reset()` no-op), then green after the `handleTryAgain` fix. 3/3 pass in `resendCountdown.test.tsx`; web lint + typecheck clean.
+
+---
 
 ### Added
 - `apps/api/tests/unit/auth.test.ts` — one unit test added to the `changePassword (E6)` describe block: "rejects changePassword when the new password equals the current password (D3)". It calls `AuthService.changePassword` directly with `newPassword === currentPassword` and asserts the `{ success: false, status: 400, message: 'New password must be different from your current password.' }` response, plus that no sessions are revoked, no token is re-minted, and no rehash occurs. This covers the `if (sameAsCurrent) return 400` branch at `services/auth.ts:414`.

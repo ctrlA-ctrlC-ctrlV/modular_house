@@ -85,5 +85,30 @@ describe('Resend countdown UI (T116, F1/FR-042)', () => {
       expect(tryAgain).toBeEnabled();
       expect(tryAgain).toHaveTextContent('try again');
     });
+
+    // T116 nit fix (from Session 43 review): the "try again" onClick was a
+    // dead no-op (form.reset() that cleared an unrendered field).  It must
+    // fire onSubmit to request a new reset link and restart the cooldown,
+    // mirroring the TwoFactor handleResend pattern.
+    it('clicking try-again after the cooldown elapses calls onSubmit and restarts the countdown', () => {
+      const onSubmit = vi.fn();
+      renderInAdminRoot(<ForgotPassword isSubmitted={true} onSubmit={onSubmit} />);
+
+      const tryAgain = screen.getByRole('button', { name: /try again/i });
+
+      // Advance past the initial 60s cooldown so the control is enabled.
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(tryAgain).toBeEnabled();
+
+      // Click "try again" → onSubmit fires and the 60s cooldown restarts.
+      act(() => {
+        fireEvent.click(tryAgain);
+      });
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+      expect(tryAgain).toBeDisabled();
+      expect(tryAgain).toHaveTextContent('try again (60s)');
+    });
   });
 });

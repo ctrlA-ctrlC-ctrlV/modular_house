@@ -1183,19 +1183,22 @@
       Refs: F1, FR-042
       > note: 60s client-side countdown disables resend/try-again with seconds label; tests: 2 passing; deviations: resendCountdown.test.tsx - Done-when requires a frontend test
       > reviewed: PASS-WITH-NITS — 2/2 pass; countdown/disable state correct on both pages; nit: ForgotPassword "try again" onClick is a pre-existing (T097b) dead no-op — see review report.
+      > fix(Session 43 review): wired ForgotPassword "try again" onClick to handleTryAgain (calls onSubmit + restarts cooldown); isSubmitting added to disabled guard; tests: 3 passing; deviations: none
 
-- [ ] T117 [test] E-PHOTO â€” photo validation edge tests
+- [x] T117 [test] E-PHOTO â€” photo validation edge tests
       Files: `apps/api/tests/integration/edge-photo.test.ts`
       Do: Assert `image/gif` rejected (`400`), 5MB+1byte rejected (`400`), and remove â†’ initials
       fallback (`hasProfilePhoto=false`).
       Done when: Tests fail for G1/G2/G4.
       Refs: E-PHOTO, G1/G2/G4, FR-033
+      > note: 3 tests pin G1 gif-400+no-change, G2 5MB+1-400+no-change, G4 remove+GET-404 fallback; pre-existing impl (T053/T057); tests: 3 passing; deviations: none
 
-- [ ] T118 Harden profile-photo type/size validation
+- [x] T118 Harden profile-photo type/size validation
       Files: `apps/api/src/routes/admin/settings.ts`
       Do: Enforce MIME allow-list + 5MB cap pre-persist; ensure removal restores the initials fallback.
       Done when: T117 passes.
       Refs: E-PHOTO, G1/G2/G3/G4
+      > note: verified pre-existing; G1/G3 MIME check + G2 size check pre-persist + G4 removal nulls both columns in settings.ts; tests: 3 passing; deviations: none
 
 - [ ] T119 [test] E-SESSION â€” session/refresh edge tests
       Files: `apps/api/tests/integration/edge-session.test.ts`,

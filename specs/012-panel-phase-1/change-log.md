@@ -18,7 +18,17 @@ Note: keep the most latest entry on top
 > - 
 ---
 
-## [2026-07-08T15:42:00.000+00:00] — docs(admin-auth): T118 verify pre-existing profile-photo validation (G1/G2/G3/G4)
+## [2026-07-08T16:42:00.000+00:00] — fix(admin-auth): T115 nit — remove unreachable 429 from forgot-password OpenAPI docs (Session 43 review)
+
+### Fixed
+- `specs/012-panel-phase-1/contracts/admin-auth.openapi.yaml` — removed the `'429'` response from the `POST /admin/auth/forgot-password` endpoint. T115's F3 fix made forgot-password always return the neutral `200` (silently skipping issuance for throttled known accounts) to close the account-existence enumeration vector — a `429` could only fire for known emails, leaking existence versus the unknown-email `200`. The `429` was therefore unreachable doc drift. Also updated the endpoint description to document the F3 silent-skip behavior: "throttled requests silently skip issuance and still return the neutral 200 (F3 — no account-existence leak via a 429)."
+- `apps/api/openapi.yaml` — identical change (removed `'429'` response + updated description) so the two OpenAPI files stay in sync per T062's requirement that they match exactly.
+
+### Notes
+- Carry-forward nit from the Session 43 review of T115. The resend-code `'429'` response (legitimate — F1/F2 surface it with `Retry-After`) and the login `'429'` response (F4 IP rate limit) are both untouched; only the unreachable forgot-password `'429'` was removed.
+- `pnpm --filter @modular-house/api docs:validate` → "OpenAPI specification is valid!" `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` → 368/368 pass. `eslint` clean. The two OpenAPI files' forgot-password sections are byte-identical (verified by diff).
+
+---
 
 ### Notes
 - No production code changed. T118's `Done when: T117 passes` is met (3/3 edge tests green). The profile-photo type/size validation and removal fallback were already implemented in T053 (PUT route: MIME allow-list check at `settings.ts:296-307`, 5 MB size cap at `settings.ts:309-316`, both pre-persist before `prisma.user.update`) and T057 (DELETE route: nulls `profilePhoto` + `profilePhotoMime` at `settings.ts:433-440`, returning Me with `hasProfilePhoto=false`). T117's edge tests verified the "no change" guarantee (G3 — rejected uploads preserve the existing photo byte-for-byte) and the full G4/G6 fallback cycle (DELETE → `hasProfilePhoto=false` → subsequent GET → 404, the signal that triggers the client's initials fallback). Same "verified pre-existing" pattern as T109/T111.

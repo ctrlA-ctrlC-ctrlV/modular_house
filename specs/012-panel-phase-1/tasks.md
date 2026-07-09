@@ -1175,6 +1175,7 @@
       Refs: E-THROTTLE, F1/F2/F3
       > note: throttle to services + injected clock; resend-code 429+Retry-After; forgot-password always-200 silent-skip (F3); tests: 5 passing; deviations: auth-forgot-password.test.ts - F3 fix 429->200
       > reviewed: PASS-WITH-NITS — F1/F2/F3 correct, 100% branch on both services; nit: contracts/admin-auth.openapi.yaml + apps/api/openapi.yaml still document 429 for forgot-password, now unreachable — doc drift, see review report.
+      > fix(Session 43 review): removed unreachable 429 from forgot-password in both OpenAPI files; description clarified F3 silent-skip; docs:validate passes; tests: 368 passing; deviations: none
 
 - [x] T116 Wire the resend countdown into the UI
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`, `apps/web/src/admin/pages/ForgotPassword.tsx`

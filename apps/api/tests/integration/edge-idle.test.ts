@@ -11,6 +11,11 @@
  *          ("Refresh token expired"), enforcing the hard upper bound
  *          regardless of recent activity.
  *
+ *   E7c — The idle timer resets on every successful rotation: a token
+ *          refreshed within the 30m window is accepted at T+40m even though
+ *          initial issuance was at T+0 (i.e. delta from issuance = 40m > 30m,
+ *          but delta from last rotation = 20m < 30m).
+ *
  * Drives AuthService.refresh() directly with a fake clock rather than
  * going through the HTTP route (which uses a live wall-clock AuthService).
  * The token is issued via the real verify-2fa route so the DB row reflects
@@ -131,6 +136,38 @@ describe('E-IDLE — idle-timeout and absolute-cap edge cases (E7)', () => {
       if (!result.success) {
         expect(result.status).toBe(401);
         expect(result.message).toBe('Refresh token expired');
+      }
+    },
+  );
+
+  // ── E7c — idle timer resets on each successful rotation ─────────────────────
+
+  it(
+    'idle timer resets on every successful rotation: a token refreshed ' +
+      'within the 30m window remains valid even when >30m has elapsed ' +
+      'since initial issuance (E7 multi-rotation)',
+    async () => {
+      const rawTokenA = await issueRawToken();
+      const issuedAt = Date.now();
+
+      // Rotate A → B at T+20m (within the 30m idle window).
+      // createRefreshToken sets B.lastUsedAt = T+20m.
+      const t20 = new Date(issuedAt + 20 * 60 * 1000);
+      const rotateResult = await new AuthService(prisma, () => t20).refresh(rawTokenA);
+      if (!rotateResult.success) {
+        throw new Error(`Unexpected rotation failure: ${JSON.stringify(rotateResult)}`);
+      }
+      const rawTokenB = rotateResult.rawRefreshToken;
+
+      // Use B at T+40m — 40m from initial issuance but only 20m from B's
+      // lastUsedAt (T+20m).  Idle check: 20m < 30m → must succeed.
+      // If the idle timer did NOT reset on rotation, 40m > 30m would fire.
+      const t40 = new Date(issuedAt + 40 * 60 * 1000);
+      const useResult = await new AuthService(prisma, () => t40).refresh(rawTokenB);
+
+      expect(useResult.success).toBe(true);
+      if (useResult.success) {
+        expect(useResult).toHaveProperty('accessToken');
       }
     },
   );

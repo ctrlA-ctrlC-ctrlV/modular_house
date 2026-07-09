@@ -18,6 +18,13 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-09T16:25:00.000+00:00] — test(admin-auth): T121-nit E7c multi-rotation idle-timer-reset test (edge-idle.test.ts)
+
+### Added
+- `apps/api/tests/integration/edge-idle.test.ts` — E7c test: rotate token A→B at T+20m, use B at T+40m (40m from issuance, 20m from rotation) → expects 200. Pins that the idle timer (`lastUsedAt`) resets on each successful rotation, not measured from original issuance. File-header updated to document E7c. 3 tests total, 373 passing.
+
+---
+
 ## [2026-07-09T14:20:00.000+00:00] — docs(specs): T122 verified pre-existing — 30m idle timeout + 7d absolute cap in auth.ts (tasks.md)
 
 ### Notes

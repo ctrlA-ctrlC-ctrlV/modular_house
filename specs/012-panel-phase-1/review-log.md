@@ -4,6 +4,17 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 44 — T115(nit)/T116(nit)/T117/T118 review (2026-07-09)
+
+T115(nit) — PASS — unreachable 429 removed from both OpenAPI files; docs:validate + 368/368 green
+T116(nit) — PASS — ForgotPassword try-again dead no-op fixed; TDD red proven; 3/3 pass
+T117 — PASS-WITH-NITS — 3/3 pass; G1/G2/G4 pinned; "tests fail" nit (T104/T106/T109/T112 precedent)
+T118 — PASS — MIME+size pre-persist confirmed; DELETE nulls both columns; T117 green
+
+**Overall: GO** — proceed to T119. Full findings in chat report.
+
+---
+
 ## Session 43 — T112/T113/T114/T115/T116 review (2026-07-08)
 
 T112 — PASS — 14/14 pass; D1-D7 pinned both paths; "tests fail" nit (precedent)

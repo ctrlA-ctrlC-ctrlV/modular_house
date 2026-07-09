@@ -1176,6 +1176,7 @@
       > note: throttle to services + injected clock; resend-code 429+Retry-After; forgot-password always-200 silent-skip (F3); tests: 5 passing; deviations: auth-forgot-password.test.ts - F3 fix 429->200
       > reviewed: PASS-WITH-NITS — F1/F2/F3 correct, 100% branch on both services; nit: contracts/admin-auth.openapi.yaml + apps/api/openapi.yaml still document 429 for forgot-password, now unreachable — doc drift, see review report.
       > fix(Session 43 review): removed unreachable 429 from forgot-password in both OpenAPI files; description clarified F3 silent-skip; docs:validate passes; tests: 368 passing; deviations: none
+      > reviewed: PASS — nit fix confirmed; both OpenAPI files byte-identical for forgot-password section; docs:validate + full suite green.
 
 - [x] T116 Wire the resend countdown into the UI
       Files: `apps/web/src/admin/pages/TwoFactor.tsx`, `apps/web/src/admin/pages/ForgotPassword.tsx`
@@ -1185,6 +1186,7 @@
       > note: 60s client-side countdown disables resend/try-again with seconds label; tests: 2 passing; deviations: resendCountdown.test.tsx - Done-when requires a frontend test
       > reviewed: PASS-WITH-NITS — 2/2 pass; countdown/disable state correct on both pages; nit: ForgotPassword "try again" onClick is a pre-existing (T097b) dead no-op — see review report.
       > fix(Session 43 review): wired ForgotPassword "try again" onClick to handleTryAgain (calls onSubmit + restarts cooldown); isSubmitting added to disabled guard; tests: 3 passing; deviations: none
+      > reviewed: PASS — dead no-op fixed; new test proves TDD red→green; 3/3 pass; matches TwoFactor handleResend pattern.
 
 - [x] T117 [test] E-PHOTO â€” photo validation edge tests
       Files: `apps/api/tests/integration/edge-photo.test.ts`
@@ -1193,6 +1195,7 @@
       Done when: Tests fail for G1/G2/G4.
       Refs: E-PHOTO, G1/G2/G4, FR-033
       > note: 3 tests pin G1 gif-400+no-change, G2 5MB+1-400+no-change, G4 remove+GET-404 fallback; pre-existing impl (T053/T057); tests: 3 passing; deviations: none
+      > reviewed: PASS-WITH-NITS â€” 3/3 pass, G1/G2/G4 correctly pinned incl. "no change" guarantee; "Done when: Tests fail" not literally met (pre-existing impl), same accepted T104/T106/T109/T112 precedent.
 
 - [x] T118 Harden profile-photo type/size validation
       Files: `apps/api/src/routes/admin/settings.ts`
@@ -1200,6 +1203,7 @@
       Done when: T117 passes.
       Refs: E-PHOTO, G1/G2/G3/G4
       > note: verified pre-existing; G1/G3 MIME check + G2 size check pre-persist + G4 removal nulls both columns in settings.ts; tests: 3 passing; deviations: none
+      > reviewed: PASS â€” MIME + size checks confirmed pre-persist at settings.ts:296-316; DELETE nulls both columns at 437-438; T117 3/3 pass.
 
 - [ ] T119 [test] E-SESSION â€” session/refresh edge tests
       Files: `apps/api/tests/integration/edge-session.test.ts`,

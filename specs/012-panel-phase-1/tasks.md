@@ -1230,8 +1230,9 @@
       refresh token is otherwise unexpired (uses `RefreshToken.lastUsedAt`); absolute cap 7d.
       Done when: Tests fail for E7.
       Refs: E-IDLE, E7
-      > note: 2 tests — E7a (idle >30m â†' 401 “Session idle timeout” via injected clock at +30m+1ms, absolute expiry not reached) + E7b (absolute 7d cap â†' 401 “Refresh token expired” via injected clock at +7d+1ms); drives AuthService.refresh() directly with fake clock; tests: 372 passing; deviations: none
+      > note: 3 tests — E7a (idle >30m â†' 401 “Session idle timeout” via injected clock at +30m+1ms, absolute expiry not reached) + E7b (absolute 7d cap â†' 401 “Refresh token expired” via injected clock at +7d+1ms) + E7c (idle timer resets on rotation: rotate A→B at T+20m, use B at T+40m → 200, pins that delta is measured from lastUsedAt not initial issuance); drives AuthService.refresh() directly with fake clock; tests: 373 passing; deviations: none
       > reviewed: PASS-WITH-NITS â€” E7a/E7b boundaries correctly pinned via injected clock, 2/2 pass; nit: only a single-rotation boundary is tested, see T122 note on the absolute-cap-resets-on-rotation question.
+      > nit-fix: added E7c multi-rotation test; 373 passing
 
 - [x] T122 Harden the 30m idle timeout via lastUsedAt
       Files: `apps/api/src/services/auth.ts`

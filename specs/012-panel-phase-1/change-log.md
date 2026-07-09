@@ -18,6 +18,24 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-09T13:12:00.000+00:00] — docs(specs): T120 verified pre-existing — refresh rotation + protected-view redirect hardened by T119 tests (tasks.md)
+
+### Notes
+- T120 "Do": family reuse-detection revoke (E4) in `auth.ts` `refresh()` + logout-current-family (E5) in `auth.ts` `logout()`; client silent refresh on 401 in `apiClient.ts` `authenticatedFetch()`; redirect on auth failure in `guard.tsx`. All pre-existing, all pinned by T119 tests. `services/auth.ts` 100% branch coverage confirmed. No source changes needed.
+
+---
+
+## [2026-07-09T13:10:00.000+00:00] — test(admin-auth): T119 E-SESSION edge tests — E2/E4/E5 boundary pins (edge-session.test.ts, session.test.tsx)
+
+### Added
+- `apps/api/tests/integration/edge-session.test.ts` — 2 backend integration tests pinning E4 (reuse of a revoked refresh token revokes the entire family including successor tokens) and E5 (logout revokes only the current session's refresh-token family; other concurrent sessions remain valid). Tests pass immediately against the pre-existing AuthService implementation (same precedent as T104/T106/T112/T117).
+- `apps/web/src/admin/auth/session.test.tsx` — 3 frontend tests pinning E2 (silent refresh on 401 mid-use keeps the new token in memory only, never in browser storage), E4 (failed refresh on 401 clears the in-memory access token), and E5 (protected view with absent/expired session redirects to /admin/login). Tests pass immediately against the pre-existing apiClient/AdminGuard implementation.
+
+### Notes
+- api suite: 370/370 pass. web suite: 251/251 pass. lint + typecheck clean. No deviations.
+
+---
+
 ## [2026-07-08T16:42:00.000+00:00] — fix(admin-auth): T115 nit — remove unreachable 429 from forgot-password OpenAPI docs (Session 43 review)
 
 ### Fixed

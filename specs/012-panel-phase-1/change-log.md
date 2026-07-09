@@ -18,6 +18,23 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-09T14:20:00.000+00:00] — docs(specs): T122 verified pre-existing — 30m idle timeout + 7d absolute cap in auth.ts (tasks.md)
+
+### Notes
+- T122 "Do": idle-timeout rejection (`lastUsedAt !== null && delta > IDLE_TIMEOUT_MS` → 401 "Session idle timeout"), absolute-expiry rejection (`expiresAt < now` → 401 "Refresh token expired"), and `lastUsedAt` reset on token rotation (`createRefreshToken` sets `lastUsedAt: now`) all pre-existing in `services/auth.ts`. `services/auth.ts` 100% branch coverage confirmed. No source changes needed.
+
+---
+
+## [2026-07-09T14:18:00.000+00:00] — test(admin-auth): T121 E-IDLE idle-timeout and absolute-cap tests (edge-idle.test.ts)
+
+### Added
+- `apps/api/tests/integration/edge-idle.test.ts` — 2 integration tests driving `AuthService.refresh()` directly with an injected clock:
+  - E7a: clock advanced `IDLE_TIMEOUT_MS + 1ms` — asserts 401 "Session idle timeout" (absolute expiry not yet reached)
+  - E7b: clock advanced `REFRESH_TOKEN_TTL_MS + 1ms` — asserts 401 "Refresh token expired" (absolute 7-day cap)
+- Tests pass immediately (implementation pre-existing in `auth.ts`); follows T104/T109/T118/T120 precedent.
+
+---
+
 ## [2026-07-09T13:12:00.000+00:00] — docs(specs): T120 verified pre-existing — refresh rotation + protected-view redirect hardened by T119 tests (tasks.md)
 
 ### Notes

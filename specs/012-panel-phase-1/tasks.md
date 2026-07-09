@@ -1222,19 +1222,21 @@
       Refs: E-SESSION, E4/E5
       > note: verified pre-existing; E4 family-revoke + E5 logout in auth.ts; silent-refresh + redirect in apiClient.ts/guard.tsx; auth.ts 100% branch; tests: 370 passing; deviations: none
 
-- [ ] T121 [test] E-IDLE â€” idle-timeout test
+- [x] T121 [test] E-IDLE â€” idle-timeout test
       Files: `apps/api/tests/integration/edge-idle.test.ts`
       Do: With the injected clock assert a refresh after >30m of inactivity is rejected even though the
       refresh token is otherwise unexpired (uses `RefreshToken.lastUsedAt`); absolute cap 7d.
       Done when: Tests fail for E7.
       Refs: E-IDLE, E7
+      > note: 2 tests — E7a (idle >30m â†' 401 “Session idle timeout” via injected clock at +30m+1ms, absolute expiry not reached) + E7b (absolute 7d cap â†' 401 “Refresh token expired” via injected clock at +7d+1ms); drives AuthService.refresh() directly with fake clock; tests: 372 passing; deviations: none
 
-- [ ] T122 Harden the 30m idle timeout via lastUsedAt
+- [x] T122 Harden the 30m idle timeout via lastUsedAt
       Files: `apps/api/src/services/auth.ts`
       Do: Reject refresh when `now - lastUsedAt > 30m`; enforce the 7d absolute cap; update `lastUsedAt`
       on success.
       Done when: T121 passes; 100% branch coverage.
       Refs: E-IDLE, E7
+      > note: verified pre-existing; idle check (lastUsedAt !== null && delta > IDLE_TIMEOUT_MS) + absolute expiry check (expiresAt < now) + lastUsedAt set on new token in createRefreshToken() all in auth.ts; services/auth.ts 100% branch; tests: 372 passing; deviations: none
 
 - [ ] T123 [test] E-MAILFAIL â€” mailer-failure test
       Files: `apps/api/tests/integration/edge-mailfail.test.ts`

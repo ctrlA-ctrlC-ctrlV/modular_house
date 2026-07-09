@@ -234,7 +234,8 @@ paths:
       description: >
         Always returns the same neutral confirmation regardless of whether the account exists.
         A single-use, 60m reset link is emailed only when the account exists. Cooldown 60s,
-        window cap 5/15m apply.
+        window cap 5/15m apply; throttled requests silently skip issuance and still return
+        the neutral 200 (F3 — no account-existence leak via a 429).
       requestBody:
         required: true
         content:
@@ -247,8 +248,6 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/NeutralAck' }
-        '429':
-          description: Cooldown not elapsed or window cap exceeded (neutral message).
 
   /admin/auth/reset-password:
     post:

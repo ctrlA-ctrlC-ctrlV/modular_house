@@ -1205,20 +1205,22 @@
       > note: verified pre-existing; G1/G3 MIME check + G2 size check pre-persist + G4 removal nulls both columns in settings.ts; tests: 3 passing; deviations: none
       > reviewed: PASS â€” MIME + size checks confirmed pre-persist at settings.ts:296-316; DELETE nulls both columns at 437-438; T117 3/3 pass.
 
-- [ ] T119 [test] E-SESSION â€” session/refresh edge tests
+- [x] T119 [test] E-SESSION â€” session/refresh edge tests
       Files: `apps/api/tests/integration/edge-session.test.ts`,
       `apps/web/src/admin/auth/session.test.tsx`
       Do: Assert silent refresh on access-token expiry mid-use, refresh reuse revokes the whole family,
       and an expired/absent session on a protected view redirects to login.
       Done when: Tests fail for E2/E4/E5.
       Refs: E-SESSION, E2/E4/E5, FR-040
+      > note: 2 backend tests (E4 full-family revoke incl. successor; E5 logout only current family) + 3 frontend tests (E2 in-memory mid-refresh; E4 failed-refresh clears token; E5 redirect); tests: 5 passing; deviations: none
 
-- [ ] T120 Harden refresh rotation + protected-view redirect
+- [x] T120 Harden refresh rotation + protected-view redirect
       Files: `apps/api/src/services/auth.ts`, `apps/web/src/admin/auth/apiClient.ts`,
       `apps/web/src/admin/auth/guard.tsx`
       Do: Family reuse-detection revoke server-side; client silent refresh + redirect on hard failure.
       Done when: T119 passes; 100% branch on rotation paths.
       Refs: E-SESSION, E4/E5
+      > note: verified pre-existing; E4 family-revoke + E5 logout in auth.ts; silent-refresh + redirect in apiClient.ts/guard.tsx; auth.ts 100% branch; tests: 370 passing; deviations: none
 
 - [ ] T121 [test] E-IDLE â€” idle-timeout test
       Files: `apps/api/tests/integration/edge-idle.test.ts`

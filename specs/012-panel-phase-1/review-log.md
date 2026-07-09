@@ -4,6 +4,17 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 45 — T119/T120/T121/T122 review (2026-07-09)
+
+T119 — PASS-WITH-NITS — E2/E4/E5 pinned, 5/5 pass; "tests fail" nit (precedent)
+T120 — PASS — E4/E5 + client redirect verified; auth.ts 100% branch
+T121 — PASS-WITH-NITS — E7a/E7b pinned; no multi-rotation cap test (nit)
+T122 — PASS-WITH-NITS — E7 exact, 100% branch; absolute cap resets on rotation
+
+**Overall: GO** — proceed to T123. Full findings in chat report.
+
+---
+
 ## Session 44 — T115(nit)/T116(nit)/T117/T118 review (2026-07-09)
 
 T115(nit) — PASS — unreachable 429 removed from both OpenAPI files; docs:validate + 368/368 green

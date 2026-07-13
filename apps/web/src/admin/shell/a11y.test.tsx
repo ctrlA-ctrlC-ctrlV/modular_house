@@ -2,9 +2,30 @@
 // Runs an automated axe scan against each Phase 1 surface (login, two-factor,
 // password reset, shell, settings) asserting zero accessibility violations,
 // spot-checks that every native button/input control carries the H4
-// focus-visible ring utility, and pins H1 (no wrong-theme frame on first
-// paint) at the Shell-mount integration level.
+// focus-visible ring utility, pins H1 (no wrong-theme frame on first paint)
+// at the Shell-mount integration level, and independently verifies H6's
+// contrast requirement by computing WCAG contrast ratios directly from the
+// OKLCH token values (Session 48 review: axe-core's `color-contrast` rule
+// does not run in jsdom — there is no real layout/paint engine to sample
+// rendered pixels against, so it is silently skipped/marked "incomplete"
+// rather than pass or fail. The `toHaveNoViolations()` assertions below
+// therefore verify every WCAG rule axe *can* evaluate without a browser
+// (ARIA semantics, name/role/value, keyboard structure) but never contrast;
+// the "Token contrast (H6)" block at the bottom is the only real contrast
+// verification in this file).
 // Pins US2-6 + H1/H4/H5/H6 + FR-030/FR-031.
+//
+// Scoped Node types (this browser-facing tsconfig's `types` array is
+// intentionally limited to `vite/client`/`vitest/globals`): the Token
+// contrast block below reads tokens.css directly via `fs.readFileSync` so it
+// can't silently drift from the actual source file. Vite's `?raw` import
+// suffix was tried first but is stubbed to an empty string by Vitest's
+// default CSS-import interception, which applies to any `.css`-extensioned
+// specifier regardless of query suffix.
+/// <reference types="node" />
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -75,11 +96,15 @@ function setMobileViewport(isMobile: boolean) {
 
 /**
  * Spot-checks the H4 focus-ring utility (`focus-visible:ring-3
- * focus-visible:ring-ring/50`, or the sidebar's `ring-2`/`sidebar-ring`
- * design-system exception) on every native button/input control within
+ * focus-visible:ring-ring/50`) on every native button/input control within
  * `root`. jsdom cannot render or measure the visual ring itself, so this
  * pins the utility class in code rather than a rendered pixel result — the
  * same technique used to pin H3/H4 throughout T071-T084.
+ *
+ * Matches `ring-3` only (Session 48 review nit): Session 21 already migrated
+ * every sidebar/topbar/sheet control from the earlier `ring-2`/`sidebar-ring`
+ * exception to the exact H4 value, so a regex still accepting `ring-2` was
+ * stale and would silently pass a future regression back to the old value.
  *
  * Excludes the `input-otp` package's root element (`[data-slot="input-otp"]`):
  * by design (input-otp.tsx) that native `<input>` is visually hidden and the
@@ -90,9 +115,112 @@ function assertVisibleFocusOnControls(root: HTMLElement) {
   const controls = root.querySelectorAll('button, input:not([data-slot="input-otp"])');
   expect(controls.length).toBeGreaterThan(0);
   controls.forEach((el) => {
-    expect((el as HTMLElement).className).toMatch(/focus-visible:ring-(2|3)/);
+    expect((el as HTMLElement).className).toMatch(/focus-visible:ring-3/);
   });
 }
+
+// ── Token contrast verification (H6) ─────────────────────────────────────
+// Computes real WCAG 2.1 contrast ratios from the OKLCH values in
+// tokens.css — the actual source of truth, read from disk so this can't
+// silently drift from it — since axe cannot verify contrast in jsdom (see
+// the file header). Conversion uses Ottosson's published OKLab <-> linear
+// sRGB matrices (https://bottosson.github.io/posts/oklab/); the WCAG
+// relative-luminance weighting is applied directly to the linear-light
+// output (no gamma decode step, since OKLab already yields linear values).
+
+const TOKENS_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'theme',
+  'tokens.css',
+);
+
+interface Oklch {
+  l: number;
+  c: number;
+  h: number;
+}
+
+/** Parses the "L C H" (H optional, defaults to 0) body of an oklch(...) function. */
+function parseOklch(raw: string): Oklch {
+  const [l, c = 0, h = 0] = raw.trim().split(/\s+/).map(Number);
+  return { l, c, h };
+}
+
+/**
+ * Converts an OKLCH colour to WCAG relative luminance via OKLab -> linear
+ * sRGB (Ottosson's matrices), then the standard Y = 0.2126R + 0.7152G +
+ * 0.0722B relative-luminance weighting.
+ */
+function oklchToRelativeLuminance({ l, c, h }: Oklch): number {
+  const hRad = (h * Math.PI) / 180;
+  const a = c * Math.cos(hRad);
+  const b = c * Math.sin(hRad);
+
+  const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = l - 0.0894841775 * a - 1.2914855480 * b;
+
+  const lCubed = l_ ** 3;
+  const mCubed = m_ ** 3;
+  const sCubed = s_ ** 3;
+
+  const r = 4.0767416621 * lCubed - 3.3077115913 * mCubed + 0.2309699292 * sCubed;
+  const g = -1.2684380046 * lCubed + 2.6097574011 * mCubed - 0.3413193965 * sCubed;
+  const bLin = -0.0041960863 * lCubed - 0.7034186147 * mCubed + 1.707614701 * sCubed;
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * bLin;
+}
+
+/** WCAG 2.1 contrast ratio between two relative luminance values. */
+function contrastRatio(lumA: number, lumB: number): number {
+  const lighter = Math.max(lumA, lumB);
+  const darker = Math.min(lumA, lumB);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/** Extracts `--token: oklch(...)` custom properties scoped to one theme block. */
+function parseThemeTokens(cssBlock: string): Record<string, Oklch> {
+  const tokens: Record<string, Oklch> = {};
+  const re = /--([\w-]+):\s*oklch\(([^)]+)\)/g;
+  for (const match of cssBlock.matchAll(re)) {
+    tokens[match[1]] = parseOklch(match[2]);
+  }
+  return tokens;
+}
+
+const tokensCss = readFileSync(TOKENS_CSS_PATH, 'utf8');
+
+// Isolate the `.admin-root { ... }` (light) and `.admin-root.dark { ... }`
+// (dark) blocks so identically-named custom properties don't collide; the
+// light-mode pattern does not match the dark selector because `.dark`
+// immediately follows `.admin-root` there instead of whitespace + `{`.
+const lightBlockMatch = tokensCss.match(/\.admin-root\s*\{([^}]+)\}/);
+const darkBlockMatch = tokensCss.match(/\.admin-root\.dark\s*\{([^}]+)\}/);
+if (!lightBlockMatch || !darkBlockMatch) {
+  throw new Error('Could not locate .admin-root / .admin-root.dark blocks in tokens.css');
+}
+const lightTokens = parseThemeTokens(lightBlockMatch[1]);
+const darkTokens = parseThemeTokens(darkBlockMatch[1]);
+
+/**
+ * Normal-text foreground/background pairs (WCAG 1.4.3, H6 "4.5:1 normal")
+ * actually used for body/label/button text across the Phase 1 surfaces.
+ * The focus ring's "3:1 large" clause is intentionally not computed here:
+ * H4 applies it at 50% alpha (`ring/50`) over whatever surface sits beneath
+ * a given control, so a single static token-pair ratio cannot represent its
+ * effective composited contrast — that value is inherited unmodified from
+ * the reference template's Default preset (Template Parity Gate, plan.md
+ * §5A) rather than a Phase 1 implementation choice, so it is out of scope
+ * for this test to police.
+ */
+const NORMAL_TEXT_PAIRS: Array<[fg: string, bg: string]> = [
+  ['foreground', 'background'],
+  ['muted-foreground', 'background'],
+  ['primary-foreground', 'primary'],
+  ['secondary-foreground', 'secondary'],
+  ['sidebar-foreground', 'sidebar'],
+];
 
 describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)', () => {
   beforeEach(() => {
@@ -329,6 +457,29 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
 
       expect(document.documentElement.classList.contains('dark')).toBe(false);
       expect(document.documentElement.getAttribute('data-theme-mode')).toBe('light');
+    });
+  });
+
+  // ── Token contrast (H6) ──────────────────────────────────────────────────
+  // Real, computed contrast verification — see the file header and the
+  // NORMAL_TEXT_PAIRS comment above for why this exists and what it does
+  // not cover.
+
+  describe('Token contrast (H6)', () => {
+    it.each(NORMAL_TEXT_PAIRS)('meets 4.5:1 in light mode: %s on %s', (fg, bg) => {
+      const ratio = contrastRatio(
+        oklchToRelativeLuminance(lightTokens[fg]),
+        oklchToRelativeLuminance(lightTokens[bg]),
+      );
+      expect(ratio).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it.each(NORMAL_TEXT_PAIRS)('meets 4.5:1 in dark mode: %s on %s', (fg, bg) => {
+      const ratio = contrastRatio(
+        oklchToRelativeLuminance(darkTokens[fg]),
+        oklchToRelativeLuminance(darkTokens[bg]),
+      );
+      expect(ratio).toBeGreaterThanOrEqual(4.5);
     });
   });
 });

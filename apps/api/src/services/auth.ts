@@ -48,7 +48,7 @@ export interface TokenPayload {
 
 export type CredentialResult =
   | { success: true; challengeId: string; userId: string }
-  | { success: false; status: 401 | 423; message: string; userId: string | null };
+  | { success: false; status: 401 | 423 | 503; message: string; userId: string | null };
 
 export type OtpResult =
   | { success: true; accessToken: string; rawRefreshToken: string; userId: string }
@@ -252,12 +252,26 @@ export class AuthService {
     // B7: issue OTP (access token NOT minted here)
     const { code, challengeId } = await this.loginCodeService.issue(user.id);
 
-    // B8: deliver code via email
-    await this.mailerService.sendEmail({
-      to: user.email,
-      subject: 'Your login verification code',
-      text: `Your verification code is: ${code}\n\nThis code expires in 10 minutes.`,
-    });
+    // B8: deliver code via email.  E-MAILFAIL: if the mailer throws, roll
+    // back the issued code row so it does not orphan or count toward the
+    // F2 throttle window, and surface a clear non-technical error so the
+    // user can retry (spec "Email delivery delay or failure").
+    try {
+      await this.mailerService.sendEmail({
+        to: user.email,
+        subject: 'Your login verification code',
+        text: `Your verification code is: ${code}\n\nThis code expires in 10 minutes.`,
+      });
+    } catch (mailerError) {
+      await this.loginCodeService.revokeByChallengeId(challengeId);
+      logger.error({ error: mailerError, userId: user.id }, 'OTP email send failed');
+      return {
+        success: false,
+        status: 503,
+        message: 'We could not send the verification code email. Please try again.',
+        userId: user.id,
+      };
+    }
 
     return { success: true, challengeId, userId: user.id };
   }

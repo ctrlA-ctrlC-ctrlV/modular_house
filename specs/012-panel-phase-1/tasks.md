@@ -1296,6 +1296,7 @@
       > note (T100 review, Session 32): mobile `SheetContent` (`apps/web/src/admin/ui/sidebar.tsx:172-181`) has no `SheetTitle`/`SheetDescription` — axe/screen-reader will flag the off-canvas drawer; add a `VisuallyHidden` title+description here.
       > note: axe scan x5 surfaces + mobile-drawer + focus-ring + theme-flash; 13 tests, 1 genuine H6 red (mobile dialog name gap); deviations: apps/web/package.json,pnpm-lock.yaml - added jest-axe devDep
       > reviewed: PASS-WITH-NITS — axe can't verify contrast in jsdom
+      > note (T127-nit, Session 48 review): tightened stale ring-2 regex to ring-3-only; added real OKLCH-based token contrast test (10 tests) + jsdom-limitation comment; tests: 23 passing; deviations: none
 
 - [x] T128 Harden contrast, focus, and pre-paint theme
       Files: `apps/web/src/admin/theme/tokens.css`, `apps/web/src/admin/theme/boot.ts`,
@@ -1306,6 +1307,7 @@
       Refs: E-A11Y/THEME, H1/H4/H6
       > note: contrast/focus/boot already correct (T127 12/13 green pre-fix); added sr-only SheetTitle+Description to mobile drawer (sidebar.tsx); tests: 264 passing; deviations: none
       > reviewed: PASS-WITH-NITS — see review-log 2026-07-13
+      > note (T128-nit, Session 48 review): contrast claim now backed by T127's new OKLCH token-contrast test (10 tests, both themes, all pairs pass 4.5:1); no further code change needed; deviations: none
 
 ---
 

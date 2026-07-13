@@ -211,8 +211,8 @@ function Sidebar({
         data-side={side}
         className={cn(
           'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear',
-          'data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]',
-          'data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
+          'data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:-left-(--sidebar-width)',
+          'data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:-right-(--sidebar-width)',
           'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
           'group-data-[side=left]:border-r group-data-[side=right]:border-l',
           'md:flex',
@@ -288,7 +288,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
       className={cn(
         'absolute inset-y-0 z-20 hidden w-4 transition-all ease-linear',
         'group-data-[side=left]:-right-4 group-data-[side=right]:left-0',
-        'after:absolute after:inset-y-0 after:start-1/2 after:w-[2px] hover:after:bg-sidebar-border',
+        'after:absolute after:inset-y-0 after:inset-s-1/2 after:w-0.5 hover:after:bg-sidebar-border',
         'group-data-[collapsible=offcanvas]:translate-x-0',
         'sm:flex',
         className,

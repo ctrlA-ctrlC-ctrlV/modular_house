@@ -2,7 +2,7 @@
 // Width tokens (H3): expanded 17rem, icon rail 3rem, mobile 18rem.
 import * as React from 'react';
 import { cn } from '../lib/cn.js';
-import { Sheet, SheetContent } from './sheet.js';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from './sheet.js';
 
 type SidebarContextProps = {
   state: 'expanded' | 'collapsed';
@@ -176,6 +176,13 @@ function Sidebar({
           style={{ '--sidebar-width-mobile': '18rem' } as React.CSSProperties}
           side={side}
         >
+          {/* H6: Radix's Dialog requires an accessible name/description;
+              visually hidden since the sidebar's own heading already
+              provides a visible label inside the drawer content. */}
+          <SheetTitle className="sr-only">Navigation menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Sidebar navigation for the admin panel
+          </SheetDescription>
           <div className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
       </Sheet>

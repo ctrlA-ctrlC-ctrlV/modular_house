@@ -148,6 +148,26 @@ export class PasswordResetTokenService {
   }
 
   // -------------------------------------------------------------------------
+  // revokeByRawToken() — E-MAILFAIL rollback
+  // -------------------------------------------------------------------------
+
+  /**
+   * Delete the password-reset token row matching `rawToken`.
+   *
+   * Called when the reset-link email send fails after `issue()` has already
+   * written a row (E-MAILFAIL).  Deleting the orphaned row ensures it does
+   * not count toward the F2 rolling-window throttle and cannot be used to
+   * reset the password without the user receiving the email.  `deleteMany`
+   * is idempotent — zero rows affected is a no-op.
+   */
+  async revokeByRawToken(rawToken: string): Promise<void> {
+    const tokenHash = hashToken(rawToken);
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { tokenHash },
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // checkResetThrottle() — F1, F2
   // -------------------------------------------------------------------------
 

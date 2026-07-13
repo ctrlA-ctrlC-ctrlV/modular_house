@@ -142,7 +142,11 @@ export class AuthService {
     return jwt.sign(payload, this.jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
   }
 
-  private async createRefreshToken(userId: string, family: string): Promise<string> {
+  private async createRefreshToken(
+    userId: string,
+    family: string,
+    expiresAt?: Date,
+  ): Promise<string> {
     const raw = generateRawToken();
     const tokenHash = hashToken(raw);
     const now = this.clock();
@@ -151,7 +155,12 @@ export class AuthService {
         userId,
         tokenHash,
         family,
-        expiresAt: new Date(now.getTime() + REFRESH_TOKEN_TTL_MS),
+        // E7 absolute cap: on initial issuance (verifyOtp) and post-password-
+        // change re-mint (changePassword), expiresAt defaults to now + 7d.
+        // On rotation (refresh), the caller passes the family's original
+        // expiresAt so the 7d absolute cap is measured from initial session
+        // issuance, not reset on each rotation (T122-nit).
+        expiresAt: expiresAt ?? new Date(now.getTime() + REFRESH_TOKEN_TTL_MS),
         lastUsedAt: now,
       },
     });
@@ -349,7 +358,15 @@ export class AuthService {
       role: user.role.name,
       permissions,
     });
-    const rawRefreshToken = await this.createRefreshToken(user.id, stored.family);
+    // E7: preserve the family's original absolute cap across rotations.
+    // Passing stored.expiresAt (not undefined) means createRefreshToken
+    // reuses the initial issuance's 7d deadline instead of resetting it
+    // to now + 7d — a continuously-active session still hits the absolute cap.
+    const rawRefreshToken = await this.createRefreshToken(
+      user.id,
+      stored.family,
+      stored.expiresAt,
+    );
 
     return { success: true, accessToken, rawRefreshToken, userId: stored.userId };
   }

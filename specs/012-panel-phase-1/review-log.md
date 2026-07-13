@@ -4,6 +4,15 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 49 — T127-nit/T128-nit re-check (2026-07-13)
+
+T127-nit — PASS — ring-3-only regex; OKLCH contrast test added, math re-verified independently
+T128-nit — PASS — contrast claim now has real evidence; 4.73:1 tightest pair confirmed
+
+**Overall: GO** — proceed to T129+. Full findings in chat report.
+
+---
+
 ## Session 48 — T124-nit/T127/T128 review (2026-07-13)
 
 T124-nit — PASS — 503 documented in both OpenAPI copies; docs:validate green

@@ -18,6 +18,19 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-13T10:00:00.000+00:00] — fix(admin-auth): T122-nit preserve 7d absolute cap across refresh rotation (Session 45 review)
+
+### Fixed
+- `apps/api/src/services/auth.ts` — `createRefreshToken` now accepts an optional `expiresAt?: Date` parameter. On initial issuance (`verifyOtp`) and post-password-change re-mint (`changePassword`), `expiresAt` defaults to `now + REFRESH_TOKEN_TTL_MS` (7d) as before. On rotation (`refresh`), the caller passes `stored.expiresAt` — the family's original absolute cap — so the 7d deadline is measured from initial session issuance, not reset on each rotation. Previously every rotation set `expiresAt = now + 7d`, so a continuously-active session (refreshed every <30m) never hit the 7d absolute cap; only the 30m idle timeout was effectively enforced. This closes the gap between the implementation and plan §2.5 E7 ("absolute session cap = 7 days"). The `??` branch (provided vs default `expiresAt`) is covered by existing refresh tests (provided arm) and verifyOtp/changePassword tests (default arm); `services/auth.ts` remains at 100% branch/stmt/funcs/lines.
+
+### Added
+- `apps/api/tests/integration/edge-idle.test.ts` — E7d test: issue token A at T+0, rotate A→B at T+20m, rotate B→C at T+40m (all within the 30m idle window), then use C at T+7d+1ms. Asserts 401 "Refresh token expired" (absolute check fires first). Without the fix, C.expiresAt would be T+40m+7d (reset on rotation), the absolute check would pass, and the idle check would fire instead → "Session idle timeout"; the test therefore distinguishes fix from bug. TDD red confirmed: E7d failed with "Session idle timeout" before the fix, passes with "Refresh token expired" after. File header updated to document E7d. 4 tests total, 374 passing.
+
+### Notes
+- Carry-forward nit from the Session 45 review of T122 ("createRefreshToken resets expiresAt to now+7d on every rotation, so a continuously-active session never hits the 7d absolute cap"). The `changePassword` re-mint path intentionally keeps the default fresh 7d cap — after a password change all sessions are revoked (E6) and the acting family is re-minted, which is effectively a new session with a fresh trust context. Full API suite: 374/374 pass; `services/auth.ts` 100% branch confirmed; lint + typecheck clean.
+
+---
+
 ## [2026-07-13T09:40:00.000+00:00] — fix(admin-web): T119-nit flatten nested <Routes> in session.test.tsx (Session 45 review)
 
 ### Fixed

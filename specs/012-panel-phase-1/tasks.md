@@ -1243,6 +1243,7 @@
       Refs: E-IDLE, E7
       > note: verified pre-existing; idle check (lastUsedAt !== null && delta > IDLE_TIMEOUT_MS) + absolute expiry check (expiresAt < now) + lastUsedAt set on new token in createRefreshToken() all in auth.ts; services/auth.ts 100% branch; tests: 372 passing; deviations: none
       > reviewed: PASS-WITH-NITS â€” idle (auth.ts:330-332) + absolute (auth.ts:325-327) checks exact vs plan Â§2.5 E7; 100% branch. Nit: `createRefreshToken` (auth.ts:145-158) resets `expiresAt` to `now+7d` on every rotation (called from `refresh()` at auth.ts:352), so a continuously-active session (refreshed <30m apart) never hits the 7d absolute cap — only the idle timeout is enforced in practice. Flagged for a future task, not blocking (pre-existing since T031/T045, already passed in prior reviews).
+      > nit-fix: createRefreshToken accepts optional expiresAt; refresh() passes stored.expiresAt preserving family's original 7d cap; E7d test pins it; tests: 374 passing; deviations: none
 
 - [ ] T123 [test] E-MAILFAIL â€” mailer-failure test
       Files: `apps/api/tests/integration/edge-mailfail.test.ts`

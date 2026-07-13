@@ -16,6 +16,13 @@
  *          initial issuance was at T+0 (i.e. delta from issuance = 40m > 30m,
  *          but delta from last rotation = 20m < 30m).
  *
+ *   E7d — The 7-day absolute cap is preserved across rotation (T122-nit):
+ *          a session that rotates within the idle window still hits the
+ *          7d absolute cap measured from INITIAL issuance, not a reset
+ *          cap from the last rotation.  Without the fix, expiresAt is
+ *          reset to now+7d on every rotation, so a continuously-active
+ *          session never hits the absolute cap.
+ *
  * Drives AuthService.refresh() directly with a fake clock rather than
  * going through the HTTP route (which uses a live wall-clock AuthService).
  * The token is issued via the real verify-2fa route so the DB row reflects
@@ -168,6 +175,53 @@ describe('E-IDLE — idle-timeout and absolute-cap edge cases (E7)', () => {
       expect(useResult.success).toBe(true);
       if (useResult.success) {
         expect(useResult).toHaveProperty('accessToken');
+      }
+    },
+  );
+
+  // ── E7d — absolute 7d cap preserved across rotation (T122-nit) ──────────────
+
+  it(
+    'absolute 7d cap is preserved across rotation: a session that rotates ' +
+      'within the idle window still hits the 7d cap from initial issuance, ' +
+      'not a reset cap from the last rotation (T122-nit, E7 absolute cap)',
+    async () => {
+      const rawTokenA = await issueRawToken();
+      const issuedAt = Date.now();
+
+      // Rotate A → B at T+20m (within the 30m idle window).
+      const t20 = new Date(issuedAt + 20 * 60 * 1000);
+      const rotateResult1 = await new AuthService(prisma, () => t20).refresh(rawTokenA);
+      if (!rotateResult1.success) {
+        throw new Error(`Unexpected rotation A→B failure: ${JSON.stringify(rotateResult1)}`);
+      }
+      const rawTokenB = rotateResult1.rawRefreshToken;
+
+      // Rotate B → C at T+40m (within the 30m idle window from B's lastUsedAt).
+      const t40 = new Date(issuedAt + 40 * 60 * 1000);
+      const rotateResult2 = await new AuthService(prisma, () => t40).refresh(rawTokenB);
+      if (!rotateResult2.success) {
+        throw new Error(`Unexpected rotation B→C failure: ${JSON.stringify(rotateResult2)}`);
+      }
+      const rawTokenC = rotateResult2.rawRefreshToken;
+
+      // Use C at T+7d+1ms — past the ORIGINAL 7d absolute cap (from initial
+      // issuance at T+0), but ~6d23h20m from C's lastUsedAt (T+40m) so the
+      // idle timer would also trip if reached.
+      //
+      // With the fix (expiresAt preserved): C.expiresAt = A.expiresAt ≈ T+7d
+      // < T+7d+1ms → absolute check fires first → 'Refresh token expired'.
+      //
+      // Without the fix (expiresAt reset on rotation): C.expiresAt = T+40m+7d
+      // > T+7d+1ms → absolute passes, idle fires → 'Session idle timeout'.
+      // Asserting 'Refresh token expired' distinguishes fix from bug.
+      const t7d1ms = new Date(issuedAt + REFRESH_TOKEN_TTL_MS + 1);
+      const useResult = await new AuthService(prisma, () => t7d1ms).refresh(rawTokenC);
+
+      expect(useResult.success).toBe(false);
+      if (!useResult.success) {
+        expect(useResult.status).toBe(401);
+        expect(useResult.message).toBe('Refresh token expired');
       }
     },
   );

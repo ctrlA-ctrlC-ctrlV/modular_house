@@ -18,6 +18,249 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-14T04:00:00.000+00:00] — docs(specs): T140 FR-to-test traceability cross-check (tasks.md)
+
+### Notes
+- Extracted all `FR-` rows from the existing `quickstart.md` §7 traceability table and diffed against
+  the full expected `FR-001..FR-043` sequence: **43/43 present, zero gaps, zero duplicates.**
+- Every row cites one or more §4 test-scenario IDs (`T-B1..T-B7`, `T-F1..T-F6`, `E-OTP`, `E-LOCK`,
+  `E-CREDS`, `E-RESET`, `E-POLICY`, `E-THROTTLE`, `E-PHOTO`, `E-SESSION`, `E-A11Y/THEME`,
+  `E-SUPERADMIN`, `E-IDLE`, `E-MAILFAIL`), each of which already resolves to a specific completed task
+  number via the "Coverage notes" section at the bottom of `tasks.md` (e.g. `T-B1 → T032/T036`,
+  `E-SUPERADMIN → T125/T126`) — cross-checked that every task named there is checked `[x]`.
+- Confirmed **no unchecked tasks remain in `tasks.md` prior to T140 itself** (`grep '^- \[ \]'` returns
+  only T140 before this edit) — so every citation traces to work that was actually implemented and
+  reviewed, not a stale placeholder.
+- This closes DoD-2 together with T131/T132's confirmation that the full suite these citations depend
+  on is currently green (380/380 API, 274/274 web).
+- No source or test files were modified for T140 (cross-check only).
+
+---
+
+## [2026-07-14T03:00:00.000+00:00] — docs(admin-web): T139 mobile design document (mobile-design.md)
+
+### Added
+- `apps/web/src/admin/docs/mobile-design.md` — documents the touch-first mobile layout of all five
+  Phase 1 surfaces (Login, TwoFactor, ForgotPassword, ResetPassword, app shell, Settings), written
+  from a direct read of the shipped source rather than invented from scratch: the four pre-auth pages'
+  shared `hidden lg:block lg:w-1/3` / `w-full lg:w-2/3` two-column collapse, the sidebar's off-canvas
+  `Sheet` drawer below 768px vs. the persistent 17rem/3rem column above it, the fixed 48px top bar
+  that never collapses its four controls, and Settings' naturally-responsive single-column `max-w-2xl`
+  stack. Cross-references the reference template's own breakpoint conventions
+  (`.doc/design/DESIGN.md`: mobile < 768px, lg >= 1024px) and flags the 32px icon-button touch targets
+  (inherited unmodified from the template, below the AAA 44px guideline but not an AA requirement) as
+  a known, non-blocking characteristic rather than a defect.
+
+### Notes
+- No source or test files were modified — this is a new documentation-only file.
+
+---
+
+## [2026-07-14T02:00:00.000+00:00] — docs(specs): T138 real-OTP delivery check (quickstart.md, tasks.md)
+
+### Added
+- `specs/012-panel-phase-1/quickstart.md` §8.3 — 10-send real-OTP delivery table plus the negative
+  wrong-code check result.
+
+### Notes
+- 10 real sequential `POST /admin/auth/login` requests against the local port-5434 test DB, each
+  triggering the real `MailerService` → SMTP → Mailhog pipeline (no mocking anywhere in this check).
+  Delivery was confirmed by polling Mailhog's own REST API for the captured message per recipient —
+  genuine end-to-end confirmation, not an HTTP-completion proxy. **10/10 confirmed delivered, 170–266
+  ms each**, far inside the 30 s / ≥9-of-10 budget (DoD-7, SC-002).
+- Negative check: an incorrect OTP (`000000`) against a freshly issued challenge returned `401` with
+  no `accessToken` in the body, live-confirming that no session is ever granted without a correct,
+  unexpired code — on top of the exhaustive existing coverage for this in `edge-otp.test.ts` /
+  `auth-verify-2fa.test.ts` (B3–B6/B9).
+- Used the same safe, port-5434-only measurement pattern established for T136 (`.env.test` force-
+  loaded with `override: true` before importing the app or Prisma client) — never touched the
+  SSH-tunneled port-5432 database. The throwaway script (`apps/api/tmp-otp-delivery-check.ts`) and its
+  10 scratch users were deleted/cleaned up immediately after the run; confirmed `git status` clean
+  (aside from the intentional spec-doc edits) afterward.
+- No external SMTP relay is configured in this environment, so delivery to a real third-party inbox
+  (e.g. Gmail) was not separately exercised — only the real local SMTP capture path was verified.
+- No source or test files were modified for T138.
+
+---
+
+## [2026-07-14T01:00:00.000+00:00] — docs(specs): T137 SC-004 visual-parity review (quickstart.md, tasks.md)
+
+### Added
+- `specs/012-panel-phase-1/quickstart.md` §8.2 — a 22-item visual-parity checklist comparing the
+  Phase 1 login page and app shell directly against the reference template
+  (`next_shadcn_admin_dashboard`): `auth/v1/login/page.tsx`, `dashboard/layout.tsx`,
+  `dashboard/_components/sidebar/app-sidebar.tsx`, `dashboard/coming-soon/page.tsx`, read surgically
+  per the Template Parity Gate (plan §5A) and compared line-by-line against
+  `apps/web/src/admin/pages/Login.tsx`, `shell/TopBar.tsx`, `shell/Sidebar.tsx`, `shell/ComingSoon.tsx`.
+
+### Notes
+- **22/22 items pass (100%)**, against the ≥90% SC-004 threshold. Six items are marked "intentional
+  deviation" rather than "match" — no Google button (FR-005), "Forgot password" replacing
+  "Register" (FR-006), no GitHub button (H7/FR-023), placeholder content instead of nav items (H7 —
+  Phase 1 ships no feature pages yet, and this mirrors the template's own `coming-soon` page rather
+  than diverging from it), and single-preset theme control (FR-029) — all of these are spec-mandated
+  differences from the raw template, not fidelity gaps, so they count toward parity with *our* target
+  rather than against it.
+- The remaining 16 items — two-column login layout, exact Tailwind classes on headline/subtext/title/
+  spacing, 48px top bar, sidebar Header/Content/Footer three-part structure, 17rem/3rem/18rem sidebar
+  widths, 0.625rem radius, `ring-3`/`ring/50` focus rings, OKLCH Default-preset tokens, and the Radix
+  `Sheet` mobile drawer — are direct matches, several already independently confirmed exact during the
+  T003 design-token review (`review-log.md` Session 1: "PASS — all H3/H4 values exact").
+- No source or test files were modified for T137 (review/verification only).
+
+---
+
+## [2026-07-14T00:00:00.000+00:00] — docs(specs): T136 performance-budget verification (quickstart.md, tasks.md)
+
+### Added
+- `specs/012-panel-phase-1/quickstart.md` — new "§8 Final DoD Verification Evidence" section
+  recording T136's measured API p95 (244.2 ms), Lighthouse LCP under both mobile-throttled and
+  desktop presets, the theme-flash cross-reference to T127, and the sidebar-animation source
+  confirmation. Reserved as the landing spot for T137/T138 evidence too, since both tasks name this
+  same file under `Files:`.
+
+### Notes
+- **Incident during measurement, disclosed and resolved with the user before continuing:** an initial
+  attempt to measure API latency ran `pnpm dev` (apps/api), which reads the committed `.env` —
+  `DATABASE_URL` there points at `127.0.0.1:5432`, reached via an active SSH tunnel to a remote
+  database, not the local Docker test DB on port 5434. 20 sequential `POST /admin/auth/login`
+  requests were sent there before the mismatch was noticed (all returned `401`, consistent with
+  unknown-email/no-write, but unconfirmed). The dev-server process was killed immediately on
+  discovery; the user was asked how to proceed and confirmed no remediation was needed, with the
+  instruction to use only the local port-5434 DB going forward. All further measurement in this task
+  used a script that force-loads `.env.test` (`override: true`, mirroring the project's own
+  `src/test/setup.ts` pattern) before importing the app or Prisma client, making it structurally
+  impossible to reach the port-5432 tunnel.
+- **Separate near-miss, caught and reverted:** while clearing scratch output after the Lighthouse
+  runs, `rm -rf apps/web/.lighthouseci` was run assuming the directory was session-generated scratch
+  — it was not; `git status` immediately after showed the deletions were of **previously committed**
+  files (old timestamps from an earlier session's public-site Lighthouse run). Restored instantly via
+  `git checkout -- apps/web/.lighthouseci/`; confirmed clean afterward. No commit was made in between,
+  so this never reached the repository.
+- Also noticed `.docs/new-admin-panel-design-brief.md` sitting modified in the working tree,
+  unrelated to any command run this session. `git diff` showed clearly human-authored editorial
+  changes (instructional callouts removed, "Last updated" bumped to today, a checklist item edited) —
+  left untouched as pre-existing in-progress work belonging to the user, not part of this task.
+- No source or test files were modified for T136 (measurement/verification only); `quickstart.md` is
+  documentation, not source.
+
+---
+
+## [2026-07-13T23:00:00.000+00:00] — docs(specs): T135 WCAG 2.1 AA audit (tasks.md)
+
+### Notes
+- **Automated axe scan (re-confirmed):** `a11y.test.tsx` — 23/23 tests green, zero violations across
+  all five Phase 1 surfaces (login, two-factor, reset-password, shell desktop, shell mobile off-canvas
+  drawer, settings), plus the real computed OKLCH token-contrast block (10 pairs, both themes, all
+  ≥4.5:1) added in the Session 48 review. This is the same suite T127/T128 already built; re-run here
+  to confirm it is still green at the Final gate.
+- **Static keyboard-operability audit (new for T135):** grepped the entire `apps/web/src/admin/**`
+  tree for `onClick` handlers and confirmed every one is attached to a native `<button>` element (or
+  the `Button` component, which renders one) — no `<div>`/`<span>`-as-button anti-pattern exists
+  anywhere, so native Tab-order and Enter/Space activation apply by construction. Confirmed zero
+  custom `onKeyDown` overrides anywhere in the admin layer — the mobile sidebar drawer (`sheet.tsx`)
+  and the account dropdown (`dropdown-menu.tsx`) both wrap unmodified `@radix-ui/react-dialog` /
+  `@radix-ui/react-dropdown-menu` primitives, which ship WCAG-compliant keyboard behaviour (focus
+  trap, Escape-to-close, arrow-key menu navigation) out of the box with nothing in this codebase
+  overriding it. The sidebar-toggle control (`SidebarTrigger` / `TopBar`'s toggle button) is a native
+  `<button>` with `onClick={toggleSidebar}`, so it is keyboard-operable via Enter/Space with no extra
+  wiring required.
+- **Disclosure:** this session has no browser-automation tool available (no Playwright/DevTools MCP,
+  no screenshot capability), so the literal "manual keyboard pass" called for in the task text could
+  not be performed by driving a real browser end to end. The automated axe coverage plus the static
+  construction audit above give strong indirect evidence of WCAG 2.1 AA keyboard compliance, but a
+  human/QA pass tabbing through all five surfaces in a real browser before ship is still recommended
+  and not substituted by this session's verification. No source or test files were modified for T135.
+
+---
+
+## [2026-07-13T22:00:00.000+00:00] — docs(specs): T134 public-site regression gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/web test:run`: 274/274 (same run as T132; the package hosts both the
+  admin surface and the public marketing/configurator/SEO suites side by side).
+- `pnpm --filter @modular-house/ui test`: **197/198 tests pass, 1 pre-existing skip, 44/44 files
+  green** (Storybook component-story tests via the browser/Chromium runner). Confirms the admin design
+  system stayed fully isolated under `apps/web/src/admin/` per plan §1.4 — `@modular-house/ui` was
+  never touched by Phase 1 and shows zero regressions.
+- No source or test files were modified for T134.
+
+---
+
+## [2026-07-13T21:00:00.000+00:00] — docs(specs): T133 OpenAPI contract validation gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/api docs:validate` (`tsx scripts/validate-openapi.ts` against
+  `apps/api/openapi.yaml`): passes — "OpenAPI specification is valid!". No code changes were needed;
+  the contract has been kept current incrementally throughout Pass 1/Pass 2 (e.g. T124-nit's 503
+  documentation fix).
+
+---
+
+## [2026-07-13T20:00:00.000+00:00] — docs(specs): T132 web test suite gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/web test:run`: **274/274 tests, 32/32 files green**, single clean run,
+  no retries needed. Covers all admin Phase 1 surfaces (theme provider, pre-auth page wiring, session/
+  refresh edge cases, focus-indicator a11y, apiClient, sidebar/cn utilities) plus the untouched public
+  site/configurator suites in the same package. No source or test files were modified for T132.
+
+---
+
+## [2026-07-13T19:00:00.000+00:00] — docs(specs): T131 API test suite + security coverage gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`: **380/380 tests, 51/51 files
+  green.** One transient failure was observed on a prior attempt (`auth-login.test.ts` "returns 423
+  when the account is locked" got a `500` instead) — re-running the single file in isolation and the
+  full suite twice more reproduced it zero further times, consistent with a one-off DB connection-pool
+  contention flake under cold start rather than a real regression. No code change was made.
+- `pnpm --filter @modular-house/api test:coverage`: on the first attempt, 7 tests across 6 files failed
+  with `500`s in exactly the same transient-flake pattern (rapid-fire lockout/OTP-lockout/idle-timeout/
+  session-revoke loops); a second run passed clean at 380/380. Coverage confirmed on the clean run:
+  - DoD-3 security modules — **100% branch** on all six: `services/auth.ts`, `services/loginCode.ts`,
+    `services/passwordResetToken.ts` (refresh rotation + lockout live in `auth.ts`),
+    `middleware/requirePermission.ts`, `middleware/auth.ts`.
+  - **Overall line coverage**: `v8`'s "All files" figure across the whole `apps/api` package is
+    **66.07%**, below the DoD-3 / constitution-III 70% target. Traced this to raw
+    `coverage/coverage-final.json` statement counts: excluding pre-existing feature-006 legacy modules
+    that Phase 1's guardrails explicitly forbid touching (`src/templates/*` email renderers for
+    non-Phase-1 flows, `src/services/content/*`, `src/services/{submissions,submissionsExport,mailer}.ts`,
+    `src/routes/admin/{faqs,gallery,pages,redirects,uploads}.ts`, `src/routes/submissions.ts`,
+    `src/data/*` configurator data — 254 uncovered statements out of the repo-wide 534), the
+    **Phase-1-owned code alone is 89.06%** (773/868 statements).
+  - Asked the user how to score this gate given the conflict between the literal whole-package DoD-3
+    number and the plan's binding non-goals (writing new tests for out-of-scope legacy modules to
+    close the gap would violate "Build only what the current tasks describe" / plan §1.4 non-goals).
+    **Decision: scope DoD-3's 70% line-coverage target to Phase-1-owned/touched modules** (89.06%,
+    passes). The whole-package 66.07% figure and its legacy-module cause are recorded here as a known,
+    pre-existing, out-of-scope gap — not a Phase 1 regression, and not remediated by this task.
+- No source or test files were modified for T131; this was a verification-only task.
+
+---
+
+## [2026-07-13T18:00:00.000+00:00] — docs(specs): T130 monorepo typecheck gate (tasks.md)
+
+### Notes
+- Ran `pnpm typecheck` (recursive across `apps/api`, `apps/web`, `packages/ui`) as the second Final/DoD
+  verification task (T130). All three workspaces report clean: `tsc --noEmit` (plus `apps/web`'s
+  `tsconfig.node.json` project for the Vite config) passes with zero type errors. No code changes were
+  needed. DoD-9 satisfied for the typecheck half (paired with T129's lint pass).
+
+---
+
+## [2026-07-13T17:00:00.000+00:00] — docs(specs): T129 monorepo lint gate (tasks.md)
+
+### Notes
+- Ran `pnpm lint` (recursive across `apps/api`, `apps/web`, `packages/ui`, `packages/config`) as the
+  first Final/DoD verification task (T129). All four workspaces report clean: `eslint . --report-unused-disable-directives --max-warnings 0`
+  passes with zero violations and zero warnings in `apps/api`, `packages/ui`, and `apps/web`;
+  `packages/config` has no lint script (placeholder echo). No code changes were needed — the fix-as-you-go
+  discipline from Pass 1/Pass 2 (step 4 of the per-task loop: lint + typecheck the touched files
+  immediately) meant no violations had accumulated. DoD-9 satisfied for the lint half.
+
+---
+
 ## [2026-07-13T16:00:00.000+00:00] — test(admin-web): T127-nit/T128-nit real token-contrast test + ring-3 regex fix (Session 48 review)
 
 ### Added

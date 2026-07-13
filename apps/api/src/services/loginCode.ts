@@ -305,6 +305,25 @@ export class LoginCodeService {
   }
 
   // -------------------------------------------------------------------------
+  // revokeByChallengeId() — E-MAILFAIL rollback
+  // -------------------------------------------------------------------------
+
+  /**
+   * Delete any unconsumed code rows matching `challengeId`.
+   *
+   * Called when the email send fails after `issue()` or `resend()` has
+   * already written a row (E-MAILFAIL).  Deleting the orphaned row ensures
+   * it does not count toward the F2 rolling-window throttle and cannot be
+   * used by an attacker who somehow discovers the challengeId.  `deleteMany`
+   * is idempotent — zero rows affected is a no-op.
+   */
+  async revokeByChallengeId(challengeId: string): Promise<void> {
+    await this.prisma.loginCode.deleteMany({
+      where: { challengeId, consumedAt: null },
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // Private helpers
   // -------------------------------------------------------------------------
 

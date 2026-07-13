@@ -18,6 +18,31 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-13T11:00:00.000+00:00] — feat+test(admin-auth): T123/T124 E-MAILFAIL mailer-failure handling (edge-mailfail.test.ts, auth.ts, loginCode.ts, passwordResetToken.ts, routes/admin/auth.ts)
+
+### Added
+- `apps/api/tests/integration/edge-mailfail.test.ts` — 3 integration tests pinning the E-MAILFAIL edge-case behaviour (plan §4.2, spec "Email delivery delay or failure", FR-010, SC-002). (1) Login: mailer rejects → 503 clear non-technical error, no challengeId/accessToken, LoginCode row deleted (rolled back), retry with mailer working → 200. (2) Resend-code: mailer rejects → 503, new code rolled back (no unconsumed rows), retry → 200. (3) Forgot-password: mailer rejects → neutral 200 (C4 preserved — a 500 would leak account existence vs the unknown-email 200), PasswordResetToken row deleted, retry → 200 + token row created. MailerService mocked at the module boundary (`vi.mock`); unique `X-Forwarded-For: 203.0.113.130` isolates from F4. TDD red confirmed: all 3 tests fail with 500 before the fix.
+
+- `apps/api/src/services/loginCode.ts` — `revokeByChallengeId(challengeId): Promise<void>` method: deletes any unconsumed LoginCode rows matching the challengeId via `deleteMany` (idempotent, no branch). Called when the email send fails after `issue()` or `resend()` to roll back the orphaned code row so it does not count toward the F2 throttle window and cannot be used by an attacker.
+
+- `apps/api/src/services/passwordResetToken.ts` — `revokeByRawToken(rawToken): Promise<void>` method: deletes the PasswordResetToken row matching the raw token's SHA-256 hash via `deleteMany` (idempotent, no branch). Called when the reset-link email send fails to roll back the orphaned token row.
+
+### Changed
+- `apps/api/src/services/auth.ts` — `verifyCredentials` now wraps the `mailerService.sendEmail()` call in a try/catch. On mailer failure: calls `loginCodeService.revokeByChallengeId(challengeId)` to delete the issued code, logs the error, and returns `{ success: false, status: 503, message: 'We could not send the verification code email. Please try again.', userId }`. The `CredentialResult` type's failure arm is extended from `401 | 423` to `401 | 423 | 503`. The route reads `result.status` and `result.message` directly, so no route change is needed for the login flow itself (only the error label + audit skip — see below). `services/auth.ts` remains at 100% branch/stmt/funcs/lines.
+
+- `apps/api/src/routes/admin/auth.ts` — three changes: (1) POST /login: the failure branch now skips the `LOGIN_FAILURE` audit when `result.status === 503` (credentials were valid; the mailer failed, not the login) and uses `'Service Unavailable'` as the error label for 503 (vs `'Locked'` for 423, `'Unauthorized'` for 401). (2) POST /resend-code: the `mailer.sendEmail()` call is wrapped in try/catch; on failure, `loginCodeService.revokeByChallengeId(challengeId)` deletes the new code and the route returns 503 with the same non-technical message. (3) POST /forgot-password: the `mailer.sendEmail()` call is wrapped in try/catch; on failure, `resetService.revokeByRawToken(rawToken)` deletes the issued token and the route still returns the neutral 200 (C4 — a 500 would leak that the account exists, since unknown email returns 200). The `PASSWORD_RESET_REQUESTED` audit is now gated by an `emailSent` flag so a failed-then-rolled-back request is never recorded.
+
+### Security
+- E-MAILFAIL / C4: a mailer failure on forgot-password no longer leaks account existence via a 500 (known email → 500 vs unknown email → 200). The route now always returns the neutral 200, matching C4's "no account-existence disclosure" requirement.
+- E-MAILFAIL / SC-002: no session is ever granted without a verified code — the mailer failure returns a 503 (login/resend-code) or neutral 200 (forgot-password), never a session.
+- Orphaned code/token rows from failed email sends are deleted, preventing throttle-window pollution (F2) and eliminating unusable-but-counted rows that could degrade the user's ability to retry.
+
+### Notes
+- Deviation from T124 `Files:` list: `apps/api/src/routes/admin/auth.ts` was also touched. The task lists only the three service files, but "surface a clear, retryable error" requires route-level changes for resend-code and forgot-password (the mailer calls live in the route for those two endpoints, not in a service). The login flow's mailer call is inside `AuthService.verifyCredentials`, so the service handles it entirely; only the error label + audit skip needed a route change. This deviation is recorded in the T124 `> note:` in tasks.md.
+- Full API suite: 377/377 pass (was 374; +3 for the new edge-mailfail tests). All security modules at 100% branch coverage confirmed: `services/auth.ts`, `services/loginCode.ts`, `services/passwordResetToken.ts`, `middleware/auth.ts`, `middleware/requirePermission.ts`, `config/adminAuth.ts`. Lint + typecheck clean.
+
+---
+
 ## [2026-07-13T10:00:00.000+00:00] — fix(admin-auth): T122-nit preserve 7d absolute cap across refresh rotation (Session 45 review)
 
 ### Fixed

@@ -1267,6 +1267,7 @@
       > note: rollback methods + mailer try/catch; 503 login/resend-code, neutral 200 forgot-password; tests: 377 passing; deviations: apps/api/src/routes/admin/auth.ts - 503+C4
       > reviewed: PASS-WITH-NITS — logic/coverage correct; OpenAPI contract missing new 503 responses
       > note (T124-nit): added 503 to login+resend-code in both openapi.yaml copies; docs:validate pass; deviations: none
+      > reviewed: PASS — OpenAPI now documents 503
 
 - [x] T125 [test] E-SUPERADMIN â€” super_admin read-only test
       Files: `apps/api/tests/integration/edge-superadmin.test.ts`
@@ -1294,6 +1295,7 @@
       Refs: E-A11Y/THEME, H1/H6, FR-030/FR-031
       > note (T100 review, Session 32): mobile `SheetContent` (`apps/web/src/admin/ui/sidebar.tsx:172-181`) has no `SheetTitle`/`SheetDescription` — axe/screen-reader will flag the off-canvas drawer; add a `VisuallyHidden` title+description here.
       > note: axe scan x5 surfaces + mobile-drawer + focus-ring + theme-flash; 13 tests, 1 genuine H6 red (mobile dialog name gap); deviations: apps/web/package.json,pnpm-lock.yaml - added jest-axe devDep
+      > reviewed: PASS-WITH-NITS — axe can't verify contrast in jsdom
 
 - [x] T128 Harden contrast, focus, and pre-paint theme
       Files: `apps/web/src/admin/theme/tokens.css`, `apps/web/src/admin/theme/boot.ts`,
@@ -1303,6 +1305,7 @@
       Done when: T127 passes.
       Refs: E-A11Y/THEME, H1/H4/H6
       > note: contrast/focus/boot already correct (T127 12/13 green pre-fix); added sr-only SheetTitle+Description to mobile drawer (sidebar.tsx); tests: 264 passing; deviations: none
+      > reviewed: PASS-WITH-NITS — see review-log 2026-07-13
 
 ---
 

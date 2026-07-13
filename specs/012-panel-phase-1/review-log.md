@@ -4,6 +4,16 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 48 — T124-nit/T127/T128 review (2026-07-13)
+
+T124-nit — PASS — 503 documented in both OpenAPI copies; docs:validate green
+T127 — PASS-WITH-NITS — 13/13 pass; axe can't check contrast in jsdom; stale ring-2 regex
+T128 — PASS-WITH-NITS — drawer a11y fix correct; contrast claim unverified by test
+
+**Overall: GO** — proceed to T129+. Full findings in chat report.
+
+---
+
 ## Session 47 — T123/T124/T125/T126 review (2026-07-13)
 
 T123 — PASS — 3/3 pass; TDD order confirmed via commit history; 380/380 suite

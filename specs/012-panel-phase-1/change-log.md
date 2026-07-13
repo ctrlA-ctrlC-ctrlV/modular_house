@@ -18,6 +18,20 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-13T16:00:00.000+00:00] — test(admin-web): T127-nit/T128-nit real token-contrast test + ring-3 regex fix (Session 48 review)
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — a new "Token contrast (H6)" describe block: 10 tests computing real WCAG 2.1 contrast ratios directly from the OKLCH values in `tokens.css` (read from disk via `fs.readFileSync` so the test can't silently drift from the actual source file), covering the five foreground/background text pairs actually used across the Phase 1 surfaces (`foreground`/`background`, `muted-foreground`/`background`, `primary-foreground`/`primary`, `secondary-foreground`/`secondary`, `sidebar-foreground`/`sidebar`) in both light and dark themes, asserting each meets the H6 4.5:1 normal-text minimum. Conversion uses Ottosson's published OKLab → linear-sRGB matrices; sanity-checked against `oklch(1 0 0)`/`oklch(0 0 0)` (white/black) giving the reference 21:1 maximum contrast ratio before trusting it against the real tokens. Tightest real pair found: light-mode `muted-foreground`/`background` at ~4.73:1 — comfortably above 4.5 but close enough to confirm the token was deliberately tuned near the AA boundary rather than accidentally passing. The focus ring's "3:1 large" clause is intentionally left uncomputed (see the in-file comment): H4 applies it at 50% alpha over an arbitrary surface, so a static token-pair ratio can't represent its effective composited contrast, and the ring colour itself is inherited unmodified from the reference template's Default preset (Template Parity Gate) rather than a Phase 1 implementation choice.
+- File-header comment explicitly documenting that `axe-core`'s `color-contrast` rule does not run in jsdom (no real layout/paint engine to sample rendered pixels), so the `toHaveNoViolations()` assertions elsewhere in this file verify every rule axe *can* evaluate headlessly but never contrast — only the new Token contrast block does that.
+
+### Changed
+- `apps/web/src/admin/shell/a11y.test.tsx` — `assertVisibleFocusOnControls`'s regex tightened from `/focus-visible:ring-(2|3)/` to `/focus-visible:ring-3/`. Session 21 already migrated every sidebar/topbar/sheet control from the earlier `ring-2`/`sidebar-ring` exception to the exact H4 value (`ring-3`), so continuing to accept `ring-2` was stale and would have silently passed a future regression back to the old value instead of catching it.
+
+### Notes
+- Carry-forward nits from the Session 48 review of T127/T128: "axe can't check contrast in jsdom" and "stale ring-2 regex" (T127); "contrast claim unverified by test" (T128). All three addressed by the same change: the file header now makes the jsdom limitation explicit rather than letting `toHaveNoViolations()` imply a false contrast guarantee, the regex now matches only the current pinned value, and the new computed test gives the T128 contrast claim actual evidence instead of an unverified assertion. Tried Vite's `?raw` import suffix first to read `tokens.css` without Node APIs, but Vitest's default CSS-import interception stubs any `.css`-extensioned specifier to an empty string regardless of query suffix; fell back to `fs.readFileSync` with Node types scoped to this one file via a triple-slash `/// <reference types="node" />` directive (this tsconfig's `types` array is intentionally limited to `vite/client`/`vitest/globals` for the rest of the browser-facing app, so no shared config was touched). Full a11y suite: 23/23 pass; full web suite: 274/274 pass; lint + typecheck clean.
+
+---
+
 ## [2026-07-13T15:00:00.000+00:00] — fix(admin-web): T128 accessible name for the mobile sidebar drawer (sidebar.tsx)
 
 ### Fixed

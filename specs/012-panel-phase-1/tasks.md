@@ -1265,19 +1265,21 @@
       Refs: E-MAILFAIL, SC-002
       > note: rollback methods + mailer try/catch; 503 login/resend-code, neutral 200 forgot-password; tests: 377 passing; deviations: apps/api/src/routes/admin/auth.ts - 503+C4
 
-- [ ] T125 [test] E-SUPERADMIN â€” super_admin read-only test
+- [x] T125 [test] E-SUPERADMIN â€” super_admin read-only test
       Files: `apps/api/tests/integration/edge-superadmin.test.ts`
       Do: As the `super_admin` account assert `settings/password`, `settings/photo` PUT, and
       `settings/photo` DELETE each return `403` with no change.
       Done when: Tests fail for FR-035.
       Refs: E-SUPERADMIN, FR-035
+      > note: 3 tests via real login+2fa session; 403 + byte-exact no-change (hash/photo) pinned; tests: 3 passing; deviations: none (impl pre-existing, "tests fail" not literally met, precedent)
 
-- [ ] T126 Harden super_admin read-only enforcement
+- [x] T126 Harden super_admin read-only enforcement
       Files: `apps/api/src/routes/admin/settings.ts`, `apps/web/src/admin/pages/Settings.tsx`
       Do: Block all settings mutations for `super_admin` server-side; render the settings UI read-only
       for that account.
       Done when: T125 passes.
       Refs: E-SUPERADMIN, FR-035
+      > note: verified pre-existing; 403 guard on password/photo-PUT/photo-DELETE + read-only Settings.tsx branch; tests: 380 passing; deviations: none (no code change needed)
 
 - [ ] T127 [test] E-A11Y/THEME â€” accessibility + theme-flash test
       Files: `apps/web/src/admin/shell/a11y.test.tsx`

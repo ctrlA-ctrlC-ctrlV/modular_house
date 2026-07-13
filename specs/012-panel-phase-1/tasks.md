@@ -1266,6 +1266,7 @@
       Refs: E-MAILFAIL, SC-002
       > note: rollback methods + mailer try/catch; 503 login/resend-code, neutral 200 forgot-password; tests: 377 passing; deviations: apps/api/src/routes/admin/auth.ts - 503+C4
       > reviewed: PASS-WITH-NITS — logic/coverage correct; OpenAPI contract missing new 503 responses
+      > note (T124-nit): added 503 to login+resend-code in both openapi.yaml copies; docs:validate pass; deviations: none
 
 - [x] T125 [test] E-SUPERADMIN â€” super_admin read-only test
       Files: `apps/api/tests/integration/edge-superadmin.test.ts`
@@ -1285,21 +1286,23 @@
       > note: verified pre-existing; 403 guard on password/photo-PUT/photo-DELETE + read-only Settings.tsx branch; tests: 380 passing; deviations: none (no code change needed)
       > reviewed: PASS — 3 guards + read-only branch confirmed by inspection; T125 3/3 pass
 
-- [ ] T127 [test] E-A11Y/THEME â€” accessibility + theme-flash test
+- [x] T127 [test] E-A11Y/THEME â€” accessibility + theme-flash test
       Files: `apps/web/src/admin/shell/a11y.test.tsx`
       Do: Run axe against login/2FA/reset/shell/settings asserting zero critical violations, visible
       focus on every control, and no wrong-theme frame on first paint.
       Done when: Tests fail for H1/H6.
       Refs: E-A11Y/THEME, H1/H6, FR-030/FR-031
       > note (T100 review, Session 32): mobile `SheetContent` (`apps/web/src/admin/ui/sidebar.tsx:172-181`) has no `SheetTitle`/`SheetDescription` — axe/screen-reader will flag the off-canvas drawer; add a `VisuallyHidden` title+description here.
+      > note: axe scan x5 surfaces + mobile-drawer + focus-ring + theme-flash; 13 tests, 1 genuine H6 red (mobile dialog name gap); deviations: apps/web/package.json,pnpm-lock.yaml - added jest-axe devDep
 
-- [ ] T128 Harden contrast, focus, and pre-paint theme
+- [x] T128 Harden contrast, focus, and pre-paint theme
       Files: `apps/web/src/admin/theme/tokens.css`, `apps/web/src/admin/theme/boot.ts`,
       `apps/web/src/admin/ui/*`
       Do: Adjust token contrast (â‰¥4.5:1 / 3:1), ensure visible focus rings everywhere, and guarantee the
       boot script paints the correct theme before hydration.
       Done when: T127 passes.
       Refs: E-A11Y/THEME, H1/H4/H6
+      > note: contrast/focus/boot already correct (T127 12/13 green pre-fix); added sr-only SheetTitle+Description to mobile drawer (sidebar.tsx); tests: 264 passing; deviations: none
 
 ---
 

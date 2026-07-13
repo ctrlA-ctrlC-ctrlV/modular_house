@@ -1255,6 +1255,7 @@
       Done when: Tests fail for the mail-failure path.
       Refs: E-MAILFAIL, spec "Email delivery delay or failure", FR-010
       > note: 3 tests (login 503+rollback, resend-code 503+rollback, forgot-password neutral 200+rollback); TDD red confirmed (all 3 fail with 500 before fix); tests: 3 passing; deviations: none
+      > reviewed: PASS — 3/3 pass; commit order confirms test-before-impl; suite 380/380 (no-file-parallelism)
 
 - [x] T124 Harden mailer-failure handling (no orphaned consume)
       Files: `apps/api/src/services/auth.ts`, `apps/api/src/services/loginCode.ts`,
@@ -1264,6 +1265,7 @@
       Done when: T123 passes.
       Refs: E-MAILFAIL, SC-002
       > note: rollback methods + mailer try/catch; 503 login/resend-code, neutral 200 forgot-password; tests: 377 passing; deviations: apps/api/src/routes/admin/auth.ts - 503+C4
+      > reviewed: PASS-WITH-NITS — logic/coverage correct; OpenAPI contract missing new 503 responses
 
 - [x] T125 [test] E-SUPERADMIN â€” super_admin read-only test
       Files: `apps/api/tests/integration/edge-superadmin.test.ts`
@@ -1272,6 +1274,7 @@
       Done when: Tests fail for FR-035.
       Refs: E-SUPERADMIN, FR-035
       > note: 3 tests via real login+2fa session; 403 + byte-exact no-change (hash/photo) pinned; tests: 3 passing; deviations: none (impl pre-existing, "tests fail" not literally met, precedent)
+      > reviewed: PASS — 3/3 pass; real session flow; byte-exact no-change confirmed
 
 - [x] T126 Harden super_admin read-only enforcement
       Files: `apps/api/src/routes/admin/settings.ts`, `apps/web/src/admin/pages/Settings.tsx`
@@ -1280,6 +1283,7 @@
       Done when: T125 passes.
       Refs: E-SUPERADMIN, FR-035
       > note: verified pre-existing; 403 guard on password/photo-PUT/photo-DELETE + read-only Settings.tsx branch; tests: 380 passing; deviations: none (no code change needed)
+      > reviewed: PASS — 3 guards + read-only branch confirmed by inspection; T125 3/3 pass
 
 - [ ] T127 [test] E-A11Y/THEME â€” accessibility + theme-flash test
       Files: `apps/web/src/admin/shell/a11y.test.tsx`

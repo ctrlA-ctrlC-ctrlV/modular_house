@@ -4,6 +4,17 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 47 — T123/T124/T125/T126 review (2026-07-13)
+
+T123 — PASS — 3/3 pass; TDD order confirmed via commit history; 380/380 suite
+T124 — PASS-WITH-NITS — rollback+503/C4 correct, 100% branch; OpenAPI missing 503 docs
+T125 — PASS — 3/3 pass; real login+2fa session; byte-exact no-change asserted
+T126 — PASS — pre-existing 403 guards + read-only UI verified; no code change needed
+
+**Overall: GO** — proceed to T127. Full findings in chat report.
+
+---
+
 ## Session 46 — T119-nit/T121-nit/T122-nit review (2026-07-13)
 
 T119-nit — PASS — nested <Routes> flattened; warning gone; web 3/3 pass

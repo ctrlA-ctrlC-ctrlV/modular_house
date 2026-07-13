@@ -1214,6 +1214,7 @@
       Refs: E-SESSION, E2/E4/E5, FR-040
       > note: 2 backend tests (E4 full-family revoke incl. successor; E5 logout only current family) + 3 frontend tests (E2 in-memory mid-refresh; E4 failed-refresh clears token; E5 redirect); tests: 5 passing; deviations: none
       > reviewed: PASS-WITH-NITS â€” E2/E4/E5 correctly pinned, 5/5 pass; "tests fail" not literally met (precedent); session.test.tsx triggers a cosmetic React Router nested-`<Routes>` console warning (non-blocking).
+      > nit-fix: flattened nested <Routes> in renderWithAuth to single block; descendant-<Routes> warning gone; tests: 3 passing; deviations: none
 
 - [x] T120 Harden refresh rotation + protected-view redirect
       Files: `apps/api/src/services/auth.ts`, `apps/web/src/admin/auth/apiClient.ts`,

@@ -18,6 +18,16 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-13T12:00:00.000+00:00] — test(admin-auth): T125/T126 E-SUPERADMIN read-only enforcement verified (edge-superadmin.test.ts)
+
+### Added
+- `apps/api/tests/integration/edge-superadmin.test.ts` — 3 integration tests pinning the E-SUPERADMIN edge-case behaviour (plan §4.2, FR-035): (1) PUT /admin/settings/password as `super_admin` → 403, stored password hash byte-for-byte unchanged, original password still authenticates via a follow-up login. (2) PUT /admin/settings/photo as `super_admin` → 403, no photo persisted (follow-up authenticated GET still 404). (3) DELETE /admin/settings/photo as `super_admin` (with a pre-seeded photo) → 403, the existing photo survives byte-for-byte (follow-up GET returns identical bytes/MIME type). Sessions are obtained through the real login + verify-2fa flow rather than a hand-signed JWT, exercising the same authenticated path a real super_admin session would use. Mirrors the T117 `edge-photo.test.ts` "no change" assertion style.
+
+### Notes
+- T125/T126: both the backend 403 guard (`apps/api/src/routes/admin/settings.ts` — password PUT, photo PUT, photo DELETE) and the frontend read-only branch (`apps/web/src/admin/pages/Settings.tsx:264-276`, already covered by `Settings.test.tsx` since the T094 era) were pre-existing before this session; no source changes were required. "Done when: Tests fail for FR-035" is not literally met — same accepted precedent as T104/T106/T109/T111/T112/T117/T118/T122 (impl landed ahead of its pinning test). Full API suite: 380/380 pass (was 377; +3 for the new edge-superadmin tests). Lint + typecheck clean on the new file.
+
+---
+
 ## [2026-07-13T11:00:00.000+00:00] — feat+test(admin-auth): T123/T124 E-MAILFAIL mailer-failure handling (edge-mailfail.test.ts, auth.ts, loginCode.ts, passwordResetToken.ts, routes/admin/auth.ts)
 
 ### Added

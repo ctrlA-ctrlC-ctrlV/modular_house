@@ -18,6 +18,37 @@ Note: keep the most latest entry on top
 > - 
 ---
 
+## [2026-07-13T15:00:00.000+00:00] — fix(admin-web): T128 accessible name for the mobile sidebar drawer (sidebar.tsx)
+
+### Fixed
+- `apps/web/src/admin/ui/sidebar.tsx` — the mobile off-canvas `SheetContent` (H5) now renders a visually-hidden `SheetTitle` ("Navigation menu") and `SheetDescription` ("Sidebar navigation for the admin panel") as its first children, both `sr-only` (matching the existing `sr-only` convention already used elsewhere in this file, e.g. `SidebarTrigger`'s label). Radix's `Dialog` primitive requires an accessible name/description for screen-reader users; without it, axe's `aria-dialog-name` rule flags the drawer and Radix itself logs a dev-mode console warning. This closes the exact gap flagged in the Session 32 (T100) review and pinned as a genuine failing test by T127.
+
+### Notes
+- T128's other two "Do:" items — token contrast (`tokens.css`) and the pre-paint boot script (`boot.ts`) — needed no changes: T127's axe scans and the two Shell-mount "theme flash" tests already passed cleanly before this fix (12 of 13 T127 tests were green pre-existing; only the mobile-drawer accessible-name check was red), so the H1/H4 halves of H1/H4/H6 were already satisfied by prior work (T071-T084 focus-ring hardening, T077/T078 theme boot sync). Only the H6 mobile-dialog-name gap required a code change. `a11y.test.tsx` now 13/13 green; full web suite 264/264; lint + typecheck clean.
+
+---
+
+## [2026-07-13T14:00:00.000+00:00] — test(admin-web): T127 E-A11Y/THEME axe + focus-ring + theme-flash test (a11y.test.tsx)
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — 13 tests pinning H1/H4/H6 (FR-030/FR-031) across the five Phase 1 surfaces named in plan §2 H6 (login, two-factor, reset, shell, settings): (1) an automated `jest-axe` scan of each surface asserting zero accessibility violations; (2) a spot-check that every native `<button>`/`<input>` control carries the H4 `focus-visible:ring-3 focus-visible:ring-ring/50` utility (excluding the `input-otp` package's intentionally visually-hidden root input, whose focus indicator lives on its sibling slot elements); (3) a dedicated mobile-off-canvas-drawer scan (`window.matchMedia` overridden to force the `<768px` breakpoint, then the sidebar trigger clicked to mount the Radix `Sheet`) targeting `document.body` so the portal-rendered dialog is included; (4) two Shell-mount integration tests proving the pre-paint boot script (`boot.ts`, T078) and `ThemeProvider`'s lazy `useState` cookie-read stay synchronised with no intermediate "flash" frame, complementing `ThemeProvider.test.tsx`'s (T077) isolated boot-script matrix.
+- `apps/web/package.json`, `pnpm-lock.yaml` — added `jest-axe` + `@types/jest-axe` as devDependencies (no existing axe-based unit-test harness was present in `apps/web`; `packages/ui`'s Storybook `@storybook/addon-a11y` is a separate, Storybook-only integration).
+
+### Notes
+- 12 of 13 tests pass at runtime; the mobile-drawer scan fails as expected, pinning the exact carry-forward gap flagged in the Session 32 (T100) review: `sidebar.tsx`'s `SheetContent` renders with no `SheetTitle`/`SheetDescription`, so Radix's Dialog has no accessible name (axe rule `aria-dialog-name`). This is the literal "Tests fail for H1/H6" TDD-red required before T128. Full web suite: 264/264 excluding the one pinned failure (263 passing + 1 expected red); lint + typecheck clean. Discovered and fixed two test-design pitfalls while building this file (not product bugs): (a) `sidebar.tsx` passes `data-slot="sidebar"` into `SheetContent`, which overrides `sheet.tsx`'s own `data-slot="sheet-content"` via prop spread — the mobile-drawer-mounted check uses `[role="dialog"]` instead, which is override-proof; (b) the `input-otp` package's root `<input>` is intentionally unstyled by design (`input-otp.tsx` comment), so the focus-ring spot-check excludes `[data-slot="input-otp"]` explicitly.
+
+---
+
+## [2026-07-13T13:00:00.000+00:00] — docs(admin-auth): T124-nit document 503 mailer-failure responses (admin-auth.openapi.yaml, openapi.yaml)
+
+### Added
+- `specs/012-panel-phase-1/contracts/admin-auth.openapi.yaml` and `apps/api/openapi.yaml` — both `/admin/auth/login` and `/admin/auth/resend-code` now document a `503` response (`Error` schema) describing the E-MAILFAIL rollback behaviour added in T124: credentials/code were valid but the mailer failed to send, the issued code is rolled back so the attempt does not count toward lockout/throttle windows, and retrying once the mailer recovers succeeds. `/admin/auth/forgot-password` needs no new response — its mailer-failure path still returns the existing neutral `200` (C4), never a new status code.
+
+### Notes
+- Carry-forward nit from the Session 47 review of T124 ("logic/coverage correct; OpenAPI contract missing new 503 responses"). Both OpenAPI copies kept in sync — same dual-file maintenance pattern as the T115-nit fix. `pnpm docs:validate` passes; both YAML files parse cleanly. No source/test changes; documentation-only.
+
+---
+
 ## [2026-07-13T12:00:00.000+00:00] — test(admin-auth): T125/T126 E-SUPERADMIN read-only enforcement verified (edge-superadmin.test.ts)
 
 ### Added

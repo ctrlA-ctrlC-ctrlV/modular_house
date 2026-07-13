@@ -4,6 +4,16 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 46 — T119-nit/T121-nit/T122-nit review (2026-07-13)
+
+T119-nit — PASS — nested <Routes> flattened; warning gone; web 3/3 pass
+T121-nit — PASS — E7c multi-rotation test added; pins idle-reset-on-rotation
+T122-nit — PASS — absolute cap preserved across rotation; E7d test; 100% branch
+
+**Overall: GO** — proceed to T123. Full findings in chat report.
+
+---
+
 ## Session 45 — T119/T120/T121/T122 review (2026-07-09)
 
 T119 — PASS-WITH-NITS — E2/E4/E5 pinned, 5/5 pass; "tests fail" nit (precedent)

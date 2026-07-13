@@ -1215,6 +1215,7 @@
       > note: 2 backend tests (E4 full-family revoke incl. successor; E5 logout only current family) + 3 frontend tests (E2 in-memory mid-refresh; E4 failed-refresh clears token; E5 redirect); tests: 5 passing; deviations: none
       > reviewed: PASS-WITH-NITS â€” E2/E4/E5 correctly pinned, 5/5 pass; "tests fail" not literally met (precedent); session.test.tsx triggers a cosmetic React Router nested-`<Routes>` console warning (non-blocking).
       > nit-fix: flattened nested <Routes> in renderWithAuth to single block; descendant-<Routes> warning gone; tests: 3 passing; deviations: none
+      > reviewed (nit-fix): PASS — test-only, warning gone, 3/3 pass, no prod code touched
 
 - [x] T120 Harden refresh rotation + protected-view redirect
       Files: `apps/api/src/services/auth.ts`, `apps/web/src/admin/auth/apiClient.ts`,
@@ -1234,6 +1235,7 @@
       > note: 3 tests — E7a (idle >30m â†' 401 “Session idle timeout” via injected clock at +30m+1ms, absolute expiry not reached) + E7b (absolute 7d cap â†' 401 “Refresh token expired” via injected clock at +7d+1ms) + E7c (idle timer resets on rotation: rotate A→B at T+20m, use B at T+40m → 200, pins that delta is measured from lastUsedAt not initial issuance); drives AuthService.refresh() directly with fake clock; tests: 373 passing; deviations: none
       > reviewed: PASS-WITH-NITS â€” E7a/E7b boundaries correctly pinned via injected clock, 2/2 pass; nit: only a single-rotation boundary is tested, see T122 note on the absolute-cap-resets-on-rotation question.
       > nit-fix: added E7c multi-rotation test; 373 passing
+      > reviewed (nit-fix): PASS — E7c correctly pins idle-timer-reset-on-rotation, injected clock used
 
 - [x] T122 Harden the 30m idle timeout via lastUsedAt
       Files: `apps/api/src/services/auth.ts`
@@ -1244,6 +1246,7 @@
       > note: verified pre-existing; idle check (lastUsedAt !== null && delta > IDLE_TIMEOUT_MS) + absolute expiry check (expiresAt < now) + lastUsedAt set on new token in createRefreshToken() all in auth.ts; services/auth.ts 100% branch; tests: 372 passing; deviations: none
       > reviewed: PASS-WITH-NITS â€” idle (auth.ts:330-332) + absolute (auth.ts:325-327) checks exact vs plan Â§2.5 E7; 100% branch. Nit: `createRefreshToken` (auth.ts:145-158) resets `expiresAt` to `now+7d` on every rotation (called from `refresh()` at auth.ts:352), so a continuously-active session (refreshed <30m apart) never hits the 7d absolute cap — only the idle timeout is enforced in practice. Flagged for a future task, not blocking (pre-existing since T031/T045, already passed in prior reviews).
       > nit-fix: createRefreshToken accepts optional expiresAt; refresh() passes stored.expiresAt preserving family's original 7d cap; E7d test pins it; tests: 374 passing; deviations: none
+      > reviewed (nit-fix): PASS — matches E7 "absolute cap"; changePassword/verifyOtp keep fresh 7d by design; auth.ts 100% branch confirmed
 
 - [ ] T123 [test] E-MAILFAIL â€” mailer-failure test
       Files: `apps/api/tests/integration/edge-mailfail.test.ts`

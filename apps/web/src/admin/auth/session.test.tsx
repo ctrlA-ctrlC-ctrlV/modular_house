@@ -63,7 +63,13 @@ const testSessionResponse = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Wrap component in AuthProvider + MemoryRouter with a /admin/login route. */
+/** Wrap component in AuthProvider + MemoryRouter with a /admin/login route.
+ *
+ * Uses a single flat <Routes> block (no nested <Routes>) so AdminGuard's
+ * <Navigate to="/admin/login"> is resolved by the same route table that
+ * defines the login page — avoiding the React Router descendant-<Routes>
+ * console warning.
+ */
 function renderWithAuth(
   ui: React.ReactElement,
   initialEntries: string[] = ['/admin/settings'],
@@ -79,12 +85,7 @@ function renderWithAuth(
           path="/admin/settings"
           element={
             <AuthProvider>
-              <Routes>
-                <Route
-                  index
-                  element={<AdminGuard>{ui}</AdminGuard>}
-                />
-              </Routes>
+              <AdminGuard>{ui}</AdminGuard>
             </AuthProvider>
           }
         />

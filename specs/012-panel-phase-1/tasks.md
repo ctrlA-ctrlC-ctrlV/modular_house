@@ -1248,20 +1248,22 @@
       > nit-fix: createRefreshToken accepts optional expiresAt; refresh() passes stored.expiresAt preserving family's original 7d cap; E7d test pins it; tests: 374 passing; deviations: none
       > reviewed (nit-fix): PASS — matches E7 "absolute cap"; changePassword/verifyOtp keep fresh 7d by design; auth.ts 100% branch confirmed
 
-- [ ] T123 [test] E-MAILFAIL â€” mailer-failure test
+- [x] T123 [test] E-MAILFAIL â€” mailer-failure test
       Files: `apps/api/tests/integration/edge-mailfail.test.ts`
       Do: Stub the mailer to throw on the OTP/reset send; assert a clear non-technical error, no session
       granted, the code/token is NOT left consumed, and retry works.
       Done when: Tests fail for the mail-failure path.
       Refs: E-MAILFAIL, spec "Email delivery delay or failure", FR-010
+      > note: 3 tests (login 503+rollback, resend-code 503+rollback, forgot-password neutral 200+rollback); TDD red confirmed (all 3 fail with 500 before fix); tests: 3 passing; deviations: none
 
-- [ ] T124 Harden mailer-failure handling (no orphaned consume)
+- [x] T124 Harden mailer-failure handling (no orphaned consume)
       Files: `apps/api/src/services/auth.ts`, `apps/api/src/services/loginCode.ts`,
       `apps/api/src/services/passwordResetToken.ts`
       Do: Roll back / avoid marking codes/tokens consumed when the email send fails; surface a clear,
       retryable error.
       Done when: T123 passes.
       Refs: E-MAILFAIL, SC-002
+      > note: rollback methods + mailer try/catch; 503 login/resend-code, neutral 200 forgot-password; tests: 377 passing; deviations: apps/api/src/routes/admin/auth.ts - 503+C4
 
 - [ ] T125 [test] E-SUPERADMIN â€” super_admin read-only test
       Files: `apps/api/tests/integration/edge-superadmin.test.ts`

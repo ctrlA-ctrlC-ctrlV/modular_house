@@ -166,6 +166,14 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
         '429':
           description: Too many requests (IP rate limit).
+        '503':
+          description: >
+            Credentials were valid but the OTP email could not be sent (E-MAILFAIL); the issued
+            code is rolled back so the attempt does not count toward lockout or throttle windows.
+            Retrying once the mailer recovers succeeds.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /admin/auth/verify-2fa:
     post:
@@ -223,6 +231,13 @@ paths:
               schema: { $ref: '#/components/schemas/NeutralAck' }
         '429':
           description: Cooldown not elapsed or window cap exceeded (neutral message).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '503':
+          description: >
+            The new code was issued but could not be emailed (E-MAILFAIL); it is rolled back so it
+            does not count toward the throttle window. Retrying once the mailer recovers succeeds.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }

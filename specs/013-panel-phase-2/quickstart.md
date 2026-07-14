@@ -13,8 +13,7 @@ FR -> test traceability table that satisfies Definition of Done (DoD-2).
 - PostgreSQL reachable via `DATABASE_URL` (tests use the port-5434 test DB; start Docker Desktop
   first if it is unreachable).
 - Phase 1 (`012-panel-phase-1`) applied: admin shell, auth, seeded admin account.
-- No new env vars. `VITE_GA_TRACKING_ID` is REMOVED in this phase — delete it from local `.env`
-  files; nothing may reference it (assertion K6).
+- No new env vars.
 
 ## 2. Setup
 
@@ -74,8 +73,7 @@ pnpm --filter @modular-house/web dev      # public site + admin under /admin
 ### US4 — Cookie register governance
 
 1. Compare cookies in DevTools (public + admin) against `/cookie-policy` -> one-to-one match.
-2. Search the codebase for `gtag`, `googletagmanager`, `VITE_GA_TRACKING_ID` -> zero hits.
-3. Add a dummy entry to `cookieRegister.ts` locally -> policy page renders it with no other change.
+2. Add a dummy entry to `cookieRegister.ts` locally -> policy page renders it with no other change.
 
 ## 5. Test commands
 
@@ -110,7 +108,7 @@ plan assertion; "Audit" = measured post-implementation (DoD-5/DoD-7).
 | FR-013 | Bots excluded | E-INGEST (M4) |
 | FR-014 | Admin pages never measured | E-INGEST (M5), T-F5 |
 | FR-015 | No personal data at rest | T-B8 (R2/M7/S5) |
-| FR-016 | Retention >= 32 months (no delete path) | T-B8 + Review (R1: no delete/expiry code) |
+| FR-016 | Retention >= 32 months (no delete path) | T-B8 + Review (plan §2.7 R1: no delete/expiry code) |
 | FR-017 | Sidebar entry; authenticated; all roles read | T-F6, T-B7 |
 | FR-018 | Five KPIs with preceding-period deltas | T-B5, T-F7 (Q5) |
 | FR-019 | Range set + "More" pop-up + custom validation | T-F8, T-F9, E-RANGE, E-DIALOG (Q1–Q3) |
@@ -118,11 +116,11 @@ plan assertion; "Audit" = measured post-implementation (DoD-5/DoD-7).
 | FR-021 | Top-10 pages with share; source breakdown | T-B6, T-F7 (Q6) |
 | FR-022 | Template design, both themes, keyboard, mobile | T-F10 + SC-010 visual approval (DoD-6) |
 | FR-023 | Empty states per widget | E-EMPTY, T-F10 |
-| FR-024 | Extensible dashboard (metrics/panels/tabs) | Review (R12: placeholder tabs, widget seams) |
+| FR-024 | Extensible dashboard (metrics/panels/tabs) | Review (research R11: placeholder tabs, widget seams; ui-components.md inventory extension) |
 | FR-025 | Single authoritative register, policy matches | T-F11, T-F4 |
 | FR-026 | Admin strictly-necessary cookies documented | T-F11 (register content) |
-| FR-027 | New cookie = register entry only | T-F11 consistency test + Review (R10) |
-| FR-028 | Notice extensible to opt-in accept/decline | Review (R9: banner controls isolated behind one acknowledgment seam) |
+| FR-027 | New cookie = register entry only | T-F11 consistency test + Review (research R9) |
+| FR-028 | Notice extensible to opt-in accept/decline | Review (research R8: banner controls isolated behind one acknowledgment seam) |
 
 Success criteria SC-001..SC-011 map through the FRs above plus the audits: SC-003/SC-011 (DoD-4/5),
 SC-006/SC-007 (DoD-7 budgets Q8/M9/V6), SC-010 (DoD-6 visual approval).

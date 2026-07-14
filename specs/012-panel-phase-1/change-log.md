@@ -18,7 +18,431 @@ Note: keep the most latest entry on top
 > - 
 ---
 
-## [2026-07-08T11:30:00.000+00:00] — test(admin-auth): cover changePassword D3 branch — T113 carry-forward coverage fix
+## [2026-07-14T04:00:00.000+00:00] — docs(specs): T140 FR-to-test traceability cross-check (tasks.md)
+
+### Notes
+- Extracted all `FR-` rows from the existing `quickstart.md` §7 traceability table and diffed against
+  the full expected `FR-001..FR-043` sequence: **43/43 present, zero gaps, zero duplicates.**
+- Every row cites one or more §4 test-scenario IDs (`T-B1..T-B7`, `T-F1..T-F6`, `E-OTP`, `E-LOCK`,
+  `E-CREDS`, `E-RESET`, `E-POLICY`, `E-THROTTLE`, `E-PHOTO`, `E-SESSION`, `E-A11Y/THEME`,
+  `E-SUPERADMIN`, `E-IDLE`, `E-MAILFAIL`), each of which already resolves to a specific completed task
+  number via the "Coverage notes" section at the bottom of `tasks.md` (e.g. `T-B1 → T032/T036`,
+  `E-SUPERADMIN → T125/T126`) — cross-checked that every task named there is checked `[x]`.
+- Confirmed **no unchecked tasks remain in `tasks.md` prior to T140 itself** (`grep '^- \[ \]'` returns
+  only T140 before this edit) — so every citation traces to work that was actually implemented and
+  reviewed, not a stale placeholder.
+- This closes DoD-2 together with T131/T132's confirmation that the full suite these citations depend
+  on is currently green (380/380 API, 274/274 web).
+- No source or test files were modified for T140 (cross-check only).
+
+---
+
+## [2026-07-14T03:00:00.000+00:00] — docs(admin-web): T139 mobile design document (mobile-design.md)
+
+### Added
+- `apps/web/src/admin/docs/mobile-design.md` — documents the touch-first mobile layout of all five
+  Phase 1 surfaces (Login, TwoFactor, ForgotPassword, ResetPassword, app shell, Settings), written
+  from a direct read of the shipped source rather than invented from scratch: the four pre-auth pages'
+  shared `hidden lg:block lg:w-1/3` / `w-full lg:w-2/3` two-column collapse, the sidebar's off-canvas
+  `Sheet` drawer below 768px vs. the persistent 17rem/3rem column above it, the fixed 48px top bar
+  that never collapses its four controls, and Settings' naturally-responsive single-column `max-w-2xl`
+  stack. Cross-references the reference template's own breakpoint conventions
+  (`.doc/design/DESIGN.md`: mobile < 768px, lg >= 1024px) and flags the 32px icon-button touch targets
+  (inherited unmodified from the template, below the AAA 44px guideline but not an AA requirement) as
+  a known, non-blocking characteristic rather than a defect.
+
+### Notes
+- No source or test files were modified — this is a new documentation-only file.
+
+---
+
+## [2026-07-14T02:00:00.000+00:00] — docs(specs): T138 real-OTP delivery check (quickstart.md, tasks.md)
+
+### Added
+- `specs/012-panel-phase-1/quickstart.md` §8.3 — 10-send real-OTP delivery table plus the negative
+  wrong-code check result.
+
+### Notes
+- 10 real sequential `POST /admin/auth/login` requests against the local port-5434 test DB, each
+  triggering the real `MailerService` → SMTP → Mailhog pipeline (no mocking anywhere in this check).
+  Delivery was confirmed by polling Mailhog's own REST API for the captured message per recipient —
+  genuine end-to-end confirmation, not an HTTP-completion proxy. **10/10 confirmed delivered, 170–266
+  ms each**, far inside the 30 s / ≥9-of-10 budget (DoD-7, SC-002).
+- Negative check: an incorrect OTP (`000000`) against a freshly issued challenge returned `401` with
+  no `accessToken` in the body, live-confirming that no session is ever granted without a correct,
+  unexpired code — on top of the exhaustive existing coverage for this in `edge-otp.test.ts` /
+  `auth-verify-2fa.test.ts` (B3–B6/B9).
+- Used the same safe, port-5434-only measurement pattern established for T136 (`.env.test` force-
+  loaded with `override: true` before importing the app or Prisma client) — never touched the
+  SSH-tunneled port-5432 database. The throwaway script (`apps/api/tmp-otp-delivery-check.ts`) and its
+  10 scratch users were deleted/cleaned up immediately after the run; confirmed `git status` clean
+  (aside from the intentional spec-doc edits) afterward.
+- No external SMTP relay is configured in this environment, so delivery to a real third-party inbox
+  (e.g. Gmail) was not separately exercised — only the real local SMTP capture path was verified.
+- No source or test files were modified for T138.
+
+---
+
+## [2026-07-14T01:00:00.000+00:00] — docs(specs): T137 SC-004 visual-parity review (quickstart.md, tasks.md)
+
+### Added
+- `specs/012-panel-phase-1/quickstart.md` §8.2 — a 22-item visual-parity checklist comparing the
+  Phase 1 login page and app shell directly against the reference template
+  (`next_shadcn_admin_dashboard`): `auth/v1/login/page.tsx`, `dashboard/layout.tsx`,
+  `dashboard/_components/sidebar/app-sidebar.tsx`, `dashboard/coming-soon/page.tsx`, read surgically
+  per the Template Parity Gate (plan §5A) and compared line-by-line against
+  `apps/web/src/admin/pages/Login.tsx`, `shell/TopBar.tsx`, `shell/Sidebar.tsx`, `shell/ComingSoon.tsx`.
+
+### Notes
+- **22/22 items pass (100%)**, against the ≥90% SC-004 threshold. Six items are marked "intentional
+  deviation" rather than "match" — no Google button (FR-005), "Forgot password" replacing
+  "Register" (FR-006), no GitHub button (H7/FR-023), placeholder content instead of nav items (H7 —
+  Phase 1 ships no feature pages yet, and this mirrors the template's own `coming-soon` page rather
+  than diverging from it), and single-preset theme control (FR-029) — all of these are spec-mandated
+  differences from the raw template, not fidelity gaps, so they count toward parity with *our* target
+  rather than against it.
+- The remaining 16 items — two-column login layout, exact Tailwind classes on headline/subtext/title/
+  spacing, 48px top bar, sidebar Header/Content/Footer three-part structure, 17rem/3rem/18rem sidebar
+  widths, 0.625rem radius, `ring-3`/`ring/50` focus rings, OKLCH Default-preset tokens, and the Radix
+  `Sheet` mobile drawer — are direct matches, several already independently confirmed exact during the
+  T003 design-token review (`review-log.md` Session 1: "PASS — all H3/H4 values exact").
+- No source or test files were modified for T137 (review/verification only).
+
+---
+
+## [2026-07-14T00:00:00.000+00:00] — docs(specs): T136 performance-budget verification (quickstart.md, tasks.md)
+
+### Added
+- `specs/012-panel-phase-1/quickstart.md` — new "§8 Final DoD Verification Evidence" section
+  recording T136's measured API p95 (244.2 ms), Lighthouse LCP under both mobile-throttled and
+  desktop presets, the theme-flash cross-reference to T127, and the sidebar-animation source
+  confirmation. Reserved as the landing spot for T137/T138 evidence too, since both tasks name this
+  same file under `Files:`.
+
+### Notes
+- **Incident during measurement, disclosed and resolved with the user before continuing:** an initial
+  attempt to measure API latency ran `pnpm dev` (apps/api), which reads the committed `.env` —
+  `DATABASE_URL` there points at `127.0.0.1:5432`, reached via an active SSH tunnel to a remote
+  database, not the local Docker test DB on port 5434. 20 sequential `POST /admin/auth/login`
+  requests were sent there before the mismatch was noticed (all returned `401`, consistent with
+  unknown-email/no-write, but unconfirmed). The dev-server process was killed immediately on
+  discovery; the user was asked how to proceed and confirmed no remediation was needed, with the
+  instruction to use only the local port-5434 DB going forward. All further measurement in this task
+  used a script that force-loads `.env.test` (`override: true`, mirroring the project's own
+  `src/test/setup.ts` pattern) before importing the app or Prisma client, making it structurally
+  impossible to reach the port-5432 tunnel.
+- **Separate near-miss, caught and reverted:** while clearing scratch output after the Lighthouse
+  runs, `rm -rf apps/web/.lighthouseci` was run assuming the directory was session-generated scratch
+  — it was not; `git status` immediately after showed the deletions were of **previously committed**
+  files (old timestamps from an earlier session's public-site Lighthouse run). Restored instantly via
+  `git checkout -- apps/web/.lighthouseci/`; confirmed clean afterward. No commit was made in between,
+  so this never reached the repository.
+- Also noticed `.docs/new-admin-panel-design-brief.md` sitting modified in the working tree,
+  unrelated to any command run this session. `git diff` showed clearly human-authored editorial
+  changes (instructional callouts removed, "Last updated" bumped to today, a checklist item edited) —
+  left untouched as pre-existing in-progress work belonging to the user, not part of this task.
+- No source or test files were modified for T136 (measurement/verification only); `quickstart.md` is
+  documentation, not source.
+
+---
+
+## [2026-07-13T23:00:00.000+00:00] — docs(specs): T135 WCAG 2.1 AA audit (tasks.md)
+
+### Notes
+- **Automated axe scan (re-confirmed):** `a11y.test.tsx` — 23/23 tests green, zero violations across
+  all five Phase 1 surfaces (login, two-factor, reset-password, shell desktop, shell mobile off-canvas
+  drawer, settings), plus the real computed OKLCH token-contrast block (10 pairs, both themes, all
+  ≥4.5:1) added in the Session 48 review. This is the same suite T127/T128 already built; re-run here
+  to confirm it is still green at the Final gate.
+- **Static keyboard-operability audit (new for T135):** grepped the entire `apps/web/src/admin/**`
+  tree for `onClick` handlers and confirmed every one is attached to a native `<button>` element (or
+  the `Button` component, which renders one) — no `<div>`/`<span>`-as-button anti-pattern exists
+  anywhere, so native Tab-order and Enter/Space activation apply by construction. Confirmed zero
+  custom `onKeyDown` overrides anywhere in the admin layer — the mobile sidebar drawer (`sheet.tsx`)
+  and the account dropdown (`dropdown-menu.tsx`) both wrap unmodified `@radix-ui/react-dialog` /
+  `@radix-ui/react-dropdown-menu` primitives, which ship WCAG-compliant keyboard behaviour (focus
+  trap, Escape-to-close, arrow-key menu navigation) out of the box with nothing in this codebase
+  overriding it. The sidebar-toggle control (`SidebarTrigger` / `TopBar`'s toggle button) is a native
+  `<button>` with `onClick={toggleSidebar}`, so it is keyboard-operable via Enter/Space with no extra
+  wiring required.
+- **Disclosure:** this session has no browser-automation tool available (no Playwright/DevTools MCP,
+  no screenshot capability), so the literal "manual keyboard pass" called for in the task text could
+  not be performed by driving a real browser end to end. The automated axe coverage plus the static
+  construction audit above give strong indirect evidence of WCAG 2.1 AA keyboard compliance, but a
+  human/QA pass tabbing through all five surfaces in a real browser before ship is still recommended
+  and not substituted by this session's verification. No source or test files were modified for T135.
+
+---
+
+## [2026-07-13T22:00:00.000+00:00] — docs(specs): T134 public-site regression gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/web test:run`: 274/274 (same run as T132; the package hosts both the
+  admin surface and the public marketing/configurator/SEO suites side by side).
+- `pnpm --filter @modular-house/ui test`: **197/198 tests pass, 1 pre-existing skip, 44/44 files
+  green** (Storybook component-story tests via the browser/Chromium runner). Confirms the admin design
+  system stayed fully isolated under `apps/web/src/admin/` per plan §1.4 — `@modular-house/ui` was
+  never touched by Phase 1 and shows zero regressions.
+- No source or test files were modified for T134.
+
+---
+
+## [2026-07-13T21:00:00.000+00:00] — docs(specs): T133 OpenAPI contract validation gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/api docs:validate` (`tsx scripts/validate-openapi.ts` against
+  `apps/api/openapi.yaml`): passes — "OpenAPI specification is valid!". No code changes were needed;
+  the contract has been kept current incrementally throughout Pass 1/Pass 2 (e.g. T124-nit's 503
+  documentation fix).
+
+---
+
+## [2026-07-13T20:00:00.000+00:00] — docs(specs): T132 web test suite gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/web test:run`: **274/274 tests, 32/32 files green**, single clean run,
+  no retries needed. Covers all admin Phase 1 surfaces (theme provider, pre-auth page wiring, session/
+  refresh edge cases, focus-indicator a11y, apiClient, sidebar/cn utilities) plus the untouched public
+  site/configurator suites in the same package. No source or test files were modified for T132.
+
+---
+
+## [2026-07-13T19:00:00.000+00:00] — docs(specs): T131 API test suite + security coverage gate (tasks.md)
+
+### Notes
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`: **380/380 tests, 51/51 files
+  green.** One transient failure was observed on a prior attempt (`auth-login.test.ts` "returns 423
+  when the account is locked" got a `500` instead) — re-running the single file in isolation and the
+  full suite twice more reproduced it zero further times, consistent with a one-off DB connection-pool
+  contention flake under cold start rather than a real regression. No code change was made.
+- `pnpm --filter @modular-house/api test:coverage`: on the first attempt, 7 tests across 6 files failed
+  with `500`s in exactly the same transient-flake pattern (rapid-fire lockout/OTP-lockout/idle-timeout/
+  session-revoke loops); a second run passed clean at 380/380. Coverage confirmed on the clean run:
+  - DoD-3 security modules — **100% branch** on all six: `services/auth.ts`, `services/loginCode.ts`,
+    `services/passwordResetToken.ts` (refresh rotation + lockout live in `auth.ts`),
+    `middleware/requirePermission.ts`, `middleware/auth.ts`.
+  - **Overall line coverage**: `v8`'s "All files" figure across the whole `apps/api` package is
+    **66.07%**, below the DoD-3 / constitution-III 70% target. Traced this to raw
+    `coverage/coverage-final.json` statement counts: excluding pre-existing feature-006 legacy modules
+    that Phase 1's guardrails explicitly forbid touching (`src/templates/*` email renderers for
+    non-Phase-1 flows, `src/services/content/*`, `src/services/{submissions,submissionsExport,mailer}.ts`,
+    `src/routes/admin/{faqs,gallery,pages,redirects,uploads}.ts`, `src/routes/submissions.ts`,
+    `src/data/*` configurator data — 254 uncovered statements out of the repo-wide 534), the
+    **Phase-1-owned code alone is 89.06%** (773/868 statements).
+  - Asked the user how to score this gate given the conflict between the literal whole-package DoD-3
+    number and the plan's binding non-goals (writing new tests for out-of-scope legacy modules to
+    close the gap would violate "Build only what the current tasks describe" / plan §1.4 non-goals).
+    **Decision: scope DoD-3's 70% line-coverage target to Phase-1-owned/touched modules** (89.06%,
+    passes). The whole-package 66.07% figure and its legacy-module cause are recorded here as a known,
+    pre-existing, out-of-scope gap — not a Phase 1 regression, and not remediated by this task.
+- No source or test files were modified for T131; this was a verification-only task.
+
+---
+
+## [2026-07-13T18:00:00.000+00:00] — docs(specs): T130 monorepo typecheck gate (tasks.md)
+
+### Notes
+- Ran `pnpm typecheck` (recursive across `apps/api`, `apps/web`, `packages/ui`) as the second Final/DoD
+  verification task (T130). All three workspaces report clean: `tsc --noEmit` (plus `apps/web`'s
+  `tsconfig.node.json` project for the Vite config) passes with zero type errors. No code changes were
+  needed. DoD-9 satisfied for the typecheck half (paired with T129's lint pass).
+
+---
+
+## [2026-07-13T17:00:00.000+00:00] — docs(specs): T129 monorepo lint gate (tasks.md)
+
+### Notes
+- Ran `pnpm lint` (recursive across `apps/api`, `apps/web`, `packages/ui`, `packages/config`) as the
+  first Final/DoD verification task (T129). All four workspaces report clean: `eslint . --report-unused-disable-directives --max-warnings 0`
+  passes with zero violations and zero warnings in `apps/api`, `packages/ui`, and `apps/web`;
+  `packages/config` has no lint script (placeholder echo). No code changes were needed — the fix-as-you-go
+  discipline from Pass 1/Pass 2 (step 4 of the per-task loop: lint + typecheck the touched files
+  immediately) meant no violations had accumulated. DoD-9 satisfied for the lint half.
+
+---
+
+## [2026-07-13T16:00:00.000+00:00] — test(admin-web): T127-nit/T128-nit real token-contrast test + ring-3 regex fix (Session 48 review)
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — a new "Token contrast (H6)" describe block: 10 tests computing real WCAG 2.1 contrast ratios directly from the OKLCH values in `tokens.css` (read from disk via `fs.readFileSync` so the test can't silently drift from the actual source file), covering the five foreground/background text pairs actually used across the Phase 1 surfaces (`foreground`/`background`, `muted-foreground`/`background`, `primary-foreground`/`primary`, `secondary-foreground`/`secondary`, `sidebar-foreground`/`sidebar`) in both light and dark themes, asserting each meets the H6 4.5:1 normal-text minimum. Conversion uses Ottosson's published OKLab → linear-sRGB matrices; sanity-checked against `oklch(1 0 0)`/`oklch(0 0 0)` (white/black) giving the reference 21:1 maximum contrast ratio before trusting it against the real tokens. Tightest real pair found: light-mode `muted-foreground`/`background` at ~4.73:1 — comfortably above 4.5 but close enough to confirm the token was deliberately tuned near the AA boundary rather than accidentally passing. The focus ring's "3:1 large" clause is intentionally left uncomputed (see the in-file comment): H4 applies it at 50% alpha over an arbitrary surface, so a static token-pair ratio can't represent its effective composited contrast, and the ring colour itself is inherited unmodified from the reference template's Default preset (Template Parity Gate) rather than a Phase 1 implementation choice.
+- File-header comment explicitly documenting that `axe-core`'s `color-contrast` rule does not run in jsdom (no real layout/paint engine to sample rendered pixels), so the `toHaveNoViolations()` assertions elsewhere in this file verify every rule axe *can* evaluate headlessly but never contrast — only the new Token contrast block does that.
+
+### Changed
+- `apps/web/src/admin/shell/a11y.test.tsx` — `assertVisibleFocusOnControls`'s regex tightened from `/focus-visible:ring-(2|3)/` to `/focus-visible:ring-3/`. Session 21 already migrated every sidebar/topbar/sheet control from the earlier `ring-2`/`sidebar-ring` exception to the exact H4 value (`ring-3`), so continuing to accept `ring-2` was stale and would have silently passed a future regression back to the old value instead of catching it.
+
+### Notes
+- Carry-forward nits from the Session 48 review of T127/T128: "axe can't check contrast in jsdom" and "stale ring-2 regex" (T127); "contrast claim unverified by test" (T128). All three addressed by the same change: the file header now makes the jsdom limitation explicit rather than letting `toHaveNoViolations()` imply a false contrast guarantee, the regex now matches only the current pinned value, and the new computed test gives the T128 contrast claim actual evidence instead of an unverified assertion. Tried Vite's `?raw` import suffix first to read `tokens.css` without Node APIs, but Vitest's default CSS-import interception stubs any `.css`-extensioned specifier to an empty string regardless of query suffix; fell back to `fs.readFileSync` with Node types scoped to this one file via a triple-slash `/// <reference types="node" />` directive (this tsconfig's `types` array is intentionally limited to `vite/client`/`vitest/globals` for the rest of the browser-facing app, so no shared config was touched). Full a11y suite: 23/23 pass; full web suite: 274/274 pass; lint + typecheck clean.
+
+---
+
+## [2026-07-13T15:00:00.000+00:00] — fix(admin-web): T128 accessible name for the mobile sidebar drawer (sidebar.tsx)
+
+### Fixed
+- `apps/web/src/admin/ui/sidebar.tsx` — the mobile off-canvas `SheetContent` (H5) now renders a visually-hidden `SheetTitle` ("Navigation menu") and `SheetDescription` ("Sidebar navigation for the admin panel") as its first children, both `sr-only` (matching the existing `sr-only` convention already used elsewhere in this file, e.g. `SidebarTrigger`'s label). Radix's `Dialog` primitive requires an accessible name/description for screen-reader users; without it, axe's `aria-dialog-name` rule flags the drawer and Radix itself logs a dev-mode console warning. This closes the exact gap flagged in the Session 32 (T100) review and pinned as a genuine failing test by T127.
+
+### Notes
+- T128's other two "Do:" items — token contrast (`tokens.css`) and the pre-paint boot script (`boot.ts`) — needed no changes: T127's axe scans and the two Shell-mount "theme flash" tests already passed cleanly before this fix (12 of 13 T127 tests were green pre-existing; only the mobile-drawer accessible-name check was red), so the H1/H4 halves of H1/H4/H6 were already satisfied by prior work (T071-T084 focus-ring hardening, T077/T078 theme boot sync). Only the H6 mobile-dialog-name gap required a code change. `a11y.test.tsx` now 13/13 green; full web suite 264/264; lint + typecheck clean.
+
+---
+
+## [2026-07-13T14:00:00.000+00:00] — test(admin-web): T127 E-A11Y/THEME axe + focus-ring + theme-flash test (a11y.test.tsx)
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — 13 tests pinning H1/H4/H6 (FR-030/FR-031) across the five Phase 1 surfaces named in plan §2 H6 (login, two-factor, reset, shell, settings): (1) an automated `jest-axe` scan of each surface asserting zero accessibility violations; (2) a spot-check that every native `<button>`/`<input>` control carries the H4 `focus-visible:ring-3 focus-visible:ring-ring/50` utility (excluding the `input-otp` package's intentionally visually-hidden root input, whose focus indicator lives on its sibling slot elements); (3) a dedicated mobile-off-canvas-drawer scan (`window.matchMedia` overridden to force the `<768px` breakpoint, then the sidebar trigger clicked to mount the Radix `Sheet`) targeting `document.body` so the portal-rendered dialog is included; (4) two Shell-mount integration tests proving the pre-paint boot script (`boot.ts`, T078) and `ThemeProvider`'s lazy `useState` cookie-read stay synchronised with no intermediate "flash" frame, complementing `ThemeProvider.test.tsx`'s (T077) isolated boot-script matrix.
+- `apps/web/package.json`, `pnpm-lock.yaml` — added `jest-axe` + `@types/jest-axe` as devDependencies (no existing axe-based unit-test harness was present in `apps/web`; `packages/ui`'s Storybook `@storybook/addon-a11y` is a separate, Storybook-only integration).
+
+### Notes
+- 12 of 13 tests pass at runtime; the mobile-drawer scan fails as expected, pinning the exact carry-forward gap flagged in the Session 32 (T100) review: `sidebar.tsx`'s `SheetContent` renders with no `SheetTitle`/`SheetDescription`, so Radix's Dialog has no accessible name (axe rule `aria-dialog-name`). This is the literal "Tests fail for H1/H6" TDD-red required before T128. Full web suite: 264/264 excluding the one pinned failure (263 passing + 1 expected red); lint + typecheck clean. Discovered and fixed two test-design pitfalls while building this file (not product bugs): (a) `sidebar.tsx` passes `data-slot="sidebar"` into `SheetContent`, which overrides `sheet.tsx`'s own `data-slot="sheet-content"` via prop spread — the mobile-drawer-mounted check uses `[role="dialog"]` instead, which is override-proof; (b) the `input-otp` package's root `<input>` is intentionally unstyled by design (`input-otp.tsx` comment), so the focus-ring spot-check excludes `[data-slot="input-otp"]` explicitly.
+
+---
+
+## [2026-07-13T13:00:00.000+00:00] — docs(admin-auth): T124-nit document 503 mailer-failure responses (admin-auth.openapi.yaml, openapi.yaml)
+
+### Added
+- `specs/012-panel-phase-1/contracts/admin-auth.openapi.yaml` and `apps/api/openapi.yaml` — both `/admin/auth/login` and `/admin/auth/resend-code` now document a `503` response (`Error` schema) describing the E-MAILFAIL rollback behaviour added in T124: credentials/code were valid but the mailer failed to send, the issued code is rolled back so the attempt does not count toward lockout/throttle windows, and retrying once the mailer recovers succeeds. `/admin/auth/forgot-password` needs no new response — its mailer-failure path still returns the existing neutral `200` (C4), never a new status code.
+
+### Notes
+- Carry-forward nit from the Session 47 review of T124 ("logic/coverage correct; OpenAPI contract missing new 503 responses"). Both OpenAPI copies kept in sync — same dual-file maintenance pattern as the T115-nit fix. `pnpm docs:validate` passes; both YAML files parse cleanly. No source/test changes; documentation-only.
+
+---
+
+## [2026-07-13T12:00:00.000+00:00] — test(admin-auth): T125/T126 E-SUPERADMIN read-only enforcement verified (edge-superadmin.test.ts)
+
+### Added
+- `apps/api/tests/integration/edge-superadmin.test.ts` — 3 integration tests pinning the E-SUPERADMIN edge-case behaviour (plan §4.2, FR-035): (1) PUT /admin/settings/password as `super_admin` → 403, stored password hash byte-for-byte unchanged, original password still authenticates via a follow-up login. (2) PUT /admin/settings/photo as `super_admin` → 403, no photo persisted (follow-up authenticated GET still 404). (3) DELETE /admin/settings/photo as `super_admin` (with a pre-seeded photo) → 403, the existing photo survives byte-for-byte (follow-up GET returns identical bytes/MIME type). Sessions are obtained through the real login + verify-2fa flow rather than a hand-signed JWT, exercising the same authenticated path a real super_admin session would use. Mirrors the T117 `edge-photo.test.ts` "no change" assertion style.
+
+### Notes
+- T125/T126: both the backend 403 guard (`apps/api/src/routes/admin/settings.ts` — password PUT, photo PUT, photo DELETE) and the frontend read-only branch (`apps/web/src/admin/pages/Settings.tsx:264-276`, already covered by `Settings.test.tsx` since the T094 era) were pre-existing before this session; no source changes were required. "Done when: Tests fail for FR-035" is not literally met — same accepted precedent as T104/T106/T109/T111/T112/T117/T118/T122 (impl landed ahead of its pinning test). Full API suite: 380/380 pass (was 377; +3 for the new edge-superadmin tests). Lint + typecheck clean on the new file.
+
+---
+
+## [2026-07-13T11:00:00.000+00:00] — feat+test(admin-auth): T123/T124 E-MAILFAIL mailer-failure handling (edge-mailfail.test.ts, auth.ts, loginCode.ts, passwordResetToken.ts, routes/admin/auth.ts)
+
+### Added
+- `apps/api/tests/integration/edge-mailfail.test.ts` — 3 integration tests pinning the E-MAILFAIL edge-case behaviour (plan §4.2, spec "Email delivery delay or failure", FR-010, SC-002). (1) Login: mailer rejects → 503 clear non-technical error, no challengeId/accessToken, LoginCode row deleted (rolled back), retry with mailer working → 200. (2) Resend-code: mailer rejects → 503, new code rolled back (no unconsumed rows), retry → 200. (3) Forgot-password: mailer rejects → neutral 200 (C4 preserved — a 500 would leak account existence vs the unknown-email 200), PasswordResetToken row deleted, retry → 200 + token row created. MailerService mocked at the module boundary (`vi.mock`); unique `X-Forwarded-For: 203.0.113.130` isolates from F4. TDD red confirmed: all 3 tests fail with 500 before the fix.
+
+- `apps/api/src/services/loginCode.ts` — `revokeByChallengeId(challengeId): Promise<void>` method: deletes any unconsumed LoginCode rows matching the challengeId via `deleteMany` (idempotent, no branch). Called when the email send fails after `issue()` or `resend()` to roll back the orphaned code row so it does not count toward the F2 throttle window and cannot be used by an attacker.
+
+- `apps/api/src/services/passwordResetToken.ts` — `revokeByRawToken(rawToken): Promise<void>` method: deletes the PasswordResetToken row matching the raw token's SHA-256 hash via `deleteMany` (idempotent, no branch). Called when the reset-link email send fails to roll back the orphaned token row.
+
+### Changed
+- `apps/api/src/services/auth.ts` — `verifyCredentials` now wraps the `mailerService.sendEmail()` call in a try/catch. On mailer failure: calls `loginCodeService.revokeByChallengeId(challengeId)` to delete the issued code, logs the error, and returns `{ success: false, status: 503, message: 'We could not send the verification code email. Please try again.', userId }`. The `CredentialResult` type's failure arm is extended from `401 | 423` to `401 | 423 | 503`. The route reads `result.status` and `result.message` directly, so no route change is needed for the login flow itself (only the error label + audit skip — see below). `services/auth.ts` remains at 100% branch/stmt/funcs/lines.
+
+- `apps/api/src/routes/admin/auth.ts` — three changes: (1) POST /login: the failure branch now skips the `LOGIN_FAILURE` audit when `result.status === 503` (credentials were valid; the mailer failed, not the login) and uses `'Service Unavailable'` as the error label for 503 (vs `'Locked'` for 423, `'Unauthorized'` for 401). (2) POST /resend-code: the `mailer.sendEmail()` call is wrapped in try/catch; on failure, `loginCodeService.revokeByChallengeId(challengeId)` deletes the new code and the route returns 503 with the same non-technical message. (3) POST /forgot-password: the `mailer.sendEmail()` call is wrapped in try/catch; on failure, `resetService.revokeByRawToken(rawToken)` deletes the issued token and the route still returns the neutral 200 (C4 — a 500 would leak that the account exists, since unknown email returns 200). The `PASSWORD_RESET_REQUESTED` audit is now gated by an `emailSent` flag so a failed-then-rolled-back request is never recorded.
+
+### Security
+- E-MAILFAIL / C4: a mailer failure on forgot-password no longer leaks account existence via a 500 (known email → 500 vs unknown email → 200). The route now always returns the neutral 200, matching C4's "no account-existence disclosure" requirement.
+- E-MAILFAIL / SC-002: no session is ever granted without a verified code — the mailer failure returns a 503 (login/resend-code) or neutral 200 (forgot-password), never a session.
+- Orphaned code/token rows from failed email sends are deleted, preventing throttle-window pollution (F2) and eliminating unusable-but-counted rows that could degrade the user's ability to retry.
+
+### Notes
+- Deviation from T124 `Files:` list: `apps/api/src/routes/admin/auth.ts` was also touched. The task lists only the three service files, but "surface a clear, retryable error" requires route-level changes for resend-code and forgot-password (the mailer calls live in the route for those two endpoints, not in a service). The login flow's mailer call is inside `AuthService.verifyCredentials`, so the service handles it entirely; only the error label + audit skip needed a route change. This deviation is recorded in the T124 `> note:` in tasks.md.
+- Full API suite: 377/377 pass (was 374; +3 for the new edge-mailfail tests). All security modules at 100% branch coverage confirmed: `services/auth.ts`, `services/loginCode.ts`, `services/passwordResetToken.ts`, `middleware/auth.ts`, `middleware/requirePermission.ts`, `config/adminAuth.ts`. Lint + typecheck clean.
+
+---
+
+## [2026-07-13T10:00:00.000+00:00] — fix(admin-auth): T122-nit preserve 7d absolute cap across refresh rotation (Session 45 review)
+
+### Fixed
+- `apps/api/src/services/auth.ts` — `createRefreshToken` now accepts an optional `expiresAt?: Date` parameter. On initial issuance (`verifyOtp`) and post-password-change re-mint (`changePassword`), `expiresAt` defaults to `now + REFRESH_TOKEN_TTL_MS` (7d) as before. On rotation (`refresh`), the caller passes `stored.expiresAt` — the family's original absolute cap — so the 7d deadline is measured from initial session issuance, not reset on each rotation. Previously every rotation set `expiresAt = now + 7d`, so a continuously-active session (refreshed every <30m) never hit the 7d absolute cap; only the 30m idle timeout was effectively enforced. This closes the gap between the implementation and plan §2.5 E7 ("absolute session cap = 7 days"). The `??` branch (provided vs default `expiresAt`) is covered by existing refresh tests (provided arm) and verifyOtp/changePassword tests (default arm); `services/auth.ts` remains at 100% branch/stmt/funcs/lines.
+
+### Added
+- `apps/api/tests/integration/edge-idle.test.ts` — E7d test: issue token A at T+0, rotate A→B at T+20m, rotate B→C at T+40m (all within the 30m idle window), then use C at T+7d+1ms. Asserts 401 "Refresh token expired" (absolute check fires first). Without the fix, C.expiresAt would be T+40m+7d (reset on rotation), the absolute check would pass, and the idle check would fire instead → "Session idle timeout"; the test therefore distinguishes fix from bug. TDD red confirmed: E7d failed with "Session idle timeout" before the fix, passes with "Refresh token expired" after. File header updated to document E7d. 4 tests total, 374 passing.
+
+### Notes
+- Carry-forward nit from the Session 45 review of T122 ("createRefreshToken resets expiresAt to now+7d on every rotation, so a continuously-active session never hits the 7d absolute cap"). The `changePassword` re-mint path intentionally keeps the default fresh 7d cap — after a password change all sessions are revoked (E6) and the acting family is re-minted, which is effectively a new session with a fresh trust context. Full API suite: 374/374 pass; `services/auth.ts` 100% branch confirmed; lint + typecheck clean.
+
+---
+
+## [2026-07-13T09:40:00.000+00:00] — fix(admin-web): T119-nit flatten nested <Routes> in session.test.tsx (Session 45 review)
+
+### Fixed
+- `apps/web/src/admin/auth/session.test.tsx` — the `renderWithAuth` helper used a nested `<Routes>` block (an inner `<Routes><Route index …/></Routes>` inside the `/admin/settings` route's element), which triggered React Router's "You rendered descendant `<Routes>` at '/admin/settings'… but the parent route path has no trailing '*'" console warning. Flattened to a single `<Routes>` block: the `/admin/settings` route's element is now directly `<AuthProvider><AdminGuard>{ui}</AdminGuard></AuthProvider>`. `AdminGuard`'s `<Navigate to="/admin/login" replace />` is resolved by the same outer route table that defines the login page, so the E5 redirect test behaves identically. The descendant-`<Routes>` warning is eliminated; the remaining React Router v7 future-flag warnings are unrelated and pre-existing.
+
+### Notes
+- Carry-forward nit from the Session 45 review of T119 ("session.test.tsx triggers a cosmetic React Router nested-`<Routes>` console warning (non-blocking)"). No production code changed — test-only fix. 3/3 tests still pass; web lint + typecheck clean.
+
+---
+
+## [2026-07-09T16:25:00.000+00:00] — test(admin-auth): T121-nit E7c multi-rotation idle-timer-reset test (edge-idle.test.ts)
+
+### Added
+- `apps/api/tests/integration/edge-idle.test.ts` — E7c test: rotate token A→B at T+20m, use B at T+40m (40m from issuance, 20m from rotation) → expects 200. Pins that the idle timer (`lastUsedAt`) resets on each successful rotation, not measured from original issuance. File-header updated to document E7c. 3 tests total, 373 passing.
+
+---
+
+## [2026-07-09T14:20:00.000+00:00] — docs(specs): T122 verified pre-existing — 30m idle timeout + 7d absolute cap in auth.ts (tasks.md)
+
+### Notes
+- T122 "Do": idle-timeout rejection (`lastUsedAt !== null && delta > IDLE_TIMEOUT_MS` → 401 "Session idle timeout"), absolute-expiry rejection (`expiresAt < now` → 401 "Refresh token expired"), and `lastUsedAt` reset on token rotation (`createRefreshToken` sets `lastUsedAt: now`) all pre-existing in `services/auth.ts`. `services/auth.ts` 100% branch coverage confirmed. No source changes needed.
+
+---
+
+## [2026-07-09T14:18:00.000+00:00] — test(admin-auth): T121 E-IDLE idle-timeout and absolute-cap tests (edge-idle.test.ts)
+
+### Added
+- `apps/api/tests/integration/edge-idle.test.ts` — 2 integration tests driving `AuthService.refresh()` directly with an injected clock:
+  - E7a: clock advanced `IDLE_TIMEOUT_MS + 1ms` — asserts 401 "Session idle timeout" (absolute expiry not yet reached)
+  - E7b: clock advanced `REFRESH_TOKEN_TTL_MS + 1ms` — asserts 401 "Refresh token expired" (absolute 7-day cap)
+- Tests pass immediately (implementation pre-existing in `auth.ts`); follows T104/T109/T118/T120 precedent.
+
+---
+
+## [2026-07-09T13:12:00.000+00:00] — docs(specs): T120 verified pre-existing — refresh rotation + protected-view redirect hardened by T119 tests (tasks.md)
+
+### Notes
+- T120 "Do": family reuse-detection revoke (E4) in `auth.ts` `refresh()` + logout-current-family (E5) in `auth.ts` `logout()`; client silent refresh on 401 in `apiClient.ts` `authenticatedFetch()`; redirect on auth failure in `guard.tsx`. All pre-existing, all pinned by T119 tests. `services/auth.ts` 100% branch coverage confirmed. No source changes needed.
+
+---
+
+## [2026-07-09T13:10:00.000+00:00] — test(admin-auth): T119 E-SESSION edge tests — E2/E4/E5 boundary pins (edge-session.test.ts, session.test.tsx)
+
+### Added
+- `apps/api/tests/integration/edge-session.test.ts` — 2 backend integration tests pinning E4 (reuse of a revoked refresh token revokes the entire family including successor tokens) and E5 (logout revokes only the current session's refresh-token family; other concurrent sessions remain valid). Tests pass immediately against the pre-existing AuthService implementation (same precedent as T104/T106/T112/T117).
+- `apps/web/src/admin/auth/session.test.tsx` — 3 frontend tests pinning E2 (silent refresh on 401 mid-use keeps the new token in memory only, never in browser storage), E4 (failed refresh on 401 clears the in-memory access token), and E5 (protected view with absent/expired session redirects to /admin/login). Tests pass immediately against the pre-existing apiClient/AdminGuard implementation.
+
+### Notes
+- api suite: 370/370 pass. web suite: 251/251 pass. lint + typecheck clean. No deviations.
+
+---
+
+## [2026-07-08T16:42:00.000+00:00] — fix(admin-auth): T115 nit — remove unreachable 429 from forgot-password OpenAPI docs (Session 43 review)
+
+### Fixed
+- `specs/012-panel-phase-1/contracts/admin-auth.openapi.yaml` — removed the `'429'` response from the `POST /admin/auth/forgot-password` endpoint. T115's F3 fix made forgot-password always return the neutral `200` (silently skipping issuance for throttled known accounts) to close the account-existence enumeration vector — a `429` could only fire for known emails, leaking existence versus the unknown-email `200`. The `429` was therefore unreachable doc drift. Also updated the endpoint description to document the F3 silent-skip behavior: "throttled requests silently skip issuance and still return the neutral 200 (F3 — no account-existence leak via a 429)."
+- `apps/api/openapi.yaml` — identical change (removed `'429'` response + updated description) so the two OpenAPI files stay in sync per T062's requirement that they match exactly.
+
+### Notes
+- Carry-forward nit from the Session 43 review of T115. The resend-code `'429'` response (legitimate — F1/F2 surface it with `Retry-After`) and the login `'429'` response (F4 IP rate limit) are both untouched; only the unreachable forgot-password `'429'` was removed.
+- `pnpm --filter @modular-house/api docs:validate` → "OpenAPI specification is valid!" `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` → 368/368 pass. `eslint` clean. The two OpenAPI files' forgot-password sections are byte-identical (verified by diff).
+
+---
+
+### Notes
+- No production code changed. T118's `Done when: T117 passes` is met (3/3 edge tests green). The profile-photo type/size validation and removal fallback were already implemented in T053 (PUT route: MIME allow-list check at `settings.ts:296-307`, 5 MB size cap at `settings.ts:309-316`, both pre-persist before `prisma.user.update`) and T057 (DELETE route: nulls `profilePhoto` + `profilePhotoMime` at `settings.ts:433-440`, returning Me with `hasProfilePhoto=false`). T117's edge tests verified the "no change" guarantee (G3 — rejected uploads preserve the existing photo byte-for-byte) and the full G4/G6 fallback cycle (DELETE → `hasProfilePhoto=false` → subsequent GET → 404, the signal that triggers the client's initials fallback). Same "verified pre-existing" pattern as T109/T111.
+
+---
+
+### Added
+- `apps/api/tests/integration/edge-photo.test.ts` — 3 edge-case integration tests that pin the profile-photo validation + removal behavior beyond the Pass-1 coverage in T052/T056: (1) G1/G3 — `image/gif` is rejected with 400 AND the user's previously stored PNG photo is preserved byte-for-byte via a follow-up GET (the "no change" guarantee that T052 never tested because it ran with a clean photo slate); (2) G2/G3 — a file of exactly `PHOTO_MAX_BYTES + 1` (5 MB + 1 byte) is rejected with 400 AND the existing photo is preserved (same "no change" guarantee); (3) G4/G6 — removing the photo returns 200 Me with `hasProfilePhoto=false` AND a subsequent authenticated GET returns 404 (the signal that makes the client render the initials fallback, completing the fallback cycle that T056 only asserted on the DELETE response). Uses the injected clock for the verify-2fa session helper (mirroring the T052/T056 pattern); no TTL/expiry assertions in the photo path itself.
+
+### Notes
+- All 3 tests pass immediately (pre-existing implementation from T053/T057). "Done when: Tests fail for G1/G2/G4" is not literally met — same accepted precedent as T104/T106/T109/T112 (pre-existing impl verified by the edge tests rather than driving a TDD red→green cycle). The tests serve as rigorous pinning of the "no change" guarantee and the full G4/G6 fallback cycle that the Pass-1 tests did not cover.
+- `pnpm --filter @modular-house/api exec vitest run tests/integration/edge-photo.test.ts --no-file-parallelism` → 3/3 pass; `eslint` + `tsc --noEmit` clean.
+
+---
+
+### Fixed
+- `apps/web/src/admin/pages/ForgotPassword.tsx` — the "try again" control's `onClick` was `() => form.reset()`, a dead no-op: it cleared an email field that is not rendered in the confirmation state, did not call `onSubmit` to request a new reset link, and did not restart the cooldown. Replaced with `handleTryAgain`, which reads the retained email from RHF form state via `form.getValues('email')`, calls `onSubmit?.({ email })` to resend the reset-link request, and calls `setCooldownSeconds(RESEND_COOLDOWN_SECONDS)` to restart the 60s countdown — mirroring the TwoFactor `handleResend` pattern (F1/FR-042). Also added `isSubmitting` to the button's `disabled` guard and its disabled-style condition so the control is locked during the in-flight request (prevents double-clicks), matching TwoFactor's `disabled={… || isSubmitting || cooldownSeconds > 0}` pattern.
+
+### Added
+- `apps/web/src/admin/pages/resendCountdown.test.tsx` — one new test in the `ForgotPassword page` describe block: "clicking try-again after the cooldown elapses calls onSubmit and restarts the countdown". Advances fake timers past the initial 60s cooldown, clicks the now-enabled "try again" button, and asserts `onSubmit` was called once and the control re-disables with `try again (60s)` (cooldown restarted). This is the TDD red→green proof for the nit fix.
+
+### Notes
+- This is a carry-forward nit from the Session 43 review of T116 ("ForgotPassword 'try again' onClick is a pre-existing (T097b) dead no-op"). Applied per §4.4 before starting T117/T118. T116's `Files:` list names only the two page components; `resendCountdown.test.tsx` was already recorded as a deviation in the original T116 note (required by `Done when: A frontend test asserts the disabled-with-countdown state`). The test-file addition for the nit fix is covered by that same deviation.
+- TDD: the new test was confirmed red first (`onSubmit` expected 1 call, got 0 — the `form.reset()` no-op), then green after the `handleTryAgain` fix. 3/3 pass in `resendCountdown.test.tsx`; web lint + typecheck clean.
+
+---
 
 ### Added
 - `apps/api/tests/unit/auth.test.ts` — one unit test added to the `changePassword (E6)` describe block: "rejects changePassword when the new password equals the current password (D3)". It calls `AuthService.changePassword` directly with `newPassword === currentPassword` and asserts the `{ success: false, status: 400, message: 'New password must be different from your current password.' }` response, plus that no sessions are revoked, no token is re-minted, and no rehash occurs. This covers the `if (sameAsCurrent) return 400` branch at `services/auth.ts:414`.

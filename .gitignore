@@ -100,3 +100,4 @@ misc_scripts/
 storybook-static
 storybook-static/
 .template/
+specs/012-panel-phase-1/pending-commits.md

@@ -4,6 +4,68 @@ Format: `TXXX — VERDICT — key finding — action / must-run command` (newest
 
 ---
 
+## Session 49 — T127-nit/T128-nit re-check (2026-07-13)
+
+T127-nit — PASS — ring-3-only regex; OKLCH contrast test added, math re-verified independently
+T128-nit — PASS — contrast claim now has real evidence; 4.73:1 tightest pair confirmed
+
+**Overall: GO** — proceed to T129+. Full findings in chat report.
+
+---
+
+## Session 48 — T124-nit/T127/T128 review (2026-07-13)
+
+T124-nit — PASS — 503 documented in both OpenAPI copies; docs:validate green
+T127 — PASS-WITH-NITS — 13/13 pass; axe can't check contrast in jsdom; stale ring-2 regex
+T128 — PASS-WITH-NITS — drawer a11y fix correct; contrast claim unverified by test
+
+**Overall: GO** — proceed to T129+. Full findings in chat report.
+
+---
+
+## Session 47 — T123/T124/T125/T126 review (2026-07-13)
+
+T123 — PASS — 3/3 pass; TDD order confirmed via commit history; 380/380 suite
+T124 — PASS-WITH-NITS — rollback+503/C4 correct, 100% branch; OpenAPI missing 503 docs
+T125 — PASS — 3/3 pass; real login+2fa session; byte-exact no-change asserted
+T126 — PASS — pre-existing 403 guards + read-only UI verified; no code change needed
+
+**Overall: GO** — proceed to T127. Full findings in chat report.
+
+---
+
+## Session 46 — T119-nit/T121-nit/T122-nit review (2026-07-13)
+
+T119-nit — PASS — nested <Routes> flattened; warning gone; web 3/3 pass
+T121-nit — PASS — E7c multi-rotation test added; pins idle-reset-on-rotation
+T122-nit — PASS — absolute cap preserved across rotation; E7d test; 100% branch
+
+**Overall: GO** — proceed to T123. Full findings in chat report.
+
+---
+
+## Session 45 — T119/T120/T121/T122 review (2026-07-09)
+
+T119 — PASS-WITH-NITS — E2/E4/E5 pinned, 5/5 pass; "tests fail" nit (precedent)
+T120 — PASS — E4/E5 + client redirect verified; auth.ts 100% branch
+T121 — PASS-WITH-NITS — E7a/E7b pinned; no multi-rotation cap test (nit)
+T122 — PASS-WITH-NITS — E7 exact, 100% branch; absolute cap resets on rotation
+
+**Overall: GO** — proceed to T123. Full findings in chat report.
+
+---
+
+## Session 44 — T115(nit)/T116(nit)/T117/T118 review (2026-07-09)
+
+T115(nit) — PASS — unreachable 429 removed from both OpenAPI files; docs:validate + 368/368 green
+T116(nit) — PASS — ForgotPassword try-again dead no-op fixed; TDD red proven; 3/3 pass
+T117 — PASS-WITH-NITS — 3/3 pass; G1/G2/G4 pinned; "tests fail" nit (T104/T106/T109/T112 precedent)
+T118 — PASS — MIME+size pre-persist confirmed; DELETE nulls both columns; T117 green
+
+**Overall: GO** — proceed to T119. Full findings in chat report.
+
+---
+
 ## Session 43 — T112/T113/T114/T115/T116 review (2026-07-08)
 
 T112 — PASS — 14/14 pass; D1-D7 pinned both paths; "tests fail" nit (precedent)

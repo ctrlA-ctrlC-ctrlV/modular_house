@@ -69,18 +69,28 @@ router.post('/login', validate({ body: loginSchema }), async (req: Request, res:
     const result = await authService.verifyCredentials(normalizedEmail, password);
 
     if (!result.success) {
-      // LOGIN_FAILURE — recorded for known-account failures (wrong password,
-      // deactivated, locked).  Skipped silently for unknown email (null userId).
-      await recordAudit({
-        userId: result.userId,
-        action: AUDIT_ACTIONS.LOGIN_FAILURE,
-        entity: 'user',
-        ipAddress,
-        userAgent,
-      });
+      // LOGIN_FAILURE — recorded for known-account credential failures
+      // (wrong password, deactivated, locked).  Skipped for mailer failures
+      // (503) where credentials were valid but the email could not be sent
+      // (E-MAILFAIL), and for unknown email (null userId, I2).
+      if (result.status !== 503) {
+        await recordAudit({
+          userId: result.userId,
+          action: AUDIT_ACTIONS.LOGIN_FAILURE,
+          entity: 'user',
+          ipAddress,
+          userAgent,
+        });
+      }
 
+      const errorLabel =
+        result.status === 423
+          ? 'Locked'
+          : result.status === 503
+            ? 'Service Unavailable'
+            : 'Unauthorized';
       res.status(result.status).json({
-        error: result.status === 423 ? 'Locked' : 'Unauthorized',
+        error: errorLabel,
         message: result.message,
       });
       return;
@@ -300,12 +310,24 @@ router.post('/resend-code', validate({ body: resendCodeSchema }), async (req: Re
       return;
     }
 
-    const mailer = new MailerService();
-    await mailer.sendEmail({
-      to: user.email,
-      subject: 'Your login verification code',
-      text: `Your verification code is: ${resendResult.code}\n\nThis code expires in 10 minutes.`,
-    });
+    // E-MAILFAIL: if the mailer throws, roll back the new code row and
+    // surface a clear non-technical 503 error so the user can retry.
+    try {
+      const mailer = new MailerService();
+      await mailer.sendEmail({
+        to: user.email,
+        subject: 'Your login verification code',
+        text: `Your verification code is: ${resendResult.code}\n\nThis code expires in 10 minutes.`,
+      });
+    } catch (mailerError) {
+      await loginCodeService.revokeByChallengeId(challengeId);
+      logger.error({ error: mailerError, userId: user.id }, 'OTP resend email failed');
+      res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'We could not send the verification code email. Please try again.',
+      });
+      return;
+    }
 
     // OTP_ISSUED — a new code was generated and emailed for an existing challenge (I1).
     await recordAudit({
@@ -370,25 +392,37 @@ router.post('/forgot-password', validate({ body: forgotPasswordSchema }), async 
         const { rawToken } = await resetService.issue(user.id);
 
         const resetUrl = `${config.app.corsOrigin}/admin/reset-password?token=${encodeURIComponent(rawToken)}`;
-        const mailer = new MailerService();
-        await mailer.sendEmail({
-          to: user.email,
-          subject: 'Password reset request',
-          text: `A password reset was requested for your account.\n\nReset link: ${resetUrl}\n\nThis link expires in 60 minutes and can only be used once.`,
-        });
 
-        // PASSWORD_RESET_REQUESTED — only for a known, non-throttled account so
-        // the audit trail never leaks account existence via timing or row
-        // presence (I1), and never records a throttled no-op request.
-        await recordAudit({
-          userId: user.id,
-          action: AUDIT_ACTIONS.PASSWORD_RESET_REQUESTED,
-          entity: 'user',
-          ipAddress: req.ip ?? 'unknown',
-          userAgent: req.headers['user-agent'] ?? null,
-        });
+        // E-MAILFAIL: if the mailer throws, roll back the issued token row
+        // and still return the neutral 200 below (C4 — a 500 would leak
+        // that the account exists, since unknown email returns 200).
+        let emailSent = false;
+        try {
+          const mailer = new MailerService();
+          await mailer.sendEmail({
+            to: user.email,
+            subject: 'Password reset request',
+            text: `A password reset was requested for your account.\n\nReset link: ${resetUrl}\n\nThis link expires in 60 minutes and can only be used once.`,
+          });
+          emailSent = true;
+        } catch (mailerError) {
+          await resetService.revokeByRawToken(rawToken);
+          logger.error({ error: mailerError, userId: user.id }, 'Reset email send failed');
+        }
 
-        logger.info({ userId: user.id }, 'Password reset link issued');
+        // PASSWORD_RESET_REQUESTED — only when the email was actually sent,
+        // so the audit trail never records a failed-then-rolled-back request.
+        if (emailSent) {
+          await recordAudit({
+            userId: user.id,
+            action: AUDIT_ACTIONS.PASSWORD_RESET_REQUESTED,
+            entity: 'user',
+            ipAddress: req.ip ?? 'unknown',
+            userAgent: req.headers['user-agent'] ?? null,
+          });
+
+          logger.info({ userId: user.id }, 'Password reset link issued');
+        }
       }
     }
 

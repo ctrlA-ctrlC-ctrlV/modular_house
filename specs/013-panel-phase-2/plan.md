@@ -129,14 +129,15 @@ and passes a template-parity gate, and only then does the **implementation pass*
 
 - K1. Public-site cookie names = exactly `mh_vid`, `mh_sid`, `mh_cookie_ack`; all first-party,
   `Path=/`, `SameSite=Lax`, `Secure` in production.
-- K2. `mh_vid` value = UUID v4 (`crypto.randomUUID()`); Max-Age = **365 days**; re-issued with a
-  new value if absent.
+- K2. `mh_vid` value = UUID v4 (`crypto.randomUUID()`); Max-Age = **365 days**, renewed (same
+  value, fresh expiry) on every measured page view; re-issued with a new value if absent.
 - K3. `mh_sid` value = UUID v4; Max-Age = **30 minutes**, renewed (same value, fresh expiry) on
   every measured page view — the cookie expiry IS the session inactivity window.
 - K4. `mh_cookie_ack` value = `"1"`; Max-Age = **365 days**; set by acknowledge AND by close ("x");
   banner renders only while it is absent.
 - K5. Phase 2 code sets **no cookie other than K1's three**; the register lists exactly: the
-  three public cookies + the Phase 1 admin cookies (refresh cookie, theme/sidebar mirrors) + the
+  three public cookies + the Phase 1 admin cookies (refresh cookie — strictly necessary;
+  theme/sidebar mirrors — functional) + the
   Google Analytics cookies set by the retained `GoogleTag` (`_ga`, `_ga_<container-id>`; category
   performance, set by Google Analytics, 2-year duration renewed per visit — browsers may cap at
   ~400 days).
@@ -277,7 +278,7 @@ Backend (Vitest + supertest, seeded test DB, injected clock):
 - T-B6 (US3-3/4/5, Q1/Q4/Q6, V5): overview honors `from`/`to`, buckets by day (and hour for a
   <= 2-day span), returns top-10 pages with share and the 5 source groups; realtime returns
   trailing-5-minute distinct visitors + top-5 pages.
-- T-B7 (US3-9): overview + realtime without a valid session → 401 (security-focused test,
+- T-B7 (US3-12): overview + realtime without a valid session → 401 (security-focused test,
   constitution I).
 - T-B8 (US4-1, R2/M7): stored analytics rows contain only the modeled columns; no IP/UA/full-URL
   anywhere (schema + payload audit test).
@@ -301,7 +302,7 @@ Frontend (Vitest + @testing-library/react):
   with the right `from`/`to` and updates every widget.
 - T-F9 (US3-4/5, Q2/Q3): "More" opens the pop-up with 6m/12m/16m/custom; preset apply closes +
   updates all widgets; valid custom range applies.
-- T-F10 (US3-6..8, 10): empty-state rendering per widget; light/dark rendering; keyboard
+- T-F10 (US3-9..11, 13): empty-state rendering per widget; light/dark rendering; keyboard
   operability incl. pop-up and date inputs; single-column stacking at mobile width.
 - T-F11 (US4-1, K5): register-consistency test — every cookie name Phase 2 code can set appears in
   the register, and the register matches the policy-page table one-to-one.
@@ -429,7 +430,7 @@ Admin web (`apps/web/src/admin`):
 ## 6. Definition of Done
 
 - DoD-1: Every §4.1 scenario and §4.2 edge case has a passing automated test in CI.
-- DoD-2: Every FR (FR-001…FR-028) traces to at least one test — traceability table maintained in
+- DoD-2: Every FR (FR-001…FR-029) traces to at least one test — traceability table maintained in
   [quickstart.md](quickstart.md); no untested new code path.
 - DoD-3: Ingest validation + admin analytics auth gate at **100% branch coverage**; overall line
   coverage >= 70% (constitution III).

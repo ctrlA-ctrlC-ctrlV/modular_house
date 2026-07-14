@@ -80,7 +80,7 @@ As a visitor browses the public site, each page view is recorded first-party —
 
 ### User Story 3 - Administrator reviews site performance in the admin panel (Priority: P2)
 
-A signed-in administrator opens the new "Analytics" entry in the admin sidebar — the panel's first real feature section — and sees the site's performance at a glance in the style of the Studio Admin template's analytics page: headline numbers (page views, unique visitors, sessions, returning-visitor rate, pages per session) with change indicators against the previous period, a realtime view of visitors active right now, the most-viewed pages, and where traffic comes from. They can switch the time range — from 24 hours up to a customised window with longer presets or exact start and end dates — and everything updates consistently.
+A signed-in administrator opens the new "Analytics" entry in the admin sidebar — the panel's first real feature section — and sees the site's performance at a glance in the style of the Studio Admin template's analytics page: headline numbers (page views, unique visitors, sessions, returning-visitor rate, pages per session) with change indicators against the previous period, a chart of traffic over time, a realtime view of visitors active right now and the pages they are viewing, the most-viewed pages, and where traffic comes from. They can switch the time range — from 24 hours up to a customised window with longer presets or exact start and end dates — and everything updates consistently.
 
 **Why this priority**: This is the visible payoff of the phase, but it depends on Stories 1 and 2 producing data, so it lands after them. It independently proves the template's dashboard design ports into the Phase 1 shell.
 
@@ -94,19 +94,21 @@ A signed-in administrator opens the new "Analytics" entry in the admin sidebar �
 4. **Given** the dashboard is open, **When** the administrator selects "More" from the range selector, **Then** a pop-up window opens offering: last 6 months, last 12 months, last 16 months (each counted back from the current date), and a custom option where the administrator picks a start date and an end date.
 5. **Given** the customised-range pop-up is open, **When** the administrator applies one of its presets or a valid custom start/end date pair, **Then** the pop-up closes and every widget updates consistently to that range, with change indicators comparing against the immediately preceding period of equal length.
 6. **Given** the custom option in the pop-up, **When** the chosen start date is after the end date, the end date is in the future, or the span exceeds 16 months (the longest supported range), **Then** the range cannot be applied and a clear message explains the problem; the dashboard keeps its previous range.
-7. **Given** the dashboard is open, **When** visitors are active on the public site, **Then** a realtime panel shows the number of visitors active within the last 5 minutes and refreshes automatically without a manual reload.
+7. **Given** the dashboard is open, **When** visitors are active on the public site, **Then** a realtime panel shows the number of visitors active within the last 5 minutes and the most-active pages in that window, refreshing automatically without a manual reload.
 8. **Given** the dashboard is open, **When** the administrator reviews content and acquisition, **Then** a most-viewed-pages list (ranked, with share of total views) and a traffic-sources breakdown (direct, search, social, referral, campaign) are shown for the selected range.
 9. **Given** a time range containing no data, **When** it is selected, **Then** each widget shows a clear, friendly empty state instead of broken or misleading visuals.
 10. **Given** dark mode or light mode is active, **When** the dashboard renders, **Then** all numbers, charts, and lists are legible and follow the template's visual language in both themes.
 11. **Given** a keyboard-only user, **When** they use the dashboard, **Then** every control (tabs, range selector, customised-range pop-up and its date pickers, lists) is reachable and operable with visible focus.
 12. **Given** an unauthenticated user, **When** they request the dashboard address directly, **Then** they are redirected to the admin login and see no data.
 13. **Given** a small-viewport device, **When** the dashboard is opened, **Then** widgets stack into a single readable column with no horizontal scrolling, and the customised-range pop-up remains fully usable.
+14. **Given** the dashboard is open, **When** any time range is selected, **Then** a traffic-over-time chart shows page views and sessions per interval — hourly for ranges up to 2 days, daily otherwise — consistent with the selected range and every other widget.
+15. **Given** an administrator completes sign-in, **When** the admin panel loads, **Then** the Analytics dashboard is the default landing view.
 
 ---
 
 ### User Story 4 - The cookie register stays the single source of truth (Priority: P3)
 
-The product keeps one authoritative cookie register covering every cookie it sets — the public site's performance cookie and acknowledgment record, and the admin panel's strictly-necessary sign-in cookies. The public cookie policy page renders from this register, so future features add cookies by extending the register, never by reworking the banner or the policy page.
+The product keeps one authoritative cookie register covering every cookie it sets — the public site's performance cookie and acknowledgment record, and the admin panel's strictly-necessary sign-in cookies and functional preference cookies. The public cookie policy page renders from this register, so future features add cookies by extending the register, never by reworking the banner or the policy page.
 
 **Why this priority**: Governance keeps the transparency promise honest over time. It is lower urgency than shipping the notice, measurement, and dashboard, but it is what makes the phase's compliance durable across later phases.
 
@@ -114,9 +116,9 @@ The product keeps one authoritative cookie register covering every cookie it set
 
 **Acceptance Scenarios**:
 
-1. **Given** the shipped product, **When** the cookies it actually sets are audited, **Then** every one of them appears in the cookie register with name, purpose, category (strictly necessary or performance), and duration — and nothing else is set.
+1. **Given** the shipped product, **When** the cookies it actually sets are audited, **Then** every one of them appears in the cookie register with name, purpose, category (strictly necessary, functional, or performance), and duration — and nothing else is set.
 2. **Given** the cookie register, **When** the public cookie policy page is viewed, **Then** its cookie table matches the register exactly.
-3. **Given** the admin panel's sign-in cookies, **When** the register is reviewed, **Then** they are documented as strictly necessary and correctly described, even though they never trigger a visitor-facing banner.
+3. **Given** the admin panel's cookies, **When** the register is reviewed, **Then** the sign-in cookies are documented as strictly necessary and the theme/sidebar preference cookies as functional, all correctly described, even though they never trigger a visitor-facing banner.
 4. **Given** a future feature introduces a new cookie, **When** its register entry is added, **Then** the policy page presents it without any redesign of the banner or policy page.
 
 ---
@@ -136,7 +138,7 @@ The product keeps one authoritative cookie register covering every cookie it set
 - **Reporting consistency**: All dashboard figures are bucketed in one documented reporting timezone (Europe/London) so daily numbers do not shift with the viewer's location.
 - **Empty or partial ranges**: Ranges before measurement began show empty states and comparison indicators degrade gracefully when the preceding period has no data; long presets (6, 12, 16 months) and custom ranges (within the 16-month span limit) that reach before measurement began show the data that exists rather than erroring.
 - **Custom range mistakes**: In the customised-range pop-up, a start date after the end date, an end date in the future, or a span longer than 16 months cannot be applied; the administrator sees a clear message and the dashboard keeps its previous range.
-- **Returning-visitor accuracy over long ranges**: Because the performance cookie lives 12 months, returning-visitor rates over windows longer than 12 months undercount long-absent visitors. Accepted accuracy limit.
+- **Returning-visitor accuracy over long ranges**: Because the performance cookie expires 12 months after the visitor's last visit, returning-visitor rates over windows longer than 12 months undercount long-absent visitors. Accepted accuracy limit.
 - **Public site isolation**: The banner and measurement must not regress any public page's appearance, behaviour, search ranking signals, or measured performance.
 
 ## Requirements *(mandatory)*
@@ -147,7 +149,7 @@ The product keeps one authoritative cookie register covering every cookie it set
 
 - **FR-001**: The public site MUST show a cookie notice banner to any visitor who has not acknowledged it, on every public page — current and future — with no page-specific set-up.
 - **FR-002**: The banner MUST state that the site uses performance cookies only (besides strictly-necessary ones), MUST link to the cookie policy page, and MUST offer an acknowledge action and a close ("x") control; dismissing via the close control MUST be recorded as acknowledgment with identical effect and lifetime.
-- **FR-003**: Acknowledgment MUST take effect immediately, persist for at least 12 months in that browser, and suppress the banner site-wide for its lifetime.
+- **FR-003**: Acknowledgment MUST take effect immediately, persist for 12 months (365 days) in that browser, and suppress the banner site-wide for its lifetime.
 - **FR-004**: The banner MUST NOT obstruct reading, navigation, or interaction, MUST NOT cause visible layout shift when it appears, and MUST meet WCAG 2.1 AA including full keyboard and assistive-technology operability.
 - **FR-005**: A cookie policy page MUST be publicly reachable from the banner and from the public site's standard page footer, and MUST present the full cookie register (name, purpose, category, duration per cookie).
 - **FR-006**: The banner and measurement MUST NOT regress the public site's search-optimisation signals or measured page performance.
@@ -155,7 +157,7 @@ The product keeps one authoritative cookie register covering every cookie it set
 #### Visitor measurement
 
 - **FR-007**: The system MUST record a page-view event for each public page displayed to a human visitor, capturing page identity, time, traffic source, anonymous visitor identifier, and session identifier.
-- **FR-008**: The performance cookie MUST be first-party, MUST contain only a randomly generated anonymous identifier (no personal data), and MUST expire no later than 12 months after it is set.
+- **FR-008**: The performance cookie MUST be first-party, MUST contain only a randomly generated anonymous identifier (no personal data), and MUST expire no later than 12 months after it was last set — visits renew the expiry, so a visitor absent longer than 12 months is counted as new.
 - **FR-009**: Consecutive page views from one visitor MUST be grouped into a session that ends after 30 minutes of inactivity.
 - **FR-010**: The system MUST distinguish returning visitors (identifier first seen on an earlier calendar day) from new visitors.
 - **FR-011**: The traffic source of each visit MUST be captured and grouped into at least: direct, search, social, referral, and campaign (standard campaign-tagged links).
@@ -167,19 +169,20 @@ The product keeps one authoritative cookie register covering every cookie it set
 
 #### Performance dashboard
 
-- **FR-017**: The admin sidebar MUST include an Analytics navigation entry opening the performance dashboard inside the Phase 1 shell; the dashboard MUST require an authenticated admin session and is readable by every admin role in this phase.
+- **FR-017**: The admin sidebar MUST include an Analytics navigation entry opening the performance dashboard inside the Phase 1 shell; the dashboard MUST require an authenticated admin session and is readable by every admin role in this phase. The dashboard is the default landing view after sign-in: the admin panel's index route MUST lead to it, replacing the Phase 1 landing view.
 - **FR-018**: The dashboard MUST present, for the selected time range: page views, unique visitors, sessions, returning-visitor rate, and pages per session, each with a change indicator against the immediately preceding period of equal length.
 - **FR-019**: The dashboard's range selector MUST offer: last 24 hours, last 7 days, last 28 days, last 3 months (the default), and a "More" option. "More" MUST open a customised-range pop-up offering: last 6 months, last 12 months, last 16 months (each a rolling window ending on the current date), and a custom range defined by an administrator-picked start date and end date. A custom range whose start date is after its end date, whose end date is in the future, or whose span exceeds 16 months (the longest supported range) MUST be rejected with a clear message. Changing the range by any of these means MUST update all widgets consistently.
-- **FR-020**: The dashboard MUST show the count of visitors active within the last 5 minutes, refreshed automatically without manual reload.
+- **FR-020**: The dashboard MUST show the count of visitors active within the last 5 minutes and the most-active pages in the same window, refreshed automatically without manual reload.
 - **FR-021**: The dashboard MUST list the most-viewed pages (ranked, with share of total views) and the traffic-source breakdown for the selected range.
 - **FR-022**: The dashboard MUST follow the Studio Admin template's analytics page design — layout, tokens, chart styling — in light and dark themes, remain fully keyboard operable, and adapt to small viewports without horizontal scrolling.
 - **FR-023**: Every widget MUST present a clear empty state when its range holds no data.
 - **FR-024**: The dashboard MUST accommodate later additions (new headline metrics, panels, or tabs) without reworking existing widgets.
+- **FR-029**: The dashboard MUST present a traffic-over-time chart for the selected range — page views and sessions per interval, hourly for ranges up to 2 days and daily otherwise — updating consistently with every range change. *(Numbered out of sequence; added after FR-028 to preserve existing references.)*
 
 #### Cookie governance
 
-- **FR-025**: A single authoritative cookie register MUST describe every cookie the product sets — public site and admin panel — with name, purpose, category (strictly necessary or performance), and duration; the policy page MUST match it exactly.
-- **FR-026**: The admin panel's strictly-necessary sign-in cookies MUST be documented in the register even though they require no visitor-facing banner.
+- **FR-025**: A single authoritative cookie register MUST describe every cookie the product sets — public site and admin panel — with name, purpose, category (strictly necessary, functional, or performance), and duration; the policy page MUST match it exactly.
+- **FR-026**: The admin panel's cookies — the strictly-necessary sign-in cookies and the functional preference cookies (theme/sidebar state) — MUST be documented in the register even though they are set only for signed-in administrators and require no visitor-facing banner.
 - **FR-027**: Introducing a future cookie MUST require only a new register entry for the policy page to present it; the banner and policy page MUST NOT need redesign.
 - **FR-028**: The notice mechanism MUST be extensible to an opt-in accept/decline model without replacement, should the compliance posture change later.
 
@@ -197,7 +200,7 @@ The product keeps one authoritative cookie register covering every cookie it set
 ### Measurable Outcomes
 
 - **SC-001**: 100% of public pages — including any page added after this phase ships — show the notice to first-time visitors and record page views with zero page-specific configuration.
-- **SC-002**: After one acknowledgment, a visitor sees no banner again from the same browser for 12 months.
+- **SC-002**: After one acknowledgment, a visitor sees no banner again from the same browser for 12 months (365 days).
 - **SC-003**: Independent page-quality audits of the public site (performance, search-optimisation, accessibility) score no lower after this phase than the pre-phase baseline.
 - **SC-004**: A visitor who returns on a later calendar day with the cookie intact is reported as returning, not new, verified across at least a two-day window.
 - **SC-005**: An administrator can answer "How many visitors last week, which pages were most viewed, and where did traffic come from?" within 30 seconds of opening the admin panel.
@@ -211,11 +214,11 @@ The product keeps one authoritative cookie register covering every cookie it set
 ## Assumptions
 
 - **Notice model is an owner decision (2026-07-14)**: the banner informs and is acknowledged; it does not offer reject. UK ICO guidance generally expects opt-in consent for performance cookies, so this is a consciously accepted compliance risk; FR-028 keeps an opt-in upgrade cheap if the posture changes.
-- The performance cookie and the acknowledgment each persist 12 months; the session inactivity window is 30 minutes; the reporting timezone is Europe/London.
+- The performance cookie persists 12 months (365 days) from the most recent visit (rolling renewal); the acknowledgment persists 12 months (365 days) from when it was recorded; the session inactivity window is 30 minutes; the reporting timezone is Europe/London.
 - Raw events are retained at least 32 months so the longest selectable dashboard range (last 16 months) and its preceding comparison period stay answerable; this supersedes the earlier 13-month draft value. The 16-month preset is taken as intentional (not a rounding of 18); anonymous data makes the longer retention low-risk.
 - Measurement begins when this phase ships; there is no historical backfill, so early ranges will be sparse and must degrade gracefully.
 - The template's analytics page is followed for its Overview content; its Audience, Acquisition, Engagement, and Conversions tabs are placeholders even in the template and are out of scope. The realtime panel's per-country breakdown is deferred (no geographic lookup this phase) and adapts to an active-visitor count with current pages.
-- The Analytics dashboard becomes the default landing view after sign-in, replacing the Phase 1 "Coming Soon" content area; the sidebar keeps signalling future sections as such.
+- The sidebar keeps signalling future sections as "coming soon" placeholders. (The dashboard-as-default-landing-view behaviour formerly assumed here is now a requirement: FR-017, US3-15.)
 - Every admin role can view the dashboard in this phase (read-only feature); per-role visibility is revisited when the RBAC matrix gains an analytics column in later phases.
 - Staff or administrator visits to the public site are not excluded from metrics in this phase.
 - The design brief requires follow-up edits outside this spec: remove "website performance tracking and visualization" from Non-Goals (section 4) and the parking lot (section 8), and correct the TL;DR's "four sequential phases" to the current six-phase plan.

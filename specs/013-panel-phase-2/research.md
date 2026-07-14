@@ -23,8 +23,9 @@ rejected: cannot see SPA route changes, no session/visitor continuity, nginx log
 
 ## R2. Identity model: two client-set cookies, server-authoritative first-seen
 
-**Decision**: `mh_vid` (UUID v4, 365 days) identifies the visitor; `mh_sid` (UUID v4, 30-minute
-rolling Max-Age, renewed on each measured view) identifies the session — the cookie expiry itself
+**Decision**: `mh_vid` (UUID v4, 365-day rolling Max-Age, renewed on each measured view — only
+visitors absent longer than 12 months lose identity) identifies the visitor; `mh_sid` (UUID v4,
+30-minute rolling Max-Age, renewed on each measured view) identifies the session — the cookie expiry itself
 implements the 30-minute inactivity window. Cookies are set by the beacon script (client-side,
 required because the public site is SSG — no server renders pages). The API reads both from
 request cookies; `AnalyticsVisitor.firstSeenAt` (server clock) is authoritative for

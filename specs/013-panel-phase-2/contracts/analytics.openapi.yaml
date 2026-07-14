@@ -53,13 +53,17 @@ paths:
         - name: from
           in: query
           required: true
-          description: Inclusive start, Europe/London calendar day (Q1).
-          schema: { type: string, format: date, example: "2026-04-14" }
+          description: >-
+            Inclusive start. Either a Europe/London calendar day (YYYY-MM-DD) or an ISO 8601 UTC
+            datetime for sub-day ranges (24-hour preset); must use the same form as `to` (Q1).
+          schema: { type: string, example: "2026-04-14" }
         - name: to
           in: query
           required: true
-          description: Inclusive end, Europe/London calendar day; must be <= today; span <= 490 days (Q1).
-          schema: { type: string, format: date, example: "2026-07-14" }
+          description: >-
+            Inclusive end, same form as `from`; date form must be <= today, datetime form <= now;
+            span <= 490 days (Q1).
+          schema: { type: string, example: "2026-07-14" }
       responses:
         "200":
           description: Overview payload for the validated range.
@@ -68,7 +72,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/OverviewResponse"
         "400":
-          description: from > to, to in the future, span > 490 days, or bad date format (Q1).
+          description: >-
+            from > to, to in the future, span > 490 days, mixed date/datetime forms, or bad
+            date format (Q1).
           content:
             application/json:
               schema:
@@ -155,8 +161,12 @@ components:
           type: object
           required: [from, to, bucket]
           properties:
-            from: { type: string, format: date }
-            to: { type: string, format: date }
+            from:
+              type: string
+              description: Echoes the validated range start (calendar-day or UTC-datetime form, per request).
+            to:
+              type: string
+              description: Echoes the validated range end (same form as from).
             bucket:
               type: string
               enum: [hour, day]

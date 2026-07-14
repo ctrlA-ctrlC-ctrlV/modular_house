@@ -43,7 +43,8 @@ pnpm --filter @modular-house/web dev      # public site + admin under /admin
    365 days).
 3. Repeat in a fresh session using the close ("x") instead -> identical behavior.
 4. Follow the policy link -> `/cookie-policy` lists every cookie (the three `mh_*` public cookies
-   + Phase 1 admin cookies) with name, purpose, category, duration. Footer links to the same page.
+   + Phase 1 admin cookies + the Google Analytics cookies `_ga` / `_ga_<container-id>`) with name,
+   purpose, category, duration. Footer links to the same page.
 5. Keyboard-only: banner controls reachable, focus visible, no trap.
 
 ### US2 — Anonymous measurement
@@ -64,7 +65,8 @@ pnpm --filter @modular-house/web dev      # public site + admin under /admin
    pages per session) with deltas, traffic chart, realtime card, top pages, sources.
 3. Switch range: 24 hours / 7 days / 28 days / 3 months (default) -> all widgets update together.
 4. "More" -> pop-up with 6 / 12 / 16 months and custom start/end date inputs. Apply a preset ->
-   widgets update. Set start after end, or end in the future -> Apply blocked with a message.
+   widgets update. Set start after end, end in the future, or a span over 16 months -> Apply
+   blocked with a message.
 5. Open a second browser on the public site -> realtime count reflects it within 60 s.
 6. Toggle dark mode; resize to mobile width; tab through toolbar, pop-up, lists -> all legible,
    stacked, keyboard-operable.

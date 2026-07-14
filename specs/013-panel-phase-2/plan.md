@@ -88,7 +88,9 @@ and passes a template-parity gate, and only then does the **implementation pass*
 - PostgreSQL via Prisma: **new** `AnalyticsEvent`, `AnalyticsVisitor` (+ enum). No existing table
   is modified. Aggregations run on-the-fly with indexes (no rollup tables in Phase 2).
 - Browser cookies (first-party only): `mh_vid`, `mh_sid`, `mh_cookie_ack` (new, public site);
-  Phase 1 admin cookies documented in the register, unchanged.
+  Phase 1 admin cookies documented in the register, unchanged. Google Analytics cookies (`_ga`,
+  `_ga_<container-id>`) set by the existing `GoogleTag` — untouched by Phase 2 code but
+  documented in the register (K5).
 
 ### 1.3 Interfaces & dependencies
 
@@ -104,7 +106,8 @@ and passes a template-parity gate, and only then does the **implementation pass*
 - Opt-in consent, reject option, preference centre (FR-028 keeps the extension point only).
 - Touching the existing `GoogleTag` component or its `VITE_GA_TRACKING_ID` env plumbing in any way
   (owner decision 2026-07-14: out of Phase 2 scope — do not remove, modify, consent-gate, or
-  extend it).
+  extend it). Documenting its cookies in the cookie register (K5) is in scope and does not touch
+  the tag.
 - Conversion/funnel/e-commerce/custom-event tracking; A/B testing; bounce rate; dwell time.
 - Core Web Vitals / technical performance monitoring, error tracking, alerting.
 - Geographic (country) and device breakdowns; the template realtime card's flag list is adapted out.
@@ -113,7 +116,7 @@ and passes a template-parity gate, and only then does the **implementation pass*
 - Excluding staff/admin visits from public-site metrics.
 - Real content in the non-Overview tabs (placeholder panels only).
 - Per-role analytics permissions (any authenticated admin can read; extension point documented).
-- Any change to public page content/SEO beyond banner, footer link, policy page, and GA removal.
+- Any change to public page content/SEO beyond the banner, footer link, and policy page.
 
 ---
 
@@ -133,7 +136,10 @@ and passes a template-parity gate, and only then does the **implementation pass*
 - K4. `mh_cookie_ack` value = `"1"`; Max-Age = **365 days**; set by acknowledge AND by close ("x");
   banner renders only while it is absent.
 - K5. Phase 2 code sets **no cookie other than K1's three**; the register lists exactly: the
-  three public cookies + the Phase 1 admin cookies (refresh cookie, theme/sidebar mirrors).
+  three public cookies + the Phase 1 admin cookies (refresh cookie, theme/sidebar mirrors) + the
+  Google Analytics cookies set by the retained `GoogleTag` (`_ga`, `_ga_<container-id>`; category
+  performance, set by Google Analytics, 2-year duration renewed per visit — browsers may cap at
+  ~400 days).
 
 ### 2.2 Banner & policy page (N)
 
@@ -193,17 +199,23 @@ and passes a template-parity gate, and only then does the **implementation pass*
 
 ### 2.6 Ranges, buckets & comparison (Q)
 
-- Q1. Overview query params: `from`, `to` = `YYYY-MM-DD`, interpreted as Europe/London calendar
-  days, inclusive. Validation: `from <= to`, `to <= today`, span <= **490 days**; violation → 400.
+- Q1. Overview query params: `from`, `to` — both either `YYYY-MM-DD` (Europe/London calendar
+  days, inclusive) or ISO 8601 UTC datetimes (sub-day ranges; used by the 24-hour preset); mixing
+  the two forms → 400. Validation: `from <= to`; `to <= today` (date form) / `to <= now`
+  (datetime form); span <= **490 days**; violation → 400.
 - Q2. Range-selector options = exactly: `24 hours`, `7 days`, `28 days`, `3 months`, `More`;
   default = **3 months**. `More` opens the pop-up with exactly: `6 months`, `12 months`,
-  `16 months`, `Custom`. All presets are rolling windows ending today (24 hours = trailing 24 h
-  from now).
+  `16 months`, `Custom`. All presets are rolling windows ending today. Preset → params mapping:
+  `24 hours` = UTC datetimes `from = now − 24 h`, `to = now`; day presets = calendar days
+  `from = today − (N − 1)`, `to = today` (7 days → today−6…today; 28 days → today−27…today);
+  month presets = `from = today − N months + 1 day`, `to = today`.
 - Q3. Custom range in the pop-up: two date inputs; Apply rejected with a visible message when
-  `start > end` or `end > today`; the dashboard keeps its previous range until a valid Apply.
+  `start > end`, `end > today`, or the span exceeds **490 days** (16 months, mirroring Q1); the
+  dashboard keeps its previous range until a valid Apply.
 - Q4. Timeseries bucket = **hour** when span <= 2 days, else **day**; buckets are Europe/London.
-- Q5. Comparison period = the immediately preceding window of equal length ending the day before
-  `from`; when it holds no data, deltas render as "no prior data" (never NaN/Infinity).
+- Q5. Comparison period = the immediately preceding window of equal length — ending the day
+  before `from` (date form) or at `from` exclusive (datetime form); when it holds no data, deltas
+  render as "no prior data" (never NaN/Infinity).
 - Q6. Top pages list length = **10**; source breakdown = the 5 S-groups (zero-valued groups shown).
 - Q7. `/admin` index redirect target = `/admin/analytics` (replaces `/admin/settings`).
 - Q8. Overview endpoint p95: < **300 ms** for spans <= 92 days; < **1000 ms** for spans up to 490
@@ -305,9 +317,11 @@ Frontend (Vitest + @testing-library/react):
   (S3); unparsable referrer → DIRECT; unknown external host → REFERRAL.
 - E-RANGE: `from > to` → 400; `to = tomorrow` → 400; span 490 days accepted / 491 rejected (Q1);
   2-day span buckets hourly / 3-day span daily (Q4 boundary); preceding window empty → "no prior
-  data" delta, no NaN (Q5).
+  data" delta, no NaN (Q5); mixed date/datetime params → 400; datetime `to` in the future → 400;
+  trailing-24 h datetime span buckets hourly.
 - E-DIALOG: custom `start > end` → Apply blocked + message, previous range kept (Q3); `end` set to
-  tomorrow → blocked; boundary `end = today` accepted.
+  tomorrow → blocked; boundary `end = today` accepted; span of 491 days → blocked + message;
+  boundary 490-day span accepted (Q3).
 - E-SESSION: event at 29m59s stays in session; at 30m01s the client mints a new `mh_sid`
   (K3 boundary, clock-injected).
 - E-EMPTY: range fully before first event → every widget empty state (US3-9); realtime with zero
@@ -384,7 +398,8 @@ Admin web (`apps/web/src/admin`):
 - No ad-hoc UI: every admin component this phase ships must appear in
   [ui-components.md](ui-components.md); anything missing goes through the inventory (design pass)
   first, never straight to code.
-- `GoogleTag.tsx` and its `VITE_GA_TRACKING_ID` plumbing stay untouched (owner decision, §1.4).
+- `GoogleTag.tsx` and its `VITE_GA_TRACKING_ID` plumbing stay untouched (owner decision, §1.4);
+  its cookies are documented in `cookieRegister.ts` (K5) without touching the tag.
 - No rollup tables, no cron/purge jobs, no export/share/import actions, no realtime websockets
   (polling only).
 - No consent gating of the beacon (notice model), no reject button, no preference centre.

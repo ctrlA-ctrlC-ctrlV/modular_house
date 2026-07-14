@@ -133,7 +133,9 @@ notice is non-blocking by spec (FR-004).
 
 **Decision**: `apps/web/src/content/cookieRegister.ts` exports the register (name, purpose,
 category, duration, set by) as a typed readonly array; `CookiePolicy` renders it; a consistency
-test asserts every cookie name the codebase can set appears in it.
+test asserts every cookie name the codebase can set appears in it. The register also documents
+the cookies set by the retained Google Analytics tag (`_ga`, `_ga_<container-id>`; K5), keeping
+FR-025's completeness guarantee honest without touching the tag.
 
 **Rationale**: The register changes only when code that sets cookies changes, so source control is
 its natural single source of truth — reviewed in the same diff (US4/FR-025/FR-027: adding a cookie
@@ -151,8 +153,10 @@ gives it a reason to exist.
 adapted). "More" opens a `Dialog` (ported primitive; `@radix-ui/react-dialog` already present via
 `sheet`) offering 6 / 12 / 16-month rolling presets and a custom pair of native
 `<input type="date">` fields styled by the admin `input` primitive; Apply disabled with a visible
-message when `start > end` or `end > today`. Client computes `from`/`to` as Europe/London
-`YYYY-MM-DD`; the server re-validates (Q1) — never trust the client.
+message when `start > end`, `end > today`, or the span exceeds 490 days (16 months, Q3). Client
+computes `from`/`to` as Europe/London `YYYY-MM-DD` for day/month presets and custom ranges, and
+as UTC datetimes (`now − 24 h`, `now`) for the 24-hour preset (Q1/Q2); the server re-validates
+(Q1) — never trust the client.
 
 **Rationale**: Native date inputs are keyboard- and mobile-accessible for free and avoid porting
 the template's calendar stack (react-day-picker) for two fields (KISS). Dialog reuses an existing

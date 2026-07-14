@@ -24,7 +24,8 @@ closed set of groups (Q6). Adding a future group = new enum value + list entry (
 
 ## 2. New model: `AnalyticsEvent`
 
-One row per stored page view (M-series assertions). Append-only; no updates, no deletes (R1).
+One row per stored page view (M-series assertions). Append-only; no updates, no deletes
+(plan §2.7 R1).
 
 ```prisma
 model AnalyticsEvent {
@@ -64,12 +65,13 @@ User-Agent, full referrer URL, geo, device, and any user/customer foreign key. `
 - `[visitorId, occurredAt]` — unique-visitor counts and first-event-in-range lookup (V2/V3).
 - `[sessionId, occurredAt]` — session counts, pages-per-session, first-event-of-session source
   attribution (V4/S4).
-- Top-pages grouping rides the `[occurredAt]` scan at current volume (R8: no premature indexes;
+- Top-pages grouping rides the `[occurredAt]` scan at current volume (research R7: no premature
+  indexes;
   `[occurredAt, path]` is the documented first extension if Q8 budgets tighten).
 
 ## 3. New model: `AnalyticsVisitor`
 
-One row per visitor identifier; server-authoritative first-seen (research R3).
+One row per visitor identifier; server-authoritative first-seen (research R2).
 
 ```prisma
 model AnalyticsVisitor {
@@ -90,13 +92,13 @@ two-simultaneous-first-events race (E-CONCURRENCY): exactly one row survives, bo
 
 **Returning classification (V3)**: visitor is returning within a range iff
 `date(firstSeenAt AT TIME ZONE 'Europe/London')` < `date(first event in range AT TIME ZONE
-'Europe/London')`. Computed in SQL (research R7).
+'Europe/London')`. Computed in SQL (research R6).
 
 ## 4. Non-persisted entities
 
 | Entity | Where it lives | Why not a table |
 |--------|----------------|-----------------|
-| Cookie Register Entry | `apps/web/src/content/cookieRegister.ts` (typed readonly array: `name`, `purpose`, `category: "strictly-necessary" \| "performance"`, `duration`, `setBy`) | Register changes only when cookie-setting code changes; source control is the single source of truth, reviewed in the same diff (research R10, FR-025/FR-027) |
+| Cookie Register Entry | `apps/web/src/content/cookieRegister.ts` (typed readonly array: `name`, `purpose`, `category: "strictly-necessary" \| "performance"`, `duration`, `setBy`) | Register changes only when cookie-setting code changes; source control is the single source of truth, reviewed in the same diff (research R9, FR-025/FR-027) |
 | Acknowledgment | `mh_cookie_ack` browser cookie only (K4) | Per-browser state; server never needs it |
 | Session | Derived: `mh_sid` cookie lifetime = the 30-minute window (K3/V1); grouping via `sessionId` column | No session table needed; recomputable from events |
 | Search/social hostname lists | Exported constants in `trafficSource.ts` (S2) | Extend-by-append code change; no runtime editing surface in scope |

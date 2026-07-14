@@ -1,0 +1,246 @@
+openapi: 3.0.3
+info:
+  title: Modular House - Analytics (Phase 2)
+  description: >-
+    Contract for the Phase 2 first-party analytics pipeline: one public ingest endpoint and two
+    authenticated admin read endpoints. Assertion IDs (K/M/S/V/Q/R) reference plan.md section 2.
+    Mirrored into apps/api/openapi.yaml.
+  version: 1.0.0
+
+paths:
+  /api/analytics/events:
+    post:
+      operationId: ingestAnalyticsEvent
+      summary: Record one public-site page view (fire-and-forget beacon target)
+      description: >-
+        Public, unauthenticated, rate-limited (M6: 120/min/IP). Visitor and session identifiers
+        are read from the mh_vid / mh_sid request cookies; absent cookies yield one-off
+        server-generated UUIDs (M3). Bot user agents (M4) and /admin paths (M5) are dropped with
+        204 so callers cannot distinguish drop from store. The beacon ignores every response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IngestEventRequest"
+      responses:
+        "204":
+          description: Event stored, or deliberately dropped (bot / admin path) (M1).
+        "400":
+          description: Malformed payload - validation failure or body over 4 KB (M2).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: IP rate limit exceeded (M6). The beacon does not retry (M8).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/analytics/overview:
+    get:
+      operationId: getAnalyticsOverview
+      summary: Range-scoped KPIs, deltas, timeseries, top pages, and source breakdown
+      description: >-
+        Authenticated (any admin role, Phase 2 - FR-017). One payload feeds every range-dependent
+        widget so a range change updates them consistently (US3-3). Comparison values cover the
+        immediately preceding window of equal length (Q5).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Inclusive start, Europe/London calendar day (Q1).
+          schema: { type: string, format: date, example: "2026-04-14" }
+        - name: to
+          in: query
+          required: true
+          description: Inclusive end, Europe/London calendar day; must be <= today; span <= 490 days (Q1).
+          schema: { type: string, format: date, example: "2026-07-14" }
+      responses:
+        "200":
+          description: Overview payload for the validated range.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverviewResponse"
+        "400":
+          description: from > to, to in the future, span > 490 days, or bad date format (Q1).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid session (T-B7 security gate).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/analytics/realtime:
+    get:
+      operationId: getAnalyticsRealtime
+      summary: Visitors active in the trailing 5 minutes (V5)
+      description: Authenticated. Polled by the dashboard every 30 seconds (V6).
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Realtime snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RealtimeResponse"
+        "401":
+          description: Missing or invalid session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Phase 1 access token (15 min, in-memory client-side).
+
+  schemas:
+    IngestEventRequest:
+      type: object
+      additionalProperties: false
+      required: [path]
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: "^/"
+          description: Public page pathname (M2). /admin* is dropped server-side (M5).
+          example: "/garden-rooms"
+        referrer:
+          type: string
+          maxLength: 2048
+          description: document.referrer at page load; only its hostname is ever stored (S5).
+          example: "https://www.google.com/"
+        utmSource: { type: string, maxLength: 100 }
+        utmMedium: { type: string, maxLength: 100 }
+        utmCampaign: { type: string, maxLength: 100 }
+
+    KpiValue:
+      type: object
+      required: [current, previous, deltaPercent]
+      properties:
+        current:
+          type: number
+          description: Value for the selected range.
+        previous:
+          type: number
+          nullable: true
+          description: Value for the preceding equal-length window; null when it has no data (Q5).
+        deltaPercent:
+          type: number
+          nullable: true
+          description: Signed percentage change; null when previous is null or zero (never NaN, Q5).
+
+    OverviewResponse:
+      type: object
+      required: [range, kpis, timeseries, topPages, sources]
+      properties:
+        range:
+          type: object
+          required: [from, to, bucket]
+          properties:
+            from: { type: string, format: date }
+            to: { type: string, format: date }
+            bucket:
+              type: string
+              enum: [hour, day]
+              description: hour when span <= 2 days, else day (Q4).
+        kpis:
+          type: object
+          required: [pageViews, uniqueVisitors, sessions, returningVisitorRate, pagesPerSession]
+          properties:
+            pageViews: { $ref: "#/components/schemas/KpiValue" }
+            uniqueVisitors: { $ref: "#/components/schemas/KpiValue" }
+            sessions: { $ref: "#/components/schemas/KpiValue" }
+            returningVisitorRate:
+              allOf: [{ $ref: "#/components/schemas/KpiValue" }]
+              description: Share in [0,1] per V3.
+            pagesPerSession: { $ref: "#/components/schemas/KpiValue" }
+        timeseries:
+          type: array
+          description: One entry per Europe/London bucket, zero-filled gaps included.
+          items:
+            type: object
+            required: [bucketStart, pageViews, sessions]
+            properties:
+              bucketStart: { type: string, format: date-time }
+              pageViews: { type: integer, minimum: 0 }
+              sessions: { type: integer, minimum: 0 }
+        topPages:
+          type: array
+          maxItems: 10
+          description: Ranked by views, descending (Q6).
+          items:
+            type: object
+            required: [path, views, share]
+            properties:
+              path: { type: string }
+              views: { type: integer, minimum: 0 }
+              share:
+                type: number
+                description: views / total stored views in range, in [0,1].
+        sources:
+          type: array
+          minItems: 5
+          maxItems: 5
+          description: All five groups always present, zero-valued included (Q6); counts sessions (S4).
+          items:
+            type: object
+            required: [group, sessions, share]
+            properties:
+              group:
+                type: string
+                enum: [direct, search, social, referral, campaign]
+              sessions: { type: integer, minimum: 0 }
+              share: { type: number }
+
+    RealtimeResponse:
+      type: object
+      required: [activeVisitors, topActivePages, windowMinutes]
+      properties:
+        activeVisitors:
+          type: integer
+          minimum: 0
+          description: Distinct visitor ids in the trailing 5 minutes (V5).
+        topActivePages:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            required: [path, activeVisitors]
+            properties:
+              path: { type: string }
+              activeVisitors: { type: integer, minimum: 0 }
+        windowMinutes:
+          type: integer
+          enum: [5]
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message: { type: string }
+            details:
+              type: array
+              items: { type: object }
+              description: Field-level validation issues where applicable.

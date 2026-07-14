@@ -17,6 +17,7 @@ on:
       - '**-house-extensions-redesign'
       - '**-sales-discount'
       - '**-panel-phase-1'
+      - '**-panel-phase-2'
   pull_request:
     branches:
       - main

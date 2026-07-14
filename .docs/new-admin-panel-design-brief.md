@@ -1,25 +1,14 @@
 # _Admin Panel_ — Design Brief
 
-> **How to use this**
-> Aim for **one page, two max**. If it takes more than an hour to fill or grows
-> past two pages, you're overthinking the project — or it's secretly several
-> projects. The two sections that matter most are **Problem** (so you don't build
-> the wrong thing) and **Non-Goals** (so the scope doesn't quietly grow). If you
-> can't fill those two in confidently, you're not ready to start building.
-> Keep it alive: update it when reality changes.
-
 | | |
 |---|---|
 | **Owner** | Z |
 | **Status** | Ready for review |
-| **Last updated** | 2026-06-18 |
+| **Last updated** | 2026-07-13 |
 
 ---
 
 ## 1. TL;DR
-
-> _Two or three sentences: what we're building and why. Someone should grasp the
-> whole project from this alone. Write it last, once the rest is clear._
 
 We're rebuilding the admin panel from scratch inside the existing React/Vite app, adopting the Studio Admin template's design system (OKLCH tokens + shadcn-style primitives) for a clean, accessible UI with dark mode. The RBAC, audit-log, and refresh-token models already exist from feature 006, so we wire them up, move site content and images out of hardcoded files into the database (keeping local backups), and add secure login (2FA + password reset), user/role management, and customer progress tracking. It ships in four sequential, independently shippable phases, starting with login and the app shell.
 
@@ -28,14 +17,6 @@ We're rebuilding the admin panel from scratch inside the existing React/Vite app
 ---
 
 ## 2. Problem & Why Now
-
-> _The most important section. Describe the problem, **not** the solution._
-> - Who has this problem?
-> - What's the evidence it's real? (support tickets, data, user quotes, lost deals)
-> - What happens if we do nothing — and why is now the right time?
->
-> If you find yourself describing a feature here instead of a problem, stop —
-> that's the warning sign you might be building the wrong thing.
 
 * No standardized UI for Admin panel
 * Current implementation is too messy
@@ -166,27 +147,46 @@ graph LR
 - [ ] Create password reset process on login page, where a password reset link is sent to the email address and the user enters the new password twice (both must match) to update the password on the account
 - [ ] User setting page should have password change (input twice, both need to match to change), profile photo change, name & email (view only)
 
-#### Phase 2 - Data migration (image, page data) & data editing interface
+#### Phase 2 - Cookies and performance visualisation
+
+- [ ] Identify what cookies are needed for the project
+- [ ] Create implementation plan for every page currently and future pages
+- [ ] Implement cookie according to the plan
+- [ ] Create performance visualization section (selectable through sidebar of the admin panel) based on the `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard` 
+
+#### Phase 3 - Data migration (image, product data) & data editing interface
 
 - [ ] Create data model for the product data
-- [ ] Use product data model to PSQL table on database
+- [ ] Use product data model to create PSQL table on database
 - [ ] Migrate product data from local source to database but leave backup method
-- [ ] Create data model for the page data
-- [ ] Use page data model to PSQL table on database
-- [ ] Migrate page data from local source to database but leave backup method
-- [ ] Create data model for image storage
+- [ ] Create data model for image storage (goal: future proof, easy to improve in the future)
 - [ ] Use image storage model to PSQL table on database
 - [ ] Migrate image from local source to database but leave backup method
-- [ ] Create image storage CRUD UI
+- [ ] Create image storage CRUD UI (easy to visualise the what image is in store from preview, with focus view, rename)
 - [ ] Create product data CRUD UI
-- [ ] Create page data CRUD UI
 
-#### Phase 3 - User and Role management
+#### Phase 4 - Migrate to SSR (Server Side Rendering)
+
+- [ ] Create plan for phase from SSG (Server Side Generation) to SSR
+  - [ ] Build a request-time render server
+  - [ ] Rework the build pipeline
+  - [ ] Rework apps/web/Dockerfile
+  - [ ] Update docker-compose.prod.yml
+  - [ ] Replace the build-verification step
+  - [ ] Verify and roll out carefully
+- [ ] Create data model for the page data (goal: every text on page is live updateable through the PSQL endpoint)
+- [ ] Use page data model to PSQL table on database
+- [ ] Migrate page data from local source to database but leave backup method
+- [ ] Create page data CRUD UI 
+- [ ] Password policy control
+- [ ] Session lifetime control
+
+#### Phase 5 - User and Role management
 
 - [ ] User CRUD following the template layout but fully wired
 - [ ] Role management following the template layout but fully wired
 
-#### Phase 4 - Customer management
+#### Phase 6 - Customer management
 
 - [ ] Customer CRUD with UI
 - [ ] Online submissions CRUD with UI

@@ -42,7 +42,7 @@ model AnalyticsEvent {
   sourceGroup  AnalyticsSourceGroup @map("source_group")
   /// Referrer HOSTNAME only - full URLs and query strings are never stored (S5).
   referrerHost String?              @map("referrer_host") @db.VarChar(255)
-  /// Standard campaign tags, truncated to 100 chars (M2).
+  /// Standard campaign tags, max 100 chars — over-length payloads are rejected at ingest, never truncated (M2).
   utmSource    String?              @map("utm_source") @db.VarChar(100)
   utmMedium    String?              @map("utm_medium") @db.VarChar(100)
   utmCampaign  String?              @map("utm_campaign") @db.VarChar(100)
@@ -98,7 +98,7 @@ two-simultaneous-first-events race (E-CONCURRENCY): exactly one row survives, bo
 
 | Entity | Where it lives | Why not a table |
 |--------|----------------|-----------------|
-| Cookie Register Entry | `apps/web/src/content/cookieRegister.ts` (typed readonly array: `name`, `purpose`, `category: "strictly-necessary" \| "performance"`, `duration`, `setBy`) | Register changes only when cookie-setting code changes; source control is the single source of truth, reviewed in the same diff (research R9, FR-025/FR-027) |
+| Cookie Register Entry | `apps/web/src/content/cookieRegister.ts` (typed readonly array: `name`, `purpose`, `category: "strictly-necessary" \| "functional" \| "performance"`, `duration`, `setBy`) | Register changes only when cookie-setting code changes; source control is the single source of truth, reviewed in the same diff (research R9, FR-025/FR-027) |
 | Acknowledgment | `mh_cookie_ack` browser cookie only (K4) | Per-browser state; server never needs it |
 | Session | Derived: `mh_sid` cookie lifetime = the 30-minute window (K3/V1); grouping via `sessionId` column | No session table needed; recomputable from events |
 | Search/social hostname lists | Exported constants in `trafficSource.ts` (S2) | Extend-by-append code change; no runtime editing surface in scope |

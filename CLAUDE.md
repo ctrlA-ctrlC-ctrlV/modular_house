@@ -1,8 +1,9 @@
 ﻿# modular_house Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-02-25
+Auto-generated from all feature plans. Last updated: 2026-07-14
 
 ## Active Technologies
+- TypeScript 5.6, React 18.3 + recharts (admin charts), @radix-ui/react-select, @radix-ui/react-tabs; Express 4 + Prisma 5 + isbot (first-party analytics ingest) (013-panel-phase-2)
 - TypeScript 5.6, React 18.3 + react-router-dom 6.28, react-helmet-async 2.0.5, Vite 6.0, @modular-house/ui (shared component library) (008-garden-room-redesign)
 - N/A (static content, no database) (008-garden-room-redesign)
 
@@ -25,6 +26,8 @@ npm test; npm run lint
 TypeScript 5.6, React 18.3: Follow standard conventions
 
 ## Recent Changes
+- 013-panel-phase-2: Cookie notice + first-party analytics pipeline + admin analytics dashboard
+- 012-panel-phase-1: Admin panel foundation — design-system port, shell, 2FA login, password reset
 - 011-sales-discount: PromoBanner + strikethrough pricing primitives
 - 010-house-extensions-redesign: House Extensions marketing page redesign
 - 009-about-page: About page content + layout

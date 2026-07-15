@@ -56,8 +56,8 @@ pnpm --filter @modular-house/web dev      # public site + admin under /admin
 3. Stop the API and browse the public site -> pages work perfectly; no visible errors.
 4. Inspect `analytics_events` rows -> path/time/source/visitor/session only; no IP, UA, or full
    referrer URL anywhere.
-5. Arrive via a `?utm_source=...` link -> event classified `campaign`; via a Google result ->
-   `search`; direct entry -> `direct`.
+5. Arrive via a `?utm_source=...` or `?gclid=...` link -> event classified `campaign`; via a
+   Google result -> `search`; direct entry -> `direct`.
 
 ### US3 — Analytics dashboard
 
@@ -106,7 +106,7 @@ plan assertion; "Audit" = measured post-implementation (DoD-5/DoD-7).
 | FR-008 | First-party anonymous cookie, <= 12 months | T-F5 (K1/K2) |
 | FR-009 | 30-minute session window | T-B2, E-SESSION (K3/V1) |
 | FR-010 | Returning vs new visitors | T-B3 (V3), E-TZ |
-| FR-011 | Source groups: direct/search/social/referral/campaign | T-B4, E-SOURCE (S1–S4) |
+| FR-011 | Source groups: direct/search/social/referral/campaign (incl. ad click-IDs) | T-B4, E-SOURCE (S1–S4) |
 | FR-012 | Collection never degrades the public site | E-BEACON (M8), SC-009 smoke |
 | FR-013 | Bots excluded | E-INGEST (M4) |
 | FR-014 | Admin pages never measured | E-INGEST (M5), T-F5 |

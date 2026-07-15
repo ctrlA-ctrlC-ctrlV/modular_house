@@ -144,6 +144,9 @@ jobs:
         run: pnpm db:seed
         env:
           DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          # NODE_ENV=test triggers the analytics fixtures in seed.ts (T006/T007, DoD-8).
+          # The CI seed runs out-of-band before the test step so analytics suites
+          # find the seeded rows — a green local run alone is not proof.
           NODE_ENV: test
           MAIL_HOST: localhost
           MAIL_FROM_EMAIL: ci@example.com
@@ -266,6 +269,7 @@ jobs:
         run: pnpm db:seed
         env:
           DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          # NODE_ENV=test triggers the analytics fixtures in seed.ts (T006/T007, DoD-8).
           NODE_ENV: test
           MAIL_HOST: localhost
           MAIL_FROM_EMAIL: ci@example.com

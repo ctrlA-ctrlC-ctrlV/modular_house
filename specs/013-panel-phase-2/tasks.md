@@ -119,7 +119,8 @@
       test DB; production seed output is unchanged.
       Refs: DoD-8, quickstart §2
 
-- [ ] T007 Wire the analytics fixtures into the CI seed
+- [x] T007 Wire the analytics fixtures into the CI seed
+> note: ci.yml seed steps documented: NODE_ENV=test triggers T006 analytics fixtures before test step; seed.ts gate already committed; tests: none; deviations: none
       Files: .github/workflows/* (CI test job), apps/api/prisma/seed.ts
       Do: Ensure CI seeds the analytics fixtures before running api `test:run` — the CI seed runs
       out-of-band against the port-5434 DB, so a green local run alone is not proof.
@@ -127,7 +128,8 @@
       api test step.
       Refs: DoD-8, quickstart §5 CI note
 
-- [ ] T008 Create the admin analytics fixture-data module (web)
+- [x] T008 Create the admin analytics fixture-data module (web)
+> note: fixtures.ts: OverviewResponse/RealtimeResponse types + 6 fixtures (populated/no-prior/zero-prev/empty/hourly + realtime populated/empty); tests: none; deviations: none
       Files: apps/web/src/admin/analytics/fixtures.ts (new)
       Do: Export typed fixture payloads exactly matching the contract schemas: `OverviewResponse`
       (including `KpiValue` variants: numeric previous, `previous: null` "no prior data", and

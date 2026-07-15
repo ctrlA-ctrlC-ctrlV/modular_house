@@ -43,7 +43,9 @@ and passes a template-parity gate, and only then does the **implementation pass*
 - `CookieBanner` component mounted in `TemplateLayout`: client-only (absent from prerendered HTML),
   fixed-position (zero layout shift), acknowledge button + close ("x") control (both set the
   acknowledgment cookie), link to the policy page. Styled with the public site's existing
-  Bootstrap-based styles, NOT the admin design system.
+  Bootstrap-based styles, NOT the admin design system. `TemplateLayout` is the enforced single
+  mount point for banner + beacon; any future public route rendered outside it must mount both
+  explicitly (spec Assumptions, forward-compatibility constraint).
 - `CookiePolicy` page at `/cookie-policy`: prerendered like other public routes, renders the cookie
   register table, linked from the banner and `Footer`.
 - `cookieRegister.ts`: the single authoritative register (name, purpose, category, duration,
@@ -51,7 +53,7 @@ and passes a template-parity gate, and only then does the **implementation pass*
   set ⊆ register.
 - `analytics/beacon.ts` (public): sets/renews `mh_vid` + `mh_sid` cookies, sends one event per
   page view (initial load + route change) via `navigator.sendBeacon` with `fetch(keepalive)`
-  fallback; silent on failure; skips `/admin*` routes.
+  fallback; silent on failure; skips `/admin` and `/admin/*` routes.
 
 **Backend (`apps/api`):**
 
@@ -161,12 +163,15 @@ and passes a template-parity gate, and only then does the **implementation pass*
   bot/admin-path/rate-limited → **204/204/429** respectively, never an error the page surfaces.
 - M2. Payload schema: `path` string, must start with `/`, length ∈ [1, 512]; `referrer` optional
   string, length <= 2048; `utmSource`/`utmMedium`/`utmCampaign` optional strings, length <= 100
-  each. Unknown fields rejected. Body size cap = **4 KB**.
+  each; `adClick` optional boolean — set by the beacon when the landing URL carries a known ad
+  click-ID parameter (`gclid`, `fbclid`; extensible client-side constant list), the click-ID value
+  itself never transmitted or stored (FR-015). Unknown fields rejected. Body size cap = **4 KB**.
 - M3. Visitor/session identifiers are read from `mh_vid`/`mh_sid` request cookies; when a cookie is
   absent the server generates a one-off UUID for that event (cookieless visitors count as new).
 - M4. `isbot(User-Agent) === true` → event NOT stored, respond 204.
-- M5. `path` starting with `/admin` → event NOT stored, respond 204 (defense in depth; the client
-  never sends them).
+- M5. `path` equal to `/admin` or starting with `/admin/` → event NOT stored, respond 204
+  (defense in depth; the client never sends them). Other `/admin…`-prefixed words (a hypothetical
+  `/administration`) are public and stored.
 - M6. Rate limit = **120 events / minute / IP**; excess → 429.
 - M7. No IP address and no User-Agent string is persisted in any analytics table (both used
   transiently only).
@@ -174,14 +179,21 @@ and passes a template-parity gate, and only then does the **implementation pass*
   change to a different `pathname`; transport = `navigator.sendBeacon`, fallback
   `fetch(..., { keepalive: true })`; **0 retries**; all failures swallowed.
 - M9. Ingest handler p95 latency < **50 ms** (single insert + upsert).
+- M10. Paths are canonicalized at ingest before storage: pathname only (no query string or
+  fragment), lowercased, duplicate slashes collapsed, trailing slash stripped (root `/` kept) —
+  `/Page/` and `/page` count as one page in every metric.
 
 ### 2.4 Traffic-source classification (S)
 
-- S1. Precedence: `CAMPAIGN` (any `utmSource` present) > `SEARCH` > `SOCIAL` > `REFERRAL` >
-  `DIRECT`.
+- S1. Precedence: `CAMPAIGN` (any `utmSource` present, or `adClick` true) > `SEARCH` > `SOCIAL` >
+  `REFERRAL` > `DIRECT`.
 - S2. `SEARCH` referrer-host list ⊇ {google, bing, duckduckgo, yahoo, ecosia, baidu, yandex};
-  `SOCIAL` list ⊇ {facebook, instagram, twitter, x.com, linkedin, pinterest, tiktok, youtube,
-  reddit}; both are exported constant arrays extended by adding entries only (open-closed).
+  `SOCIAL` list ⊇ {facebook, instagram, twitter, x.com, t.co, linkedin, pinterest, tiktok,
+  youtube, reddit}; both are exported constant arrays extended by adding entries only
+  (open-closed). Matching is case-insensitive against the referrer hostname: entries containing a
+  dot (`x.com`, `t.co`) match the host exactly or as a `.`-suffix; single-token entries match the
+  host's registrable second-level label (`www.google.co.uk` → label `google` → SEARCH), so
+  lookalike hosts (`notgoogle.com`) never match.
 - S3. Referrer with the site's own hostname, empty, or unparsable → `DIRECT`.
 - S4. A session's source = the source of the session's **first** stored event; source metrics count
   **sessions**, not events.
@@ -212,7 +224,8 @@ and passes a template-parity gate, and only then does the **implementation pass*
   month presets = `from = today − N months + 1 day`, `to = today`.
 - Q3. Custom range in the pop-up: two date inputs; Apply rejected with a visible message when
   `start > end`, `end > today`, or the span exceeds **490 days** (16 months, mirroring Q1); the
-  dashboard keeps its previous range until a valid Apply.
+  dashboard keeps its previous range until a valid Apply. "Today" is the current **Europe/London**
+  date; the validation message states this boundary for administrators in other timezones.
 - Q4. Timeseries bucket = **hour** when span <= 2 days, else **day**; buckets are Europe/London.
 - Q5. Comparison period = the immediately preceding window of equal length — ending the day
   before `from` (date form) or at `from` exclusive (datetime form); when it holds no data, deltas
@@ -292,8 +305,8 @@ Frontend (Vitest + @testing-library/react):
 - T-F3 (US1-4/6/9, N5): banner never blocks content; keyboard operable, focus visible, correct
   role/label; cleared cookies → banner returns.
 - T-F4 (US1-3, US4-2, N4): `/cookie-policy` renders the register 1:1; footer links to it.
-- T-F5 (US2-1, M8): beacon fires once on load and once per route change; skips `/admin*`;
-  sendBeacon used, fetch-keepalive fallback, failures silent (page never errors).
+- T-F5 (US2-1, M8): beacon fires once on load and once per route change; skips `/admin` and
+  `/admin/*`; sendBeacon used, fetch-keepalive fallback, failures silent (page never errors).
 - T-F6 (US3-1, Q7): sidebar shows "Analytics"; `/admin` index lands on the dashboard inside the
   shell.
 - T-F7 (US3-2..5): dashboard renders KPI strip with deltas, chart, realtime card, top pages,
@@ -311,11 +324,13 @@ Frontend (Vitest + @testing-library/react):
 
 - E-INGEST: path of 512 chars accepted / 513 rejected (M2); missing `path` → 400; unknown field →
   400; 4 KB+1 body → 400; no cookies → one-off UUIDs stored (M3); bot UA → 204 not stored (M4);
-  `/admin/settings` path → 204 not stored (M5); 121st request in a minute from one IP → 429 (M6).
+  `/admin/settings` path → 204 not stored, `/administration` → stored (M5 boundary); 121st request
+  in a minute from one IP → 429 (M6); `/Page/` and `/page` stored as one canonical path (M10).
 - E-BEACON: ingest endpoint down/500 → no console error surfaces, page functional (M8, SC-009);
   sendBeacon unavailable → keepalive fetch used; no retry after failure (0 retries).
-- E-SOURCE: `utmSource` + search referrer → CAMPAIGN (S1 precedence); own-host referrer → DIRECT
-  (S3); unparsable referrer → DIRECT; unknown external host → REFERRAL.
+- E-SOURCE: `utmSource` + search referrer → CAMPAIGN (S1 precedence); `adClick` + search referrer
+  → CAMPAIGN (S1); own-host referrer → DIRECT (S3); unparsable referrer → DIRECT; unknown external
+  host → REFERRAL; `notgoogle.com` referrer → REFERRAL (S2 matching boundary).
 - E-RANGE: `from > to` → 400; `to = tomorrow` → 400; span 490 days accepted / 491 rejected (Q1);
   2-day span buckets hourly / 3-day span daily (Q4 boundary); preceding window empty → "no prior
   data" delta, no NaN (Q5); mixed date/datetime params → 400; datetime `to` in the future → 400;

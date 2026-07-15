@@ -19,7 +19,7 @@
 //     be set in the .env file or host environment.
 // ============================================================================
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type AnalyticsSourceGroup } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { config } from '../src/config/env.js';
 import { logger } from '../src/middleware/logger.js';
@@ -92,6 +92,86 @@ const SETTINGS: ReadonlyArray<SettingSeedEntry> = [
     description: 'Send a daily digest email summarising admin activity',
   },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Seed Data: Analytics Fixtures (test databases only — DoD-8)
+// ---------------------------------------------------------------------------
+// Deterministic analytics rows that span multiple Europe/London calendar
+// days, cover all five source groups (DIRECT/SEARCH/SOCIAL/REFERRAL/CAMPAIGN),
+// and include both new and returning visitors. These fixtures are seeded ONLY
+// when NODE_ENV === 'test' so the production/dev seed path is unchanged.
+//
+// Timestamps are UTC and fall safely midday in London (BST / UTC+1 during
+// July 2026) so each event's London calendar day is unambiguous. The fixed
+// "today" for these fixtures is 2026-07-15 (London).
+//
+// Visitor/session UUIDs match those in tests/helpers/analyticsFixtures.ts so
+// test assertions can reference the same identifiers.
+// ---------------------------------------------------------------------------
+
+/** Analytics visitor fixture — one row per visitor id (data-model §3). */
+interface AnalyticsVisitorFixture {
+  visitorId: string;
+  firstSeenAt: Date;
+  lastSeenAt: Date;
+}
+
+/** Analytics event fixture — one row per stored page view (data-model §2). */
+interface AnalyticsEventFixture {
+  occurredAt: Date;
+  path: string;
+  visitorId: string;
+  sessionId: string;
+  sourceGroup: AnalyticsSourceGroup;
+  referrerHost?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+}
+
+// Five visitors: A/C/E are "returning" relative to today (firstSeenAt on an
+// earlier London day than their first event today); B/D are "new" (firstSeenAt
+// today). Visitor E's firstSeenAt (2026-07-12) predates the 3-day range start
+// so E counts as returning even in a 2026-07-13..15 range.
+const ANALYTICS_FIXTURE_VISITORS: ReadonlyArray<AnalyticsVisitorFixture> = [
+  { visitorId: 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', firstSeenAt: new Date('2026-07-13T11:00:00.000Z'), lastSeenAt: new Date('2026-07-15T11:00:00.000Z') },
+  { visitorId: 'b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2', firstSeenAt: new Date('2026-07-15T11:00:00.000Z'), lastSeenAt: new Date('2026-07-15T11:20:00.000Z') },
+  { visitorId: 'c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', firstSeenAt: new Date('2026-07-14T11:00:00.000Z'), lastSeenAt: new Date('2026-07-15T11:40:00.000Z') },
+  { visitorId: 'd4d4d4d4-d4d4-4d4d-8d4d-d4d4d4d4d4d4', firstSeenAt: new Date('2026-07-15T11:30:00.000Z'), lastSeenAt: new Date('2026-07-15T11:30:00.000Z') },
+  { visitorId: 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', firstSeenAt: new Date('2026-07-12T11:00:00.000Z'), lastSeenAt: new Date('2026-07-14T11:30:00.000Z') },
+];
+
+// Twelve events across three London calendar days (2026-07-13, 14, 15).
+// Each session's FIRST event defines the session's source group (S4); the
+// five sessions cover all five source groups exactly once.
+const ANALYTICS_FIXTURE_EVENTS: ReadonlyArray<AnalyticsEventFixture> = [
+  // --- 2026-07-13 (London) ---
+  // Session A — first event: SEARCH (session source = SEARCH per S4)
+  { occurredAt: new Date('2026-07-13T11:00:00.000Z'), path: '/',             visitorId: 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', sessionId: '1a1a1a1a-1a1a-41a1-81a1-1a1a1a1a1a1a', sourceGroup: 'SEARCH',   referrerHost: 'www.google.com' },
+  { occurredAt: new Date('2026-07-13T11:05:00.000Z'), path: '/garden-room',  visitorId: 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', sessionId: '1a1a1a1a-1a1a-41a1-81a1-1a1a1a1a1a1a', sourceGroup: 'SEARCH' },
+  // Session E — first event: SOCIAL
+  { occurredAt: new Date('2026-07-13T12:00:00.000Z'), path: '/',             visitorId: 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', sessionId: '5e5e5e5e-5e5e-45e5-85e5-5e5e5e5e5e5e', sourceGroup: 'SOCIAL',   referrerHost: 'www.facebook.com' },
+
+  // --- 2026-07-14 (London) ---
+  // Session C — first event: DIRECT
+  { occurredAt: new Date('2026-07-14T11:00:00.000Z'), path: '/',                 visitorId: 'c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', sessionId: '3c3c3c3c-3c3c-43c3-83c3-3c3c3c3c3c3c', sourceGroup: 'DIRECT' },
+  { occurredAt: new Date('2026-07-14T11:30:00.000Z'), path: '/house-extension',  visitorId: 'c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', sessionId: '3c3c3c3c-3c3c-43c3-83c3-3c3c3c3c3c3c', sourceGroup: 'DIRECT' },
+  // Session E continues (second event — source stays SOCIAL per S4)
+  { occurredAt: new Date('2026-07-14T11:30:00.000Z'), path: '/garden-room',      visitorId: 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', sessionId: '5e5e5e5e-5e5e-45e5-85e5-5e5e5e5e5e5e', sourceGroup: 'SOCIAL' },
+  // Session A continues on day 2 (source stays SEARCH per S4)
+  { occurredAt: new Date('2026-07-14T12:00:00.000Z'), path: '/about',            visitorId: 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', sessionId: '1a1a1a1a-1a1a-41a1-81a1-1a1a1a1a1a1a', sourceGroup: 'SEARCH' },
+
+  // --- 2026-07-15 (London, "today") ---
+  // Session A continues on day 3
+  { occurredAt: new Date('2026-07-15T11:00:00.000Z'), path: '/',             visitorId: 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', sessionId: '1a1a1a1a-1a1a-41a1-81a1-1a1a1a1a1a1a', sourceGroup: 'SEARCH' },
+  // Session B — first event: CAMPAIGN (utm-tagged)
+  { occurredAt: new Date('2026-07-15T11:10:00.000Z'), path: '/about',       visitorId: 'b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2', sessionId: '2b2b2b2b-2b2b-42b2-82b2-2b2b2b2b2b2b', sourceGroup: 'CAMPAIGN', utmSource: 'newsletter', utmMedium: 'email', utmCampaign: 'summer2026' },
+  { occurredAt: new Date('2026-07-15T11:20:00.000Z'), path: '/garden-room', visitorId: 'b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2', sessionId: '2b2b2b2b-2b2b-42b2-82b2-2b2b2b2b2b2b', sourceGroup: 'CAMPAIGN' },
+  // Session D — first event: REFERRAL
+  { occurredAt: new Date('2026-07-15T11:30:00.000Z'), path: '/',             visitorId: 'd4d4d4d4-d4d4-4d4d-8d4d-d4d4d4d4d4d4', sessionId: '4d4d4d4d-4d4d-44d4-84d4-4d4d4d4d4d4d', sourceGroup: 'REFERRAL', referrerHost: 'www.linkedin.com' },
+  // Session C continues on day 3
+  { occurredAt: new Date('2026-07-15T11:40:00.000Z'), path: '/contact',      visitorId: 'c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', sessionId: '3c3c3c3c-3c3c-43c3-83c3-3c3c3c3c3c3c', sourceGroup: 'DIRECT' },
+];
 
 // ===========================================================================
 // Seed Functions
@@ -317,6 +397,61 @@ async function seedAdminUser(roleIdMap: Map<string, string>): Promise<void> {
   console.log('  Change this password after first login.');
 }
 
+/**
+ * Seeds deterministic analytics fixture rows into the `analytics_events` and
+ * `analytics_visitors` tables. Called ONLY when `NODE_ENV === 'test'` so the
+ * production / development seed path is unchanged (DoD-8).
+ *
+ * The fixtures span three Europe/London calendar days (2026-07-13, 14, 15),
+ * cover all five source groups (one session per group — S4), and include
+ * both new visitors (B, D — firstSeenAt today) and returning visitors (A, C,
+ * E — firstSeenAt on an earlier London day). Visitor/session UUIDs match
+ * those in `tests/helpers/analyticsFixtures.ts` for cross-reference.
+ *
+ * Idempotency: all existing analytics rows are deleted before re-inserting,
+ * so re-running `db:seed` produces the same deterministic state.
+ */
+async function seedAnalyticsFixtures(): Promise<void> {
+  logger.info('Seeding analytics fixtures (test only)...');
+
+  // Clear existing analytics rows so re-seeds are deterministic (events have
+  // auto-increment IDs and cannot be upserted; a full reset is simplest).
+  await prisma.analyticsEvent.deleteMany();
+  await prisma.analyticsVisitor.deleteMany();
+
+  // Insert visitors (one row per visitor id — data-model §3).
+  for (const v of ANALYTICS_FIXTURE_VISITORS) {
+    await prisma.analyticsVisitor.create({
+      data: {
+        visitorId: v.visitorId,
+        firstSeenAt: v.firstSeenAt,
+        lastSeenAt: v.lastSeenAt,
+      },
+    });
+  }
+  logger.info({ count: ANALYTICS_FIXTURE_VISITORS.length }, 'Analytics visitors seeded');
+
+  // Insert events (append-only — data-model §2).
+  for (const e of ANALYTICS_FIXTURE_EVENTS) {
+    await prisma.analyticsEvent.create({
+      data: {
+        occurredAt: e.occurredAt,
+        path: e.path,
+        visitorId: e.visitorId,
+        sessionId: e.sessionId,
+        sourceGroup: e.sourceGroup,
+        referrerHost: e.referrerHost,
+        utmSource: e.utmSource,
+        utmMedium: e.utmMedium,
+        utmCampaign: e.utmCampaign,
+      },
+    });
+  }
+  logger.info({ count: ANALYTICS_FIXTURE_EVENTS.length }, 'Analytics events seeded');
+
+  console.log(`  Analytics fixtures: ${ANALYTICS_FIXTURE_VISITORS.length} visitors, ${ANALYTICS_FIXTURE_EVENTS.length} events`);
+}
+
 // ===========================================================================
 // Main Seed Orchestrator
 // ===========================================================================
@@ -344,6 +479,15 @@ async function main(): Promise<void> {
 
     // Step 5: Create or migrate the admin user to the super_admin role.
     await seedAdminUser(roleIdMap);
+
+    // Step 6: Seed analytics fixtures — test databases only (DoD-8).
+    // The production / development seed path adds no analytics rows; the
+    // gate is NODE_ENV === 'test', set in .env.test and in CI.
+    if (config.app.nodeEnv === 'test') {
+      await seedAnalyticsFixtures();
+    } else {
+      logger.info({ nodeEnv: config.app.nodeEnv }, 'Skipping analytics fixtures (not a test database)');
+    }
 
     logger.info('Database seed completed successfully');
   } catch (error) {

@@ -63,6 +63,7 @@
 
 - [x] T001 Add pinned Radix packages to the web app
 > note: pin @radix-ui/react-select@2.3.3 + react-tabs@1.1.17 in apps/web; pnpm install clean, both resolve from apps/web; tests: none (setup); deviations: none
+> reviewed: PASS-WITH-NITS — change-log lockfile stat inaccurate
       Files: apps/web/package.json, pnpm-lock.yaml
       Do: Add `@radix-ui/react-select` and `@radix-ui/react-tabs` to apps/web dependencies at
       pinned exact versions (no range operator); run `pnpm install`. No other dependency changes.
@@ -71,6 +72,7 @@
 
 - [x] T002 Add pinned isbot package to the api
 > note: pin isbot@5.2.1 in apps/api; pnpm install clean, isbot resolves + ESM named export loads (v5 named isbot, no default); tests: none (setup); deviations: none
+> reviewed: PASS
       Files: apps/api/package.json, pnpm-lock.yaml
       Do: Add `isbot` to apps/api dependencies at a pinned exact version; run `pnpm install`.
       Done when: `isbot` is importable from apps/api code; lockfile updated.
@@ -78,6 +80,7 @@
 
 - [x] T003 Model the analytics tables and enum in the Prisma schema
 > note: AnalyticsSourceGroup enum + AnalyticsEvent/AnalyticsVisitor per data-model.md §1–§3 (3 indexes, table maps); prisma validate passes, additive diff; tests: none; deviations: none
+> reviewed: CHANGES-REQUIRED — undocumented .gitignore change in window
       Files: apps/api/prisma/schema.prisma
       Do: Add enum `AnalyticsSourceGroup` (DIRECT/SEARCH/SOCIAL/REFERRAL/CAMPAIGN with @map values)
       and models `AnalyticsEvent` + `AnalyticsVisitor` exactly per data-model.md §1–§3: column
@@ -90,6 +93,7 @@
 
 - [x] T004 Create and apply migration add_analytics_events
 > note: add_analytics_events migration: enum+2 tables+3 indexes; applied test DB 5434, no drift; tests: none; deviations: migration.sql — dev DB 5432 unreachable, test DB only
+> reviewed: PASS-WITH-NITS — dev-DB apply still pending
       Files: apps/api/prisma/migrations/<timestamp>_add_analytics_events/migration.sql
       Do: Generate via `prisma migrate dev --name add_analytics_events`; verify the SQL creates
       exactly the enum, two tables, and three indexes; apply to the dev DB and the port-5434 test
@@ -100,6 +104,7 @@
 
 - [x] T005 Add analytics fixture and injected-clock test helpers (api)
 > note: analyticsFixtures.ts: event/visitor builders, cookie header helper, fixed UUIDs, createAnalyticsClock wrapping Phase 1 clock; tests: 2 passing (round-trip verify, cleaned up); deviations: none
+> reviewed: PASS-WITH-NITS — round-trip proof not in repo
       Files: apps/api/tests/helpers/analyticsFixtures.ts (new; follow the existing api test-helper
       conventions)
       Do: Provide builders that insert `AnalyticsEvent`/`AnalyticsVisitor` rows and produce
@@ -111,6 +116,7 @@
 
 - [x] T006 Seed analytics fixtures for the test database
 > note: seed.ts: 5 visitors + 12 events across 3 London days, all 5 source groups, gated NODE_ENV=test; tests: none; deviations: none
+> reviewed: PASS
       Files: apps/api/prisma/seed.ts
       Do: Add deterministic analytics fixture rows (multiple London calendar days, all five source
       groups, new + returning visitors) gated so they seed test databases only — the production
@@ -121,6 +127,7 @@
 
 - [x] T007 Wire the analytics fixtures into the CI seed
 > note: ci.yml seed steps documented: NODE_ENV=test triggers T006 analytics fixtures before test step; seed.ts gate already committed; tests: none; deviations: none
+> reviewed: PASS-WITH-NITS — no observed CI run yet
       Files: .github/workflows/* (CI test job), apps/api/prisma/seed.ts
       Do: Ensure CI seeds the analytics fixtures before running api `test:run` — the CI seed runs
       out-of-band against the port-5434 DB, so a green local run alone is not proof.
@@ -130,6 +137,7 @@
 
 - [x] T008 Create the admin analytics fixture-data module (web)
 > note: fixtures.ts: OverviewResponse/RealtimeResponse types + 6 fixtures (populated/no-prior/zero-prev/empty/hourly + realtime populated/empty); tests: none; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/fixtures.ts (new)
       Do: Export typed fixture payloads exactly matching the contract schemas: `OverviewResponse`
       (including `KpiValue` variants: numeric previous, `previous: null` "no prior data", and

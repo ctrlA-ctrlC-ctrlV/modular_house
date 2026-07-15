@@ -126,7 +126,9 @@ components:
           minLength: 1
           maxLength: 512
           pattern: "^/"
-          description: Public page pathname (M2). /admin* is dropped server-side (M5).
+          description: >-
+            Public page pathname (M2), canonicalized at ingest (M10). /admin and /admin/* are
+            dropped server-side (M5).
           example: "/garden-rooms"
         referrer:
           type: string
@@ -136,6 +138,12 @@ components:
         utmSource: { type: string, maxLength: 100 }
         utmMedium: { type: string, maxLength: 100 }
         utmCampaign: { type: string, maxLength: 100 }
+        adClick:
+          type: boolean
+          description: >-
+            True when the landing URL carried a known ad click-ID parameter (gclid, fbclid, ...);
+            classified as campaign (S1). The click-ID value itself is never transmitted or stored
+            (FR-015).
 
     KpiValue:
       type: object

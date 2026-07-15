@@ -155,11 +155,15 @@ components:
         previous:
           type: number
           nullable: true
-          description: Value for the preceding equal-length window; null when it has no data (Q5).
+          description: >-
+            Value for the preceding equal-length window; null only when that window ends before
+            the first stored event ("no prior data", Q5) — otherwise a number, possibly zero.
         deltaPercent:
           type: number
           nullable: true
-          description: Signed percentage change; null when previous is null or zero (never NaN, Q5).
+          description: >-
+            Signed percentage change; null when previous is null (rendered "no prior data") or
+            zero (rendered as a not-computable "—"). Never NaN/Infinity (Q5).
 
     OverviewResponse:
       type: object

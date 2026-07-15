@@ -228,8 +228,10 @@ and passes a template-parity gate, and only then does the **implementation pass*
   date; the validation message states this boundary for administrators in other timezones.
 - Q4. Timeseries bucket = **hour** when span <= 2 days, else **day**; buckets are Europe/London.
 - Q5. Comparison period = the immediately preceding window of equal length — ending the day
-  before `from` (date form) or at `from` exclusive (datetime form); when it holds no data, deltas
-  render as "no prior data" (never NaN/Infinity).
+  before `from` (date form) or at `from` exclusive (datetime form). `previous` is null only when
+  the comparison window ends before the first stored event — rendered "no prior data"; a
+  measured-but-zero prior value is `previous = 0` with a not-computable delta rendered as "—".
+  Deltas never render NaN/Infinity.
 - Q6. Top pages list length = **10**; source breakdown = the 5 S-groups (zero-valued groups shown).
 - Q7. `/admin` index redirect target = `/admin/analytics` (replaces `/admin/settings`).
 - Q8. Overview endpoint p95: < **300 ms** for spans <= 92 days; < **1000 ms** for spans up to 490
@@ -333,7 +335,8 @@ Frontend (Vitest + @testing-library/react):
   host → REFERRAL; `notgoogle.com` referrer → REFERRAL (S2 matching boundary).
 - E-RANGE: `from > to` → 400; `to = tomorrow` → 400; span 490 days accepted / 491 rejected (Q1);
   2-day span buckets hourly / 3-day span daily (Q4 boundary); preceding window empty → "no prior
-  data" delta, no NaN (Q5); mixed date/datetime params → 400; datetime `to` in the future → 400;
+  data" delta, no NaN (Q5); prior window measured but zero → `previous = 0`, delta rendered "—"
+  (Q5 boundary); mixed date/datetime params → 400; datetime `to` in the future → 400;
   trailing-24 h datetime span buckets hourly.
 - E-DIALOG: custom `start > end` → Apply blocked + message, previous range kept (Q3); `end` set to
   tomorrow → blocked; boundary `end = today` accepted; span of 491 days → blocked + message;
@@ -358,7 +361,8 @@ Frontend (Vitest + @testing-library/react):
 - Admin routing tests asserting `/admin` index → `/admin/settings` — amend to `/admin/analytics`
   (Q7).
 - `apps/web/src/admin/shell` tests asserting the sidebar "Coming Soon" content area — amend to the
-  "Analytics" nav item (H7 successor); keyboard/a11y shell tests extend to the new nav item.
+  "Analytics" nav item (supersedes the Phase 1 plan's "Coming Soon" shell assertion, H7 in feature
+  `012-panel-phase-1`); keyboard/a11y shell tests extend to the new nav item.
 
 **New tests to ADD** (no prior coverage):
 

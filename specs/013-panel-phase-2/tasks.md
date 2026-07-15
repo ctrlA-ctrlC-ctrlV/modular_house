@@ -61,20 +61,23 @@
 
 ## Phase 0 — Setup / scaffolding (T001–T008)
 
-- [ ] T001 Add pinned Radix packages to the web app
+- [x] T001 Add pinned Radix packages to the web app
+> note: pin @radix-ui/react-select@2.3.3 + react-tabs@1.1.17 in apps/web; pnpm install clean, both resolve from apps/web; tests: none (setup); deviations: none
       Files: apps/web/package.json, pnpm-lock.yaml
       Do: Add `@radix-ui/react-select` and `@radix-ui/react-tabs` to apps/web dependencies at
       pinned exact versions (no range operator); run `pnpm install`. No other dependency changes.
       Done when: `pnpm install` exits clean and both packages resolve from apps/web.
       Refs: plan §1.3/§5.1, ui-components.md §1 rule 7
 
-- [ ] T002 Add pinned isbot package to the api
+- [x] T002 Add pinned isbot package to the api
+> note: pin isbot@5.2.1 in apps/api; pnpm install clean, isbot resolves + ESM named export loads (v5 named isbot, no default); tests: none (setup); deviations: none
       Files: apps/api/package.json, pnpm-lock.yaml
       Do: Add `isbot` to apps/api dependencies at a pinned exact version; run `pnpm install`.
       Done when: `isbot` is importable from apps/api code; lockfile updated.
       Refs: research R4, FR-013
 
-- [ ] T003 Model the analytics tables and enum in the Prisma schema
+- [x] T003 Model the analytics tables and enum in the Prisma schema
+> note: AnalyticsSourceGroup enum + AnalyticsEvent/AnalyticsVisitor per data-model.md §1–§3 (3 indexes, table maps); prisma validate passes, additive diff; tests: none; deviations: none
       Files: apps/api/prisma/schema.prisma
       Do: Add enum `AnalyticsSourceGroup` (DIRECT/SEARCH/SOCIAL/REFERRAL/CAMPAIGN with @map values)
       and models `AnalyticsEvent` + `AnalyticsVisitor` exactly per data-model.md §1–§3: column

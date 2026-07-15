@@ -7,14 +7,22 @@
 
 ## Execution rules
 
-1. **Linear order.** Work strictly top to bottom, `T001 → T129`. Sequence alone encodes every
-   dependency — there are no parallel markers and no separate dependency graph.
-2. **Gate.** Pass 2 (T037+) MUST NOT start before the parity-gate task T036 is approved.
-3. **TDD.** Every implementation task is immediately preceded by its failing-test task(s). A
-   failing-test task is done when the test exists, runs, and fails **for the right reason**
-   (missing module/endpoint/behavior — not a compile error in the test itself). Exception (plan
-   §4.3): Pass 1 primitive/static-widget tests are authored *with* their ports against fixture
-   data.
+1. **Two tracks, linear within each.** Track A = the UI design pass (T009–T036). Track B = the
+   measurement pipeline, banner/register, and analytics endpoints (T037–T069) plus the public
+   footer/prerender tasks (T085–T087) — nothing in Track B consumes a Pass 1 port, so Track B may
+   run **before or in parallel with** Track A (spec US1/US2 are P1: start recording as early as
+   possible; history cannot be backfilled). Within each track, work strictly in task order. The
+   dashboard wiring and navigation tasks (T070–T084, T088–T090) require both tracks complete;
+   Pass 3 and Final then run strictly in order.
+2. **Gate.** The dashboard data-wiring and navigation tasks (T070–T084, T088–T090) MUST NOT start
+   before the parity-gate task T036 is approved. T037–T069 and T085–T087 are gate-independent
+   (plan §5.3 as amended 2026-07-15).
+3. **TDD, no exceptions.** Every implementation task is immediately preceded by its failing-test
+   task(s). A failing-test task is done when the test exists, runs, and fails **for the right
+   reason** (missing module/endpoint/behavior — not a compile error in the test itself). Pass 1
+   is test-first too: each render/keyboard suite is authored against the template's DOM contract
+   (`data-slot` attributes, keyboard behavior) and T008 fixture data, red for the missing module,
+   before its port.
 4. **Determinism.** Every time-dependent test — session windows (V), the realtime window, bucket
    boundaries, deltas, `E-TZ` — uses fixed injected timestamps / fake timers, never real
    `Date.now()`.
@@ -118,8 +126,10 @@
 
 ## Pass 1 — Design the UI: template fidelity, no data wiring (T009–T036)
 
-> Ports follow ui-components.md §1 compatibility rules 1–10. Fixture data only (T008). Pass 2 is
-> blocked until T036 passes.
+> Test-first: each port/composition's render/keyboard suite is authored BEFORE the port and fails
+> for the missing module. Ports follow ui-components.md §1 compatibility rules 1–10. Fixture data
+> only (T008). T036 blocks only the widget-consuming tasks (T070–T084, T088–T090); Track B
+> (T037–T069, T085–T087) is gate-independent (execution rules 1–2).
 
 - [ ] T009 Confirm the UI component inventory before any port
       Files: specs/013-panel-phase-2/ui-components.md
@@ -131,77 +141,89 @@
       committed to ui-components.md.
       Refs: research R12, ui-components.md preamble, FR-024
 
-- [ ] T010 Port the select primitive
+- [ ] T010 Write failing select render/keyboard tests
+      Files: apps/web/src/admin/ui/select.test.tsx (new)
+      Do: Against fixture options assert: opens and selects via keyboard, arrow navigation,
+      `data-slot` attributes present, visible focus — expected DOM contract read from the template
+      source (src/components/ui/select.tsx).
+      Done when: suite fails only because ui/select.tsx does not exist.
+      Refs: plan §4.3 ADD, ui-components.md §6
+
+- [ ] T011 Port the select primitive
       Files: apps/web/src/admin/ui/select.tsx (new; from template src/components/ui/select.tsx)
       Do: Full port (trigger sizes, content, group, item, separator) applying rules 1–10: strip
       `"use client"`, rewrite `@/` imports to relative, no `next/*`, inline-SVG icons instead of
       `lucide-react`, preserve `data-slot`/`data-variant`/`data-size` and Tailwind token classes
       verbatim.
-      Done when: renders under Vite against Phase 1 tokens with no `lucide-react`/`next` imports.
+      Done when: T010 green; renders under Vite against Phase 1 tokens with no
+      `lucide-react`/`next` imports.
       Refs: ui-components.md §1/§3, FR-022
 
-- [ ] T011 Author select render/keyboard tests (with the port)
-      Files: apps/web/src/admin/ui/select.test.tsx (new)
-      Do: Against fixture options assert: opens and selects via keyboard, arrow navigation,
-      `data-slot` attributes present, visible focus.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, ui-components.md §6
-
-- [ ] T012 Port the tabs primitive
-      Files: apps/web/src/admin/ui/tabs.tsx (new; from template src/components/ui/tabs.tsx)
-      Do: Full port (list, trigger, content) applying rules 1–10.
-      Done when: renders under Vite; attributes and classes preserved.
-      Refs: ui-components.md §3, FR-022/FR-024
-
-- [ ] T013 Author tabs render/keyboard tests (with the port)
+- [ ] T012 Write failing tabs render/keyboard tests
       Files: apps/web/src/admin/ui/tabs.test.tsx (new)
       Do: Assert tab list renders, arrow-key roving focus, active-tab content switching,
-      `data-slot` attributes.
-      Done when: suite green.
+      `data-slot` attributes — contract from template src/components/ui/tabs.tsx.
+      Done when: suite fails only because ui/tabs.tsx does not exist.
       Refs: plan §4.3 ADD, ui-components.md §6
 
-- [ ] T014 Port the dialog primitive
+- [ ] T013 Port the tabs primitive
+      Files: apps/web/src/admin/ui/tabs.tsx (new; from template src/components/ui/tabs.tsx)
+      Do: Full port (list, trigger, content) applying rules 1–10.
+      Done when: T012 green; renders under Vite; attributes and classes preserved.
+      Refs: ui-components.md §3, FR-022/FR-024
+
+- [ ] T014 Write failing dialog render/keyboard tests
+      Files: apps/web/src/admin/ui/dialog.test.tsx (new)
+      Do: Assert open/close via keyboard, Esc closes, title/description wiring, `data-slot`
+      attributes, focus lands in the dialog and returns on close — contract from template
+      src/components/ui/dialog.tsx.
+      Done when: suite fails only because ui/dialog.tsx does not exist.
+      Refs: plan §4.3 ADD, ui-components.md §6
+
+- [ ] T015 Port the dialog primitive
       Files: apps/web/src/admin/ui/dialog.tsx (new; from template src/components/ui/dialog.tsx)
       Do: Full port (overlay, content, header, footer, title, description, close) applying rules
       1–10; reuse the already-present `@radix-ui/react-dialog` (no new dependency).
-      Done when: renders under Vite; no new package added.
+      Done when: T014 green; renders under Vite; no new package added.
       Refs: ui-components.md §3, plan §1.3
 
-- [ ] T015 Author dialog render/keyboard tests (with the port)
-      Files: apps/web/src/admin/ui/dialog.test.tsx (new)
-      Do: Assert open/close via keyboard, Esc closes, title/description wiring, `data-slot`
-      attributes, focus lands in the dialog and returns on close.
-      Done when: suite green.
+- [ ] T016 Write failing chart render tests
+      Files: apps/web/src/admin/ui/chart.test.tsx (new)
+      Do: Assert ChartContainer renders a recharts chart from fixture config, tooltip content
+      renders, and no literal color values appear in rendered style attributes — contract from
+      template src/components/ui/chart.tsx.
+      Done when: suite fails only because ui/chart.tsx does not exist.
       Refs: plan §4.3 ADD, ui-components.md §6
 
-- [ ] T016 Port the chart primitive
+- [ ] T017 Port the chart primitive
       Files: apps/web/src/admin/ui/chart.tsx (new; from template src/components/ui/chart.tsx)
       Do: Port `ChartContainer`, `ChartTooltip`, `ChartTooltipContent`, `ChartConfig` keeping the
       CSS-variable color plumbing; series colors resolve to `var(--chart-N)` tokens, never
       literals. Widgets will import recharts through this wrapper only.
-      Done when: a composed chart renders from fixture series with token-driven colors.
+      Done when: T016 green; a composed chart renders from fixture series with token-driven colors.
       Refs: ui-components.md §1 rule 9/§3, FR-022
 
-- [ ] T017 Author chart render tests (with the port)
-      Files: apps/web/src/admin/ui/chart.test.tsx (new)
-      Do: Assert ChartContainer renders a recharts chart from fixture config, tooltip content
-      renders, and no literal color values appear in rendered style attributes.
-      Done when: suite green.
+- [ ] T018 Write failing badge render tests
+      Files: apps/web/src/admin/ui/badge.test.tsx (new)
+      Do: Assert each variant renders with its `data-variant` attribute and token classes —
+      contract from template src/components/ui/badge.tsx.
+      Done when: suite fails only because ui/badge.tsx does not exist.
       Refs: plan §4.3 ADD, ui-components.md §6
 
-- [ ] T018 Port the badge primitive
+- [ ] T019 Port the badge primitive
       Files: apps/web/src/admin/ui/badge.tsx (new; from template src/components/ui/badge.tsx)
       Do: Full port — pill shape (`rounded-4xl`) and tinted variants — applying rules 1–10.
-      Done when: renders all variants under Vite.
+      Done when: T018 green; renders all variants under Vite.
       Refs: ui-components.md §3, FR-018 (delta badges)
 
-- [ ] T019 Author badge render tests (with the port)
-      Files: apps/web/src/admin/ui/badge.test.tsx (new)
-      Do: Assert each variant renders with its `data-variant` attribute and token classes.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, ui-components.md §6
+- [ ] T020 Write failing KpiStrip static tests
+      Files: apps/web/src/admin/analytics/KpiStrip.test.tsx (new)
+      Do: Against T008 fixtures assert the five cells, delta badge rendering for numeric /
+      null-previous ("no prior data") / zero-previous ("—") fixtures, and the empty state.
+      Done when: suite fails only because KpiStrip.tsx does not exist.
+      Refs: plan §4.3 ADD, Q5, FR-018
 
-- [ ] T020 Build KpiStrip against fixture data
+- [ ] T021 Build KpiStrip against fixture data
       Files: apps/web/src/admin/analytics/KpiStrip.tsx (new; adapts template
       _components/analytics-kpi-strip.tsx)
       Do: Divided card strip with exactly five KPI cells (page views, unique visitors, sessions,
@@ -209,126 +231,119 @@
       badges + "from X - last period" caption; per-card ellipsis menu omitted (documented
       adaptation). Renders the Q5 states from fixtures: numeric delta, `previous: null` -> "no
       prior data", `previous: 0` -> "—" (never NaN/Infinity); template dashed empty-panel state.
-      Done when: all fixture variants render; T021 green.
+      Done when: T020 green (all fixture variants render).
       Refs: ui-components.md §4, FR-018, Q5
 
-- [ ] T021 Author KpiStrip static tests (with the build)
-      Files: apps/web/src/admin/analytics/KpiStrip.test.tsx (new)
-      Do: Assert the five cells, delta badge rendering for numeric / null-previous ("no prior
-      data") / zero-previous ("—") fixtures, and the empty state.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, Q5, FR-018
+- [ ] T022 Write failing TrafficChart static tests
+      Files: apps/web/src/admin/analytics/TrafficChart.test.tsx (new)
+      Do: Against T008 fixtures assert both series render, bucket labels for hour vs day fixtures,
+      empty state, and that recharts is only reached through chart.tsx.
+      Done when: suite fails only because TrafficChart.tsx does not exist.
+      Refs: plan §4.3 ADD, FR-029
 
-- [ ] T022 Build TrafficChart against fixture data
+- [ ] T023 Build TrafficChart against fixture data
       Files: apps/web/src/admin/analytics/TrafficChart.tsx (new; adapts template
       _components/traffic-quality.tsx)
       Do: Card frame + ComposedChart via the ported `chart.tsx` only (never direct recharts
       import); series = page views + sessions per bucket in `var(--chart-N)` colors; axis/tooltip
       styling per template; handles hour and day bucket fixture series; dashed empty state.
-      Done when: renders day-bucket, hour-bucket, and empty fixtures; T023 green.
+      Done when: T022 green (renders day-bucket, hour-bucket, and empty fixtures).
       Refs: ui-components.md §1 rule 9/§4, FR-029, Q4 (render)
 
-- [ ] T023 Author TrafficChart static tests (with the build)
-      Files: apps/web/src/admin/analytics/TrafficChart.test.tsx (new)
-      Do: Assert both series render from fixtures, bucket labels for hour vs day fixtures, empty
-      state, and that recharts is only reached through chart.tsx.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, FR-029
+- [ ] T024 Write failing RealtimeCard static tests
+      Files: apps/web/src/admin/analytics/RealtimeCard.test.tsx (new)
+      Do: Against T008 fixtures assert active-visitor count, top-5 page rows, zero-state
+      rendering, no flag markup.
+      Done when: suite fails only because RealtimeCard.tsx does not exist.
+      Refs: plan §4.3 ADD, FR-020
 
-- [ ] T024 Build RealtimeCard against fixture data
+- [ ] T025 Build RealtimeCard against fixture data
       Files: apps/web/src/admin/analytics/RealtimeCard.tsx (new; adapts template
       _components/realtime-visitors.tsx)
       Do: Card frame with live-count emphasis + top-5 active pages list; country-flag rows removed
       and no `flags.css` import (documented adaptation — geo out of scope); zero-visitor empty
       state.
-      Done when: renders populated and zero fixtures; T025 green.
+      Done when: T024 green (renders populated and zero fixtures).
       Refs: ui-components.md §4, research R11, FR-020, V5 (render)
 
-- [ ] T025 Author RealtimeCard static tests (with the build)
-      Files: apps/web/src/admin/analytics/RealtimeCard.test.tsx (new)
-      Do: Assert active-visitor count, top-5 page rows from fixtures, zero-state rendering, no
-      flag markup.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, FR-020
+- [ ] T026 Write failing TopPages static tests
+      Files: apps/web/src/admin/analytics/TopPages.test.tsx (new)
+      Do: Against T008 fixtures assert ranking order, share rendering, 10-row cap, empty state.
+      Done when: suite fails only because TopPages.tsx does not exist.
+      Refs: plan §4.3 ADD, FR-021
 
-- [ ] T026 Build TopPages against fixture data
+- [ ] T027 Build TopPages against fixture data
       Files: apps/web/src/admin/analytics/TopPages.tsx (new; adapts template
       _components/top-pages.tsx)
       Do: Card frame, ranked rows for top-10 paths with share-of-views presentation per template;
       dashed empty state.
-      Done when: renders 10-row and empty fixtures; T027 green.
+      Done when: T026 green (renders 10-row and empty fixtures).
       Refs: ui-components.md §4, FR-021, Q6 (render)
 
-- [ ] T027 Author TopPages static tests (with the build)
-      Files: apps/web/src/admin/analytics/TopPages.test.tsx (new)
-      Do: Assert ranking order, share rendering, 10-row cap from fixtures, empty state.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, FR-021
+- [ ] T028 Write failing TrafficSources static tests
+      Files: apps/web/src/admin/analytics/TrafficSources.test.tsx (new)
+      Do: Against T008 fixtures assert all five groups render (including zero-valued), share
+      values, empty state.
+      Done when: suite fails only because TrafficSources.tsx does not exist.
+      Refs: plan §4.3 ADD, FR-021, Q6
 
-- [ ] T028 Build TrafficSources against fixture data
+- [ ] T029 Build TrafficSources against fixture data
       Files: apps/web/src/admin/analytics/TrafficSources.tsx (new; adapts template
       _components/top-traffic-sources.tsx)
       Do: Card frame, ranked/share presentation with exactly the five source groups as rows —
       zero-valued groups shown; dashed empty state.
-      Done when: renders five-group and empty fixtures; T029 green.
+      Done when: T028 green (renders five-group and empty fixtures).
       Refs: ui-components.md §4, FR-021, Q6 (render)
 
-- [ ] T029 Author TrafficSources static tests (with the build)
-      Files: apps/web/src/admin/analytics/TrafficSources.test.tsx (new)
-      Do: Assert all five groups render (including zero-valued), share values from fixtures, empty
-      state.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, FR-021, Q6
+- [ ] T030 Write failing RangeToolbar static tests
+      Files: apps/web/src/admin/analytics/RangeToolbar.test.tsx (new)
+      Do: Assert exactly the five options and their order, default `3 months`, keyboard
+      operability, and that choosing an option fires the callback with the preset id.
+      Done when: suite fails only because RangeToolbar.tsx does not exist.
+      Refs: plan §4.3 ADD, Q2
 
-- [ ] T030 Build RangeToolbar against fixture state
+- [ ] T031 Build RangeToolbar against fixture state
       Files: apps/web/src/admin/analytics/RangeToolbar.tsx (new; adapts template
       _components/analytics-toolbar.tsx)
       Do: Ported `select` with options exactly `24 hours` / `7 days` / `28 days` / `3 months` /
       `More`, default `3 months` (spec values supersede template's); export/import/share ellipsis
       menu omitted (documented adaptation). Selection is a callback prop — no data fetching.
-      Done when: renders with exact option set + default; T031 green.
+      Done when: T030 green (renders with exact option set + default).
       Refs: ui-components.md §4, research R10, Q2, FR-019
 
-- [ ] T031 Author RangeToolbar static tests (with the build)
-      Files: apps/web/src/admin/analytics/RangeToolbar.test.tsx (new)
-      Do: Assert exactly the five options and their order, default `3 months`, keyboard
-      operability, and that choosing an option fires the callback with the preset id.
-      Done when: suite green.
+- [ ] T032 Write failing RangeDialog static tests
+      Files: apps/web/src/admin/analytics/RangeDialog.test.tsx (new)
+      Do: Assert the three presets + Custom render, date inputs are native and labelled, dialog is
+      keyboard reachable, Esc closes.
+      Done when: suite fails only because RangeDialog.tsx does not exist.
       Refs: plan §4.3 ADD, Q2
 
-- [ ] T032 Build RangeDialog against fixture state
+- [ ] T033 Build RangeDialog against fixture state
       Files: apps/web/src/admin/analytics/RangeDialog.tsx (new; composed from ported dialog +
       button + label + input — no direct template source)
       Do: Dialog offering exactly `6 months` / `12 months` / `16 months` / `Custom`; Custom shows
       two native `<input type="date">` fields styled by the admin `input` primitive (no
       calendar-grid picker); validation message slot in `destructive` text per template form
       conventions. Preset/Apply are callback props — no validation logic or data wiring yet.
-      Done when: renders presets + date inputs; T033 green.
+      Done when: T032 green (renders presets + date inputs).
       Refs: ui-components.md §5, research R10, Q2, FR-019
 
-- [ ] T033 Author RangeDialog static tests (with the build)
-      Files: apps/web/src/admin/analytics/RangeDialog.test.tsx (new)
-      Do: Assert the three presets + Custom render, date inputs are native and labelled, dialog is
-      keyboard reachable, Esc closes.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, Q2
+- [ ] T034 Write failing Analytics page static tests
+      Files: apps/web/src/admin/pages/Analytics.test.tsx (new)
+      Do: Assert tab row (Overview active, placeholder panels for the rest), all six widget
+      regions present from fixtures, and single-column stacking at mobile width.
+      Done when: suite fails only because pages/Analytics.tsx does not exist.
+      Refs: plan §4.3 ADD, FR-022/FR-024, US3-13
 
-- [ ] T034 Compose the static Analytics page against fixture data
+- [ ] T035 Compose the static Analytics page against fixture data
       Files: apps/web/src/admin/pages/Analytics.tsx (new; adapts template analytics/page.tsx)
       Do: Heading block (greeting replaced by page title — documented adaptation), tab row via
       ported `tabs` with Overview active and non-Overview tabs rendering the template's own dashed
       "coming soon" placeholder panels, `xl:grid-cols-12` / `gap-4` grid composing RangeToolbar,
       KpiStrip, TrafficChart, RealtimeCard, TopPages, TrafficSources fed exclusively from
       fixtures.ts. No data fetching, no RangeDialog behavior.
-      Done when: page renders from fixtures in light and dark; T035 green.
+      Done when: T034 green; page renders from fixtures in light and dark.
       Refs: ui-components.md §4, research R11, FR-022/FR-024
-
-- [ ] T035 Author Analytics page static tests (with the composition)
-      Files: apps/web/src/admin/pages/Analytics.test.tsx (new)
-      Do: Assert tab row (Overview active, placeholder panels for the rest), all six widget
-      regions present from fixtures, and single-column stacking at mobile width.
-      Done when: suite green.
-      Refs: plan §4.3 ADD, FR-022/FR-024, US3-13
 
 - [ ] T036 PARITY GATE: approve the ported UI against the template (blocks Pass 2)
       Files: specs/013-panel-phase-2/ui-components.md (§6 checklist + recorded deviations)
@@ -384,7 +399,17 @@
       Done when: test fails for the missing endpoint.
       Refs: T-B2 (US2-2), V1, K3, FR-009
 
-- [ ] T041 Implement the analyticsIngest service (happy path)
+- [ ] T041 Write failing privacy-audit test (T-B8)
+      Files: apps/api/tests/integration/analytics-privacy.test.ts (new)
+      Do: After posting events, assert stored rows contain only the data-model columns; assert (via
+      information_schema or Prisma DMMF) that no IP, User-Agent, or full-referrer-URL column
+      exists on either analytics table; assert `referrerHost` never contains a scheme, path, or
+      query string.
+      Done when: red only because the endpoint does not exist (the schema-level no-column
+      assertions may already pass from T003; the row-level assertions must be red).
+      Refs: T-B8 (US4-1), §2.7 R2, M7, S5, FR-015/FR-016, SC-008
+
+- [ ] T042 Implement the analyticsIngest service (happy path)
       Files: apps/api/src/services/analyticsIngest.ts (new)
       Do: Zod schema for `{path, referrer?, utmSource?, utmMedium?, utmCampaign?, adClick?}`
       (unknown keys rejected; happy-path shape per M2 — boundary hardening is Pass 3); read
@@ -392,10 +417,10 @@
       only; `AnalyticsVisitor` upsert (insert firstSeenAt=lastSeenAt=now on new id, update
       lastSeenAt on conflict) + `AnalyticsEvent` insert with server-clock occurredAt; Pino
       counters for stored events (no PII in logs). Never persist IP or UA (M7).
-      Done when: service unit-callable; T039/T040 still red only on the missing route.
+      Done when: service unit-callable; T039–T041 still red only on the missing route.
       Refs: research R2/R3, M2/M3 (cookie path)/M7, S5, data-model.md §3
 
-- [ ] T042 Wire the public ingest route POST /api/analytics/events
+- [ ] T043 Wire the public ingest route POST /api/analytics/events
       Files: apps/api/src/routes/analytics.ts (new)
       Do: Route with the existing `validate` middleware + analyticsIngest service; respond 204 on
       store; reuse the existing `rateLimit` middleware (M6 boundary configured/tested in Pass 3);
@@ -403,21 +428,12 @@
       Done when: route module exports a router wired to the service.
       Refs: M1, contracts/analytics.openapi.yaml POST /api/analytics/events
 
-- [ ] T043 Register the public analytics route in the app
+- [ ] T044 Register the public analytics route in the app
       Files: apps/api/src/app.ts
       Do: Mount routes/analytics.ts under `/api/analytics` with correlation-id logging like the
       existing routes.
-      Done when: T039 and T040 pass (T-B1, T-B2 green).
+      Done when: T039, T040, and T041 pass (T-B1, T-B2, T-B8 green).
       Refs: M1, plan §5.1, constitution II
-
-- [ ] T044 Write the privacy-audit test (T-B8)
-      Files: apps/api/tests/integration/analytics-privacy.test.ts (new)
-      Do: After posting events, assert stored rows contain only the data-model columns; assert (via
-      information_schema or Prisma DMMF) that no IP, User-Agent, or full-referrer-URL column
-      exists on either analytics table; assert `referrerHost` never contains a scheme, path, or
-      query string.
-      Done when: suite green (fix analyticsIngest if it leaks anything).
-      Refs: T-B8 (US4-1), §2.7 R2, M7, S5, FR-015/FR-016, SC-008
 
 ### Beacon + cookies (public web)
 
@@ -496,17 +512,15 @@
       Done when: T051 amended suite green; all pre-existing TemplateLayout assertions still green.
       Refs: FR-001, SC-001, plan §1.1
 
-- [ ] T053 Create the authoritative cookie register module
-      Files: apps/web/src/content/cookieRegister.ts (new)
-      Do: Typed readonly array (`name`, `purpose`, `category: "strictly-necessary" | "functional"
-      | "performance"`, `duration`, `setBy`) listing exactly: `mh_vid`, `mh_sid`, `mh_cookie_ack`
-      (performance/functional per K-series, set by this site); the Phase 1 admin refresh cookie
-      (strictly necessary) and theme/sidebar preference cookies (functional); and the Google
-      Analytics cookies `_ga` + `_ga_<container-id>` (performance, set by Google Analytics, 2-year
-      duration renewed per visit — browsers may cap at ~400 days). Documenting GoogleTag's cookies
-      MUST NOT touch GoogleTag.tsx or its env plumbing. Entries are extend-by-append (Open-Closed).
-      Done when: module typechecks; entries match K5 exactly (asserted by T057).
-      Refs: research R9, K5, FR-025/FR-026/FR-027, plan §1.4
+- [ ] T053 Write failing register-consistency test (T-F11)
+      Files: apps/web/src/content/cookieRegister.test.ts (new)
+      Do: Assert every cookie name Phase 2 code can set (`mh_vid`, `mh_sid` from beacon.ts;
+      `mh_cookie_ack` from CookieBanner) appears in the register; the register additionally
+      contains the Phase 1 admin cookies and the `_ga`/`_ga_<container-id>` entries (K5 exact
+      list); and the register matches the policy-page table one-to-one (render CookiePolicy and
+      diff rows against the register).
+      Done when: suite fails only because cookieRegister.ts (and CookiePolicy) do not exist.
+      Refs: T-F11 (US4-1), K5, FR-025/FR-026/FR-027, SC-011, DoD-4
 
 - [ ] T054 Write failing CookiePolicy page test (T-F4, page half)
       Files: apps/web/src/test/routes/cookie-policy.test.tsx (new)
@@ -516,7 +530,20 @@
       Done when: test red because the page/route does not exist.
       Refs: T-F4 (US1-3, US4-2), N4, FR-005/FR-025/FR-027
 
-- [ ] T055 Implement the CookiePolicy page
+- [ ] T055 Create the authoritative cookie register module
+      Files: apps/web/src/content/cookieRegister.ts (new)
+      Do: Typed readonly array (`name`, `purpose`, `category: "strictly-necessary" | "functional"
+      | "performance"`, `duration`, `setBy`) listing exactly: `mh_vid`, `mh_sid`, `mh_cookie_ack`
+      (performance/functional per K-series, set by this site); the Phase 1 admin refresh cookie
+      (strictly necessary) and theme/sidebar preference cookies (functional); and the Google
+      Analytics cookies `_ga` + `_ga_<container-id>` (performance, set by Google Analytics, 2-year
+      duration renewed per visit — browsers may cap at ~400 days). Documenting GoogleTag's cookies
+      MUST NOT touch GoogleTag.tsx or its env plumbing. Entries are extend-by-append (Open-Closed).
+      Done when: module typechecks; T053's register-content assertions green (the policy-page
+      match half stays red until T057).
+      Refs: research R9, K5, FR-025/FR-026/FR-027, plan §1.4
+
+- [ ] T056 Implement the CookiePolicy page
       Files: apps/web/src/routes/CookiePolicy.tsx (new)
       Do: Public Bootstrap-styled page rendering its cookie table directly from cookieRegister.ts
       (no copy of the data); SEO metadata consistent with other public routes (follow
@@ -524,22 +551,13 @@
       Done when: component renders the register 1:1.
       Refs: research R9, N4, FR-005
 
-- [ ] T056 Register the /cookie-policy route
+- [ ] T057 Register the /cookie-policy route
       Files: apps/web/src/App.tsx
       Do: Add the public `/cookie-policy` route rendering CookiePolicy inside TemplateLayout, next
       to the existing public routes.
-      Done when: T054 green (page reachable at /cookie-policy).
+      Done when: T054 green (page reachable at /cookie-policy) and T053 fully green (register
+      matches the rendered policy table one-to-one).
       Refs: N4, FR-005
-
-- [ ] T057 Write the register-consistency test (T-F11)
-      Files: apps/web/src/content/cookieRegister.test.ts (new)
-      Do: Assert every cookie name Phase 2 code can set (`mh_vid`, `mh_sid` from beacon.ts;
-      `mh_cookie_ack` from CookieBanner) appears in the register; the register additionally
-      contains the Phase 1 admin cookies and the `_ga`/`_ga_<container-id>` entries (K5 exact
-      list); and the register matches the policy-page table one-to-one (render CookiePolicy and
-      diff rows against the register).
-      Done when: suite green.
-      Refs: T-F11 (US4-1), K5, FR-025/FR-026/FR-027, SC-011, DoD-4
 
 ### Overview + realtime endpoints
 
@@ -682,7 +700,7 @@
       Files: apps/web/src/admin/pages/Analytics.test.tsx
       Do: With mocked overview/realtime responses (contract shapes) the page renders the KPI strip
       with deltas, traffic chart, realtime card, top pages, and sources from the live-data path
-      (amend the T035 static assertions to inject mocked hook data — do not delete them).
+      (amend the T034 static assertions to inject mocked hook data — do not delete them).
       Done when: red because the page still renders fixtures.
       Refs: T-F7 (US3-2..5), FR-018/FR-020/FR-021/FR-029
 
@@ -690,7 +708,7 @@
       Files: apps/web/src/admin/pages/Analytics.tsx
       Do: Replace fixture feeds with useAnalytics results; propagate loading/empty states to each
       widget; keep fixtures.ts for tests only.
-      Done when: T074 green; T035 amended assertions green.
+      Done when: T074 green; T034 amended assertions green.
       Refs: research R12 (Pass 2 wiring), FR-018–FR-021/FR-029
 
 - [ ] T076 Write failing range-selector behavior test (T-F8)
@@ -1174,4 +1192,4 @@ re-verified by T129); every §2 assertion K1–K5, N1–N5, M1–M10, S1–S5, V
 R1–R2 is enforced by at least one task above; every §4.1 test id (T-B1…T-B8, T-F1…T-F11), every
 §4.2 edge family (E-INGEST, E-BEACON, E-SOURCE, E-RANGE, E-TZ, E-EMPTY, E-CONCURRENCY, E-SESSION,
 E-DIALOG, E-A11Y), and all three §4.3 AMEND items (T051, T080, T082) have dedicated tasks; each
-contract endpoint has its own route task (T042, T066, T067) plus the openapi.yaml mirror (T069).
+contract endpoint has its own route task (T043, T066, T067) plus the openapi.yaml mirror (T069).

@@ -44,8 +44,10 @@ without schema change (session id would simply be recomputed).
 ## R3. Ingest contract: cookies for identity, minimal validated body
 
 **Decision**: `POST /api/analytics/events` with body `{ path, referrer?, utmSource?, utmMedium?,
-utmCampaign? }` (Zod-validated, unknown keys rejected, 4 KB cap); identity from cookies; absent
-cookies → server-generated one-off UUIDs (cookieless visitors count as new, per spec). Responses:
+utmCampaign?, adClick? }` (Zod-validated, unknown keys rejected, 4 KB cap); identity from cookies;
+absent cookies → server-generated one-off UUIDs (cookieless visitors count as new, per spec).
+`adClick` is a boolean the beacon sets when the landing URL carries a known ad click-ID parameter
+(`gclid`, `fbclid`); the click-ID value never leaves the browser (FR-015). Responses:
 204 stored, 204 dropped (bot / admin path), 400 malformed, 429 rate-limited.
 
 **Rationale**: Same-origin `/api` proxy means first-party cookies flow automatically; keeping
@@ -69,9 +71,10 @@ query time — rejected: every query pays; crawler bursts still bloat the table.
 
 ## R5. Traffic-source classification: server-side, session-attributed
 
-**Decision**: Classify per event at ingest with precedence CAMPAIGN (any `utmSource`) > SEARCH >
-SOCIAL > REFERRAL > DIRECT, driven by two exported hostname constant lists (extend-by-append,
-Open-Closed). Persist hostname only (S5). Source metrics aggregate by the **session's first
+**Decision**: Classify per event at ingest with precedence CAMPAIGN (any `utmSource`, or the
+beacon's `adClick` flag for ad-platform auto-tagged arrivals) > SEARCH > SOCIAL > REFERRAL >
+DIRECT, driven by two exported hostname constant lists (extend-by-append, Open-Closed; matching
+semantics per plan S2). Persist hostname only (S5). Source metrics aggregate by the **session's first
 event** source (S4). Own-host/empty/unparsable referrer → DIRECT.
 
 **Rationale**: SPA route-change events carry no meaningful referrer, so per-event attribution

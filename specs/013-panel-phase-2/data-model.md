@@ -33,6 +33,7 @@ model AnalyticsEvent {
   /// Server-clock time the event was received (never client time).
   occurredAt   DateTime             @map("occurred_at") @db.Timestamptz(6)
   /// Public page path, starts with "/", max 512 chars (M2). Never an /admin path (M5).
+  /// Canonicalized at ingest per plan M10 (lowercase, no trailing slash, no query/fragment).
   path         String               @db.VarChar(512)
   /// Anonymous visitor identifier from the mh_vid cookie, or a one-off UUID (M3).
   visitorId    String               @map("visitor_id") @db.Uuid

@@ -76,7 +76,11 @@ Each adaptation is a spec-driven decision documented in research R11 — nothing
 | Widget empty states | inside each widget | Template empty-panel pattern: dashed `border-border` frame, `text-muted-foreground` (as used by the template's placeholder tabs) |
 | `CookieBanner.tsx` / `CookiePolicy.tsx` | `apps/web/src/components/` / `apps/web/src/routes/` | Deliberately NOT from the template: public-site surfaces use the site's existing Bootstrap styling (rule 8; research R8) |
 
-## 6. Parity gate (blocks Pass 2)
+## 6. Parity gate (blocks dashboard data wiring)
+
+> Scope amended 2026-07-15: the gate blocks Pass 2's widget-consuming work (dashboard wiring and
+> navigation) only; the measurement pipeline, banner/register, and analytics endpoints are
+> gate-independent (plan §5.3).
 
 For each item in §3 and §4, before any data wiring:
 

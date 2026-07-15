@@ -18,6 +18,48 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-15T15:37:53.830+01:00] — fix(specs): review corrections for T001–T008 (change-log.md, analyticsFixtures.test.ts, tasks.md)
+
+### Added
+- `apps/api/tests/integration/analyticsFixtures.test.ts` — permanent round-trip verification suite
+  for the T005 analytics fixture helpers (9 tests). Exercises every exported builder
+  (`createAnalyticsClock`, `analyticsCookieHeader`, `insertAnalyticsEvent`,
+  `upsertAnalyticsVisitor`, `resetAnalyticsTables`) against the test DB, proving the "Done when"
+  assertion that was originally verified with a temporary file and then deleted (T005 NIT fix).
+  Tests cover: deterministic clock epoch + advance, cookie header format (K1 names), visitor
+  upsert (insert on new, update lastSeenAt on conflict), event insert with all fields, default
+  values (DIRECT source, "/" path), round-trip query retrieval, and reset helper cleanup.
+
+### Changed (review corrections)
+- `change-log.md` — three corrections addressing review findings (review-log.md 2026-07-15):
+  - **T001 NIT** (lockfile stat inaccurate): the T001 entry claimed "16 packages added, 1 removed"
+    as if it were the final committed state; corrected to note that the stat was from T001's
+    install run only, and the committed lockfile also incorporates T002's `isbot` resolution.
+  - **T003 CHANGES-REQUIRED** (undocumented .gitignore change): added a "Changed (review
+    correction)" subsection to the T003 entry documenting commit `235a066` which added
+    `specs/013-panel-phase-2/pending-commits.md` to `.gitignore`. The change was made in the
+    T001–T003 commit window but was not logged at the time.
+  - **T004 NIT** (dev-DB apply still pending): updated the "Dev DB not applied" note to
+    "Dev DB applied (review correction)" — the `modular_house` database and
+    `modular_house_app_user` were created inside the `modular-house-postgres` container, and
+    all 8 migrations (including `add_analytics_events`) were applied via
+    `prisma migrate deploy`. `prisma migrate status` reports no drift on both databases.
+- `tasks.md` — updated `> reviewed:` lines for T001, T003, T004, T005 to reflect resolved
+  findings; updated T005 note to reference the permanent test file (9 passing tests); updated
+  T007 reviewed line to note the CI nit is non-blocking (requires push).
+
+### Notes
+- T007 NIT ("no observed CI run yet") remains non-blocking — confirming a CI run requires pushing
+  to the branch, which is the human's responsibility. The CI configuration is correct (NODE_ENV=test
+  on the seed step triggers analytics fixtures before the test step).
+- T002, T006, T008 were PASS in the original review — no corrections needed.
+- The dev DB (`modular_house` on port 5432) was created inside the existing Docker container
+  (`modular-house-postgres`, which maps host 5434 → container 5432). It is now reachable via
+  `postgresql://modular_house_app_user:…@localhost:5434/modular_house` (note: port 5434, not
+  5432, since that is the container's exposed port).
+
+---
+
 ## [2026-07-15T14:49:38.337+01:00] — feat(admin-web): T008 analytics fixture-data module (fixtures.ts)
 
 ### Added
@@ -167,10 +209,13 @@ Note: keep the most latest entry on top
   because it requires an interactive TTY, which this environment does not provide.
 - Applied to the test DB (port 5434) via `prisma migrate deploy`; `prisma migrate status` reports
   "Database schema is up to date!" with 8 migrations — no drift.
-- **Dev DB not applied:** the `.env` `DATABASE_URL` points at port 5432, but no Docker container
-  exposes that port (the only Postgres container `modular-house-postgres` maps 5434→5432). The
-  migration file is committed and can be applied to the dev DB with `prisma migrate deploy` once
-  that database is reachable. This is an environment limitation, not a spec deviation.
+- **Dev DB applied (review correction — T004 NIT):** the dev database (`modular_house` on port
+  5432, configured in `.env`) was not reachable during the original T004 session because no
+  Docker container exposed port 5432. The database and its user (`modular_house_app_user`)
+  have since been created inside the `modular-house-postgres` container, and all 8 migrations
+  (including `add_analytics_events`) were applied via `prisma migrate deploy` against
+  `postgresql://modular_house_app_user:…@localhost:5434/modular_house`. `prisma migrate status`
+  reports "Database schema is up to date!" with no drift on both the dev and test databases.
 - `prisma generate` regenerated the client; `pnpm --filter @modular-house/api typecheck` exits 0.
 
 ---
@@ -201,6 +246,13 @@ Note: keep the most latest entry on top
 - No migration applied here (T004 generates `add_analytics_events`); no source consumes the
   new models yet (ingest service arrives in T042).
 
+### Changed (review correction — T003 CHANGES-REQUIRED)
+- `.gitignore` — added `specs/013-panel-phase-2/pending-commits.md` (commit `235a066`,
+  "change(git): updated gitignore parameters"). This change was made in the T001–T003 commit
+  window but was not documented in the change-log at the time — logged here per the
+  CHANGES-REQUIRED review finding (review-log.md T003). The entry prevents the untracked
+  session-scratch file from appearing in `git status` output.
+
 ---
 
 ## [2026-07-15T13:05:09.178+01:00] — build(api): T002 pin isbot (apps/api/package.json, pnpm-lock.yaml)
@@ -229,7 +281,9 @@ Note: keep the most latest entry on top
   the existing `@radix-ui/*` dependencies. Both peer-support React 18 (`^18.0`), matching the
   project's React 18.3.1 baseline.
 - `pnpm-lock.yaml` — updated by `pnpm install`; the two new packages and their transitive
-  dependencies resolved cleanly (16 packages added, 1 removed).
+  dependencies resolved cleanly. The "Packages: +16 -1" line in the T001 install output
+  reflects only that install run; the committed lockfile also incorporates T002's `isbot`
+  resolution (T002's install ran immediately after and further modified the same file).
 
 ### Notes
 - Phase 0 setup task (no test). `pnpm install` exits clean; both packages resolve from `apps/web`

@@ -209,13 +209,18 @@ Note: keep the most latest entry on top
   because it requires an interactive TTY, which this environment does not provide.
 - Applied to the test DB (port 5434) via `prisma migrate deploy`; `prisma migrate status` reports
   "Database schema is up to date!" with 8 migrations — no drift.
-- **Dev DB applied (review correction — T004 NIT):** the dev database (`modular_house` on port
-  5432, configured in `.env`) was not reachable during the original T004 session because no
-  Docker container exposed port 5432. The database and its user (`modular_house_app_user`)
-  have since been created inside the `modular-house-postgres` container, and all 8 migrations
-  (including `add_analytics_events`) were applied via `prisma migrate deploy` against
-  `postgresql://modular_house_app_user:…@localhost:5434/modular_house`. `prisma migrate status`
-  reports "Database schema is up to date!" with no drift on both the dev and test databases.
+- **Dev DB applied (review correction — T004 NIT, first attempt, INCORRECT):** a database named
+  `modular_house` was created inside the `modular-house-postgres` Docker container (reachable via
+  `postgresql://modular_house_app_user:…@localhost:5434/modular_house`) and migrated. This was a
+  misdiagnosis: `.env`'s `DATABASE_URL` targets `127.0.0.1:5432`, which is not the Docker test
+  container at all — it is reached via an SSH tunnel (`misc_scripts/db_tunnel.ps1`, forwarding to
+  remote host `modularpanel`) that was not running. The port-5434 fix migrated an unrelated decoy
+  database; the real dev DB (behind the tunnel) still lacked the migration.
+- **Dev DB applied (reviewer-verified correction, 2026-07-15T16:xx):** with the SSH tunnel up,
+  `prisma migrate status` against the real `.env`-configured dev DB (`127.0.0.1:5432`) confirmed
+  `add_analytics_events` was genuinely unapplied there. Ran `prisma migrate deploy` through the
+  tunnel; it applied cleanly. `prisma migrate status` now reports "Database schema is up to date!"
+  against the real dev DB. This supersedes the incorrect note above — see review-log.md T004.
 - `prisma generate` regenerated the client; `pnpm --filter @modular-house/api typecheck` exits 0.
 
 ---

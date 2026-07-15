@@ -18,6 +18,105 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-15T14:06:20.917+01:00] — feat(api): T006 seed analytics fixtures for test DB (seed.ts)
+
+### Added
+- `apps/api/prisma/seed.ts` — deterministic analytics fixture rows seeded only when
+  `NODE_ENV === 'test'` (DoD-8), so the production / development seed path is unchanged:
+  - **5 visitors**: A (firstSeen 2026-07-13, returning), B (firstSeen 2026-07-15, new),
+    C (firstSeen 2026-07-14, returning), D (firstSeen 2026-07-15, new),
+    E (firstSeen 2026-07-12, returning).
+  - **12 events** across three Europe/London calendar days (2026-07-13, 14, 15), covering
+    all five source groups via session-first-event attribution (S4): SEARCH (session A),
+    SOCIAL (session E), DIRECT (session C), CAMPAIGN (session B, utm-tagged), REFERRAL
+    (session D).
+  - 5 unique sessions, 5 unique paths (`/`, `/garden-room`, `/house-extension`, `/about`,
+    `/contact`).
+  - Visitor/session UUIDs match `tests/helpers/analyticsFixtures.ts` for cross-reference.
+- Gating: `if (config.app.nodeEnv === 'test') { await seedAnalyticsFixtures(); }` in
+  `main()` — logs "Skipping analytics fixtures (not a test database)" otherwise.
+- Idempotency: `deleteMany()` on both analytics tables before re-inserting, so re-runs
+  produce the same deterministic state.
+
+### Notes
+- Verified: `pnpm --filter @modular-house/api db:seed` with `NODE_ENV=test` +
+  `DATABASE_URL=postgresql://postgres:postgres@localhost:5434/modular_house_dev` populates
+  5 visitors + 12 events on the test DB (confirmed via psql: all 5 source groups present).
+- Verified: `NODE_ENV=development` logs "Skipping analytics fixtures" and leaves existing
+  analytics rows untouched (row counts unchanged at 5/12).
+- Lint + typecheck pass on the modified file.
+- No `Date.now()` — all fixture timestamps are hardcoded UTC dates.
+
+---
+
+## [2026-07-15T14:02:11.256+01:00] — test(api): T005 analytics fixture + injected-clock helpers (analyticsFixtures.ts)
+
+### Added
+- `apps/api/tests/helpers/analyticsFixtures.ts` — deterministic, clock-driven test helpers for the
+  Phase 2 analytics suites:
+  - `ANALYTICS_FIXED_NOW` (`2026-07-15T12:00:00.000Z`) — the shared fixed epoch (BST period for
+    DST edge-case testability); all fixture timestamps derive from the injected clock, never
+    `Date.now()` (constitution III).
+  - `FIXED_VISITOR_IDS` / `FIXED_SESSION_IDS` — five deterministic v4 UUIDs each, so test
+    assertions can compare exact values without runtime-generated random IDs.
+  - `createAnalyticsClock(initial?)` — wraps the Phase 1 `createClock` from `clock.ts`, starting
+    at `ANALYTICS_FIXED_NOW` by default; returns the same `AdvanceableClock` interface (`now`,
+    `advance`, `setNow`) the Phase 1 suites already use.
+  - `analyticsCookieHeader(visitorId, sessionId)` — formats a `Cookie` header string
+    (`mh_vid=<uuid>; mh_sid=<uuid>`) for supertest requests (K1 cookie names).
+  - `insertAnalyticsEvent(prisma, options)` — inserts a single `AnalyticsEvent` row with
+    caller-supplied `occurredAt` (server clock), `path`, `visitorId`, `sessionId`, `sourceGroup`,
+    `referrerHost`, `utmSource/Medium/Campaign`; returns the persisted row.
+  - `upsertAnalyticsVisitor(prisma, options)` — upserts an `AnalyticsVisitor` (insert
+    `{firstSeenAt, lastSeenAt}` on new, update `lastSeenAt` on conflict — mirroring the ingest
+    write pattern, data-model §3 / E-CONCURRENCY).
+  - `resetAnalyticsTables(prisma)` — deletes all `analytics_events` + `analytics_visitors` rows
+    for clean test state.
+
+### Notes
+- "Done when" verified: the module typechecks (`pnpm --filter @modular-house/api typecheck` exit 0)
+  and a sample fixture insert round-trips against the port-5434 test DB (a temporary 2-test
+  vitest file inserted an event + visitor, queried them back, and confirmed field values matched;
+  the temp file was deleted after verification — only the helper module is committed).
+- Lint + typecheck pass on the touched file.
+- No `Date.now()` anywhere in the module; all timestamps are caller-supplied from the injected clock.
+
+---
+
+## [2026-07-15T13:59:16.235+01:00] — feat(api): T004 add_analytics_events migration (migration.sql)
+
+### Added
+- `apps/api/prisma/migrations/20260715135820_add_analytics_events/migration.sql` — additive forward
+  migration creating exactly:
+  - enum `AnalyticsSourceGroup` (values: `direct`, `search`, `social`, `referral`, `campaign`);
+  - table `analytics_events` (`id BIGSERIAL`, `occurred_at TIMESTAMPTZ(6)`, `path VARCHAR(512)`,
+    `visitor_id UUID`, `session_id UUID`, `source_group AnalyticsSourceGroup`, `referrer_host
+    VARCHAR(255)?`, `utm_source/medium/campaign VARCHAR(100)?`, `created_at TIMESTAMPTZ(6) default
+    CURRENT_TIMESTAMP`, primary key `id`);
+  - table `analytics_visitors` (`visitor_id UUID` PK, `first_seen_at TIMESTAMPTZ(6)`,
+    `last_seen_at TIMESTAMPTZ(6)`);
+  - three indexes: `analytics_events_occurred_at_idx`, `analytics_events_visitor_id_occurred_at_idx`,
+    `analytics_events_session_id_occurred_at_idx`.
+- No existing table, column, or row touched (additive only, plan §3 / data-model.md §5).
+- Rollback documented in the migration SQL header: drop `analytics_events`,
+  `analytics_visitors`, then enum `AnalyticsSourceGroup`.
+
+### Notes
+- Migration SQL generated via `prisma migrate diff --from-schema-datasource --to-schema-datamodel`
+  (the test DB on port 5434 already had all 7 Phase 1 migrations applied; the diff between that
+  state and the current schema.prisma — which T003 extended with the analytics models — produced
+  exactly the enum + two tables + three indexes). `prisma migrate dev` could not be used directly
+  because it requires an interactive TTY, which this environment does not provide.
+- Applied to the test DB (port 5434) via `prisma migrate deploy`; `prisma migrate status` reports
+  "Database schema is up to date!" with 8 migrations — no drift.
+- **Dev DB not applied:** the `.env` `DATABASE_URL` points at port 5432, but no Docker container
+  exposes that port (the only Postgres container `modular-house-postgres` maps 5434→5432). The
+  migration file is committed and can be applied to the dev DB with `prisma migrate deploy` once
+  that database is reachable. This is an environment limitation, not a spec deviation.
+- `prisma generate` regenerated the client; `pnpm --filter @modular-house/api typecheck` exits 0.
+
+---
+
 ## [2026-07-15T13:13:37.735+01:00] — feat(api): T003 add AnalyticsSourceGroup + analytics tables (schema.prisma)
 
 ### Added

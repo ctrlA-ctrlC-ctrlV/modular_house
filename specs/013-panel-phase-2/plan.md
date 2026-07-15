@@ -372,8 +372,8 @@ Frontend (Vitest + @testing-library/react):
 - Web public: `CookieBanner`, `CookiePolicy`, `cookieRegister` consistency, `beacon` unit suites.
 - Web admin: `Analytics` page, toolbar/range pop-up, each widget, new primitives (`select`,
   `tabs`, `dialog`, `chart`, `badge`) render/keyboard suites — primitive and static-widget suites
-  are authored in Pass 1 with the ports (against fixture data, per ui-components.md §6), before
-  data wiring exists.
+  are authored in Pass 1 BEFORE their ports (test-first against the template's DOM/keyboard
+  contract and fixture data, per ui-components.md §6), before data wiring exists.
 
 **Do NOT touch:** Phase 1 auth/OTP/reset/settings suites; public configurator/SEO/marketing-page
 suites (except the two amendments above) — they must stay green to prove no regression (SC-003).
@@ -431,15 +431,19 @@ Admin web (`apps/web/src/admin`):
 ### 5.3 Three-pass order (design pass separated from implementation)
 
 - **Pass 1 (design the UI — template fidelity):** confirm/extend the component inventory in
-  [ui-components.md](ui-components.md) → port `select`, `tabs`, `dialog`, `chart`, `badge` per its
-  compatibility rules → build the widget compositions (KpiStrip, TrafficChart, RealtimeCard,
-  TopPages, TrafficSources, RangeToolbar, RangeDialog) against **fixture data** → primitive +
-  static-widget tests green → side-by-side parity gate against the template page in light AND dark
-  (ui-components.md §6). **No data wiring in this pass; Pass 2 does not start until the gate
-  passes.**
+  [ui-components.md](ui-components.md) → author each primitive/widget's failing render/keyboard
+  suite first (test-first, against the template's DOM contract and **fixture data**) → port
+  `select`, `tabs`, `dialog`, `chart`, `badge` per its compatibility rules → build the widget
+  compositions (KpiStrip, TrafficChart, RealtimeCard, TopPages, TrafficSources, RangeToolbar,
+  RangeDialog) until the suites are green → side-by-side parity gate against the template page in
+  light AND dark (ui-components.md §6). **No data wiring in this pass. The parity gate blocks
+  only Pass 2's widget-consuming work (dashboard data wiring and navigation); the measurement
+  pipeline, banner/register/policy page, and analytics endpoints are gate-independent and may
+  proceed before or in parallel — spec US1/US2 are P1 and cannot backfill history (amended
+  2026-07-15).**
 - **Pass 2 (make it work):** migration → ingest service/route (happy path) → beacon + cookies →
-  banner + policy page + register → overview/realtime endpoints → wire the Pass 1 widgets to live
-  data → sidebar/landing wiring → green on §4.1.
+  banner + policy page + register → overview/realtime endpoints (all gate-independent) → wire the
+  Pass 1 widgets to live data → sidebar/landing wiring (gated on Pass 1 parity) → green on §4.1.
 - **Pass 3 (make it right):** ingest boundaries (M2–M7), source precedence table, range/dialog
   validation (Q1/Q3), bucket + timezone + delta edges (Q4/Q5, E-TZ), empty states, concurrency
   upsert, a11y passes, performance budgets (M9/Q8) → green on §4.2.

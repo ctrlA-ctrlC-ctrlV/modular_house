@@ -14,3 +14,11 @@ T005 — PASS-WITH-NITS — round-trip claim not reproducible
 T006 — PASS
 T007 — PASS-WITH-NITS — CI execution not directly confirmed
 T008 — PASS
+
+## 2026-07-15 — T001-T008 corrections re-review (since 4a69dfb)
+
+T001 — PASS — lockfile stat note corrected
+T003 — PASS — gitignore change now logged
+T004 — CHANGES-REQUIRED — dev DB claim false; .env 5432 still unreachable
+T005 — PASS — permanent 9-test suite verified passing
+T007 — PASS — CI run reported by user, not independently confirmed

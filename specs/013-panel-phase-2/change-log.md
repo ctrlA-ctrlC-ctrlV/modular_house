@@ -18,6 +18,64 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-15T14:49:38.337+01:00] — feat(admin-web): T008 analytics fixture-data module (fixtures.ts)
+
+### Added
+- `apps/web/src/admin/analytics/fixtures.ts` — typed fixture payloads mirroring
+  `contracts/analytics.openapi.yaml`, consumed exclusively by Pass 1 widgets and web tests
+  (no live API calls, no data wiring — plan §5.3, research R12):
+  - **Types**: `SourceGroup`, `BucketGranularity`, `KpiValue`, `AnalyticsRange`,
+    `TimeseriesBucket`, `TopPageEntry`, `SourceEntry`, `OverviewKpis`, `OverviewResponse`,
+    `RealtimePageEntry`, `RealtimeResponse` — all matching the contract schemas field-for-field.
+  - **`overviewPopulated`** — all five KPIs with numeric `previous` + numeric `deltaPercent`
+    (Q5 variant 1: normal period-over-period delta). Day buckets, 5 top pages, 5 source groups.
+  - **`overviewNoPriorData`** — every KPI has `previous: null` + `deltaPercent: null`
+    (Q5 variant 2: "no prior data" — comparison window ends before first stored event).
+  - **`overviewZeroPrevious`** — every KPI has `previous: 0` + `deltaPercent: null`
+    (Q5 variant 3: measured-but-zero prior, delta not computable, rendered "—").
+  - **`overviewEmpty`** — all-zero KPIs, empty timeseries/topPages, five zero-valued source
+    groups (Q6: zero-valued groups always shown). Empty-state fixture (US3-9 / E-EMPTY).
+  - **`overviewHourly`** — hour-bucket timeseries (Q4: hour when span <= 2 days) with ISO-8601
+    datetime `from`/`to` (Q1: sub-day ranges use UTC datetime form). KPIs include a negative
+    delta to exercise the down-arrow rendering path.
+  - **`realtimePopulated`** — 7 active visitors + top-4 active pages, `windowMinutes: 5` (V5).
+  - **`realtimeEmpty`** — 0 visitors, empty pages, `windowMinutes: 5` (E-EMPTY).
+  - Helper `emptySources()` builds the five source groups with zero values so Q6's
+    "zero-valued groups shown" invariant is structural.
+
+### Notes
+- "Done when" verified: `pnpm --filter @modular-house/web typecheck` exits 0 (types mirror the
+  contract); `pnpm --filter @modular-house/web lint` exits 0.
+- No `any` used — all types are explicit interfaces. `SourceGroup` is a union of the five
+  lowercase strings matching the contract enum.
+- The three Q5 KpiValue variants are in separate fixtures so widget tests can assert each
+  rendering path independently (numeric delta, "no prior data", "—").
+- No data wiring — the module exports static constant objects only.
+
+---
+
+## [2026-07-15T14:44:59.908+01:00] — ci(api): T007 document analytics fixture seeding in CI (ci.yml)
+
+### Changed
+- `.github/workflows/ci.yml` — added documentation comments to the `Seed test database` steps in
+  both the `test-api` and `coverage-check` jobs, making explicit that `NODE_ENV=test` triggers the
+  analytics fixtures added in T006 (`seed.ts`'s `seedAnalyticsFixtures` function, gated on
+  `config.app.nodeEnv === 'test'`). The CI already ran `pnpm db:seed` with `NODE_ENV: test` before
+  the test step — no behavioural change, only self-documenting comments.
+
+### Notes
+- The CI seed pipeline was already correctly configured before this task:
+  1. `test-api` job: `Run Prisma migrations` (creates analytics tables) → `Seed test database`
+     (NODE_ENV=test, seeds analytics fixtures) → `Run API tests with coverage` (suites find rows).
+  2. `coverage-check` job: same migrate → seed → enforce flow.
+- T006's `seed.ts` gate (`if (config.app.nodeEnv === 'test')`) was committed in `e6d4ef3`; this
+  task only documents the CI side. No changes to `seed.ts` were needed.
+- "Done when" (CI run executes the seed before the test step) is satisfied by configuration: the
+  `NODE_ENV: test` env var on the seed step triggers the analytics fixtures, and the step runs
+  before `pnpm test:coverage`. A push to the branch will confirm in CI logs.
+
+---
+
 ## [2026-07-15T14:06:20.917+01:00] — feat(api): T006 seed analytics fixtures for test DB (seed.ts)
 
 ### Added

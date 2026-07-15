@@ -23,12 +23,20 @@
    is test-first too: each render/keyboard suite is authored against the template's DOM contract
    (`data-slot` attributes, keyboard behavior) and T008 fixture data, red for the missing module,
    before its port.
-4. **Determinism.** Every time-dependent test — session windows (V), the realtime window, bucket
+4. **Green checkpoints (handoff discipline).** A failing-test task plus the implementation
+   task(s) that turn it green form one **atomic unit**; the pre-handoff gate (`pnpm
+   test:coverage` / `test:run`) is expected green only at unit boundaries. Never hand off
+   mid-unit: finish the unit, or do not start its test task (stash/revert an unfinished red test
+   rather than committing it). Most units are adjacent pairs; the multi-task units are T039–T044
+   (T-B1/T-B2/T-B8 stay red until the route is mounted in the app) and T053–T057 (T-F11 stays
+   red until the policy route registers).
+5. **Determinism.** Every time-dependent test — session windows (V), the realtime window, bucket
    boundaries, deltas, `E-TZ` — uses fixed injected timestamps / fake timers, never real
    `Date.now()`.
-5. **Coverage floors.** Ingest validation and the admin analytics auth gate reach **100% branch
-   coverage** (DoD-3); overall line coverage >= 70%.
-6. **Refs notation.** `K/N/M/S/V/Q` ids are plan §2 assertions; `§2.7 R1/R2` are the plan's
+6. **Coverage floors.** Ingest validation and the admin analytics auth gate reach **100% branch
+   coverage** (DoD-3); overall line coverage >= 70%. Floors are verified at T123 (DoD phase) —
+   the per-handoff gate runs the suites but MUST NOT enforce coverage thresholds mid-phase.
+7. **Refs notation.** `K/N/M/S/V/Q` ids are plan §2 assertions; `§2.7 R1/R2` are the plan's
    retention assertions; `research R1–R12` are research.md decisions — the two are cited
    distinctly.
 

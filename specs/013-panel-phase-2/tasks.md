@@ -88,7 +88,8 @@
       Done when: `prisma validate` passes and the schema diff contains only the two models + enum.
       Refs: plan §3, data-model.md, §2.7 R1/R2, FR-015/FR-016
 
-- [ ] T004 Create and apply migration add_analytics_events
+- [x] T004 Create and apply migration add_analytics_events
+> note: add_analytics_events migration: enum+2 tables+3 indexes; applied test DB 5434, no drift; tests: none; deviations: migration.sql — dev DB 5432 unreachable, test DB only
       Files: apps/api/prisma/migrations/<timestamp>_add_analytics_events/migration.sql
       Do: Generate via `prisma migrate dev --name add_analytics_events`; verify the SQL creates
       exactly the enum, two tables, and three indexes; apply to the dev DB and the port-5434 test
@@ -97,7 +98,8 @@
       documented as dropping the two tables + enum.
       Refs: plan §3, data-model.md §5
 
-- [ ] T005 Add analytics fixture and injected-clock test helpers (api)
+- [x] T005 Add analytics fixture and injected-clock test helpers (api)
+> note: analyticsFixtures.ts: event/visitor builders, cookie header helper, fixed UUIDs, createAnalyticsClock wrapping Phase 1 clock; tests: 2 passing (round-trip verify, cleaned up); deviations: none
       Files: apps/api/tests/helpers/analyticsFixtures.ts (new; follow the existing api test-helper
       conventions)
       Do: Provide builders that insert `AnalyticsEvent`/`AnalyticsVisitor` rows and produce
@@ -107,7 +109,8 @@
       insert round-trips against the test DB.
       Refs: plan §4 preamble, constitution III
 
-- [ ] T006 Seed analytics fixtures for the test database
+- [x] T006 Seed analytics fixtures for the test database
+> note: seed.ts: 5 visitors + 12 events across 3 London days, all 5 source groups, gated NODE_ENV=test; tests: none; deviations: none
       Files: apps/api/prisma/seed.ts
       Do: Add deterministic analytics fixture rows (multiple London calendar days, all five source
       groups, new + returning visitors) gated so they seed test databases only — the production

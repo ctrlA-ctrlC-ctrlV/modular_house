@@ -353,3 +353,59 @@ enum PublishStatus {
 
   @@map("publish_status")
 }
+
+/// Phase 2 analytics — traffic source classification computed at ingest (plan S1–S3).
+/// Closed set of the five source groups (Q6); stored values are the lowercase labels
+/// below. Adding a future group = new enum value + list entry (additive migration).
+enum AnalyticsSourceGroup {
+  DIRECT   @map("direct")
+  SEARCH   @map("search")
+  SOCIAL   @map("social")
+  REFERRAL @map("referral")
+  CAMPAIGN @map("campaign")
+}
+
+/// Phase 2 analytics — one row per stored page view (plan M-series). Append-only:
+/// no updates and no delete path exist anywhere (plan §2.7 R1, retention indefinite).
+/// Privacy floor (R2/M7): no IP, UA, full referrer URL, geo, or user FK columns.
+model AnalyticsEvent {
+  id           BigInt               @id @default(autoincrement())
+  /// Server-clock time the event was received (never client time).
+  occurredAt   DateTime             @map("occurred_at") @db.Timestamptz(6)
+  /// Public page path, starts with "/", max 512 chars (M2). Never an /admin path (M5).
+  /// Canonicalized at ingest per plan M10 (lowercase, no trailing slash, no query/fragment).
+  path         String               @db.VarChar(512)
+  /// Anonymous visitor identifier from the mh_vid cookie, or a one-off UUID (M3).
+  visitorId    String               @map("visitor_id") @db.Uuid
+  /// Anonymous session identifier from the mh_sid cookie, or a one-off UUID (M3).
+  sessionId    String               @map("session_id") @db.Uuid
+  /// Source classification computed at ingest (S1-S3).
+  sourceGroup  AnalyticsSourceGroup @map("source_group")
+  /// Referrer HOSTNAME only - full URLs and query strings are never stored (S5).
+  referrerHost String?              @map("referrer_host") @db.VarChar(255)
+  /// Standard campaign tags, max 100 chars — over-length payloads are rejected at ingest, never truncated (M2).
+  utmSource    String?              @map("utm_source") @db.VarChar(100)
+  utmMedium    String?              @map("utm_medium") @db.VarChar(100)
+  utmCampaign  String?              @map("utm_campaign") @db.VarChar(100)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([occurredAt])
+  @@index([visitorId, occurredAt])
+  @@index([sessionId, occurredAt])
+  @@map("analytics_events")
+}
+
+/// Phase 2 analytics — one row per visitor identifier; server-authoritative first-seen
+/// (research R2). Upserted on every ingest: insert {firstSeenAt: now, lastSeenAt: now}
+/// on a new id, update lastSeenAt only on conflict — the upsert is the concurrency guard
+/// for the two-simultaneous-first-events race (E-CONCURRENCY).
+model AnalyticsVisitor {
+  /// Same value as the mh_vid cookie (or the one-off UUID for cookieless events).
+  visitorId   String   @id @map("visitor_id") @db.Uuid
+  /// Authoritative for new-vs-returning classification (V3); never updated after insert.
+  firstSeenAt DateTime @map("first_seen_at") @db.Timestamptz(6)
+  /// Updated on every ingest; supports future retention/cleanup decisions.
+  lastSeenAt  DateTime @map("last_seen_at") @db.Timestamptz(6)
+
+  @@map("analytics_visitors")
+}

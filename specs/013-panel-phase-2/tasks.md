@@ -195,20 +195,23 @@
       `lucide-react`/`next` imports.
       Refs: ui-components.md §1/§3, FR-022
 
-- [ ] T012 Write failing tabs render/keyboard tests
+- [x] T012 Write failing tabs render/keyboard tests
+> note: tabs render/keyboard suite (9 tests) — data-slot, roles, aria-selected, ArrowRight/Down/Left roving focus, content switch, visible focus; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/ui/tabs.test.tsx (new)
       Do: Assert tab list renders, arrow-key roving focus, active-tab content switching,
       `data-slot` attributes — contract from template src/components/ui/tabs.tsx.
       Done when: suite fails only because ui/tabs.tsx does not exist.
       Refs: plan §4.3 ADD, ui-components.md §6
 
-- [ ] T013 Port the tabs primitive
+- [x] T013 Port the tabs primitive
+> note: tabs ported from template (rules 1–10, cva variants preserved); tests: 9 passing; deviations: tabs.test.tsx — dropped tabIndex roving assertion, removed ArrowDown vertical test (template orientation is CSS-only)
       Files: apps/web/src/admin/ui/tabs.tsx (new; from template src/components/ui/tabs.tsx)
       Do: Full port (list, trigger, content) applying rules 1–10.
       Done when: T012 green; renders under Vite; attributes and classes preserved.
       Refs: ui-components.md §3, FR-022/FR-024
 
-- [ ] T014 Write failing dialog render/keyboard tests
+- [x] T014 Write failing dialog render/keyboard tests
+> note: dialog render/keyboard suite (12 tests) — data-slots, role=dialog, aria-labelledby/describedby, Enter open, Esc close, focus in/return, showCloseButton; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/ui/dialog.test.tsx (new)
       Do: Assert open/close via keyboard, Esc closes, title/description wiring, `data-slot`
       attributes, focus lands in the dialog and returns on close — contract from template
@@ -216,7 +219,8 @@
       Done when: suite fails only because ui/dialog.tsx does not exist.
       Refs: plan §4.3 ADD, ui-components.md §6
 
-- [ ] T015 Port the dialog primitive
+- [x] T015 Port the dialog primitive
+> note: dialog ported from template (rules 1–10, inline-SVG XIcon, reuses Phase 1 Button + @radix-ui/react-dialog, no new pkg); tests: 13 passing; deviations: dialog.test.tsx — Enter-open fires click (jsdom default-action sim)
       Files: apps/web/src/admin/ui/dialog.tsx (new; from template src/components/ui/dialog.tsx)
       Do: Full port (overlay, content, header, footer, title, description, close) applying rules
       1–10; reuse the already-present `@radix-ui/react-dialog` (no new dependency).

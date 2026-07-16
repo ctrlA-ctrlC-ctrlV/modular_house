@@ -40,8 +40,9 @@ const FRUITS = [
 ] as const;
 
 // H4 visible-focus ring token classes preserved verbatim from the template
-// trigger (plan §2.8 H4: 3px at ring/50). Their presence is the visible-focus
-// contract (constitution V); asserted the same way as the shell keyboard suite.
+// trigger (Phase 1 plan §2.8 H4: 3px at ring/50 — specs/012-panel-phase-1/plan.md,
+// not this phase's plan). Their presence is the visible-focus contract
+// (constitution V); asserted the same way as the shell keyboard suite.
 const FOCUS_RING_CLASSES = [
   'focus-visible:ring-3',
   'focus-visible:ring-ring/50',

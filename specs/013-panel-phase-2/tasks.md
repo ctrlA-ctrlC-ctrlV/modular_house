@@ -282,14 +282,16 @@
       Done when: T018 green; renders all variants under Vite.
       Refs: ui-components.md §3, FR-018 (delta badges)
 
-- [ ] T020 Write failing KpiStrip static tests
+- [x] T020 Write failing KpiStrip static tests
+> note: 9-test suite — 5 cells/labels, numeric/null/zero delta variants, down-arrow, caption, dashed empty, no NaN; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/analytics/KpiStrip.test.tsx (new)
       Do: Against T008 fixtures assert the five cells, delta badge rendering for numeric /
       null-previous ("no prior data") / zero-previous ("—") fixtures, and the empty state.
       Done when: suite fails only because KpiStrip.tsx does not exist.
       Refs: plan §4.3 ADD, Q5, FR-018
 
-- [ ] T021 Build KpiStrip against fixture data
+- [x] T021 Build KpiStrip against fixture data
+> note: KpiStrip from template — 5 spec KPIs, text-2xl tracking-tight, tinted delta badges (numeric/null/zero), from X - last period caption, ellipsis + dashed empty; tests: 9 passing; deviations: none
       Files: apps/web/src/admin/analytics/KpiStrip.tsx (new; adapts template
       _components/analytics-kpi-strip.tsx)
       Do: Divided card strip with exactly five KPI cells (page views, unique visitors, sessions,

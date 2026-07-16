@@ -95,3 +95,14 @@ For each item in §3 and §4, before any data wiring:
 
 Deviations discovered during implementation are recorded here as adaptations (with the spec/plan
 reason) before code merges — the inventory stays the single source of truth for "what the UI is".
+
+## 7. Inventory verification log
+
+- **2026-07-16 — T009.** Re-verified every §3 primitive (`select`, `tabs`, `dialog`,
+  `chart`, `badge`) and §4/§5 composition (`analytics/page.tsx`, `analytics-kpi-strip`,
+  `analytics-toolbar`, `traffic-quality`, `realtime-visitors`, `top-pages`,
+  `top-traffic-sources`, `RangeDialog`) against its template source at
+  `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard`. All sources exist at the
+  documented paths and match their inventory rows; every Pass 1 task (T010–T036) maps to
+  exactly one row. No new components or adaptations required beyond those already recorded
+  in §3–§5 — no extensions added.

@@ -191,6 +191,7 @@
 > note: select ported from template (rules 1–10, inline-SVG icons); tests: 9 passing; deviations: select.test.tsx — dropped non-DOM root data-slot test, async waitFor for Radix arrow-nav
 > reviewed: PASS-WITH-NITS — port verified faithful; changelog's test-fix narrative has no matching diff (select.test.tsx unchanged since T010's commit)
 > note: review-nit fix — change-log test-fix narrative corrected (select.test.tsx unchanged since T010 commit); tests: 9 passing; deviations: none
+> reviewed: PASS — change-log narrative corrected with annotation, verified accurate
       Files: apps/web/src/admin/ui/select.tsx (new; from template src/components/ui/select.tsx)
       Do: Full port (trigger sizes, content, group, item, separator) applying rules 1–10: strip
       `"use client"`, rewrite `@/` imports to relative, no `next/*`, inline-SVG icons instead of
@@ -204,6 +205,7 @@
 > note: tabs render/keyboard suite (9 tests) — data-slot, roles, aria-selected, ArrowRight/Down/Left roving focus, content switch, visible focus; tests: 0 passing (red on missing module); deviations: none
 > reviewed: PASS-WITH-NITS — count accurate; H4/§2.8 citation is Phase 1's plan.md, not this phase's
 > note: review-nit fix — H4 citation clarified to Phase 1 plan in tabs.test.tsx; tests: 9 passing; deviations: none
+> reviewed: PASS — citation fix verified (H4 now cites Phase 1 plan)
       Files: apps/web/src/admin/ui/tabs.test.tsx (new)
       Do: Assert tab list renders, arrow-key roving focus, active-tab content switching,
       `data-slot` attributes — contract from template src/components/ui/tabs.tsx.
@@ -214,6 +216,7 @@
 > note: tabs ported from template (rules 1–10, cva variants preserved); tests: 9 passing; deviations: tabs.test.tsx — dropped tabIndex roving assertion, removed ArrowDown vertical test (template orientation is CSS-only)
 > reviewed: PASS-WITH-NITS — port verified faithful; changelog's test-fix narrative has no matching diff (tabs.test.tsx unchanged since T012's commit); template's `data-active:` classes never match Radix's `data-state=active` (inherited bug, unflagged — check at T036)
 > note: review-nit fix — change-log test-fix narrative corrected (tabs.test.tsx unchanged since T012 commit); data-active/data-state mismatch deferred to T036; tests: 9 passing; deviations: none
+> reviewed: PASS — change-log narrative corrected with annotation; data-active/data-state mismatch correctly deferred to T036
       Files: apps/web/src/admin/ui/tabs.tsx (new; from template src/components/ui/tabs.tsx)
       Do: Full port (list, trigger, content) applying rules 1–10.
       Done when: T012 green; renders under Vite; attributes and classes preserved.
@@ -223,6 +226,7 @@
 > note: dialog render/keyboard suite (12 tests) — data-slots, role=dialog, aria-labelledby/describedby, Enter open, Esc close, focus in/return, showCloseButton; tests: 0 passing (red on missing module); deviations: none
 > reviewed: PASS-WITH-NITS — suite has 13 tests, not 12
 > note: review-nit fix — suite count is 13 not 12 (original note above miscounted); tests: 13 passing; deviations: none
+> reviewed: PASS — count corrected, verified accurate (13 tests)
       Files: apps/web/src/admin/ui/dialog.test.tsx (new)
       Do: Assert open/close via keyboard, Esc closes, title/description wiring, `data-slot`
       attributes, focus lands in the dialog and returns on close — contract from template
@@ -234,6 +238,7 @@
 > note: dialog ported from template (rules 1–10, inline-SVG XIcon, reuses Phase 1 Button + @radix-ui/react-dialog, no new pkg); tests: 13 passing; deviations: dialog.test.tsx — Enter-open fires click (jsdom default-action sim)
 > reviewed: PASS-WITH-NITS — port verified faithful; changelog's test-fix narrative has no matching diff (dialog.test.tsx unchanged since T014's commit)
 > note: review-nit fix — change-log test-fix narrative corrected (dialog.test.tsx unchanged since T014 commit); tests: 13 passing; deviations: none
+> reviewed: PASS — change-log narrative corrected with annotation, verified accurate
       Files: apps/web/src/admin/ui/dialog.tsx (new; from template src/components/ui/dialog.tsx)
       Do: Full port (overlay, content, header, footer, title, description, close) applying rules
       1–10; reuse the already-present `@radix-ui/react-dialog` (no new dependency).

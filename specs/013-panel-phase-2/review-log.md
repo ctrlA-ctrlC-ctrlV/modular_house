@@ -36,3 +36,12 @@ T012 — PASS-WITH-NITS — H4/§2.8 citation mislabeled (cross-phase)
 T013 — PASS-WITH-NITS — changelog test-fix narrative unsupported by diff; H4 mislabeled
 T014 — PASS-WITH-NITS — test count claims 12, actual 13
 T015 — PASS-WITH-NITS — changelog test-fix narrative unsupported by diff
+
+## 2026-07-16 — T009-T015 nit-fix re-review (since 8e54943/6788144/9a2ec06)
+
+T010 — PASS — count corrected to 9; H4 citation now points to Phase 1 plan
+T011 — PASS — change-log annotated with accurate correction, original retained
+T012 — PASS — H4 citation now points to Phase 1 plan
+T013 — PASS — change-log annotated; data-active/data-state mismatch deferred to T036
+T014 — PASS — count corrected to 13
+T015 — PASS — change-log annotated with accurate correction, original retained

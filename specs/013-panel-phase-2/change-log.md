@@ -18,6 +18,170 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-16T14:28:23.614+01:00] — feat(admin-ui): T019 port badge primitive (badge.tsx)
+
+### Added
+- `apps/web/src/admin/ui/badge.tsx` — Badge primitive ported from the template
+  `src/components/ui/badge.tsx` (ui-components.md §1/§3, FR-018), applying
+  compatibility rules 1–10:
+  - `"use client"` stripped (rule 1); `@/lib/utils` (`cn`) rewritten to the relative
+    `../lib/cn.js` (rule 2); no `next/*` (rule 3); no `lucide-react` (rule 4).
+  - `data-slot="badge"` and `data-variant` attributes preserved (rule 5); all
+    Tailwind token class strings preserved verbatim (rule 6), including the
+    pill-shape `rounded-4xl`, the H4 focus-visible ring, and the tinted-variant
+    `bg-destructive/10` style.
+  - Full variant set ported: `default`, `secondary`, `destructive`, `outline`,
+    `ghost`, `link` (cva `badgeVariants`); `asChild` composition via Radix Slot.
+    Export order matches the template.
+
+### Changed (port adaptation — @radix-ui/react-slot export shape)
+- `apps/web/src/admin/ui/badge.tsx` — one adaptation so the port compiles and runs
+  against the pinned `@radix-ui/react-slot` (the template targets the `radix-ui`
+  umbrella package):
+  - **`Slot.Root` → `Slot`.** The template imports `import { Slot } from "radix-ui"`
+    and uses `Slot.Root` (the umbrella namespace nests the forwardRef component
+    under `.Root`). The pinned `@radix-ui/react-slot` exports `Slot` as the
+    forwardRef component itself — there is no `.Root` property. Rewritten to
+    `const Comp = asChild ? Slot : 'span'`, matching the Phase 1 `button.tsx`
+    convention (same package, same pattern). Runtime behavior is identical; only
+    the import/property path is adapted.
+
+### Notes
+- "Done when" met: T018 suite green (13 passing); `eslint` clean on both files;
+  `tsc --noEmit` 0 errors (the prior `TS2339: Property 'Root'` is resolved); no
+  `lucide-react`/`next/*` imports; no new package added (`@radix-ui/react-slot`
+  was already present via Phase 1 `button.tsx`).
+- Green half of the T018/T019 atomic unit. The Slot adaptation is a T019 deviation
+  (the T019 task text lists only `badge.tsx`); documented here per the T011
+  select-port precedent.
+
+---
+
+## [2026-07-16T14:28:10.000+01:00] — test(admin-ui): T018 badge render contract (badge.test.tsx)
+
+### Added
+- `apps/web/src/admin/ui/badge.test.tsx` — render contract suite for the ported
+  Badge primitive (13 tests), authored test-first against the template source
+  `src/components/ui/badge.tsx` (ui-components.md §3/§6, plan §4.3 ADD):
+  - **data-slot + default render** — renders a `data-slot="badge"` span with
+    `data-variant="default"` (cva defaultVariants).
+  - **Per-variant data-variant** — `it.each` over all six variants (default,
+    secondary, destructive, outline, ghost, link) asserts each renders with its
+    `data-variant` attribute.
+  - **Pill-shape token** — `rounded-4xl` present on every variant (the badge's
+    defining visual trait, ui-components.md §3).
+  - **Variant token classes** — default variant carries `bg-primary` /
+    `text-primary-foreground`; destructive carries the tinted `bg-destructive/10`
+    / `text-destructive` (the "tinted variants" adaptation).
+  - **asChild composition** — `asChild` renders the child element (an anchor)
+    with `data-slot`/`data-variant`/badge classes; no wrapper span.
+  - **badgeVariants export** — the cva function is exported and produces
+    non-empty class strings containing `rounded-4xl` for each variant.
+  - **className merge** — a caller-supplied `className` merges onto the variant
+    classes via `cn()` without replacing them.
+
+### Notes
+- "Done when" met: suite runs and fails only because `ui/badge.tsx` does not
+  exist — `Error: Failed to resolve import "./badge.js"` (vite import-analysis).
+- `eslint` clean (0 warnings). `tsc --noEmit` reports exactly one error —
+  `TS2307: Cannot find module './badge.js'` — the expected red state T019
+  resolves; no other typecheck regressions.
+- Red half of the T018/T019 atomic unit; expected to stay red until T019 ports
+  `badge.tsx` (green-checkpoint rule, execution rule 4).
+
+---
+
+## [2026-07-16T14:25:04.696+01:00] — feat(admin-ui): T017 port chart primitive (chart.tsx)
+
+### Added
+- `apps/web/src/admin/ui/chart.tsx` — recharts wrapper ported from the template
+  `src/components/ui/chart.tsx` (ui-components.md §1 rule 9 / §3, FR-022), applying
+  compatibility rules 1–10:
+  - `"use client"` stripped (rule 1); `@/lib/utils` (`cn`) rewritten to the relative
+    `../lib/cn.js` (rule 2); `recharts` imported as the `RechartsPrimitive` namespace
+    (rule 9 — widgets reach recharts only through this wrapper; the wrapper itself
+    imports it); no `next/*` (rule 3); no `lucide-react` (rule 4).
+  - Full subcomponent set ported: `ChartContainer` (the `data-slot="chart"` frame +
+    `ResponsiveContainer` host + context provider), `ChartStyle` (CSS-variable style
+    injector), `ChartTooltip` (recharts Tooltip re-export), `ChartTooltipContent`
+    (accessible token-styled tooltip content), `ChartLegend` (recharts Legend
+    re-export), `ChartLegendContent` (token-styled legend), `getPayloadConfigFromPayload`
+    helper; `ChartConfig` type exported. Export order matches the template.
+  - `data-slot="chart"` + `data-chart` attributes preserved (rule 5); all Tailwind
+    token class strings preserved verbatim (rule 6), split across multi-line `cn(...)`.
+  - **CSS-variable color plumbing (rule 9):** `ChartStyle` emits per-series
+    `--color-<key>: <color>` declarations scoped to `[data-chart=<id>]`, under the
+    light root and `.dark`. Series colors are `var(--chart-N)` tokens, never literal
+    hex/rgb — the rule-9 invariant asserted by T016.
+
+### Changed (recharts 3.7.0 compatibility — port adaptation)
+- `apps/web/src/admin/ui/chart.tsx` — one type adaptation so the port compiles
+  against the installed `recharts@3.7.0` (the template targets an older recharts):
+  - **`TooltipValueType` defined locally.** The template imports
+    `type { TooltipValueType } from "recharts"`, which recharts 3.7.0 no longer
+    exports (its internal `ValueType` is `number | string | ReadonlyArray<number |
+    string>`). Defined locally as `number | string` — the historical shape the
+    template relied on and the value range the tooltip content formats via
+    `toLocaleString()` / `String()`. Runtime behavior is unchanged; only the type
+    plumbing is adapted. `TooltipNameType` is likewise defined locally as
+    `number | string` (matching recharts 3.7.0's `NameType`).
+
+### Notes
+- "Done when" met: T016 suite green (4 passing); `eslint` clean on both files;
+  `tsc --noEmit` 0 errors (the prior `TS2307` for `./chart.js` is resolved); no
+  `lucide-react`/`next/*` imports; no new package added (`recharts` was already
+  present).
+- Green half of the T016/T017 atomic unit. The type adaptation is a T017 deviation
+  (the T017 task text lists only `chart.tsx`); documented here per the T011 select-
+  port precedent.
+
+---
+
+## [2026-07-16T14:24:50.000+01:00] — test(admin-ui): T016 chart render contract (chart.test.tsx)
+
+### Added
+- `apps/web/src/admin/ui/chart.test.tsx` — render contract suite for the ported
+  recharts wrapper (4 tests), authored test-first against the template source
+  `src/components/ui/chart.tsx` (ui-components.md §1 rule 9 / §3/§6, plan §4.3 ADD):
+  - **ChartContainer frame** — renders `data-slot="chart"` with a `data-chart` id,
+    hosting a recharts surface (`.recharts-surface`), proving the wrapper hosts a
+    chart from fixture config (rule 9).
+  - **CSS-variable color tokens** — `ChartStyle` emits `--color-<key>` declarations
+    resolving to `var(--chart-N)` tokens; asserts the tokens are present AND that no
+    literal hex/rgb color values leak into the emitted style (rule 9 invariant).
+  - **Tooltip label + value** — `ChartTooltipContent` renders the config label
+    ("Page Views") resolved via chart context (not a passed string) and the numeric
+    value (42) localized in a tabular-nums span.
+  - **Tooltip indicator color** — the default dot indicator's inline style binds
+    `--color-bg`/`--color-border` to the payload `var(--color-*)` reference, never a
+    literal hex/rgb.
+  - Fixture chart composed with recharts `BarChart`/`Bar` directly in the test only;
+    widgets (T023 TrafficChart) reach recharts solely through the wrapper (rule 9).
+    Series colors use `var(--chart-N)` tokens. Fixture tooltip payload carries
+    `graphicalItemId` (required by recharts 3.7.0's `Payload` type) and omits `type`
+    (recharts 3.7.0 `TooltipType` is `'none'` only; `undefined` passes the content's
+    `item.type !== 'none'` filter).
+
+### Notes
+- "Done when" met: suite runs and fails only because `ui/chart.tsx` does not exist —
+  `Error: Failed to resolve import "./chart.js"` (vite import-analysis), confirmed by
+  `pnpm --filter @modular-house/web test:run -- src/admin/ui/chart.test.tsx`.
+- `eslint` clean (0 warnings). `tsc --noEmit` reports exactly one error —
+  `TS2307: Cannot find module './chart.js'` — the expected red state T017 resolves;
+  no other typecheck regressions.
+- **jsdom polyfill (test infrastructure):** recharts 3.7.0 `ResponsiveContainer`
+  measures its host div via `getBoundingClientRect` in a `useEffect`; jsdom returns
+  0×0 (no layout), which overrides `ChartContainer`'s `initialDimension` and makes
+  the context provider drop the chart (non-positive size). The suite stubs
+  `getBoundingClientRect` to return the `initialDimension` size (320×200) in
+  `beforeAll` and restores it in `afterAll` — the same category of jsdom-layout
+  polyfill as the existing `hasPointerCapture`/`scrollIntoView` stubs (select/tabs
+  suites). The production path still measures the real parent in a browser.
+- Red half of the T016/T017 atomic unit; expected to stay red until T017 ports
+  `chart.tsx` (green-checkpoint rule, execution rule 4).
+
+---
+
 ## [2026-07-16T12:13:19.362+01:00] — fix(specs): review corrections for T009–T015 (change-log.md, tasks.md, select.test.tsx, tabs.test.tsx)
 
 ### Changed (review corrections)

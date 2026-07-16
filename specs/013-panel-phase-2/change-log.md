@@ -18,6 +18,117 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-16T09:32:53.060+01:00] — feat(admin-ui): T011 port select primitive (select.tsx, select.test.tsx)
+
+### Added
+- `apps/web/src/admin/ui/select.tsx` — Radix Select primitive ported from the template
+  `src/components/ui/select.tsx` (ui-components.md §1/§3, FR-022), applying compatibility
+  rules 1–10:
+  - `"use client"` stripped (rule 1); `radix-ui` umbrella import rewritten to the pinned
+    `@radix-ui/react-select` namespace import (rules 2/3, 7); `cn` from `../lib/cn.js`
+    (rule 2); no `next/*` present (rule 3).
+  - `lucide-react` icons (`ChevronDownIcon`, `ChevronUpIcon`, `CheckIcon`) replaced by
+    inline-SVG components (rule 4) — no `lucide-react` dependency added.
+  - Full subcomponent set ported: `Select` (root), `SelectGroup`, `SelectValue`,
+    `SelectTrigger` (sm/default `data-size`), `SelectContent` (item-aligned/popper
+    `data-align-trigger`), `SelectLabel`, `SelectItem` (check indicator), `SelectSeparator`,
+    `SelectScrollUpButton`, `SelectScrollDownButton`.
+  - `data-slot`/`data-size`/`data-variant` attributes and Tailwind token classes preserved
+    verbatim (rules 5/6), split across multi-line `cn(...)` calls for readability with every
+    token retained.
+  - Export order matches the template. JSDoc documents each subcomponent and the port
+    adaptations.
+
+### Changed (test-contract correction discovered during the port)
+- `apps/web/src/admin/ui/select.test.tsx` — two corrections to the T010 suite so it passes
+  against a faithful port (the port itself is unchanged from the template):
+  - **Dropped the "root `data-slot='select'`" DOM assertion.** Radix `Select.Root` is a
+    non-DOM context provider, so the template's `data-slot="select"` attribute never enters
+    the DOM. The port preserves the attribute in code verbatim (rule 5); the remaining seven
+    DOM-realisable `data-slot` assertions (trigger, value, content, item, group, label,
+    separator) still cover the contract. A comment records why.
+  - **Made the ArrowDown-navigation and keyboard-selection tests `async` with `await
+    waitFor`.** Radix Select's content keydown moves highlight inside a
+    `setTimeout(() => focusFirst(...))` (confirmed in the installed
+    `@radix-ui/react-select` source), so the focus shift is a deferred macrotask in jsdom.
+    Enter/selection is dispatched on the focused item (Radix requires
+    `event.target === currentTarget`). The suite went from 7/10 to 9/9 passing.
+
+### Notes
+- "Done when" met: T010 suite green (9 passing); `eslint` clean on both files;
+  `tsc --noEmit` reports 0 errors (the prior `TS2307` for `./select.js` is resolved); no
+  `lucide-react`/`next/*` imports in `select.tsx` (verified — only JSDoc mentions remain).
+- This is the green half of the T010/T011 atomic unit. The test correction is recorded as a
+  T011 deviation (the T011 task text lists only `select.tsx`); the change keeps the port
+  faithful to the template rather than hacking the impl to satisfy an impossible DOM
+  assertion. Per-file block for `select.test.tsx` carries the overlap WARNING against T010.
+- Select is "Used by RangeToolbar" (ui-components.md §3); the exact Q2 option set is pinned
+  by the toolbar suite T030, not here.
+
+---
+
+## [2026-07-16T09:24:26.694+01:00] — test(admin-ui): T010 select render/keyboard contract (select.test.tsx)
+
+### Added
+- `apps/web/src/admin/ui/select.test.tsx` — render/keyboard contract suite for the
+  ported Radix Select primitive (10 tests), authored test-first against the template
+  source `src/components/ui/select.tsx` (ui-components.md §3/§6, plan §4.3 ADD):
+  - **Closed-state data-slots** — root `select`, trigger `select-trigger` with
+    `data-size` (`default`/`sm`) and `aria-expanded`, value `select-value`.
+  - **Visible focus (constitution V / H4)** — trigger is keyboard-focusable
+    (`tabIndex >= 0`, `document.activeElement` lands on it) and carries the
+    `focus-visible:ring-3` + `focus-visible:ring-ring/50` token classes verbatim.
+  - **Keyboard open** — ArrowDown on the focused trigger flips `aria-expanded` to
+    `true` and mounts the `role="listbox"`.
+  - **Open-state data-slots** — `select-content`, `select-group`, `select-label`,
+    `select-separator`, and one `select-item` per fixture option.
+  - **Arrow navigation** — ArrowDown moves highlight from the first option (Apple)
+    to the second (Banana), verified via `document.activeElement` textContent.
+  - **Keyboard selection** — Enter on the highlighted option fires
+    `onValueChange('banana')` and the trigger then reflects "Banana".
+  - **Esc closes** — Escape collapses the listbox (`aria-expanded="false"`, listbox
+    unmounts).
+  - Uses keyboard-only interaction (no pointer events) plus local `hasPointerCapture`/
+    `scrollIntoView` jsdom polyfills in `beforeAll`, so Radix portal keyboard behaviour
+    resolves deterministically (the pointer-event unreliability noted in
+    `shell/keyboard.test.tsx` is avoided).
+  - Fixture options are value-agnostic (`FRUITS`) — the primitive is verified in
+    isolation; the exact Q2 range-preset option set is pinned by the toolbar suite T030.
+
+### Notes
+- "Done when" met: the suite runs and fails only because `ui/select.tsx` does not
+  exist — `Error: Failed to resolve import "./select.js"` (vite import-analysis),
+  confirmed by `pnpm --filter @modular-house/web test:run -- src/admin/ui/select.test.tsx`.
+- `eslint` on the file is clean (0 warnings). `tsc --noEmit` reports exactly one error
+  — `TS2307: Cannot find module './select.js'` in this test file — which is the expected
+  red state the implementation task T011 resolves; no other typecheck regressions.
+- This is the red half of the T010/T011 atomic unit; the suite is expected to stay red
+  until T011 ports `select.tsx` (green-checkpoint rule, execution rule 4).
+
+---
+
+## [2026-07-16T09:17:21.455+01:00] — docs(specs): T009 verify UI component inventory (ui-components.md)
+
+### Added
+- `specs/013-panel-phase-2/ui-components.md` — "Inventory verification log" section (§7)
+  recording the T009 re-verification: every §3 primitive (`select`, `tabs`, `dialog`,
+  `chart`, `badge`) and §4/§5 composition (`analytics/page.tsx`, `analytics-kpi-strip`,
+  `analytics-toolbar`, `traffic-quality`, `realtime-visitors`, `top-pages`,
+  `top-traffic-sources`, `RangeDialog`) was confirmed to exist at its documented template
+  source path under `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard` and to match
+  its inventory row. Every Pass 1 task (T010–T036) maps to exactly one inventory row; no
+  new components or adaptations were required beyond those already recorded in §3–§5, so
+  no extensions were added (Open-Closed: a component not in the inventory is not built).
+
+### Notes
+- T009 is a verification/gate task (no test, no implementation code). "Done when" met:
+  every Pass 1 task below T009 maps to an inventory row and all cited template sources
+  resolve at their documented paths.
+- No source code touched; per-file lint/typecheck not applicable. The §9 pre-handoff suite
+  is a session gate, not a per-task gate.
+
+---
+
 ## [2026-07-15T15:37:53.830+01:00] — fix(specs): review corrections for T001–T008 (change-log.md, analyticsFixtures.test.ts, tasks.md)
 
 ### Added

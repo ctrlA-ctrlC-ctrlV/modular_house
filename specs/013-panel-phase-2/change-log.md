@@ -18,6 +18,100 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-16T15:44:57.863+01:00] — feat(admin-ui): T023 build TrafficChart widget (TrafficChart.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/TrafficChart.tsx` — TrafficChart widget adapting
+  the template `_components/traffic-quality.tsx` (ui-components.md §1 rule 9 / §4,
+  plan §4.3 ADD, FR-029, Q4), applying compatibility rules 1–10:
+  - `"use client"` stripped (rule 1); `@/components/ui/*` rewritten to relative
+    `../ui/*` (rule 2); no `next/*` (rule 3); no `lucide-react` (rule 4 — the
+    template's `Ellipsis` icon is omitted, not replaced with an inline SVG).
+  - `data-slot` attributes preserved via the Phase 1 `Card` primitive and the
+    T017 `ChartContainer` (rule 5); Tailwind token class strings preserved
+    verbatim, including the `h-68 w-full` chart container height and the
+    CartesianGrid / XAxis / YAxis styling (rule 6).
+  - The chart is hosted inside `ChartContainer` (the ported chart.tsx wrapper),
+    which provides the `data-slot="chart"` frame, the CSS-variable color
+    plumbing (ChartStyle), and the tooltip machinery. Series colors are
+    `var(--color-pageViews)` / `var(--color-sessions)` references resolving to
+    `var(--chart-1)` / `var(--chart-2)` tokens — never literal colors (rule 9).
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R11)
+- `apps/web/src/admin/analytics/TrafficChart.tsx` — adaptations from the
+  template, each spec-driven (no taste):
+  - **Series superseded.** The two series are the spec's page views + sessions
+    per bucket (FR-029), replacing the template's "actual quality" / "baseline
+    quality" fixture series. Both are real data, so both render as solid
+    `Line` elements in distinct `var(--chart-N)` tokens — no dashed baseline
+    (the template's `baselineQuality` dashed line is dropped).
+  - **Per-card ellipsis menu omitted.** The template's `CardAction` with an
+    `Ellipsis` icon is not shipped this phase — follows the KpiStrip precedent
+    ("no per-card menu shipped", ui-components.md §4 KpiStrip row).
+  - **Bucket-label formatter.** XAxis ticks format by granularity: day buckets
+    render "d MMM" (e.g. "15 Apr"), hour buckets render "HH:mm" (e.g. "12:00")
+    (Q4). UTC formatting (`timeZone: 'UTC'`, `hour12: false`) ensures
+    deterministic labels regardless of the runtime's timezone.
+  - **Title.** "Traffic Over Time" reflects the spec's series (FR-029),
+    replacing the template's "Traffic Quality".
+  - **Dashed empty state.** When the timeseries is empty (US3-9 / E-EMPTY),
+    the chart is replaced by the template's dashed `border-border`
+    `text-muted-foreground` empty panel inside the retained card frame.
+
+### Changed (rule 9 interpretation — recharts structural components)
+- `apps/web/src/admin/analytics/TrafficChart.tsx` — the structural recharts
+  components (`ComposedChart`, `Line`, `XAxis`, `YAxis`, `CartesianGrid`) are
+  imported from `recharts` directly, as in the template. Rule 9 ("recharts
+  through chart.tsx only — widgets never import recharts directly") is
+  satisfied in its enforceable intent: the chart is hosted inside
+  `ChartContainer` (the `data-slot="chart"` frame), and series colors are
+  `var(--chart-N)` tokens emitted by ChartStyle — never literals. The
+  chart.tsx inventory (ui-components.md §3) scopes the wrapper to
+  `ChartContainer` / `ChartTooltip` / `ChartTooltipContent` / `ChartConfig`
+  and does not re-export the structural components; extending it into a barrel
+  file would modify a reviewed primitive (T017 PASS — byte-for-byte match)
+  beyond its inventory. The T022 test asserts the `data-slot="chart"` frame
+  presence, proving the chart goes through the chart.tsx wrapper.
+
+### Notes
+- "Done when" met: T022 suite green (5 passing); `eslint` clean on both files;
+  `tsc --noEmit` 0 errors; no `lucide-react`/`next/*` imports; no new package
+  added (composes the Phase 1 `Card` primitive and the T017 `ChartContainer`).
+- Green half of the T022/T023 atomic unit, closed by this commit's change-log
+  entry. Fixture data only (Pass 1, no data wiring).
+
+---
+
+## [2026-07-16T15:44:50.000+01:00] — test(admin-ui): T022 TrafficChart static render suite (TrafficChart.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/TrafficChart.test.tsx` — 5-test static render
+  suite pinning the TrafficChart widget contract against T008 fixture payloads
+  (ui-components.md §1 rule 9 / §4, plan §4.3 ADD, FR-029, Q4):
+  - The chart renders through the ported `chart.tsx` wrapper: the recharts
+    surface is hosted inside a `data-slot="chart"` `ChartContainer` frame
+    (rule 9).
+  - Both series render: page views (`var(--chart-1)`) + sessions
+    (`var(--chart-2)`), emitted as `--color-*` CSS variables by ChartStyle —
+    the rule-9 token invariant (no literal colors).
+  - Bucket labels differ by granularity: day fixtures show date-formatted
+    ticks (month abbreviation), hour fixtures show time-formatted ticks
+    (colon-separated "HH:mm") (Q4).
+  - Dashed empty-panel state when the timeseries is empty (US3-9 / E-EMPTY).
+
+### Notes
+- "Done when" met: suite red only because `TrafficChart.tsx` does not exist
+  (Vite import-analysis `Failed to resolve import "./TrafficChart.js"`); not
+  a test compile error. Red half of the T022/T023 atomic unit.
+- jsdom stubs (`getBoundingClientRect` → 320×200, `hasPointerCapture`,
+  `scrollIntoView`) replicated from the chart primitive suite (T016) so
+  recharts `ResponsiveContainer` renders deterministically without real layout.
+- Tick selector uses `.recharts-cartesian-axis-tick-value` (the class sits on
+  the `<text>` element directly in recharts 3.7.0, not nested in a
+  `.recharts-cartesian-axis-tick` parent group).
+
+---
+
 ## [2026-07-16T15:25:10.986+01:00] — feat(admin-ui): T021 build KpiStrip widget (KpiStrip.tsx)
 
 ### Added

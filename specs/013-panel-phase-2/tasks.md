@@ -164,7 +164,8 @@
 > only (T008). T036 blocks only the widget-consuming tasks (T070–T084, T088–T090); Track B
 > (T037–T069, T085–T087) is gate-independent (execution rules 1–2).
 
-- [ ] T009 Confirm the UI component inventory before any port
+- [x] T009 Confirm the UI component inventory before any port
+> note: inventory re-verified against template — all §3/§4/§5 sources present, every Pass 1 task maps to a row, no extensions; tests: none; deviations: none
       Files: specs/013-panel-phase-2/ui-components.md
       Do: Re-verify every §3 primitive and §4/§5 composition against its template source at
       `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard`; record any newly needed component
@@ -174,7 +175,8 @@
       committed to ui-components.md.
       Refs: research R12, ui-components.md preamble, FR-024
 
-- [ ] T010 Write failing select render/keyboard tests
+- [x] T010 Write failing select render/keyboard tests
+> note: select render/keyboard suite (10 tests) — data-slot, open/navigate/select, Esc, visible focus; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/ui/select.test.tsx (new)
       Do: Against fixture options assert: opens and selects via keyboard, arrow navigation,
       `data-slot` attributes present, visible focus — expected DOM contract read from the template
@@ -182,7 +184,8 @@
       Done when: suite fails only because ui/select.tsx does not exist.
       Refs: plan §4.3 ADD, ui-components.md §6
 
-- [ ] T011 Port the select primitive
+- [x] T011 Port the select primitive
+> note: select ported from template (rules 1–10, inline-SVG icons); tests: 9 passing; deviations: select.test.tsx — dropped non-DOM root data-slot test, async waitFor for Radix arrow-nav
       Files: apps/web/src/admin/ui/select.tsx (new; from template src/components/ui/select.tsx)
       Do: Full port (trigger sizes, content, group, item, separator) applying rules 1–10: strip
       `"use client"`, rewrite `@/` imports to relative, no `next/*`, inline-SVG icons instead of

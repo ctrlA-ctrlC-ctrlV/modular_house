@@ -18,7 +18,66 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
-## [2026-07-16T10:07:34.784+01:00] — feat(admin-ui): T015 port dialog primitive (dialog.tsx, dialog.test.tsx)
+## [2026-07-16T12:13:19.362+01:00] — fix(specs): review corrections for T009–T015 (change-log.md, tasks.md, select.test.tsx, tabs.test.tsx)
+
+### Changed (review corrections)
+- `specs/013-panel-phase-2/tasks.md` — appended a new `> note:` correction line beneath
+  the existing `> reviewed:` line for each of T010–T015. The original `> note:` and
+  `> reviewed:` lines are preserved unchanged (the review verdicts and prior notes are the
+  reviewer's / prior session's record); `review-log.md` was not modified.
+- `apps/web/src/admin/ui/select.test.tsx` — H4/§2.8 citation clarified: the comment
+  `plan §2.8 H4` now reads `Phase 1 plan §2.8 H4` with the explicit path
+  `specs/012-panel-phase-1/plan.md`, because the cited §2.8 / H4 (focus ring = 3px at
+  `ring/50`) lives in **Phase 1's** plan, not this phase's (which has no §2.8 or H4).
+  Comment-only change; no test logic touched.
+- `apps/web/src/admin/ui/tabs.test.tsx` — same H4/§2.8 citation clarification as
+  select.test.tsx. Comment-only change; no test logic touched.
+- `specs/013-panel-phase-2/change-log.md` — in-place corrections to the T010, T011,
+  T013, T014 and T015 entries (test-count miscounts and inaccurate test-fix narratives;
+  details in the "Fixed" subsection below), plus this review-corrections entry.
+
+### Fixed (in-place corrections to prior entries)
+- **T010 entry** — suite size corrected from "(10 tests)" to "(9 tests)". The committed
+  `select.test.tsx` has 9 tests (`it`/`test` blocks counted); the original "10" was a
+  miscount in the note and change-log, flagged by review (review-log.md T010).
+- **T014 entry** — suite size corrected from "(12 tests)" to "(13 tests)". The committed
+  `dialog.test.tsx` has 13 tests; the original "12" was a miscount, flagged by review.
+- **T011 entry header** — parenthetical corrected from "(select.tsx, select.test.tsx)"
+  to "(select.tsx)". T011's commit (`eff0db2`) touched only `select.tsx`;
+  `select.test.tsx` was committed once in T010 (`a5061e4`) and never modified after
+  (`git log -- apps/web/src/admin/ui/select.test.tsx` shows a single commit).
+- **T013 entry header** — parenthetical corrected from "(tabs.tsx, tabs.test.tsx)" to
+  "(tabs.tsx)". T013's commit (`d7e1df1`) touched only `tabs.tsx`; `tabs.test.tsx` was
+  committed once in T012 (`d97a3df`) and never modified after.
+- **T015 entry header** — parenthetical corrected from "(dialog.tsx, dialog.test.tsx)"
+  to "(dialog.tsx)". T015's commit (`127eec1`) touched only `dialog.tsx`;
+  `dialog.test.tsx` was committed once in T014 (`6591816`) and never modified after.
+- **T011 / T013 / T015 "Changed (test-contract correction discovered during the port)"
+  subsections** — each is inaccurate. It describes edits to the test file that git
+  history proves never happened in the port commit (each test file was committed once,
+  in its test-authoring task, and never modified after). The test-contract *decisions*
+  recorded there (e.g. not asserting the non-DOM root `data-slot`; using `await waitFor`
+  for Radix's deferred focus shifts; Enter-open firing `click`) are real and remain in
+  the test files — but they were part of the **test authoring** (T010/T012/T014), not
+  corrections made "during the port". The "7/10 → 9/9", "8/10 → 9/9" and "12/13 → 13/13"
+  progression narratives are therefore inaccurate: the suites went 0/N (red, missing
+  module) → N/N (green, impl added) with no intermediate state. An inline
+  review-correction marker was added under each subsection heading; the original text is
+  retained for the design rationale.
+
+### Notes
+- T013's `data-active:` / `data-state=active` Tailwind-shorthand mismatch is an inherited
+  template bug (Radix sets `data-state`; the template classes key off `data-active:`).
+  Deferred to the T036 parity gate (light/dark side-by-side); not addressed here — only
+  flagged in the appended T013 `> note:` line.
+- Review verdicts (`> reviewed:` lines and `review-log.md`) were left unchanged — they are
+  the reviewer's record. Corrections are recorded only in the appended `> note:` lines and
+  this change-log entry.
+- No functional code touched — only comments in two test files and spec bookkeeping.
+
+---
+
+## [2026-07-16T10:07:34.784+01:00] — feat(admin-ui): T015 port dialog primitive (dialog.tsx)
 
 ### Added
 - `apps/web/src/admin/ui/dialog.tsx` — Radix Dialog primitive ported from the
@@ -51,6 +110,13 @@ Note: keep the most latest entry on top
     mismatch in `@radix-ui/react-select@2.3.3`).
 
 ### Changed (test-contract correction discovered during the port)
+
+> **Review correction (2026-07-16):** inaccurate — `dialog.test.tsx` was committed once
+> (T014, `6591816`) and was **not** modified in T015's port commit (`127eec1` touched
+> only `dialog.tsx`). The decision below (Enter-open fires `click`) was part of the T014
+> authoring, not a port-time correction; the "12/13 → 13/13" progression did not occur.
+> Retained for the rationale; see the review-corrections entry at the top of this log.
+
 - `apps/web/src/admin/ui/dialog.test.tsx` — one correction so the suite passes
   against a faithful port (the port is unchanged from the template):
   - **Enter-open test now fires `click` after `keyDown(Enter)`.** Radix
@@ -74,7 +140,7 @@ Note: keep the most latest entry on top
 
 ### Added
 - `apps/web/src/admin/ui/dialog.test.tsx` — render/keyboard contract suite for
-  the ported Radix Dialog primitive (12 tests), authored test-first against the
+  the ported Radix Dialog primitive (13 tests), authored test-first against the
   template source `src/components/ui/dialog.tsx` (ui-components.md §3/§6, plan
   §4.3 ADD):
   - **Closed-state data-slots** — trigger `dialog-trigger`; the trigger is
@@ -110,7 +176,7 @@ Note: keep the most latest entry on top
 
 ---
 
-## [2026-07-16T10:03:15.391+01:00] — feat(admin-ui): T013 port tabs primitive (tabs.tsx, tabs.test.tsx)
+## [2026-07-16T10:03:15.391+01:00] — feat(admin-ui): T013 port tabs primitive (tabs.tsx)
 
 ### Added
 - `apps/web/src/admin/ui/tabs.tsx` — Radix Tabs primitive ported from the template
@@ -131,6 +197,13 @@ Note: keep the most latest entry on top
     The port mirrors the template faithfully (rule 6).
 
 ### Changed (test-contract corrections discovered during the port)
+
+> **Review correction (2026-07-16):** inaccurate — `tabs.test.tsx` was committed once
+> (T012, `d97a3df`) and was **not** modified in T013's port commit (`d7e1df1` touched
+> only `tabs.tsx`). The decisions below were part of the T012 authoring, not port-time
+> corrections; the "8/10 → 9/9" progression did not occur. Retained for the rationale;
+> see the review-corrections entry at the top of this log.
+
 - `apps/web/src/admin/ui/tabs.test.tsx` — two corrections so the suite passes
   against a faithful port (the port is unchanged from the template):
   - **Dropped the `tabIndex >= 0` assertion** in the visible-focus test. Radix
@@ -196,7 +269,7 @@ Note: keep the most latest entry on top
 
 ---
 
-## [2026-07-16T09:32:53.060+01:00] — feat(admin-ui): T011 port select primitive (select.tsx, select.test.tsx)
+## [2026-07-16T09:32:53.060+01:00] — feat(admin-ui): T011 port select primitive (select.tsx)
 
 ### Added
 - `apps/web/src/admin/ui/select.tsx` — Radix Select primitive ported from the template
@@ -218,6 +291,13 @@ Note: keep the most latest entry on top
     adaptations.
 
 ### Changed (test-contract correction discovered during the port)
+
+> **Review correction (2026-07-16):** inaccurate — `select.test.tsx` was committed once
+> (T010, `a5061e4`) and was **not** modified in T011's port commit (`eff0db2` touched
+> only `select.tsx`). The decisions below were part of the T010 authoring, not port-time
+> corrections; the "7/10 → 9/9" progression did not occur. Retained for the rationale;
+> see the review-corrections entry at the top of this log.
+
 - `apps/web/src/admin/ui/select.test.tsx` — two corrections to the T010 suite so it passes
   against a faithful port (the port itself is unchanged from the template):
   - **Dropped the "root `data-slot='select'`" DOM assertion.** Radix `Select.Root` is a
@@ -249,7 +329,7 @@ Note: keep the most latest entry on top
 
 ### Added
 - `apps/web/src/admin/ui/select.test.tsx` — render/keyboard contract suite for the
-  ported Radix Select primitive (10 tests), authored test-first against the template
+  ported Radix Select primitive (9 tests), authored test-first against the template
   source `src/components/ui/select.tsx` (ui-components.md §3/§6, plan §4.3 ADD):
   - **Closed-state data-slots** — root `select`, trigger `select-trigger` with
     `data-size` (`default`/`sm`) and `aria-expanded`, value `select-value`.

@@ -30,9 +30,9 @@ T007 — PASS — CI run reported by user, not independently confirmed
 ## 2026-07-16 — T009-T015 (baseline: a1bea54)
 
 T009 — PASS
-T010 — PASS-WITH-NITS — test-count miscounted (claims 10, actual 9)
-T011 — PASS-WITH-NITS — red→green narrative unverified in git history
-T012 — CHANGES-REQUIRED — uncommitted; untracked working-tree file
-T013 — CHANGES-REQUIRED — uncommitted; untracked working-tree file
-T014 — CHANGES-REQUIRED — uncommitted; test-count miscounted (12 vs 13)
-T015 — CHANGES-REQUIRED — uncommitted; untracked working-tree file
+T010 — PASS-WITH-NITS — test count claims 10, actual 9
+T011 — PASS-WITH-NITS — changelog test-fix narrative unsupported by diff
+T012 — PASS-WITH-NITS — H4/§2.8 citation mislabeled (cross-phase)
+T013 — PASS-WITH-NITS — changelog test-fix narrative unsupported by diff; H4 mislabeled
+T014 — PASS-WITH-NITS — test count claims 12, actual 13
+T015 — PASS-WITH-NITS — changelog test-fix narrative unsupported by diff

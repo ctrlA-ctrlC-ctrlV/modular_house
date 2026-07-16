@@ -18,6 +18,75 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-16T15:25:10.986+01:00] — feat(admin-ui): T021 build KpiStrip widget (KpiStrip.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/KpiStrip.tsx` — KpiStrip widget adapting the
+  template `_components/analytics-kpi-strip.tsx` (ui-components.md §4, plan
+  §4.3 ADD, FR-018, Q5), applying compatibility rules 1–10:
+  - `"use client"` stripped (rule 1); `@/components/ui/*` rewritten to relative
+    `../ui/*` (rule 2); no `next/*` (rule 3); `lucide-react` arrows replaced
+    with inline-SVG `ArrowUpRightIcon` / `ArrowDownRightIcon` components (rule 4).
+  - `data-slot` attributes preserved via the Phase 1 `Card`/`CardTitle`/
+    `CardContent` primitives and the T019 `Badge` (rule 5); Tailwind token
+    class strings preserved verbatim, including the outer
+    `rounded-xl bg-card shadow-xs ring-1 ring-foreground/10` frame, the
+    `grid ... md:grid-cols-2 xl:grid-cols-5` divided strip, and the
+    `text-2xl leading-none tracking-tight` value typography (rule 6).
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R11)
+- `apps/web/src/admin/analytics/KpiStrip.tsx` — adaptations from the template,
+  each spec-driven (no taste):
+  - **KPI set superseded.** Five cells render the spec's KPIs — page views,
+    unique visitors, sessions, returning-visitor rate, pages per session — in
+    that order, replacing the template's Unique Visitors / Sessions / Pageviews
+    / Engagement Rate / Conversion Rate.
+  - **Per-card ellipsis menu omitted.** The template's `CardAction` with an
+    `Ellipsis` icon is not shipped this phase; no `CardAction` is rendered.
+  - **Caption wording.** "from <X> - last period" replaces the template's
+    "from <X> • last 4 weeks" (the range length is variable).
+  - **Q5 delta variants.** The three `KpiValue` comparison states render
+    distinctly: numeric previous -> tinted delta badge (up arrow + green tint
+    for >= 0, down arrow + destructive tint for < 0); `previous: null` -> a
+    muted "no prior data" label; `previous: 0` (or non-computable delta) -> a
+    muted "—". Deltas never render NaN/Infinity (Q5). The caption is omitted
+    when `previous` is null.
+  - **Dashed empty state.** When every KPI current is zero (US3-9 / E-EMPTY),
+    the cell grid is replaced by the template's dashed `border-border`
+    `text-muted-foreground` empty panel inside the retained card frame.
+
+### Notes
+- "Done when" met: T020 suite green (9 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors; no `lucide-react`/`next/*` imports; no new
+  package added (composes the Phase 1 `Card` primitive and the T019 `Badge`).
+- Green half of the T020/T021 atomic unit, closed by this commit's change-log
+  entry. Fixture data only (Pass 1, no data wiring).
+
+---
+
+## [2026-07-16T15:25:02.000+01:00] — test(admin-ui): T020 KpiStrip static render suite (KpiStrip.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/KpiStrip.test.tsx` — 9-test static render
+  suite pinning the KpiStrip widget contract against T008 fixture payloads
+  (ui-components.md §4, plan §4.3 ADD, FR-018, Q5):
+  - Five KPI cells in spec order with the spec labels; `text-2xl tracking-tight`
+    current-value rendering.
+  - Q5 delta variants: numeric previous -> tinted delta badge (up arrow +
+    green tint; down arrow + destructive tint for negative); `previous: null`
+    -> "no prior data" (no badge); `previous: 0` -> "—" (no badge).
+  - "from X - last period" caption with the previous value (omitted when
+    previous is null).
+  - Dashed empty-panel state when every KPI current is zero (US3-9 / E-EMPTY).
+  - No NaN/Infinity across every fixture variant (Q5 invariant).
+
+### Notes
+- "Done when" met: suite red only because `KpiStrip.tsx` does not exist
+  (Vite import-analysis `Failed to resolve import "./KpiStrip.js"`); not a
+  test compile error. Red half of the T020/T021 atomic unit.
+
+---
+
 ## [2026-07-16T14:28:23.614+01:00] — feat(admin-ui): T019 port badge primitive (badge.tsx)
 
 ### Added

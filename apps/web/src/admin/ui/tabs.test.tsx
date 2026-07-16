@@ -51,7 +51,8 @@ function renderTabs(defaultValue = 'alpha') {
 }
 
 // H4 visible-focus ring token classes preserved verbatim from the template
-// trigger (plan §2.8 H4: 3px at ring/50). Presence = visible-focus contract.
+// trigger (Phase 1 plan §2.8 H4: 3px at ring/50 — specs/012-panel-phase-1/plan.md,
+// not this phase's plan). Presence = visible-focus contract.
 const FOCUS_RING_CLASSES = [
   'focus-visible:ring-[3px]',
   'focus-visible:ring-ring/50',

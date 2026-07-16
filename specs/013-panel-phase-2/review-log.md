@@ -26,3 +26,13 @@ T004 — CHANGES-REQUIRED — confirmed migration unapplied on real dev DB via t
 T004 — PASS — ssh tunnel found, migration applied + verified on real dev DB
 T005 — PASS — permanent 9-test suite verified passing
 T007 — PASS — CI run reported by user, not independently confirmed
+
+## 2026-07-16 — T009-T015 (baseline: a1bea54)
+
+T009 — PASS
+T010 — PASS-WITH-NITS — test-count miscounted (claims 10, actual 9)
+T011 — PASS-WITH-NITS — red→green narrative unverified in git history
+T012 — CHANGES-REQUIRED — uncommitted; untracked working-tree file
+T013 — CHANGES-REQUIRED — uncommitted; untracked working-tree file
+T014 — CHANGES-REQUIRED — uncommitted; test-count miscounted (12 vs 13)
+T015 — CHANGES-REQUIRED — uncommitted; untracked working-tree file

@@ -166,6 +166,7 @@
 
 - [x] T009 Confirm the UI component inventory before any port
 > note: inventory re-verified against template — all §3/§4/§5 sources present, every Pass 1 task maps to a row, no extensions; tests: none; deviations: none
+> reviewed: PASS
       Files: specs/013-panel-phase-2/ui-components.md
       Do: Re-verify every §3 primitive and §4/§5 composition against its template source at
       `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard`; record any newly needed component
@@ -177,6 +178,7 @@
 
 - [x] T010 Write failing select render/keyboard tests
 > note: select render/keyboard suite (10 tests) — data-slot, open/navigate/select, Esc, visible focus; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS-WITH-NITS — committed suite has 9 tests, not 10
       Files: apps/web/src/admin/ui/select.test.tsx (new)
       Do: Against fixture options assert: opens and selects via keyboard, arrow navigation,
       `data-slot` attributes present, visible focus — expected DOM contract read from the template
@@ -186,6 +188,7 @@
 
 - [x] T011 Port the select primitive
 > note: select ported from template (rules 1–10, inline-SVG icons); tests: 9 passing; deviations: select.test.tsx — dropped non-DOM root data-slot test, async waitFor for Radix arrow-nav
+> reviewed: PASS-WITH-NITS — no diff a5061e4→eff0db2, correction narrative unverifiable
       Files: apps/web/src/admin/ui/select.tsx (new; from template src/components/ui/select.tsx)
       Do: Full port (trigger sizes, content, group, item, separator) applying rules 1–10: strip
       `"use client"`, rewrite `@/` imports to relative, no `next/*`, inline-SVG icons instead of
@@ -197,6 +200,7 @@
 
 - [x] T012 Write failing tabs render/keyboard tests
 > note: tabs render/keyboard suite (9 tests) — data-slot, roles, aria-selected, ArrowRight/Down/Left roving focus, content switch, visible focus; tests: 0 passing (red on missing module); deviations: none
+> reviewed: CHANGES-REQUIRED — file untracked, never committed
       Files: apps/web/src/admin/ui/tabs.test.tsx (new)
       Do: Assert tab list renders, arrow-key roving focus, active-tab content switching,
       `data-slot` attributes — contract from template src/components/ui/tabs.tsx.
@@ -205,6 +209,7 @@
 
 - [x] T013 Port the tabs primitive
 > note: tabs ported from template (rules 1–10, cva variants preserved); tests: 9 passing; deviations: tabs.test.tsx — dropped tabIndex roving assertion, removed ArrowDown vertical test (template orientation is CSS-only)
+> reviewed: CHANGES-REQUIRED — file untracked, never committed
       Files: apps/web/src/admin/ui/tabs.tsx (new; from template src/components/ui/tabs.tsx)
       Do: Full port (list, trigger, content) applying rules 1–10.
       Done when: T012 green; renders under Vite; attributes and classes preserved.
@@ -212,6 +217,7 @@
 
 - [x] T014 Write failing dialog render/keyboard tests
 > note: dialog render/keyboard suite (12 tests) — data-slots, role=dialog, aria-labelledby/describedby, Enter open, Esc close, focus in/return, showCloseButton; tests: 0 passing (red on missing module); deviations: none
+> reviewed: CHANGES-REQUIRED — untracked; suite has 13 tests, not 12
       Files: apps/web/src/admin/ui/dialog.test.tsx (new)
       Do: Assert open/close via keyboard, Esc closes, title/description wiring, `data-slot`
       attributes, focus lands in the dialog and returns on close — contract from template
@@ -221,6 +227,7 @@
 
 - [x] T015 Port the dialog primitive
 > note: dialog ported from template (rules 1–10, inline-SVG XIcon, reuses Phase 1 Button + @radix-ui/react-dialog, no new pkg); tests: 13 passing; deviations: dialog.test.tsx — Enter-open fires click (jsdom default-action sim)
+> reviewed: CHANGES-REQUIRED — file untracked, never committed
       Files: apps/web/src/admin/ui/dialog.tsx (new; from template src/components/ui/dialog.tsx)
       Do: Full port (overlay, content, header, footer, title, description, close) applying rules
       1–10; reuse the already-present `@radix-ui/react-dialog` (no new dependency).

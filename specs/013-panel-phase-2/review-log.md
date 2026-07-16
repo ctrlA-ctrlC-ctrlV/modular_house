@@ -45,3 +45,10 @@ T012 — PASS — H4 citation now points to Phase 1 plan
 T013 — PASS — change-log annotated; data-active/data-state mismatch deferred to T036
 T014 — PASS — count corrected to 13
 T015 — PASS — change-log annotated with accurate correction, original retained
+
+## 2026-07-16 — T016-T019 (baseline: 354401d)
+
+T016 — PASS
+T017 — PASS
+T018 — PASS
+T019 — PASS

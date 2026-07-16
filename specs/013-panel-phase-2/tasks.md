@@ -247,6 +247,7 @@
 
 - [x] T016 Write failing chart render tests
 > note: chart render contract suite (4 tests) — data-slot chart, CSS-var tokens not literals, tooltip label/value, indicator var color; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/ui/chart.test.tsx (new)
       Do: Assert ChartContainer renders a recharts chart from fixture config, tooltip content
       renders, and no literal color values appear in rendered style attributes — contract from
@@ -256,6 +257,7 @@
 
 - [x] T017 Port the chart primitive
 > note: chart ported from template (rules 1–10, CSS-var color plumbing, ChartContainer/Tooltip/Legend); tests: 4 passing; deviations: chart.tsx — recharts 3.7.0 lacks TooltipValueType export, defined locally
+> reviewed: PASS — byte-for-byte match to template bar the documented type adaptation
       Files: apps/web/src/admin/ui/chart.tsx (new; from template src/components/ui/chart.tsx)
       Do: Port `ChartContainer`, `ChartTooltip`, `ChartTooltipContent`, `ChartConfig` keeping the
       CSS-variable color plumbing; series colors resolve to `var(--chart-N)` tokens, never
@@ -265,6 +267,7 @@
 
 - [x] T018 Write failing badge render tests
 > note: badge render contract suite (13 tests) — data-slot, 6 variants data-variant, rounded-4xl pill, token classes, asChild Slot, badgeVariants; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/ui/badge.test.tsx (new)
       Do: Assert each variant renders with its `data-variant` attribute and token classes —
       contract from template src/components/ui/badge.tsx.
@@ -273,6 +276,7 @@
 
 - [x] T019 Port the badge primitive
 > note: badge ported from template (rules 1–10, 6 variants, pill shape, Slot not Slot.Root per @radix-ui/react-slot); tests: 13 passing; deviations: badge.tsx — Slot.Root→Slot per pinned @radix-ui/react-slot export
+> reviewed: PASS — byte-for-byte match to template bar the documented Slot adaptation
       Files: apps/web/src/admin/ui/badge.tsx (new; from template src/components/ui/badge.tsx)
       Do: Full port — pill shape (`rounded-4xl`) and tinted variants — applying rules 1–10.
       Done when: T018 green; renders all variants under Vite.

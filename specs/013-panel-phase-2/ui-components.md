@@ -65,7 +65,7 @@ Each adaptation is a spec-driven decision documented in research R11 — nothing
 | `RangeToolbar.tsx` | `_components/analytics-toolbar.tsx` | Select styling and placement | Options = 24 hours / 7 days / 28 days / 3 months / More (spec Q2, supersedes template values); export/import/share ellipsis menu omitted (out of scope) |
 | `TrafficChart.tsx` | `_components/traffic-quality.tsx` | Card frame, ComposedChart, `ChartContainer` config, axis/tooltip styling, `var(--chart-N)` series | Series = page views + sessions per bucket (real data), replacing the fixture "quality" series |
 | `RealtimeCard.tsx` | `_components/realtime-visitors.tsx` | Card frame, live-count emphasis, list rhythm | Country flag rows removed (geo out of scope); shows active-visitor count + top-5 active pages; no `flags.css` import |
-| `TopPages.tsx` | `_components/top-pages.tsx` | Card frame, ranked rows, share presentation | Data = top-10 paths with share of views |
+| `TopPages.tsx` | `_components/top-pages.tsx` | Card frame, ranked rows, share presentation | Data = top-10 paths with share of views; table rendered with native `<table>` elements carrying template `data-slot` attributes (`table.tsx` not in §3 port inventory — inlined, not ported as a new primitive) |
 | `TrafficSources.tsx` | `_components/top-traffic-sources.tsx` | Card frame, ranked/share presentation | Rows = the five source groups, zero-valued groups shown |
 
 ## 5. New compositions with no direct template source

@@ -18,6 +18,101 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-20T14:54:09.014+01:00] — feat(admin-ui): T031 build RangeToolbar widget (RangeToolbar.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/RangeToolbar.tsx` — RangeToolbar widget
+  adapting the template `_components/analytics-toolbar.tsx`
+  (ui-components.md §4, plan §4.3 ADD, Q2, FR-019), applying compatibility
+  rules 1–10:
+  - `"use client"` stripped (rule 1); `@/components/ui/*` rewritten to
+    relative `../ui/select.js` for the ported Phase 2 select primitive
+    (rule 2); no `next/*` (rule 3); no `lucide-react` (rule 4 — the
+    template's `Ellipsis` icon belonged to the omitted menu, not replaced).
+  - `data-slot` attributes preserved via the ported select primitive
+    (rule 5); Tailwind token class strings preserved verbatim, including
+    the template trigger width `w-34` (rule 6).
+  - Exported the `RANGE_PRESETS` array, `RangePresetId` type, and
+    `DEFAULT_RANGE_PRESET` constant as the extension point for the page
+    composition (T035) and Pass 2 range math (Open-Closed).
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R10)
+- `apps/web/src/admin/analytics/RangeToolbar.tsx` — adaptations from the
+  template, each spec-driven (no taste):
+  - **Option set superseded by spec Q2.** The template's four options
+    (`Last 7 days` / `Last 4 weeks` / `Last 3 months` / `Year to date`)
+    are replaced by the five Q2 options in pinned order: `24 hours` /
+    `7 days` / `28 days` / `3 months` / `More`. Q2 is explicit that the
+    spec values supersede the template's.
+  - **Default `3 months`.** Q2: "default = 3 months". The select
+    initialises uncontrolled to the `3m` preset id (Radix
+    `defaultValue`); the trigger shows "3 months" on first render.
+  - **`More` is a select option.** Q2 lists `More` as one of the five
+    selector options; selecting it is reported through the same
+    `onSelect` callback. Opening the custom-range pop-up (RangeDialog)
+    on `More` is Pass 2 wiring (T033/T080+) — only the callback seam
+    ships in Pass 1.
+  - **Export/import/share ellipsis menu omitted.** The template's
+    `DropdownMenu` (aria-label "More analytics actions") with Export
+    report / Import data / Share dashboard / Refresh metrics is not
+    shipped — export/import/share are out of scope (plan §1.4
+    guardrails) and no per-card menu precedent exists (KpiStrip /
+    TrafficChart / RealtimeCard / TopPages / TrafficSources all omit the
+    template's ellipsis). Asserted by the T030 suite.
+  - **Preset ids.** Each option carries a machine id matching the T-F8
+    shorthand (`24h` / `7d` / `28d` / `3m` / `more`); the callback
+    receives the id, not the display label, so Pass 2 wiring branches on
+    a stable enum-like value.
+  - **Selection is a callback prop.** Per T031: "Selection is a callback
+    prop — no data fetching." The select's `onValueChange` is bridged to
+    `onSelect`; the widget holds no range state of its own.
+
+### Notes
+- "Done when" met: T030 suite green (5 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors; no `lucide-react`/`next/*` imports; no
+  new package added (composes the ported Phase 2 select primitive only).
+- Green half of the T030/T031 atomic unit, closed by this commit's
+  change-log entry. Fixture state only (Pass 1, no data wiring, no
+  RangeDialog behaviour).
+
+---
+
+## [2026-07-20T14:50:00.000+01:00] — test(admin-ui): T030 RangeToolbar static render + keyboard suite (RangeToolbar.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/RangeToolbar.test.tsx` — 5-test static
+  render + keyboard suite pinning the RangeToolbar contract against Q2
+  (ui-components.md §4, plan §4.3 ADD, Q2, FR-019):
+  - Default "3 months": the trigger displays "3 months" with no preset
+    prop supplied (Q2: "default = 3 months").
+  - Exactly five options in spec order: opening the listbox yields five
+    `role="option"` items whose labels are, in document order, "24
+    hours", "7 days", "28 days", "3 months", "More" (Q2).
+  - Keyboard operability: ArrowDown on the focused trigger opens the
+    listbox and Radix focuses the default-selected "3 months" item
+    (constitution V / H4).
+  - Callback fires with the preset id: ArrowUp to "28 days" + Enter
+    calls `onSelect` with `"28d"` (the T-F8 shorthand), not the label
+    (T031: "Selection is a callback prop").
+  - Ellipsis menu omitted: no `aria-label="More analytics actions"`
+    control renders (ui-components.md §4 documented adaptation).
+
+### Notes
+- "Done when" met: suite red only because `RangeToolbar.tsx` does not
+  exist (Vite import-analysis `Failed to resolve import
+  "./RangeToolbar.js"`); not a test compile error. Red half of the
+  T030/T031 atomic unit.
+- Keyboard focus targets account for Radix Select's
+  selected-item-on-open behaviour: because RangeToolbar initialises with
+  `defaultValue="3m"`, opening focuses "3 months" (index 3), not the
+  first option. The callback test navigates ArrowUp from "3 months" to
+  "28 days". This refinement was applied during the T031 green half
+  after the impl revealed the focus target; the asserted contract points
+  are unchanged.
+- `eslint` clean on the test file; typecheck green across the unit.
+
+---
+
 ## [2026-07-20T14:14:53.440+01:00] — fix(admin-ui): T027-nit, T028-nit review corrections (ui-components.md, TrafficSources.test.tsx)
 
 ### Changed

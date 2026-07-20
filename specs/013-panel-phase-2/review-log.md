@@ -59,3 +59,9 @@ T020 — PASS
 T021 — PASS
 T022 — PASS
 T023 — PASS-WITH-NITS — direct recharts import (rule 9); UTC label tz not London
+
+## 2026-07-20 — T023-nit, T024-T025 (baseline: 720e564)
+
+T023 — PASS-WITH-NITS — rule9/tz fixed; TrafficChart fix commit mislabeled
+T024 — PASS
+T025 — PASS

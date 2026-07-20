@@ -317,6 +317,7 @@
 > note: TrafficChart — ComposedChart in ChartContainer, views+sessions chart-1/2 lines, day/hour ticks, dashed empty; tests: 5 passing; deviations: TrafficChart.tsx — recharts structural imports direct
 > reviewed: PASS-WITH-NITS — rule 9 structural import; UTC vs London tick tz
 > note: review-nit fix — structural recharts re-exported from chart.tsx (rule 9); bucket labels Europe/London tz (Q4); tests: 5 passing; deviations: none
+> reviewed: PASS-WITH-NITS — rule 9/tz fixed; fix commit reused build message
       Files: apps/web/src/admin/analytics/TrafficChart.tsx (new; adapts template
       _components/traffic-quality.tsx)
       Do: Card frame + ComposedChart via the ported `chart.tsx` only (never direct recharts
@@ -327,6 +328,7 @@
 
 - [x] T024 Write failing RealtimeCard static tests
 > note: 5-test suite — active count, top-5 page rows, zero dashed empty, no flag markup, card frame + title; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/RealtimeCard.test.tsx (new)
       Do: Against T008 fixtures assert active-visitor count, top-5 page rows, zero-state
       rendering, no flag markup.
@@ -335,6 +337,7 @@
 
 - [x] T025 Build RealtimeCard against fixture data
 > note: RealtimeCard from template — live count + Live indicator, top-5 pages list, no flags/BarChart, dashed empty; tests: 5 passing; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/RealtimeCard.tsx (new; adapts template
       _components/realtime-visitors.tsx)
       Do: Card frame with live-count emphasis + top-5 active pages list; country-flag rows removed

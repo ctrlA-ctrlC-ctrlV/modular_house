@@ -18,6 +18,150 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-20T15:53:05.934+01:00] — docs(specs): T036 parity gate — programmatic checks complete, visual side-by-side pending (ui-components.md)
+
+### Changed
+- `specs/013-panel-phase-2/ui-components.md` — §6 parity gate checklist
+  updated with the programmatic verification results for T036:
+  - **DOM structure + data-slot attributes**: checked off — 100+ data-slot
+    occurrences across all ported primitives and compositions, verified by
+    the T010–T035 test suites.
+  - **Token usage**: checked off — no literal colors in analytics widget
+    code; TrafficChart uses `var(--chart-1)` / `var(--chart-2)` (asserted
+    by T022); the `#ccc` / `#fff` in chart.tsx are recharts CSS attribute
+    selectors (template's own override pattern, not our colors).
+  - **Side-by-side visual check (light and dark)**: LEFT UNCHECKED —
+    requires human visual inspection. The agent cannot render web pages.
+    Flagged as a blocker: T036 is not complete until a human approves the
+    visual side-by-side, and T037+ (Pass 2 widget-consuming tasks) remain
+    blocked.
+  - **Keyboard operability + visible focus**: checked off — verified by
+    the Pass 1 keyboard suites (select T010, tabs T012, dialog T014,
+    RangeToolbar T030, RangeDialog T032, Analytics page T034).
+  - **Pass 1 suites green**: checked off — 45 files, 365 tests passing.
+
+### Added
+- `specs/013-panel-phase-2/ui-components.md` — §6 "Recorded deviations"
+  section documenting three adaptations discovered during Pass 1:
+  1. Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036) —
+     the template's `data-active:` Tailwind shorthands don't match Radix's
+     `data-state="active"` attribute; class strings preserved verbatim per
+     rule 6; visual impact minimal (non-`data-active:` classes still apply
+     active styling); if the visual check reveals a meaningful discrepancy,
+     the fix is `data-[state=active]:` in the tabs primitive (Pass 3 polish).
+  2. Chart `#ccc` / `#fff` CSS attribute selectors (T017) — recharts
+     internal-style overrides, not literal design colors; template's own
+     pattern.
+  3. RangeDialog composed, not ported (T033) — no direct template source
+     (ui-components.md §5); composition follows template dialog/form
+     conventions; visual side-by-side should verify consistency.
+
+### Notes
+- T036 is **partially complete**: 4 of 5 checklist items verified
+  programmatically and checked off; the visual side-by-side item requires
+  human approval. The T036 task box in tasks.md is NOT checked — "Done
+  when: every checklist item is checked and the light/dark side-by-side is
+  approved" is not fully met. T037+ (Pass 2 widget-consuming tasks) remain
+  blocked by the parity gate until the visual check is approved.
+- `eslint` not applicable (spec file); `tsc --noEmit` not applicable.
+- No tasks.md block emitted for T036 (no box checked, no note added).
+
+---
+
+## [2026-07-20T15:49:42.914+01:00] — feat(admin-ui): T035 compose static Analytics page (Analytics.tsx)
+
+### Added
+- `apps/web/src/admin/pages/Analytics.tsx` — Analytics page adapting the
+  template `analytics/page.tsx` (ui-components.md §4, plan §4.3 ADD,
+  FR-022/FR-024, US3-13, research R11), applying compatibility rules 1–10:
+  - `Tabs` + `TabsList` + `TabsTrigger` + `TabsContent` from the ported
+    Phase 2 tabs primitive (T013); `RangeToolbar` (T031), `KpiStrip`
+    (T021), `TrafficChart` (T023), `RealtimeCard` (T025), `TopPages`
+    (T027), `TrafficSources` (T029) from the Pass 1 widgets; fixture
+    payloads from `fixtures.ts` (T008).
+  - No `"use client"` (rule 1); `@/components/ui` rewritten to relative
+    `../ui/tabs.js` and `../analytics/*` (rule 2); no `next/*` (rule 3);
+    no `lucide-react` (rule 4); `data-slot` attributes preserved via the
+    primitives (rule 5); Tailwind token class strings preserved verbatim
+    from the template (rule 6).
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R11)
+- `apps/web/src/admin/pages/Analytics.tsx` — adaptations from the
+  template, each spec-driven (no taste):
+  - **Greeting replaced by page title.** The template's `<h1>Hello, Aiy</h1>`
+    greeting is replaced by "Analytics" — documented adaptation
+    (ui-components.md §4: "greeting text replaced by page title"). The
+    subtitle is retained from the template.
+  - **Tab set kept.** The template's five tabs (Overview / Audience /
+    Acquisition / Engagement / Conversions) are retained verbatim
+    (FR-022: follows template; FR-024: extension point). Overview is the
+    default-active tab. Non-Overview tabs render the template's own dashed
+    `border-border` `text-muted-foreground` "coming soon" placeholder
+    panels (guardrails: placeholder panels only).
+  - **RangeToolbar replaces AnalyticsToolbar.** The template's
+    `AnalyticsToolbar` (select + ellipsis menu) is replaced by the ported
+    `RangeToolbar` (T031). The toolbar is placed in the same flex row as
+    the `TabsList`, matching the template's layout. The `onSelect`
+    callback is a no-op in Pass 1 — the dashboard page owns the preset in
+    Pass 2.
+  - **Widget composition.** The Overview tab content composes the six
+    widgets in the template's two-row grid: Row 1 — KpiStrip (full width),
+    then TrafficChart (xl:col-span-7) + RealtimeCard (xl:col-span-5);
+    Row 2 — TopPages (xl:col-span-7) + TrafficSources (xl:col-span-5,
+    xl:col-start-8). The `xl:grid-cols-12` / `gap-4` / `grid-cols-1` /
+    `items-stretch` classes are preserved verbatim (FR-022: "adapt to
+    small viewports without horizontal scrolling").
+  - **Fixture data only.** All widget props sourced from `overviewPopulated`
+    + `realtimePopulated` — no live API calls, no data wiring (Pass 1).
+  - **No RangeDialog behavior.** The RangeDialog is not mounted in Pass 1
+    — it will be wired in Pass 2 (T080+) when `More` opens the pop-up.
+  - **No flags.css import.** The template imports `flag-icons/flags.css`
+    for country-flag rendering; the RealtimeCard adaptation (T025) removed
+    country-flag rows (geo out of scope), so the CSS import is not needed.
+
+### Notes
+- "Done when" met: T034 suite green (4 passing); `eslint` clean; `tsc
+  --noEmit` 0 errors; no new package added (composes ported primitives +
+  Pass 1 widgets only). Fixture data only (Pass 1, no data fetching, no
+  RangeDialog behavior).
+
+---
+
+## [2026-07-20T15:45:00.000+01:00] — test(admin-ui): T034 Analytics page static render suite (Analytics.test.tsx)
+
+### Added
+- `apps/web/src/admin/pages/Analytics.test.tsx` — 4-test static render
+  suite pinning the Analytics page contract against T008 fixture payloads
+  (ui-components.md §4, plan §4.3 ADD, FR-022/FR-024, US3-13):
+  - Tab row: five tab triggers (Overview, Audience, Acquisition,
+    Engagement, Conversions) with Overview active by default
+    (`aria-selected="true"` + `data-state="active"`).
+  - Non-Overview placeholder: ArrowRight keyboard activation on the
+    Overview tab moves to the Audience tab (Radix automatic activation)
+    and reveals the template's dashed `border-border`
+    `text-muted-foreground` "coming soon" placeholder panel.
+  - Six widget regions from fixtures: RangeToolbar (combobox with "3
+    months"), KpiStrip (5 KPI labels), TrafficChart ("Traffic Over Time"
+    title), RealtimeCard ("Realtime Visitors" title), TopPages ("Top
+    Pages" title), TrafficSources ("Traffic Sources" title).
+  - Single-column stacking at mobile width: grid containers carry both
+    `grid-cols-1` (mobile base) and `xl:grid-cols-12` (xl override)
+    classes, pinning the responsive contract (FR-022: "adapt to small
+    viewports without horizontal scrolling").
+
+### Notes
+- "Done when" met: suite red only because `Analytics.tsx` does not exist
+  (Vite import-analysis `Failed to resolve import "./Analytics.js"`); not
+  a test compile error. Red half of the T034/T035 atomic unit.
+- Tab activation uses ArrowRight keyboard navigation (Radix automatic
+  activation) rather than `fireEvent.click` / `pointerDown` — the T012
+  tabs primitive suite proved this is the reliable jsdom approach. The
+  `aria-selected` assertion is awaited via `waitFor` to handle Radix's
+  deferred focus/activation.
+- `eslint` clean on the test file; typecheck green across the unit.
+
+---
+
 ## [2026-07-20T15:19:24.076+01:00] — feat(admin-ui): T033 build RangeDialog widget (RangeDialog.tsx)
 
 ### Added

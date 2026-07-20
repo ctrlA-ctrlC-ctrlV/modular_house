@@ -451,6 +451,22 @@ function getPayloadConfigFromPayload(
   return configLabelKey in config ? config[configLabelKey] : config[key];
 }
 
+// Structural recharts components re-exported under the chart namespace so
+// widgets satisfy rule 9 ("recharts through chart.tsx only — widgets never
+// import recharts directly") without reaching the `recharts` module
+// themselves. This is an additive change to the T017 port — no existing
+// export or behavior is modified; the re-exports give widgets a single import
+// surface for both the wrapper infrastructure (ChartContainer, tooltip
+// machinery) and the structural chart components (axes, grids, series types).
+// Future widgets add their needed structural components here (Open-Closed).
+const {
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+} = RechartsPrimitive;
+
 export {
   ChartContainer,
   ChartTooltip,
@@ -458,4 +474,10 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  // Structural recharts components (rule 9 re-exports, T023-nit fix).
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
 };

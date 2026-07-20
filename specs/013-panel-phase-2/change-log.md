@@ -18,6 +18,101 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-20T11:02:06.399+01:00] — feat(admin-ui): T027 build TopPages widget (TopPages.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/TopPages.tsx` — TopPages widget adapting
+  the template `_components/top-pages.tsx` (ui-components.md §4, plan
+  §4.3 ADD, FR-021, Q6), applying compatibility rules 1–10:
+  - `"use client"` stripped (rule 1); `@/components/ui/*` rewritten to relative
+    `../ui/*` for the reused Phase 1 `Card` primitive (rule 2); no `next/*`
+    (rule 3); no `lucide-react` (rule 4 — the template's `Ellipsis` icon is
+    omitted, not replaced).
+  - `data-slot` attributes preserved on the `Card` primitive and the inlined
+    table elements (rule 5); Tailwind token class strings preserved verbatim,
+    no literal colors (rule 6).
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R11)
+- `apps/web/src/admin/analytics/TopPages.tsx` — adaptations from the
+  template, each spec-driven (no taste):
+  - **Columns superseded.** The template's Path | Views | Avg Time | Bounce
+    columns become Path | Views | Share. Avg Time (dwell time) and Bounce
+    (bounce rate) are out of scope (plan §1.4 guardrails). Share is the
+    spec's addition (FR-021: "with share of total views"), rendered as a
+    percentage (e.g. "37.7%") via `(share * 100).toFixed(1) + "%"` in a
+    right-aligned `tabular-nums` column.
+  - **Data source.** The template's hardcoded `pages` array is replaced by
+    the `topPages` prop (`TopPageEntry[]`), a slice of the overview response
+    (FR-021, Q6). The component trusts the input order — the contract
+    delivers `topPages` already ranked ("Ranked by views, descending (Q6)");
+    no client-side re-sorting.
+  - **10-row cap (Q6).** `topPages.slice(0, 10)` — only the first 10 entries
+    render; extra entries are dropped (Q6: top pages list length = 10).
+  - **Per-card ellipsis menu omitted.** The template's `CardAction` with an
+    `Ellipsis` icon is not shipped this phase — follows the KpiStrip /
+    TrafficChart / RealtimeCard precedent ("no per-card menu shipped").
+  - **Title.** "Top Pages" reflects the spec's "most-viewed pages" (FR-021),
+    replacing the template's "Page Performance".
+  - **Dashed empty state.** When `topPages` is empty (US3-9 / E-EMPTY), the
+    table is replaced by the template's dashed `border-border`
+    `text-muted-foreground` empty panel (ui-components.md §5); no table
+    renders in the empty state.
+
+### Notes
+- **Table primitive inlining (deviation — ui-components.md §3).** The
+  template's `_components/top-pages.tsx` imports
+  `Table`/`TableHeader`/`TableBody`/`TableRow`/`TableHead`/`TableCell` from
+  `@/components/ui/table`, but `table.tsx` is not in the §3 new-primitives
+  port list (T009 verified the inventory complete — no extensions). Per "a
+  component not in the inventory is not built", the table is rendered with
+  native `<table>`/`<thead>`/`<tbody>`/`<tr>`/`<th>`/`<td>` elements carrying
+  the template's `data-slot` attributes (`table-container`, `table`,
+  `table-header`, `table-row`, `table-head`, `table-cell`) and Tailwind token
+  classes mirroring the template's `table.tsx` primitive defaults merged with
+  the `top-pages.tsx` overrides (`hover:bg-transparent`, `border-border/50`,
+  `tabular-nums`, `max-w-0 truncate`, edge-padding `[&_td:first-child]:pl-4`
+  etc.). This preserves the template's DOM structure and `data-slot` contract
+  for the §6 parity gate without introducing a new admin primitive. If the
+  T036 parity review prefers a ported `table.tsx`, that is a T009-level
+  inventory extension, not a T027 correction.
+- "Done when" met: T026 suite green (5 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors; no `lucide-react`/`next/*` imports; no new
+  package added (composes the Phase 1 `Card` primitive only).
+- Green half of the T026/T027 atomic unit, closed by this commit's change-log
+  entry. Fixture data only (Pass 1, no data wiring).
+
+---
+
+## [2026-07-20T10:58:00.000+01:00] — test(admin-ui): T026 TopPages static render suite (TopPages.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/TopPages.test.tsx` — 5-test static render
+  suite pinning the TopPages widget contract against T008 fixture payloads
+  (ui-components.md §4, plan §4.3 ADD, FR-021, Q6):
+  - Ranking order: body rows render in the fixture's ranked order (descending
+    by views, FR-021); the component trusts input order (contract delivers
+    `topPages` ranked), no client-side re-sort asserted.
+  - Share rendering: each row's `share` value renders as a percentage
+    (FR-021: "with share of total views"), asserted as `(share*100).toFixed(1)%`.
+  - 10-row cap (Q6): an 11-entry input constructed inline (the T008 fixtures
+    max out at 5 entries) renders exactly 10 body rows — a test-only
+    construction, not a fixture change (T008 is closed/PASS).
+  - Empty state: the empty fixture renders the dashed `border-border`
+    `text-muted-foreground` empty panel (US3-9 / E-EMPTY,
+    ui-components.md §5) and no `[data-slot="table"]`.
+  - Card frame with the "Top Pages" title (`[data-slot="card"]` +
+    `[data-slot="card-title"]`).
+
+### Notes
+- "Done when" met: suite red only because `TopPages.tsx` does not exist
+  (Vite import-analysis `Failed to resolve import "./TopPages.js"`); not a
+  test compile error. Red half of the T026/T027 atomic unit.
+- `eslint` clean on the test file; typecheck deferred to the T027 green half
+  (the missing-module import is the expected red state, resolved when
+  `TopPages.tsx` lands in T027).
+
+---
+
 ## [2026-07-16T16:40:05.530+01:00] — feat(admin-ui): T025 build RealtimeCard widget (RealtimeCard.tsx)
 
 ### Added

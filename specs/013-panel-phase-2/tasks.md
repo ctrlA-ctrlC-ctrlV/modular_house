@@ -362,14 +362,16 @@
       Done when: T026 green (renders 10-row and empty fixtures).
       Refs: ui-components.md §4, FR-021, Q6 (render)
 
-- [ ] T028 Write failing TrafficSources static tests
+- [x] T028 Write failing TrafficSources static tests
+> note: TrafficSources static render suite (5 tests) — 5 groups render, zero-valued shown Q6, share %, dashed empty, card frame; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/analytics/TrafficSources.test.tsx (new)
       Do: Against T008 fixtures assert all five groups render (including zero-valued), share
       values, empty state.
       Done when: suite fails only because TrafficSources.tsx does not exist.
       Refs: plan §4.3 ADD, FR-021, Q6
 
-- [ ] T029 Build TrafficSources against fixture data
+- [x] T029 Build TrafficSources against fixture data
+> note: TrafficSources — Card + ranked rows, 5 S-groups zero-valued shown Q6, share %, dashed empty; tests: 5 passing; deviations: TrafficSources.tsx — Tabs removed + BarChart to rows per §4
       Files: apps/web/src/admin/analytics/TrafficSources.tsx (new; adapts template
       _components/top-traffic-sources.tsx)
       Do: Card frame, ranked/share presentation with exactly the five source groups as rows —

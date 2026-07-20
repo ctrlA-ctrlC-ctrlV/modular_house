@@ -428,14 +428,16 @@
       Done when: T032 green (renders presets + date inputs).
       Refs: ui-components.md §5, research R10, Q2, FR-019
 
-- [ ] T034 Write failing Analytics page static tests
+- [x] T034 Write failing Analytics page static tests
+> note: 4-test suite — 5 tabs Overview active, non-Overview dashed placeholder via ArrowRight activation, 6 widget regions from fixtures, grid-cols-1 xl:grid-cols-12 mobile stacking; tests: 4 passing; deviations: none
       Files: apps/web/src/admin/pages/Analytics.test.tsx (new)
       Do: Assert tab row (Overview active, placeholder panels for the rest), all six widget
       regions present from fixtures, and single-column stacking at mobile width.
       Done when: suite fails only because pages/Analytics.tsx does not exist.
       Refs: plan §4.3 ADD, FR-022/FR-024, US3-13
 
-- [ ] T035 Compose the static Analytics page against fixture data
+- [x] T035 Compose the static Analytics page against fixture data
+> note: Analytics page from template — heading title (no greeting), 5 tabs Overview active + dashed placeholders, xl:grid-cols-12 grid composing 6 widgets from fixtures, no RangeDialog, no data fetching; tests: 4 passing; deviations: none
       Files: apps/web/src/admin/pages/Analytics.tsx (new; adapts template analytics/page.tsx)
       Do: Heading block (greeting replaced by page title — documented adaptation), tab row via
       ported `tabs` with Overview active and non-Overview tabs rendering the template's own dashed

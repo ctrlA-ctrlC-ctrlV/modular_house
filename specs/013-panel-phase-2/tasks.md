@@ -387,14 +387,16 @@
       Done when: T028 green (renders five-group and empty fixtures).
       Refs: ui-components.md §4, FR-021, Q6 (render)
 
-- [ ] T030 Write failing RangeToolbar static tests
+- [x] T030 Write failing RangeToolbar static tests
+> note: 5-test suite — 5 Q2 options in order, default 3m, keyboard select fires onSelect with preset id, no ellipsis; Radix focuses selected item on open; tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/RangeToolbar.test.tsx (new)
       Do: Assert exactly the five options and their order, default `3 months`, keyboard
       operability, and that choosing an option fires the callback with the preset id.
       Done when: suite fails only because RangeToolbar.tsx does not exist.
       Refs: plan §4.3 ADD, Q2
 
-- [ ] T031 Build RangeToolbar against fixture state
+- [x] T031 Build RangeToolbar against fixture state
+> note: RangeToolbar from template — ported select with 5 Q2 options (24h/7d/28d/3m/more), default 3m, ellipsis menu omitted, onSelect callback prop; tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/RangeToolbar.tsx (new; adapts template
       _components/analytics-toolbar.tsx)
       Do: Ported `select` with options exactly `24 hours` / `7 days` / `28 days` / `3 months` /

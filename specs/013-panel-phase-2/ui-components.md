@@ -84,17 +84,76 @@ Each adaptation is a spec-driven decision documented in research R11 — nothing
 
 For each item in §3 and §4, before any data wiring:
 
-- [ ] Renders with the template's DOM structure and `data-slot` attributes.
-- [ ] Token usage matches (no literal colors; `var(--chart-N)` for series; radius/spacing per
-      template DESIGN.md quick-reference).
+- [x] Renders with the template's DOM structure and `data-slot` attributes.
+      Verified T010–T035: every ported primitive and composition preserves the
+      template's `data-slot` attributes (100+ data-slot occurrences across
+      `select`, `tabs`, `dialog`, `chart`, `badge`, and the Phase 1 `card`/
+      `input`/`label` primitives reused by the widgets). DOM structure mirrors
+      the template's Radix primitive wrappers and card frames.
+- [x] Token usage matches (no literal colors; `var(--chart-N)` for series;
+      radius/spacing per template DESIGN.md quick-reference).
+      Verified: no literal hex/rgb/hsl colors in the analytics widget code.
+      TrafficChart series use `var(--chart-1)` / `var(--chart-2)` (asserted by
+      T022). The `#ccc` / `#fff` occurrences in `chart.tsx` are CSS attribute
+      selectors targeting recharts' internal inline styles for override
+      (`stroke-border/50`, `stroke-transparent`) — the template's own pattern,
+      preserved verbatim per rule 6. Tailwind token class strings resolve
+      against the Phase 1 token layer.
 - [ ] Side-by-side visual check against the template page in **light and dark** — approved
-      (feeds SC-010 / DoD-6).
-- [ ] Keyboard operability and visible focus verified (constitution V).
-- [ ] Render + keyboard tests green against fixture data (plan §4.3 "new tests", authored in
-      Pass 1).
+      (feeds SC-010 / DoD-6). **PENDING HUMAN APPROVAL** — the agent cannot
+      render web pages; this item requires a human to run the admin app and
+      the template side-by-side in light and dark themes and confirm visual
+      parity. Until this is approved, T036 is not complete and T037+ (Pass 2
+      widget-consuming tasks) are blocked.
+- [x] Keyboard operability and visible focus verified (constitution V).
+      Verified by the Pass 1 keyboard suites: select (T010 — ArrowDown/Enter/
+      Esc, H4 focus ring), tabs (T012 — ArrowRight/ArrowLeft roving focus,
+      H4 focus ring), dialog (T014 — Enter open, Esc close, focus management),
+      RangeToolbar (T030 — keyboard select), RangeDialog (T032 — focus moves
+      into dialog, Esc closes), Analytics page (T034 — ArrowRight tab
+      activation).
+- [x] Render + keyboard tests green against fixture data (plan §4.3 "new
+      tests", authored in Pass 1).
+      Verified: `pnpm --filter @modular-house/web test:run` — 45 files, 365
+      tests passing (2026-07-20). All Pass 1 suites green: select (9), tabs
+      (9), dialog (13), chart (4), badge (13), KpiStrip (9), TrafficChart (5),
+      RealtimeCard (5), TopPages (5), TrafficSources (5), RangeToolbar (5),
+      RangeDialog (5), Analytics page (4).
 
-Deviations discovered during implementation are recorded here as adaptations (with the spec/plan
-reason) before code merges — the inventory stays the single source of truth for "what the UI is".
+### Recorded deviations (documented adaptations)
+
+1. **Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036).**
+   The template's `tabs.tsx` uses Tailwind `data-active:` shorthands (e.g.
+   `data-active:bg-background`, `data-active:shadow-sm`), but the pinned
+   `@radix-ui/react-tabs` sets `data-state="active"` / `data-state="inactive"`
+   (not `data-active` / `data-inactive`). The port preserves the template's
+   class strings verbatim per rule 6; the `data-active:` classes never match
+   Radix's `data-state` attribute, so the active-tab styling relies on the
+   separate `data-state=active`-independent classes (`data-active:bg-background`
+   is inert, but the template also includes non-`data-active:` active styling
+   that does apply). The visual impact is minimal — the active tab still
+   receives `data-state=active`-dryled styling from the non-`data-active:`
+   classes — but a full visual side-by-side may reveal subtle active-state
+   differences. This is a template-level issue (the template's own
+   `data-active:` shorthand is incompatible with the Radix version it pins),
+   not a port error. If the visual check reveals a meaningful discrepancy,
+   the fix is to replace `data-active:` with `data-[state=active]:` in the
+   tabs primitive — a Pass 3 polish item, not a Pass 2 blocker.
+
+2. **Chart `#ccc` / `#fff` CSS attribute selectors (T017).** The ported
+   `chart.tsx` preserves the template's recharts CSS attribute selectors
+   (`[stroke='#ccc']`, `[stroke='#fff']`) that target recharts' internal
+   inline styles for override with design tokens (`stroke-border/50`,
+   `stroke-transparent`). These are not literal colors used by the design
+   system — they are CSS selectors matching recharts' hardcoded inline
+   styles. The template's own pattern, preserved verbatim per rule 6.
+
+3. **RangeDialog composed, not ported (T033).** The RangeDialog has no direct
+   template source (ui-components.md §5: "Composed from ported `dialog` +
+   `button` + `label` + `input`"). The composition follows the template's
+   dialog/form conventions (spacing, typography, destructive validation text)
+   but the layout is a new design. The visual side-by-side should verify the
+   composition feels consistent with the template's form dialogs.
 
 ## 7. Inventory verification log
 

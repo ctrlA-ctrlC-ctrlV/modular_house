@@ -389,6 +389,7 @@
 
 - [x] T030 Write failing RangeToolbar static tests
 > note: 5-test suite — 5 Q2 options in order, default 3m, keyboard select fires onSelect with preset id, no ellipsis; Radix focuses selected item on open; tests: 5 passing; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/RangeToolbar.test.tsx (new)
       Do: Assert exactly the five options and their order, default `3 months`, keyboard
       operability, and that choosing an option fires the callback with the preset id.
@@ -397,6 +398,7 @@
 
 - [x] T031 Build RangeToolbar against fixture state
 > note: RangeToolbar from template — ported select with 5 Q2 options (24h/7d/28d/3m/more), default 3m, ellipsis menu omitted, onSelect callback prop; tests: 5 passing; deviations: none
+> reviewed: PASS — verified byte-accurate against analytics-toolbar.tsx template
       Files: apps/web/src/admin/analytics/RangeToolbar.tsx (new; adapts template
       _components/analytics-toolbar.tsx)
       Do: Ported `select` with options exactly `24 hours` / `7 days` / `28 days` / `3 months` /
@@ -407,6 +409,7 @@
 
 - [x] T032 Write failing RangeDialog static tests
 > note: 5-test suite — 3 presets + Custom (4 buttons Q2), Custom reveals 2 native date inputs labelled via htmlFor/id, focus moves into dialog on open, Esc fires onOpenChange(false); tests: 5 passing; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/RangeDialog.test.tsx (new)
       Do: Assert the three presets + Custom render, date inputs are native and labelled, dialog is
       keyboard reachable, Esc closes.
@@ -415,6 +418,7 @@
 
 - [x] T033 Build RangeDialog against fixture state
 > note: RangeDialog composed from ported dialog + Phase 1 button/label/input — 4 Q2 options (6m/12m/16m/custom), Custom reveals 2 native date inputs, destructive validation message slot, onSelect callback prop; tests: 5 passing; deviations: none
+> reviewed: PASS — no calendar-grid template component reused (guardrail honoured)
       Files: apps/web/src/admin/analytics/RangeDialog.tsx (new; composed from ported dialog +
       button + label + input — no direct template source)
       Do: Dialog offering exactly `6 months` / `12 months` / `16 months` / `Custom`; Custom shows

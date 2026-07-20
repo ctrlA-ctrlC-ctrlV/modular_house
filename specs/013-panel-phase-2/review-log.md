@@ -6,6 +6,13 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-20 — T030-T033 (baseline: a6593be)
+
+T030 — PASS
+T031 — PASS
+T032 — PASS
+T033 — PASS
+
 ## 2026-07-20 — T027-nit, T028-nit re-review (since 05205cb)
 
 T027 — PASS — ui-components.md §4 now records table-inlining deviation

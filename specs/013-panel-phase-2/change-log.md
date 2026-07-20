@@ -18,6 +18,103 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-20T11:24:12.230+01:00] — feat(admin-ui): T029 build TrafficSources widget (TrafficSources.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/TrafficSources.tsx` — TrafficSources widget
+  adapting the template `_components/top-traffic-sources.tsx`
+  (ui-components.md §4, plan §4.3 ADD, FR-021, Q6, S4), applying compatibility
+  rules 1–10:
+  - `"use client"` stripped (rule 1); `@/components/ui/*` rewritten to relative
+    `../ui/*` for the reused Phase 1 `Card` primitive (rule 2); no `next/*`
+    (rule 3); no `lucide-react` (rule 4 — the template's `Ellipsis` icon is
+    omitted, not replaced).
+  - `data-slot` attributes preserved via the Phase 1 `Card` primitive
+    (rule 5); Tailwind token class strings preserved verbatim, no literal
+    colors (rule 6). Rule 9 (recharts through chart.tsx) does not apply —
+    this widget uses no recharts components after the BarChart-to-rows
+    adaptation.
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R11)
+- `apps/web/src/admin/analytics/TrafficSources.tsx` — adaptations from the
+  template, each spec-driven (no taste):
+  - **Tabs removed.** The template's three-tab layout (Sources / Campaigns /
+    Referrers, each rendering a separate BarChart) is removed entirely. The
+    spec's source breakdown is a single flat list of the five S-groups (Q6);
+    there is no separate "campaigns" or "referrers" sub-data in the contract.
+    CAMPAIGN is one of the five groups, not a tab; REFERRAL is another.
+  - **BarChart replaced with ranked rows.** The template's horizontal
+    BarChart (recharts `BarChart layout="vertical"`) is replaced by a ranked
+    row list. The adaptation column in ui-components.md §4 says "Rows = the
+    five source groups, zero-valued groups shown" — "rows" is explicit. A
+    row list guarantees zero-valued groups are visibly shown with an explicit
+    "0" session count and "0.0%" share (Q6), whereas a 0-length bar in a
+    BarChart is invisible. The "ranked/share presentation" from the
+    template's "follows template" column is preserved: rows are ranked by
+    sessions descending (input order) with share displayed as a percentage.
+    The visual divergence from the template's BarChart is a documented
+    adaptation for the T036 parity gate.
+  - **Data source.** The template's hardcoded `sourcesData`/`campaignsData`/
+    `referrersData` arrays are replaced by the `sources` prop
+    (`SourceEntry[]`), a slice of the overview response (FR-021, Q6, S4).
+    The component trusts the input order — the overview endpoint delivers
+    `sources` already ranked; no client-side re-sorting (consistent with
+    TopPages).
+  - **Columns.** Each row shows the group name (capitalised display label
+    via `displayGroup()`), session count (S4: "source metrics count sessions,
+    not events"), and share-of-sessions percentage (FR-021 via
+    `formatShare()`).
+  - **Per-card ellipsis menu omitted.** The template's `CardAction` with an
+    `Ellipsis` icon is not shipped this phase — follows the KpiStrip /
+    TrafficChart / RealtimeCard / TopPages precedent.
+  - **Title.** "Traffic Sources" is retained from the template — matches the
+    spec's "traffic-source breakdown" (FR-021).
+  - **Dashed empty state.** When the `sources` array is empty (length 0 — a
+    defensive guard, since the contract always returns five groups per Q6),
+    the row list is replaced by the dashed `border-border`
+    `text-muted-foreground` empty panel (US3-9 / E-EMPTY,
+    ui-components.md §5). When the array has entries with all-zero values
+    (the `overviewEmpty` fixture), the five zero-valued rows still render —
+    Q6 requires zero-valued groups to be shown, not hidden behind a dashed
+    panel.
+
+### Notes
+- "Done when" met: T028 suite green (5 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors; no `lucide-react`/`next/*` imports; no new
+  package added (composes the Phase 1 `Card` primitive only).
+- Green half of the T028/T029 atomic unit, closed by this commit's change-log
+  entry. Fixture data only (Pass 1, no data wiring).
+
+---
+
+## [2026-07-20T11:22:00.000+01:00] — test(admin-ui): T028 TrafficSources static render suite (TrafficSources.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/TrafficSources.test.tsx` — 5-test static
+  render suite pinning the TrafficSources widget contract against T008
+  fixture payloads (ui-components.md §4, plan §4.3 ADD, FR-021, Q6):
+  - All five source group names render from the populated fixture (FR-021,
+    Q6: "source breakdown = the 5 S-groups").
+  - Each source share renders as a percentage (FR-021: "with share of total
+    views"), asserted as `(share*100).toFixed(1)%`.
+  - All five zero-valued groups render from the empty fixture (Q6:
+    "zero-valued groups shown") — group names + "0" sessions + "0.0%" share.
+  - Defensive empty state: a truly empty sources array (length 0) renders the
+    dashed `border-border` `text-muted-foreground` empty panel (US3-9 /
+    E-EMPTY, ui-components.md §5) and no source rows.
+  - Card frame with the "Traffic Sources" title (`[data-slot="card"]` +
+    `[data-slot="card-title"]`).
+
+### Notes
+- "Done when" met: suite red only because `TrafficSources.tsx` does not exist
+  (Vite import-analysis `Failed to resolve import "./TrafficSources.js"`);
+  not a test compile error. Red half of the T028/T029 atomic unit.
+- `eslint` clean on the test file; typecheck deferred to the T029 green half
+  (the missing-module import is the expected red state, resolved when
+  `TrafficSources.tsx` lands in T029).
+
+---
+
 ## [2026-07-20T11:02:06.399+01:00] — feat(admin-ui): T027 build TopPages widget (TopPages.tsx)
 
 ### Added

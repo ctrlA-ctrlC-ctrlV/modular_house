@@ -95,9 +95,25 @@ describe('TrafficSources widget — static render contract (T028)', () => {
       expect(container.textContent).toContain(displayGroup(group));
     }
 
-    // The zero session count and zero share render for each group.
-    expect(container.textContent).toContain('0');
-    expect(container.textContent).toContain('0.0%');
+    // Per-row assertion (Q6: "zero-valued groups shown"): each zero-valued
+    // group renders its OWN row with "0" sessions and "0.0%" share — not
+    // just somewhere on the page. Select the row container (the first
+    // <div> child of card-content, which wraps the flex-col row list) and
+    // iterate its children so each row is verified individually.
+    const cardContent = container.querySelector('[data-slot="card-content"]');
+    expect(cardContent).not.toBeNull();
+    const rowContainer = cardContent?.querySelector('div');
+    expect(rowContainer).not.toBeNull();
+    const rows = Array.from(rowContainer?.children ?? []);
+    expect(rows).toHaveLength(overviewEmpty.sources.length);
+
+    // Each row renders its group name, "0" sessions, and "0.0%" share.
+    overviewEmpty.sources.forEach((entry, index) => {
+      const row = rows[index];
+      expect(row.textContent).toContain(displayGroup(entry.group));
+      expect(row.textContent).toContain('0');
+      expect(row.textContent).toContain('0.0%');
+    });
   });
 
   it('renders the dashed empty panel and no source rows for an empty array', () => {

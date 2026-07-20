@@ -348,6 +348,7 @@
 
 - [x] T026 Write failing TopPages static tests
 > note: TopPages static render suite (5 tests) — ranking order, share %, 10-row cap, dashed empty, card frame; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/TopPages.test.tsx (new)
       Do: Against T008 fixtures assert ranking order, share rendering, 10-row cap, empty state.
       Done when: suite fails only because TopPages.tsx does not exist.
@@ -355,6 +356,7 @@
 
 - [x] T027 Build TopPages against fixture data
 > note: TopPages from template — Card + native table inlined (table.tsx not in §3), Path/Views/Share, 10-row cap Q6, dashed empty; tests: 5 passing; deviations: TopPages.tsx — table inlined (not in §3)
+> reviewed: PASS-WITH-NITS — ui-components.md §4 not updated for deviation
       Files: apps/web/src/admin/analytics/TopPages.tsx (new; adapts template
       _components/top-pages.tsx)
       Do: Card frame, ranked rows for top-10 paths with share-of-views presentation per template;
@@ -364,6 +366,7 @@
 
 - [x] T028 Write failing TrafficSources static tests
 > note: TrafficSources static render suite (5 tests) — 5 groups render, zero-valued shown Q6, share %, dashed empty, card frame; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS-WITH-NITS — zero-value test asserts page not per-row
       Files: apps/web/src/admin/analytics/TrafficSources.test.tsx (new)
       Do: Against T008 fixtures assert all five groups render (including zero-valued), share
       values, empty state.
@@ -372,6 +375,7 @@
 
 - [x] T029 Build TrafficSources against fixture data
 > note: TrafficSources — Card + ranked rows, 5 S-groups zero-valued shown Q6, share %, dashed empty; tests: 5 passing; deviations: TrafficSources.tsx — Tabs removed + BarChart to rows per §4
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/TrafficSources.tsx (new; adapts template
       _components/top-traffic-sources.tsx)
       Do: Card frame, ranked/share presentation with exactly the five source groups as rows —

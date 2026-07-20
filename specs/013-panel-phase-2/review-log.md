@@ -65,3 +65,10 @@ T023 — PASS-WITH-NITS — direct recharts import (rule 9); UTC label tz not Lo
 T023 — PASS-WITH-NITS — rule9/tz fixed; TrafficChart fix commit mislabeled
 T024 — PASS
 T025 — PASS
+
+## 2026-07-20 — T026-T029 (baseline: ffeaec9)
+
+T026 — PASS
+T027 — PASS-WITH-NITS — ui-components.md §4 not updated
+T028 — PASS-WITH-NITS — zero-value assertion checks whole page
+T029 — PASS

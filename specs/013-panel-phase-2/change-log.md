@@ -18,6 +18,42 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-20T14:14:53.440+01:00] — fix(admin-ui): T027-nit, T028-nit review corrections (ui-components.md, TrafficSources.test.tsx)
+
+### Changed
+- `specs/013-panel-phase-2/ui-components.md` — §4 TopPages row "Documented
+  adaptations" column updated to record the table-inlining deviation
+  (T027 PASS-WITH-NIT: "ui-components.md §4 not updated for deviation").
+  The adaptation now reads: "Data = top-10 paths with share of views; table
+  rendered with native `<table>` elements carrying template `data-slot`
+  attributes (`table.tsx` not in §3 port inventory — inlined, not ported as a
+  new primitive)". Per §6: "Deviations discovered during implementation are
+  recorded here as adaptations (with the spec/plan reason) before code
+  merges — the inventory stays the single source of truth for 'what the UI
+  is'." The deviation was implemented in T027 but not recorded in the
+  inventory at that time; this nit-fix closes the gap.
+- `apps/web/src/admin/analytics/TrafficSources.test.tsx` — zero-value test
+  (T028 PASS-WITH-NIT: "zero-value test asserts page not per-row") rewritten
+  to assert per-row instead of whole-page. The previous assertion checked
+  `container.textContent` for '0' and '0.0%' (whole page); the new assertion
+  selects the row container (`[data-slot="card-content"] > div`), iterates
+  its children (the 5 source rows), and verifies each row individually
+  contains its group display name, "0" sessions, and "0.0%" share. This
+  pins Q6's "zero-valued groups shown" contract to the per-row level: a
+  future regression that renders a zero-valued group without its "0"/"0.0%"
+  values is caught, not masked by another row's coincidental "0".
+
+### Notes
+- Both nit-fixes are review corrections to already-PASS-WITH-NITS tasks;
+  the underlying T026-T029 implementations are unchanged. `eslint` clean on
+  the test file; `tsc --noEmit` 0 errors; TrafficSources suite green
+  (5 passing).
+- ui-components.md is a spec artifact, not a source file — the §5.7 block
+  for it precedes the test file in dependency order (spec → test →
+  bookkeeping).
+
+---
+
 ## [2026-07-20T11:24:12.230+01:00] — feat(admin-ui): T029 build TrafficSources widget (TrafficSources.tsx)
 
 ### Added

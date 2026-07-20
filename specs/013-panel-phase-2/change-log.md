@@ -18,6 +18,104 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-20T15:19:24.076+01:00] — feat(admin-ui): T033 build RangeDialog widget (RangeDialog.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/RangeDialog.tsx` — RangeDialog widget
+  composed from the ported `dialog` primitive (T015) + Phase 1 `button` /
+  `label` / `input` primitives (ui-components.md §2, reused as-is) per
+  ui-components.md §5. No direct template source — a new composition
+  (plan §4.3 ADD, Q2/Q3, FR-019, research R10):
+  - `Dialog` + `DialogContent` + `DialogHeader` + `DialogTitle` +
+    `DialogDescription` + `DialogFooter` from the ported dialog primitive;
+    `Button` from Phase 1; `Input` with `type="date"` from Phase 1; `Label`
+    from Phase 1. No new dependencies.
+  - Exported the `RANGE_DIALOG_PRESETS` array, `RangeDialogPreset` type as
+    the extension point for the page composition (T035) and Pass 2 range
+    math (Open-Closed).
+
+### Changed (spec-driven design — ui-components.md §5 / research R10)
+- `apps/web/src/admin/analytics/RangeDialog.tsx` — design decisions, each
+  spec-driven (no taste):
+  - **Controlled open state.** The dialog's open state is controlled by the
+    parent (`open` + `onOpenChange`). The page (T035) / Pass 2 wiring
+    (T080+) opens the dialog when the administrator selects `More` from
+    the RangeToolbar and closes it on preset selection, valid Apply, or
+    dismiss. Radix Dialog handles Esc / overlay-click / close-button
+    internally and calls `onOpenChange(false)` — the component holds no
+    open state.
+  - **Four options (Q2).** Exactly `6 months` / `12 months` / `16 months`
+    / `Custom` — the three month-presets and the Custom toggle. Labels
+    and order pinned by Q2, asserted by T032.
+  - **Preset buttons fire `onSelect` immediately.** Q2: "All presets are
+    rolling windows ending today" — selecting a preset IS applying it. The
+    parent closes the dialog and derives range params; the component does
+    not close itself (no data wiring).
+  - **Custom reveals date inputs.** Clicking `Custom` toggles an internal
+    `mode` state from `'presets'` to `'custom'`, revealing two native
+    `<input type="date">` fields (Q3). Inputs styled by the Phase 1
+    `Input` primitive with `type="date"` — the browser's native date
+    picker, not a calendar-grid (plan §1.4 guardrail). Each input has an
+    associated `Label` via `htmlFor`/`id` for screen readers (constitution
+    V).
+  - **Apply fires `onSelect` with the custom dates.** The Apply button
+    (only visible in Custom mode) calls `onSelect('custom', customStart,
+    customEnd)`. The parent validates per Q3 and closes on success — the
+    component does no validation itself (T033: "no validation logic or
+    data wiring yet").
+  - **Validation message slot.** An optional `validationMessage` prop
+    renders in `text-destructive` text per template form conventions
+    (ui-components.md §5). The parent supplies the message when Apply is
+    rejected (Q3); the component renders it without interpreting it.
+  - **No data wiring.** The component holds only UI state (mode toggle,
+    date-input values). All range math, param derivation, and API calls
+    are Pass 2 (T080+).
+
+### Notes
+- "Done when" met: T032 suite green (5 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors; no new package added (composes the
+  ported dialog + Phase 1 primitives only).
+- Green half of the T032/T033 atomic unit, closed by this commit's
+  change-log entry. Fixture state only (Pass 1, no validation logic, no
+  data wiring).
+
+---
+
+## [2026-07-20T15:15:00.000+01:00] — test(admin-ui): T032 RangeDialog static render + keyboard suite (RangeDialog.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/RangeDialog.test.tsx` — 5-test static
+  render + keyboard suite pinning the RangeDialog contract against Q2/Q3
+  (ui-components.md §5, plan §4.3 ADD, Q2/Q3, FR-019):
+  - Three presets + Custom render: exactly 4 buttons with labels "6
+    months", "12 months", "16 months", "Custom" (Q2: "More opens the
+    pop-up with exactly: 6 months, 12 months, 16 months, Custom").
+  - Custom click reveals two native `<input type="date">` fields (Q3:
+    "two date inputs"; plan §1.4: "no calendar-grid date picker (two
+    native date inputs)").
+  - Each date input has an associated `<label>` via `htmlFor`/`id`
+    (constitution V / a11y) — asserted via `getByLabelText` and
+    `querySelector('label[for=...]')`.
+  - Dialog content receives focus on open (keyboard reachable,
+    constitution V / H4 — Radix FocusScope moves focus into the content).
+  - Esc fires `onOpenChange(false)` (constitution V — Radix Dialog
+    dismiss).
+
+### Notes
+- "Done when" met: suite red only because `RangeDialog.tsx` does not
+  exist (Vite import-analysis `Failed to resolve import
+  "./RangeDialog.js"`); not a test compile error. Red half of the
+  T032/T033 atomic unit.
+- The dialog is rendered in controlled mode (`open={true}`) so the
+  portaled content is immediately in the DOM without needing a trigger —
+  the production caller (T035 page, T080+ wiring) controls open state
+  the same way. Esc assertion uses `onOpenChange` spy (the controlled
+  equivalent of closing), not `queryByRole('dialog')` disappearance,
+  because the parent controls whether `open` actually flips to `false`.
+- `eslint` clean on the test file; typecheck green across the unit.
+
+---
+
 ## [2026-07-20T14:54:09.014+01:00] — feat(admin-ui): T031 build RangeToolbar widget (RangeToolbar.tsx)
 
 ### Added

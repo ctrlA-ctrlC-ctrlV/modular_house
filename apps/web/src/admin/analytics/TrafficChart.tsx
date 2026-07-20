@@ -17,25 +17,24 @@
  *   `Ellipsis` icon is not shipped this phase — follows the KpiStrip precedent
  *   ("no per-card menu shipped", ui-components.md §4 KpiStrip row).
  * - **Bucket-label formatter.** XAxis ticks format by granularity: day buckets
- *   render "d MMM" (e.g. "15 Apr"), hour buckets render "HH:mm" (e.g. "12:00")
- *   (Q4). UTC formatting ensures deterministic labels regardless of the
- *   runner's timezone.
+ *   render "d MMM" (e.g. "15 Apr"), hour buckets render "HH:mm" (e.g. "13:00")
+ *   (Q4). Labels format in the Europe/London timezone — buckets are Europe/
+ *   London per Q4, so the displayed time matches the bucket boundary a human
+ *   would expect (e.g. a 12:00 UTC bucket shows 13:00 during BST).
  * - **Title.** "Traffic Over Time" reflects the spec's series (FR-029),
  *   replacing the template's "Traffic Quality".
  * - **Dashed empty state.** When the timeseries is empty (US3-9 / E-EMPTY),
  *   the chart is replaced by the template's dashed `border-border`
  *   `text-muted-foreground` empty panel inside the retained card frame.
  *
- * Rule 9 (recharts through chart.tsx): the chart is hosted inside
- * `ChartContainer` (the ported chart.tsx wrapper), which provides the
- * `data-slot="chart"` frame, the CSS-variable color plumbing (ChartStyle), and
- * the tooltip machinery. Series colors are `var(--color-pageViews)` /
- * `var(--color-sessions)` references that resolve to `var(--chart-N)` tokens
- * emitted by ChartStyle — never literal colors. The structural recharts
- * components (ComposedChart, Line, XAxis, YAxis, CartesianGrid) are imported
- * from recharts as in the template; chart.tsx's inventory (§3) scopes it to
- * ChartContainer / ChartTooltip / ChartTooltipContent / ChartConfig, and the
- * wrapper does not re-export the structural components.
+ * Rule 9 (recharts through chart.tsx): all recharts components — both the
+ * wrapper infrastructure (ChartContainer, ChartTooltip, ChartTooltipContent)
+ * and the structural chart components (ComposedChart, Line, XAxis, YAxis,
+ * CartesianGrid) — are imported from the ported `chart.tsx` wrapper. The
+ * wrapper re-exports the structural components under its namespace so widgets
+ * never reach the `recharts` module directly. Series colors are
+ * `var(--color-pageViews)` / `var(--color-sessions)` references that resolve
+ * to `var(--chart-N)` tokens emitted by ChartStyle — never literal colors.
  *
  * Port mechanics (rules 1–10): `"use client"` stripped (rule 1); `@/components`
  * rewritten to relative `../ui/*` (rule 2); no `next/*` (rule 3); no
@@ -45,7 +44,6 @@
  * preserved verbatim (rule 6).
  */
 import * as React from 'react';
-import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from 'recharts';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card.js';
 import {
@@ -53,6 +51,11 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
 } from '../ui/chart.js';
 
 import type { AnalyticsRange, BucketGranularity, TimeseriesBucket } from './fixtures.js';
@@ -82,12 +85,13 @@ const chartConfig = {
  *
  * - Day buckets render "d MMM" (e.g. "15 Apr") — the calendar day + month
  *   abbreviation, appropriate for multi-day ranges.
- * - Hour buckets render "HH:mm" (e.g. "12:00") — the time of day, appropriate
+ * - Hour buckets render "HH:mm" (e.g. "13:00") — the time of day, appropriate
  *   for sub-day ranges (24-hour preset, Q4).
  *
- * Formatting uses `timeZone: 'UTC'` so labels are deterministic regardless of
- * the runtime's timezone — the bucket boundaries are UTC instants in the
- * fixture payloads. `hour12: false` forces 24-hour time for the hour format.
+ * Formatting uses `timeZone: 'Europe/London'` because Q4 specifies buckets are
+ * Europe/London — the displayed time matches the London-time bucket boundary a
+ * human would expect (e.g. a 12:00 UTC bucket shows 13:00 during BST).
+ * `hour12: false` forces 24-hour time for the hour format.
  */
 function formatBucketLabel(bucketStart: string, granularity: BucketGranularity): string {
   const date = new Date(bucketStart);
@@ -97,14 +101,14 @@ function formatBucketLabel(bucketStart: string, granularity: BucketGranularity):
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-      timeZone: 'UTC',
+      timeZone: 'Europe/London',
     }).format(date);
   }
 
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'short',
-    timeZone: 'UTC',
+    timeZone: 'Europe/London',
   }).format(date);
 }
 

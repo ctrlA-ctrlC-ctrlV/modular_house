@@ -284,6 +284,7 @@
 
 - [x] T020 Write failing KpiStrip static tests
 > note: 9-test suite — 5 cells/labels, numeric/null/zero delta variants, down-arrow, caption, dashed empty, no NaN; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/KpiStrip.test.tsx (new)
       Do: Against T008 fixtures assert the five cells, delta badge rendering for numeric /
       null-previous ("no prior data") / zero-previous ("—") fixtures, and the empty state.
@@ -292,6 +293,7 @@
 
 - [x] T021 Build KpiStrip against fixture data
 > note: KpiStrip from template — 5 spec KPIs, text-2xl tracking-tight, tinted delta badges (numeric/null/zero), from X - last period caption, ellipsis + dashed empty; tests: 9 passing; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/KpiStrip.tsx (new; adapts template
       _components/analytics-kpi-strip.tsx)
       Do: Divided card strip with exactly five KPI cells (page views, unique visitors, sessions,
@@ -302,14 +304,19 @@
       Done when: T020 green (all fixture variants render).
       Refs: ui-components.md §4, FR-018, Q5
 
-- [ ] T022 Write failing TrafficChart static tests
+- [x] T022 Write failing TrafficChart static tests
+> note: 5-test suite — chart via chart.tsx (data-slot=chart), both series var(--chart-N) colors, day/hour bucket ticks, dashed empty; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/TrafficChart.test.tsx (new)
       Do: Against T008 fixtures assert both series render, bucket labels for hour vs day fixtures,
       empty state, and that recharts is only reached through chart.tsx.
       Done when: suite fails only because TrafficChart.tsx does not exist.
       Refs: plan §4.3 ADD, FR-029
 
-- [ ] T023 Build TrafficChart against fixture data
+- [x] T023 Build TrafficChart against fixture data
+> note: TrafficChart — ComposedChart in ChartContainer, views+sessions chart-1/2 lines, day/hour ticks, dashed empty; tests: 5 passing; deviations: TrafficChart.tsx — recharts structural imports direct
+> reviewed: PASS-WITH-NITS — rule 9 structural import; UTC vs London tick tz
+> note: review-nit fix — structural recharts re-exported from chart.tsx (rule 9); bucket labels Europe/London tz (Q4); tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/TrafficChart.tsx (new; adapts template
       _components/traffic-quality.tsx)
       Do: Card frame + ComposedChart via the ported `chart.tsx` only (never direct recharts
@@ -318,14 +325,16 @@
       Done when: T022 green (renders day-bucket, hour-bucket, and empty fixtures).
       Refs: ui-components.md §1 rule 9/§4, FR-029, Q4 (render)
 
-- [ ] T024 Write failing RealtimeCard static tests
+- [x] T024 Write failing RealtimeCard static tests
+> note: 5-test suite — active count, top-5 page rows, zero dashed empty, no flag markup, card frame + title; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/analytics/RealtimeCard.test.tsx (new)
       Do: Against T008 fixtures assert active-visitor count, top-5 page rows, zero-state
       rendering, no flag markup.
       Done when: suite fails only because RealtimeCard.tsx does not exist.
       Refs: plan §4.3 ADD, FR-020
 
-- [ ] T025 Build RealtimeCard against fixture data
+- [x] T025 Build RealtimeCard against fixture data
+> note: RealtimeCard from template — live count + Live indicator, top-5 pages list, no flags/BarChart, dashed empty; tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/RealtimeCard.tsx (new; adapts template
       _components/realtime-visitors.tsx)
       Do: Card frame with live-count emphasis + top-5 active pages list; country-flag rows removed

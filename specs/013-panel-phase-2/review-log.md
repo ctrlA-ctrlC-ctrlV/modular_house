@@ -52,3 +52,10 @@ T016 — PASS
 T017 — PASS
 T018 — PASS
 T019 — PASS
+
+## 2026-07-16 — T020-T023 (baseline: 5aaf5a3)
+
+T020 — PASS
+T021 — PASS
+T022 — PASS
+T023 — PASS-WITH-NITS — direct recharts import (rule 9); UTC label tz not London

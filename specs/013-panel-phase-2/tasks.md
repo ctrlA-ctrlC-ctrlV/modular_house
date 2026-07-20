@@ -405,14 +405,16 @@
       Done when: T030 green (renders with exact option set + default).
       Refs: ui-components.md §4, research R10, Q2, FR-019
 
-- [ ] T032 Write failing RangeDialog static tests
+- [x] T032 Write failing RangeDialog static tests
+> note: 5-test suite — 3 presets + Custom (4 buttons Q2), Custom reveals 2 native date inputs labelled via htmlFor/id, focus moves into dialog on open, Esc fires onOpenChange(false); tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/RangeDialog.test.tsx (new)
       Do: Assert the three presets + Custom render, date inputs are native and labelled, dialog is
       keyboard reachable, Esc closes.
       Done when: suite fails only because RangeDialog.tsx does not exist.
       Refs: plan §4.3 ADD, Q2
 
-- [ ] T033 Build RangeDialog against fixture state
+- [x] T033 Build RangeDialog against fixture state
+> note: RangeDialog composed from ported dialog + Phase 1 button/label/input — 4 Q2 options (6m/12m/16m/custom), Custom reveals 2 native date inputs, destructive validation message slot, onSelect callback prop; tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/RangeDialog.tsx (new; composed from ported dialog +
       button + label + input — no direct template source)
       Do: Dialog offering exactly `6 months` / `12 months` / `16 months` / `Custom`; Custom shows

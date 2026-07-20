@@ -346,13 +346,15 @@
       Done when: T024 green (renders populated and zero fixtures).
       Refs: ui-components.md §4, research R11, FR-020, V5 (render)
 
-- [ ] T026 Write failing TopPages static tests
+- [x] T026 Write failing TopPages static tests
+> note: TopPages static render suite (5 tests) — ranking order, share %, 10-row cap, dashed empty, card frame; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/admin/analytics/TopPages.test.tsx (new)
       Do: Against T008 fixtures assert ranking order, share rendering, 10-row cap, empty state.
       Done when: suite fails only because TopPages.tsx does not exist.
       Refs: plan §4.3 ADD, FR-021
 
-- [ ] T027 Build TopPages against fixture data
+- [x] T027 Build TopPages against fixture data
+> note: TopPages from template — Card + native table inlined (table.tsx not in §3), Path/Views/Share, 10-row cap Q6, dashed empty; tests: 5 passing; deviations: TopPages.tsx — table inlined (not in §3)
       Files: apps/web/src/admin/analytics/TopPages.tsx (new; adapts template
       _components/top-pages.tsx)
       Do: Card frame, ranked rows for top-10 paths with share-of-views presentation per template;

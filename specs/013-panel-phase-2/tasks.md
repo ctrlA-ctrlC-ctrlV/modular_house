@@ -357,6 +357,7 @@
 - [x] T027 Build TopPages against fixture data
 > note: TopPages from template — Card + native table inlined (table.tsx not in §3), Path/Views/Share, 10-row cap Q6, dashed empty; tests: 5 passing; deviations: TopPages.tsx — table inlined (not in §3)
 > reviewed: PASS-WITH-NITS — ui-components.md §4 not updated for deviation
+> note: review-nit fix — ui-components.md §4 TopPages row updated with table-inlining adaptation; tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/TopPages.tsx (new; adapts template
       _components/top-pages.tsx)
       Do: Card frame, ranked rows for top-10 paths with share-of-views presentation per template;
@@ -367,6 +368,7 @@
 - [x] T028 Write failing TrafficSources static tests
 > note: TrafficSources static render suite (5 tests) — 5 groups render, zero-valued shown Q6, share %, dashed empty, card frame; tests: 0 passing (red on missing module); deviations: none
 > reviewed: PASS-WITH-NITS — zero-value test asserts page not per-row
+> note: review-nit fix — zero-value test asserts per-row (card-content children) not whole page; tests: 5 passing; deviations: none
       Files: apps/web/src/admin/analytics/TrafficSources.test.tsx (new)
       Do: Against T008 fixtures assert all five groups render (including zero-valued), share
       values, empty state.

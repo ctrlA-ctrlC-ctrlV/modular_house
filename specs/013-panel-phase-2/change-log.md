@@ -18,6 +18,103 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-16T16:40:05.530+01:00] — feat(admin-ui): T025 build RealtimeCard widget (RealtimeCard.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/RealtimeCard.tsx` — RealtimeCard widget adapting
+  the template `_components/realtime-visitors.tsx` (ui-components.md §4, plan
+  §4.3 ADD, FR-020, V5), applying compatibility rules 1–10:
+  - `"use client"` stripped (rule 1); `@/components/ui/*` rewritten to relative
+    `../ui/*` (rule 2); no `next/*` (rule 3); no `lucide-react` (rule 4 — the
+    template's `Ellipsis` icon is omitted, not replaced).
+  - `data-slot` attributes preserved via the Phase 1 `Card` primitive (rule 5);
+    Tailwind token class strings preserved verbatim, including the
+    `text-2xl tabular-nums leading-none tracking-tight` live-count styling and
+    the green pulsing-dot "Live" indicator (rule 6).
+
+### Changed (spec-driven adaptations — ui-components.md §4 / research R11)
+- `apps/web/src/admin/analytics/RealtimeCard.tsx` — adaptations from the
+  template, each spec-driven (no taste):
+  - **Country-flag rows removed.** The template's 2×2 country-flag grid
+    (`flag:US`, `flag:GB`, etc. + `flags.css` import) is removed entirely —
+    geo breakdowns are out of scope (plan §1.4). No `flags.css` import, no
+    `flag:*` classes.
+  - **Top-5 active pages list.** Replacing both the template's per-minute
+    BarChart and the country-flag grid: a ranked list of the top-5 active
+    page paths with their active-visitor counts (V5). The BarChart is removed
+    because the spec's RealtimeResponse carries a total count + top pages,
+    not per-minute data.
+  - **Live-count label.** "active" replaces the template's "per minute" —
+    the spec's activeVisitors is a distinct-visitor count in the trailing
+    5 minutes (V5), not a per-minute rate.
+  - **Per-card ellipsis menu omitted.** The template's `CardAction` with an
+    `Ellipsis` icon is not shipped this phase — follows the KpiStrip /
+    TrafficChart precedent.
+  - **Zero-visitor empty state.** When there are no active pages (E-EMPTY),
+    the pages section renders the dashed `border-border`
+    `text-muted-foreground` empty panel (ui-components.md §5). The live-count
+    still shows "0" and the "Live" indicator remains.
+
+### Notes
+- "Done when" met: T024 suite green (5 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors; no `lucide-react`/`next/*` imports; no new
+  package added (composes the Phase 1 `Card` primitive only).
+- Green half of the T024/T025 atomic unit, closed by this commit's change-log
+  entry. Fixture data only (Pass 1, no data wiring, no polling).
+
+---
+
+## [2026-07-16T16:39:58.000+01:00] — test(admin-ui): T024 RealtimeCard static render suite (RealtimeCard.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/RealtimeCard.test.tsx` — 5-test static render
+  suite pinning the RealtimeCard widget contract against T008 fixture payloads
+  (ui-components.md §4, plan §4.3 ADD, FR-020, V5):
+  - Active-visitor count renders from the populated fixture (FR-020, V5).
+  - Top active page rows render with path + active-visitor count, in fixture
+    order (V5: top 5 paths in the trailing 5-minute window).
+  - Zero-visitor empty state: the empty fixture renders zero count and a
+    dashed empty-panel for the pages section (US3-9 / E-EMPTY).
+  - No country-flag markup: no `flag:*` classes, no `.flag` elements (geo out
+    of scope, ui-components.md §4).
+  - Card frame with the realtime title.
+
+### Notes
+- "Done when" met: suite red only because `RealtimeCard.tsx` does not exist
+  (Vite import-analysis `Failed to resolve import "./RealtimeCard.js"`); not
+  a test compile error. Red half of the T024/T025 atomic unit.
+
+---
+
+## [2026-07-16T16:36:49.994+01:00] — fix(admin-ui): T023-nit rule 9 recharts re-export + London tz (chart.tsx, TrafficChart.tsx)
+
+### Changed
+- `apps/web/src/admin/ui/chart.tsx` — additive re-exports of structural recharts
+  components (`CartesianGrid`, `ComposedChart`, `Line`, `XAxis`, `YAxis`) under
+  the chart namespace, so widgets satisfy rule 9 ("recharts through chart.tsx
+  only — widgets never import recharts directly") without reaching the
+  `recharts` module themselves. The re-exports are additive — no existing export
+  or behavior is modified; the T017 ported code is unchanged. Future widgets
+  add their needed structural components here (Open-Closed).
+- `apps/web/src/admin/analytics/TrafficChart.tsx` — two T023 review-nit fixes:
+  - **Rule 9 nit fixed.** Structural recharts components (`CartesianGrid`,
+    `ComposedChart`, `Line`, `XAxis`, `YAxis`) now imported from `../ui/chart.js`
+    instead of `recharts` directly. The widget no longer reaches the `recharts`
+    module — all recharts usage goes through the ported chart.tsx wrapper.
+  - **Timezone nit fixed.** Bucket-label formatting changed from
+    `timeZone: 'UTC'` to `timeZone: 'Europe/London'` (Q4: "buckets are
+    Europe/London"). A 12:00 UTC bucket now displays "13:00" during BST,
+    matching the London-time bucket boundary a human would expect.
+
+### Notes
+- T023 review verdict: PASS-WITH-NITS — "direct recharts import (rule 9); UTC
+  label tz not London". Both nits fixed in this entry.
+- "Done when" re-verified: T022 suite green (5 passing); chart primitive suite
+  green (4 passing — chart.tsx change is additive, no regression); `eslint`
+  clean; `tsc --noEmit` 0 errors; no `recharts` direct import in TrafficChart.tsx.
+
+---
+
 ## [2026-07-16T15:44:57.863+01:00] — feat(admin-ui): T023 build TrafficChart widget (TrafficChart.tsx)
 
 ### Added

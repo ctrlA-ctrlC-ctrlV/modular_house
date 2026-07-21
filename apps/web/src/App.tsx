@@ -51,6 +51,7 @@ import { TwoFactor } from './admin/pages/TwoFactor'
 import { ForgotPassword, type ForgotPasswordFormData } from './admin/pages/ForgotPassword'
 import { ResetPassword } from './admin/pages/ResetPassword'
 import { Settings } from './admin/pages/Settings'
+import { Analytics } from './admin/pages/Analytics'
 
 /** Redirect helper: forwards /garden-room/configure/:slug to /garden-rooms/configure/:slug */
 function GardenRoomConfigureRedirect() {
@@ -375,6 +376,32 @@ function AdminShell() {
 }
 
 /**
+ * AnalyticsPreviewContainer — TEMPORARY, dev-only visual QA aid (T036).
+ *
+ * Renders the Analytics page inside the real AppShell chrome (sidebar, top
+ * bar, theme toggle) with no authentication, so the T036 human side-by-side
+ * check doesn't depend on a working login flow. `/admin/analytics` has no
+ * real route yet — wiring it for real (with auth) is a Pass 2 task (plan
+ * §4.3 Q7). This container and its route registration below must be removed
+ * once that Pass 2 wiring task lands; it is excluded from production builds
+ * via the `import.meta.env.DEV` guard on its route registration.
+ */
+function AnalyticsPreviewContainer() {
+  const previewUser: UserShellData = {
+    displayName: 'Preview User',
+    email: 'preview@example.com',
+    role: 'admin',
+    hasProfilePhoto: false,
+  };
+
+  return (
+    <AppShell user={previewUser}>
+      <Analytics />
+    </AppShell>
+  );
+}
+
+/**
  * App
  *
  * Root component that configures the application's route hierarchy.
@@ -428,6 +455,11 @@ function App() {
         <Route path="/admin/two-factor" element={<TwoFactorContainer />} />
         <Route path="/admin/forgot-password" element={<ForgotPasswordContainer />} />
         <Route path="/admin/reset-password" element={<ResetPasswordContainer />} />
+        {/* TEMPORARY — T036 visual QA only; dev-build-only, unauthenticated.
+            Remove once /admin/analytics is wired for real in Pass 2. */}
+        {import.meta.env.DEV && (
+          <Route path="/admin/_preview/analytics" element={<AnalyticsPreviewContainer />} />
+        )}
         <Route
           path="/admin"
           element={

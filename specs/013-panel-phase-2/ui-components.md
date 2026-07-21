@@ -100,11 +100,14 @@ For each item in §3 and §4, before any data wiring:
       preserved verbatim per rule 6. Tailwind token class strings resolve
       against the Phase 1 token layer.
 - [ ] Side-by-side visual check against the template page in **light and dark** — approved
-      (feeds SC-010 / DoD-6). **PENDING HUMAN APPROVAL** — the agent cannot
-      render web pages; this item requires a human to run the admin app and
-      the template side-by-side in light and dark themes and confirm visual
-      parity. Until this is approved, T036 is not complete and T037+ (Pass 2
-      widget-consuming tasks) are blocked.
+      (feeds SC-010 / DoD-6). **FAILED (2026-07-21, human review)** — the ported UI reads as
+      visibly off-template and the light/dark toggle only recolors isolated surfaces (button/
+      input backgrounds, native form-control chrome) while the page background never changes.
+      Root-caused into five fix tasks in tasks.md — T036a (missing `@custom-variant dark`
+      registration), T036b (dead `.admin-root.dark` selector), T036c (TabsTrigger `data-active:`
+      vs Radix's `data-state=active`), T036d (Analytics page missing outer padding), T036e
+      (unscaled `--radius-3xl`/`--radius-4xl` tokens). T036 is not complete and T037+ (Pass 2
+      widget-consuming tasks) remain blocked until all five land and the side-by-side is re-run.
 - [x] Keyboard operability and visible focus verified (constitution V).
       Verified by the Pass 1 keyboard suites: select (T010 — ArrowDown/Enter/
       Esc, H4 focus ring), tabs (T012 — ArrowRight/ArrowLeft roving focus,
@@ -122,23 +125,19 @@ For each item in §3 and §4, before any data wiring:
 
 ### Recorded deviations (documented adaptations)
 
-1. **Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036).**
-   The template's `tabs.tsx` uses Tailwind `data-active:` shorthands (e.g.
-   `data-active:bg-background`, `data-active:shadow-sm`), but the pinned
+1. **Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036;
+   CONFIRMED by the 2026-07-21 human side-by-side — graduated to required fix
+   T036c).** The template's `tabs.tsx` uses Tailwind `data-active:` shorthands
+   (e.g. `data-active:bg-background`, `data-active:shadow-sm`), but the pinned
    `@radix-ui/react-tabs` sets `data-state="active"` / `data-state="inactive"`
    (not `data-active` / `data-inactive`). The port preserves the template's
-   class strings verbatim per rule 6; the `data-active:` classes never match
-   Radix's `data-state` attribute, so the active-tab styling relies on the
-   separate `data-state=active`-independent classes (`data-active:bg-background`
-   is inert, but the template also includes non-`data-active:` active styling
-   that does apply). The visual impact is minimal — the active tab still
-   receives `data-state=active`-dryled styling from the non-`data-active:`
-   classes — but a full visual side-by-side may reveal subtle active-state
-   differences. This is a template-level issue (the template's own
-   `data-active:` shorthand is incompatible with the Radix version it pins),
-   not a port error. If the visual check reveals a meaningful discrepancy,
-   the fix is to replace `data-active:` with `data-[state=active]:` in the
-   tabs primitive — a Pass 3 polish item, not a Pass 2 blocker.
+   class strings verbatim per rule 6; every `data-active:` class is inert
+   (none of the template's non-`data-active:` classes carry an independent
+   active treatment either, contrary to what was assumed at T013 review time)
+   — the active tab renders with no pill background, no shadow, and no
+   underline indicator, visually indistinguishable from an inactive tab. Fix
+   tracked as T036c: replace `data-active:` with `data-[state=active]:` in
+   the tabs primitive.
 
 2. **Chart `#ccc` / `#fff` CSS attribute selectors (T017).** The ported
    `chart.tsx` preserves the template's recharts CSS attribute selectors
@@ -154,6 +153,42 @@ For each item in §3 and §4, before any data wiring:
    dialog/form conventions (spacing, typography, destructive validation text)
    but the layout is a new design. The visual side-by-side should verify the
    composition feels consistent with the template's form dialogs.
+
+4. **Dark mode never actually engages the OKLCH dark palette (found at
+   T036, fix tracked as T036b).** `tokens.css` scopes the dark override block
+   to the compound selector `.admin-root.dark`, which requires both classes
+   on the same DOM node. `ThemeProvider` (Phase 1, frozen) only ever toggles
+   `.dark` on `document.documentElement`, several levels above the nested
+   `.admin-root` div (`AppShell.tsx`) — the compound selector has therefore
+   never matched any element in this project, and the dark values for
+   `--background`, `--foreground`, `--card`, `--popover`, `--sidebar`,
+   `--border`, `--muted`, `--ring`, etc. are dead code. Not a template issue —
+   a port-time selector mismatch, since the template applies `.dark` and its
+   token overrides to the same root element (`:root`/`html`) it never had to
+   reconcile with a nested scoping wrapper.
+
+5. **Tailwind's `dark:` variant was never switched to the class strategy
+   (found at T036, fix tracked as T036a).** The template's `globals.css`
+   declares `@custom-variant dark (&:is(.dark *));`, which is what makes
+   every `dark:`-prefixed utility respond to an ancestor `.dark` class. This
+   line was not ported to `admin.css`/`tokens.css`, so Tailwind v4's default
+   `dark:` strategy applies instead (`@media (prefers-color-scheme: dark)`,
+   compiled-in default — confirmed absent from
+   `node_modules/tailwindcss/{index,theme,utilities}.css`). Every literal
+   `dark:` class already shipped (`button.tsx`, `input.tsx`, `select.tsx`,
+   `tabs.tsx`, `badge.tsx`, `dropdown-menu.tsx`, `input-otp.tsx`,
+   `KpiStrip.tsx`) tracks the visitor's OS colour-scheme, not the in-app
+   toggle — the reported "only button/input backgrounds change" symptom.
+
+6. **`--radius-3xl` / `--radius-4xl` not bridged to the pinned base radius
+   (found at T036, fix tracked as T036e, minor).** `tokens.css`'s `@theme
+   inline` block redefines `--radius-sm` through `--radius-2xl` relative to
+   the pinned `--radius: 0.625rem`, but stops short of `--radius-3xl` /
+   `--radius-4xl`. `badge.tsx`'s `rounded-4xl` pill still renders — Tailwind
+   v4 ships static fallback values (`theme.css`: `1.5rem` / `2rem`) — but at
+   the template's un-scaled default rather than its `calc(var(--radius) +
+   Npx)` formula, a small curvature drift from the pinned H3/H4 base radius
+   every other radius step already honours.
 
 ## 7. Inventory verification log
 

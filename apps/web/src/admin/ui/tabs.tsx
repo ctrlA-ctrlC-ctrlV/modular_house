@@ -85,9 +85,13 @@ function TabsList({
  * Individual tab trigger. Carries the H4 visible-focus ring
  * (`focus-visible:ring-[3px] ring-ring/50`) and an `::after` underline
  * indicator that fades in when the trigger is active under a `line`-variant
- * list. Active styling is driven by Radix's `data-active` / `data-state`
- * attributes; the `group-data-horizontal/tabs` / `group-data-vertical/tabs`
- * selectors switch the underline orientation with the root orientation.
+ * list. Active styling is driven by Radix's `data-state="active"` /
+ * `data-state="inactive"` attribute (T036c — the template's own
+ * `data-active:` shorthand matches attribute *presence*, not this
+ * attribute/value pair, and never resolves against the pinned Radix
+ * version; `data-[state=active]:` is the form that actually matches); the
+ * `group-data-horizontal/tabs` / `group-data-vertical/tabs` selectors switch
+ * the underline orientation with the root orientation.
  */
 function TabsTrigger({
   className,
@@ -104,11 +108,11 @@ function TabsTrigger({
         'disabled:pointer-events-none disabled:opacity-50',
         'has-data-[icon=inline-end]:pr-1 has-data-[icon=inline-start]:pl-1',
         'dark:text-muted-foreground dark:hover:text-foreground',
-        'group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=line]/tabs-list:data-active:shadow-none',
+        'group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
-        'group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent',
-        'data-active:bg-background data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 dark:data-active:text-foreground',
-        'after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100',
+        'group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:border-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent',
+        'data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground',
+        'after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100',
         className,
       )}
       {...props}

@@ -561,6 +561,30 @@
       Refs: ui-components.md §3 (badge), plan §2 H3/H4, tokens.css:22-28,
       template `globals.css:18-19`, `node_modules/tailwindcss/theme.css:397-404`
 
+- [x] T036f Fix admin.css's hand-written CSS to reference raw tokens, not the dead --color-* aliases
+> note: admin.css 4x var(--color-X)->var(--X) (bg/color/border/ring); found live via browser after T036a-e; a11y.test.tsx assertion; tests: 27 passing; deviations: none
+      Files: apps/web/src/admin/theme/admin.css
+      Do: Found via live browser re-check after T036a–T036e (a class of bug no jsdom test can
+      catch): `.admin-root`'s hand-written base-layer rules reference `var(--color-background)`,
+      `var(--color-foreground)`, `var(--color-border, currentColor)`, and
+      `color-mix(in oklch, var(--color-ring) 50%, transparent)` — the `--color-*` names from the
+      `@theme inline` bridge. `@theme inline` is a compile-time alias Tailwind's own utility
+      generator uses to inline `bg-background`/`text-foreground`/etc. classes directly to
+      `var(--background)` at build time; it never emits `--color-background` (etc.) as an actual
+      runtime custom property, so these four hand-written references resolve to nothing.
+      Confirmed live: `getComputedStyle(.admin-root).backgroundColor` was `rgba(0,0,0,0)`
+      (transparent) in BOTH light and dark mode even after T036a/T036b correctly fixed the
+      underlying `--background` raw token to update between themes — this is the actual reason
+      the page's own background never visibly changed, and why the H4 3px focus ring
+      (`outline: none` computed) has likely never rendered either. Replace all four with the raw
+      token names (`--background`, `--foreground`, `--border`, `--ring`) that tokens.css actually
+      defines on `.admin-root` / `.dark .admin-root`.
+      Done when: admin.css's four `var(--color-*)` references are replaced with raw tokens;
+      a11y.test.tsx asserts the corrected references and the absence of the dead aliases; live
+      browser re-check (already performed this session) confirms the page background, heading
+      text, and gaps now correctly shift with the theme toggle.
+      Refs: ui-components.md §1 rule 6, admin.css:34-70, tokens.css:68-141
+
 - [ ] T036 PARITY GATE: approve the ported UI against the template (blocks Pass 2)
       Files: specs/013-panel-phase-2/ui-components.md (§6 checklist + recorded deviations)
       Do: For every §3 primitive and §4/§5 composition run the ui-components.md §6 checklist: DOM
@@ -1397,11 +1421,11 @@
 | Phase | Tasks | Count |
 |-------|-------|-------|
 | Phase 0 — Setup / scaffolding | T001–T008 | 8 |
-| Pass 1 — Design the UI (gate: T036) | T009–T036, +T036a–T036e | 33 |
+| Pass 1 — Design the UI (gate: T036) | T009–T036, +T036a–T036f | 34 |
 | Pass 2 — Make it work (§4.1 green) | T037–T090 | 54 |
 | Pass 3 — Make it right (§4.2 green) | T091–T121 | 31 |
 | Final — DoD verification | T122–T129 | 8 |
-| **Total** | | **134** |
+| **Total** | | **135** |
 
 Coverage cross-check: all FR-001…FR-029 map to tasks (traceability held in quickstart §6 and
 re-verified by T129); every §2 assertion K1–K5, N1–N5, M1–M10, S1–S5, V1–V6, Q1–Q8, and §2.7

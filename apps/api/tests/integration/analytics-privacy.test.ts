@@ -28,6 +28,14 @@
  *    T043 (route) + T044 (app mount) land; they are the row-level red the
  *    task's "Done when" requires.
  *
+ * 3. **Log-redaction layer (review-fix for T041 PASS-WITH-NITS).** Asserts the
+ *    Pino `REDACT_PATHS` configuration includes `referrer` and `body.referrer`
+ *    (closing the log-leak vector where `validateBody` logs `body: req.body`
+ *    on a 400 and the raw referrer URL would otherwise reach stdout), and
+ *    verifies the redaction behaviour by constructing a Pino instance with the
+ *    production paths and confirming the referrer value is replaced with
+ *    `[Redacted]` in the serialized output (M7/R2/S5 — no PII in logs).
+ *
  * Clock strategy: mirrors `analytics-ingest.test.ts` (T039/T040) — the T005
  * `createAnalyticsClock` / `ANALYTICS_FIXED_NOW` helpers provide the
  * deterministic epoch, and `vi.useFakeTimers({ toFake: ['Date'] })` bridges
@@ -41,8 +49,11 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { randomUUID } from 'node:crypto';
+import { Writable } from 'node:stream';
 import { PrismaClient, Prisma } from '@prisma/client';
+import pino from 'pino';
 import app from '../../src/app.js';
+import { REDACT_PATHS } from '../../src/middleware/logger.js';
 import {
   ANALYTICS_FIXED_NOW,
   createAnalyticsClock,
@@ -306,6 +317,75 @@ describe('analytics privacy audit (T041, T-B8)', () => {
       // no IP, UA, or any other personal-data column (R2).
       const keys = Object.keys(v).sort();
       expect(keys).toEqual([...ANALYTICS_VISITOR_FIELDS].sort());
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Log-redaction layer — no PII in log output (R2/M7/S5).
+  // Review-fix for T041 PASS-WITH-NITS ("missing log-redaction assertion").
+  // The validateBody middleware logs `body: req.body` verbatim on a validation
+  // failure (400); the ingest payload's `referrer` field is `document.referrer`
+  // — a full URL that may carry query-string PII (search terms, ad click IDs).
+  // The REDACT_PATHS `body.referrer` entry redacts it at the logger level so
+  // the full referrer URL never reaches stdout (M7/R2/S5).
+  // -------------------------------------------------------------------------
+  describe('logs — referrer redacted from log output (R2/M7/S5)', () => {
+    it('REDACT_PATHS includes referrer and body.referrer (M7/R2/S5)', () => {
+      // Static configuration check: the Pino redact paths must cover the
+      // referrer field at both nesting levels (top-level direct logger calls
+      // and body.* validateBody log paths).
+      expect(REDACT_PATHS).toContain('referrer');
+      expect(REDACT_PATHS).toContain('body.referrer');
+    });
+
+    it('Pino redacts the raw referrer URL from the body.* log path (M7/R2/S5)', () => {
+      // Behavioural check: construct a Pino instance with the production
+      // REDACT_PATHS and a buffer destination, log an object that mimics the
+      // validateBody middleware's 400 log (body containing a full referrer
+      // URL), and assert the referrer value is replaced with [Redacted] in
+      // the serialized output — the full URL never reaches the log stream.
+      const fullReferrerUrl = 'https://www.google.com/search?q=garden+rooms';
+      const chunks: string[] = [];
+
+      // A minimal Writable that captures Pino's JSON output for assertions.
+      const destination = new Writable({
+        write(chunk: Buffer, _encoding: string, callback: () => void): void {
+          chunks.push(chunk.toString());
+          callback();
+        },
+      });
+
+      const testLogger = pino(
+        {
+          redact: { paths: [...REDACT_PATHS], censor: '[Redacted]' },
+          level: 'warn',
+        },
+        destination,
+      );
+
+      // Mimic the validateBody middleware's log call on a validation failure:
+      // it logs `{ url, method, validationErrors, body: req.body }` where
+      // `body` is the raw request body containing the `referrer` field.
+      testLogger.warn(
+        {
+          url: '/api/analytics/events',
+          method: 'POST',
+          body: {
+            path: '/garden-rooms',
+            referrer: fullReferrerUrl,
+          },
+        },
+        'Request body validation failed',
+      );
+
+      // Flush any buffered data so the captured output is complete.
+      destination.end();
+
+      const output = chunks.join('');
+      // The full referrer URL must NOT appear anywhere in the log output.
+      expect(output).not.toContain(fullReferrerUrl);
+      // The referrer value is replaced with the Pino censor string.
+      expect(output).toContain('[Redacted]');
     });
   });
 });

@@ -430,6 +430,7 @@
 
 - [x] T034 Write failing Analytics page static tests
 > note: 4-test suite — 5 tabs Overview active, non-Overview dashed placeholder via ArrowRight activation, 6 widget regions from fixtures, grid-cols-1 xl:grid-cols-12 mobile stacking; tests: 4 passing; deviations: none
+> reviewed: PASS — genuine test-first commit (5b36535 before 3cd72fe); count verified
       Files: apps/web/src/admin/pages/Analytics.test.tsx (new)
       Do: Assert tab row (Overview active, placeholder panels for the rest), all six widget
       regions present from fixtures, and single-column stacking at mobile width.
@@ -438,6 +439,7 @@
 
 - [x] T035 Compose the static Analytics page against fixture data
 > note: Analytics page from template — heading title (no greeting), 5 tabs Overview active + dashed placeholders, xl:grid-cols-12 grid composing 6 widgets from fixtures, no RangeDialog, no data fetching; tests: 4 passing; deviations: none
+> reviewed: PASS — matches ui-components.md §4; fixture-only, no data wiring confirmed
       Files: apps/web/src/admin/pages/Analytics.tsx (new; adapts template analytics/page.tsx)
       Do: Heading block (greeting replaced by page title — documented adaptation), tab row via
       ported `tabs` with Overview active and non-Overview tabs rendering the template's own dashed
@@ -456,6 +458,7 @@
 
 - [x] T036a Register the class-based dark variant for Tailwind v4
 > note: admin.css +@custom-variant dark; a11y.test.tsx T036a assertion added; tests: 24 passing; deviations: visual re-check deferred to consolidated T036 gate
+> reviewed: PASS — admin.css declares the custom-variant line; a11y.test.tsx asserts it and passes
       Files: apps/web/src/admin/theme/admin.css
       Do: Add `@custom-variant dark (&:is(.dark *));` (verbatim from the template's
       `src/app/globals.css:10`), placed after the `tailwindcss/theme` / `tailwindcss/utilities`
@@ -479,6 +482,7 @@
 
 - [x] T036b Scope the dark OKLCH palette to where `.dark` actually lands
 > note: tokens.css .admin-root.dark -> .dark .admin-root; a11y.test.tsx regex+guard test updated; tests: 25 passing; deviations: visual re-check deferred to T036 gate
+> reviewed: PASS — tokens.css selector is `.dark .admin-root`; live re-check confirms dark background/card/sidebar all shift on toggle
       Files: apps/web/src/admin/theme/tokens.css
       Do: Change the dark-palette block's selector from the compound `.admin-root.dark`
       (tokens.css:112 — matches only an element carrying both classes at once) to the descendant
@@ -504,6 +508,7 @@
 
 - [x] T036c Fix TabsTrigger's active-state selector to match Radix's real attribute
 > note: tabs.tsx data-active: -> data-[state=active]: (11 occurrences); tabs.test.tsx new active-class assertion; tests: 10 passing; deviations: visual re-check deferred to T036 gate
+> reviewed: PASS — data-[state=active]: applied consistently; tabs.test.tsx asserts active-class + absence of dead data-active: prefix
       Files: apps/web/src/admin/ui/tabs.tsx
       Do: Replace every `data-active:`-prefixed class on `TabsTrigger` (tabs.tsx:107,109,110 —
       `data-active:bg-background data-active:text-foreground dark:data-active:border-input
@@ -526,6 +531,7 @@
 
 - [x] T036d Give the Analytics page its own outer padding
 > note: Analytics.tsx root +p-4 md:p-6 page padding; Analytics.test.tsx new className assertion; tests: 5 passing; deviations: visual re-check deferred to T036 gate
+> reviewed: PASS — root carries p-4 md:p-6; Analytics.test.tsx asserts the classes
       Files: apps/web/src/admin/pages/Analytics.tsx
       Do: Wrap the page root (`Analytics.tsx`'s top-level `<div className="flex flex-col
       gap-4">`) with responsive padding, e.g. `p-4 md:p-6`, matching the values the template's
@@ -545,6 +551,7 @@
 
 - [x] T036e Scale the 3xl/4xl radius tokens with the pinned base radius
 > note: tokens.css +--radius-3xl/--radius-4xl scaled from base; a11y.test.tsx new assertion; tests: 26 passing; deviations: visual re-check deferred to T036 gate
+> reviewed: PASS — radius-3xl/4xl bridged to pinned base, matches template formula exactly (verified against template globals.css)
       Files: apps/web/src/admin/theme/tokens.css
       Do: Add `--radius-3xl: calc(var(--radius) + 12px);` and
       `--radius-4xl: calc(var(--radius) + 16px);` to the `@theme inline` bridge (tokens.css:22-28
@@ -563,6 +570,7 @@
 
 - [x] T036f Fix admin.css's hand-written CSS to reference raw tokens, not the dead --color-* aliases
 > note: admin.css 4x var(--color-X)->var(--X) (bg/color/border/ring); found live via browser after T036a-e; a11y.test.tsx assertion; tests: 27 passing; deviations: none
+> reviewed: PASS — raw token refs confirmed; live re-check shows background/heading/gaps now track theme toggle in both modes
       Files: apps/web/src/admin/theme/admin.css
       Do: Found via live browser re-check after T036a–T036e (a class of bug no jsdom test can
       catch): `.admin-root`'s hand-written base-layer rules reference `var(--color-background)`,
@@ -587,6 +595,7 @@
 
 - [x] T036 PARITY GATE: approve the ported UI against the template (blocks Pass 2)
 > note: approved 2026-07-21 "good enough for now" after T036a-f fixes; known focus-ring colour issue accepted, deferred; tests: 45 files/371 passing; deviations: none
+> reviewed: PASS-WITH-NITS — visual parity independently re-verified live (light+dark bg correct, active-tab styling correct); nit: temp App.tsx preview route outside plan §5.1 scope
       Files: specs/013-panel-phase-2/ui-components.md (§6 checklist + recorded deviations)
       Do: For every §3 primitive and §4/§5 composition run the ui-components.md §6 checklist: DOM
       structure + `data-slot` attributes match; token usage (no literal colors, `var(--chart-N)`

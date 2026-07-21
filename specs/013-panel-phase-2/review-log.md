@@ -6,6 +6,18 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-21 — T034-T036 incl. T036a-T036f (baseline: 95ed21a)
+
+T034 — PASS
+T035 — PASS
+T036a — PASS
+T036b — PASS — live-reverified, dark palette engages correctly
+T036c — PASS
+T036d — PASS
+T036e — PASS — radius formula matches template exactly
+T036f — PASS
+T036 — PASS-WITH-NITS — gate live-reverified; temp App.tsx route outside plan scope
+
 ## 2026-07-20 — T030-T033 (baseline: a6593be)
 
 T030 — PASS

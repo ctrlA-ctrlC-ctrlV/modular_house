@@ -49,6 +49,15 @@
  * - **No RangeDialog behavior.** Per T035: "No data fetching, no RangeDialog
  *   behavior." The RangeDialog is not mounted in Pass 1 — it will be wired in
  *   Pass 2 (T080+) when the `More` option opens the pop-up.
+ * - **Page-level padding (T036d).** The template's page root carries no
+ *   padding of its own — the Next.js `dashboard/layout.tsx` supplies
+ *   `p-4 md:p-6` around `{children}`, a layout with no equivalent in this
+ *   port (`AppShell`'s `<main>` is Phase 1, frozen, and intentionally
+ *   unpadded so full-bleed pages stay possible). This project's own
+ *   convention is that each page self-supplies its padding instead (see
+ *   `Settings.tsx`'s `p-6`); this page's root carries the template layout's
+ *   own `p-4 md:p-6` values so its widgets don't sit flush against the
+ *   sidebar/top bar.
  * - **No flags.css import.** The template imports `@/styles/flag-icons/flags.css`
  *   for country-flag rendering in RealtimeVisitors. The RealtimeCard
  *   adaptation (T025) removed country-flag rows (geo out of scope), so the
@@ -84,7 +93,7 @@ import {
  */
 export function Analytics() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 p-4 md:p-6">
       {/* Heading block — page title replaces the template's user-specific
           greeting (documented adaptation, ui-components.md §4). The subtitle
           is retained from the template. */}

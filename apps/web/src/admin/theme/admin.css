@@ -30,7 +30,22 @@
  */
 @custom-variant dark (&:is(.dark *));
 
-/* Admin-scoped base reset (replaces preflight; confined to .admin-root subtree) */
+/*
+ * Admin-scoped base reset (replaces preflight; confined to .admin-root
+ * subtree). T036f — these hand-written rules must reference the raw token
+ * names (`--background`, `--foreground`, `--border`, `--ring`, defined
+ * directly on `.admin-root` / `.dark .admin-root` in tokens.css), never the
+ * `--color-*` names from the `@theme inline` bridge. `@theme inline` is a
+ * compile-time alias Tailwind's own utility generator uses to inline
+ * `bg-background`/`text-foreground`/etc. classes directly to `var(--background)`
+ * at build time — it never emits `--color-background` (etc.) as an actual
+ * runtime custom property, so any hand-written `var(--color-*)` reference
+ * here resolves to nothing. For a non-inherited property (`background-color`,
+ * `outline`) that leaves the browser's initial value (transparent / none);
+ * for an inherited property (`color`) it silently falls back to whatever
+ * the parent's computed value is. This is why the page's own background and
+ * focus ring never visibly changed with the theme, in either light or dark.
+ */
 @layer base {
   .admin-root *,
   .admin-root *::before,
@@ -38,7 +53,7 @@
     box-sizing: border-box;
     border-width: 0;
     border-style: solid;
-    border-color: var(--color-border, currentColor);
+    border-color: var(--border, currentColor);
   }
 
   .admin-root {
@@ -47,8 +62,8 @@
     font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   /* Heading normalisation inside admin */
@@ -64,7 +79,7 @@
 
   /* Default focus ring: plan H4 — 3 px at ring/50 */
   .admin-root *:focus-visible {
-    outline: 3px solid color-mix(in oklch, var(--color-ring) 50%, transparent);
+    outline: 3px solid color-mix(in oklch, var(--ring) 50%, transparent);
     outline-offset: 2px;
   }
 }

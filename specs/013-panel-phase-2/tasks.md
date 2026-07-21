@@ -648,7 +648,7 @@
 
 - [x] T040 Write failing session-grouping integration test (T-B2)
 > note: T-B2 session-grouping suite — same mh_sid -> shared sessionId, fresh mh_sid -> new sessionId (cookie-based; 30-min window is client K3); tests: 0 passing (red, endpoint 404); deviations: none
-> reviewed: PASS-WITH-NITS — shares T039's single commit
+> reviewed: PASS
       Files: apps/api/tests/integration/analytics-ingest.test.ts
       Do: Two events posted with the same `mh_sid` within 30 minutes (injected clock) share
       `sessionId`; an event arriving with a fresh `mh_sid` value stores a new `sessionId`

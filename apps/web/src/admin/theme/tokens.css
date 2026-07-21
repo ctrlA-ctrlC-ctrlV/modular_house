@@ -26,6 +26,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
+  /* T036e — without these two keys, rounded-3xl/rounded-4xl (badge.tsx's
+     pill shape) silently fall back to Tailwind v4's static built-in
+     defaults (1.5rem / 2rem) instead of scaling with the pinned base. */
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 
   /* Colour aliases: Tailwind --color-* → CSS custom property refs */
   --color-background: var(--background);
@@ -106,10 +111,14 @@
 
 /* ------------------------------------------------------------------ */
 /* Dark theme                                                          */
-/* Applied under .admin-root.dark; values from template globals.css    */
-/* .dark block.                                                        */
+/* Applied wherever `.admin-root` renders under an ancestor carrying   */
+/* `.dark` (T036b). `ThemeProvider.applyThemeToDOM` toggles `.dark` on */
+/* `document.documentElement`, several levels above the nested         */
+/* `.admin-root` div (AppShell.tsx) — a compound `.admin-root.dark`    */
+/* selector never matches a real element there; the descendant form   */
+/* below does. Values from template globals.css .dark block.          */
 /* ------------------------------------------------------------------ */
-.admin-root.dark {
+.dark .admin-root {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

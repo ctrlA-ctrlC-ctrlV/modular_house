@@ -114,6 +114,20 @@ describe('Tabs primitive — render + keyboard contract (T012)', () => {
     expect(beta).toHaveAttribute('data-state', 'inactive');
   });
 
+  // T036c — Radix sets `data-state="active"` on the active trigger, never a
+  // bare `data-active` attribute. The active-state styling classes must key
+  // off `data-[state=active]:`, not the template's `data-active:` shorthand
+  // (which matches attribute *presence*, not the `data-state` value pair);
+  // the latter never resolves against this pinned Radix version and leaves
+  // the active tab visually indistinguishable from an inactive one.
+  it('styles the active trigger with data-[state=active]: classes, not the dead data-active: shorthand', () => {
+    renderTabs();
+    const alpha = screen.getByRole('tab', { name: 'Alpha' });
+    expect(alpha.className).toContain('data-[state=active]:bg-background');
+    expect(alpha.className).toContain('data-[state=active]:text-foreground');
+    expect(alpha.className).not.toContain('data-active:');
+  });
+
   it('renders only the active panel content (inactive panels unmounted)', () => {
     renderTabs();
     // Only the default (alpha) panel is present.

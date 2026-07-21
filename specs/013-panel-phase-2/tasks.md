@@ -664,6 +664,7 @@
 - [x] T041 Write failing privacy-audit test (T-B8)
 > note: T-B8 privacy-audit suite — Prisma DMMF schema-field audit (green from T003) + row-level referrerHost/keys audit; tests: 2 passing, 5 red on 404; deviations: none
 > reviewed: PASS-WITH-NITS — no assertion against the log-leak in review report
+> note: review fix — log-redaction layer added (REDACT_PATHS has referrer + body.referrer, Pino behavioral assertion); tests: 9 passing; deviations: none
       Files: apps/api/tests/integration/analytics-privacy.test.ts (new)
       Do: After posting events, assert stored rows contain only the data-model columns; assert (via
       information_schema or Prisma DMMF) that no IP, User-Agent, or full-referrer-URL column
@@ -676,6 +677,7 @@
 - [x] T042 Implement the analyticsIngest service (happy path)
 > note: ingestEventSchema (.strict, M2 shape) + ingestAnalyticsEvent (cookie UUIDs M3, classify, extractReferrerHost S5, visitor upsert + event insert, Pino counter no PII); tests: 8 red on 404, 2 schema pass; deviations: none
 > reviewed: CHANGES-REQUIRED — referrer field not added to REDACT_PATHS
+> note: review fix — referrer + body.referrer added to REDACT_PATHS (logger.ts, M7/R2/S5); tests: 437 passing; deviations: apps/api/src/middleware/logger.ts — review-required
       Files: apps/api/src/services/analyticsIngest.ts (new)
       Do: Zod schema for `{path, referrer?, utmSource?, utmMedium?, utmCampaign?, adClick?}`
       (unknown keys rejected; happy-path shape per M2 — boundary hardening is Pass 3); read
@@ -689,6 +691,7 @@
 - [x] T043 Wire the public ingest route POST /api/analytics/events
 > note: POST /events router — generalRateLimit + validateBody(ingestEventSchema) + ingestAnalyticsEvent, 204 on store, next(error) for 5xx; tests: still red on 404 (unmounted); deviations: none
 > reviewed: CHANGES-REQUIRED — validateBody logs raw referrer on 400
+> note: review fix — validateBody 400 referrer log-leak resolved by body.referrer REDACT_PATH (logger.ts, T042 fix); tests: 437 passing; deviations: none
       Files: apps/api/src/routes/analytics.ts (new)
       Do: Route with the existing `validate` middleware + analyticsIngest service; respond 204 on
       store; reuse the existing `rateLimit` middleware (M6 boundary configured/tested in Pass 3);

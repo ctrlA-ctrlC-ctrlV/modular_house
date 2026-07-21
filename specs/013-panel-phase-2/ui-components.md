@@ -99,19 +99,21 @@ For each item in §3 and §4, before any data wiring:
       (`stroke-border/50`, `stroke-transparent`) — the template's own pattern,
       preserved verbatim per rule 6. Tailwind token class strings resolve
       against the Phase 1 token layer.
-- [ ] Side-by-side visual check against the template page in **light and dark** — approved
-      (feeds SC-010 / DoD-6). **FAILED (2026-07-21, human review); T036a–T036f applied and
-      agent-verified live via browser automation (claude-in-chrome) — a sixth root cause, T036f
-      (admin.css referencing the dead `--color-*` @theme-inline aliases instead of raw tokens),
-      was found this way after the human reported the background was still not changing even
-      with T036a–T036e in place. Screenshots + `getComputedStyle` confirmed: before T036f, the
-      page background stayed transparent in both light and dark despite the underlying
-      `--background` token correctly updating (T036a/T036b working); after T036f, the whole page
-      — background, heading text, gaps — correctly tracks the theme in both directions, with no
-      regression to the already-correct sidebar/top-bar/cards.** **HUMAN FINAL CONFIRMATION
-      STILL PENDING** — the agent's live-browser check is strong evidence but not a substitute
-      for the human's own look; until confirmed, T036 is not complete and T037+ (Pass 2
-      widget-consuming tasks) remain blocked.
+- [x] Side-by-side visual check against the template page in **light and dark** — approved
+      (feeds SC-010 / DoD-6). **APPROVED (2026-07-21, human review) — "good enough for now."**
+      Initial review FAILED: the ported UI read as visibly off-template and the theme toggle
+      only recolored isolated surfaces. Root-caused and fixed as T036a–T036f (missing
+      `@custom-variant dark` registration, dead `.admin-root.dark` selector, TabsTrigger
+      `data-active:` vs Radix's `data-state=active`, Analytics page's missing outer padding,
+      unscaled `--radius-3xl`/`--radius-4xl` tokens, and admin.css referencing the dead
+      `--color-*` @theme-inline aliases instead of raw tokens — the last found live via browser
+      automation after the first five landed). Agent-verified live (claude-in-chrome:
+      screenshots + `getComputedStyle` before/after) and human-approved. **Known residual
+      issue accepted, not blocking**: a TopBar button's `:focus-visible` outline renders a 2px
+      solid indigo colour that doesn't match the pinned `--ring` token or an obvious browser
+      default (change-log 2026-07-21T13:30, "Noted but explicitly NOT chased down") — deferred
+      to a future session/owner per the human's explicit call. T037+ (Pass 2 widget-consuming
+      tasks) are now unblocked.
 - [x] Keyboard operability and visible focus verified (constitution V).
       Verified by the Pass 1 keyboard suites: select (T010 — ArrowDown/Enter/
       Esc, H4 focus ring), tabs (T012 — ArrowRight/ArrowLeft roving focus,

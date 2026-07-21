@@ -18,6 +18,169 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T14:50:00.000+01:00] — test(analytics): T040 session-grouping integration suite (analytics-ingest.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-ingest.test.ts` — T-B2 session-grouping
+  tests added under a new `describe('session grouping by mh_sid')` block,
+  restructured under a shared parent `describe('POST /api/analytics/events')`
+  with common `beforeEach` cleanup / `afterAll` disconnect hooks (T039's
+  happy-path test moved into a nested `describe('happy path')`):
+  - **Same `mh_sid` -> shared `sessionId`.** Two page views posted with the
+    same `mh_sid` cookie both store the cookie's `sessionId` (plan §2.5 V1,
+    FR-009).
+  - **Fresh `mh_sid` -> new `sessionId`.** A second page view carrying a
+    freshly minted `mh_sid` (same `mh_vid` visitor) stores the new
+    `sessionId`, producing a distinct session group (K3).
+
+### Notes
+- "Done when" met: both new tests red only because the endpoint does not
+  exist (`expected 404 to be 204`); not test compile errors. Member of the
+  multi-task unit T039–T044, expected to stay red until T042 + T043 + T044.
+- **Session grouping is cookie-based, not time-based.** The server stores the
+  `sessionId` verbatim from the `mh_sid` cookie; it does NOT enforce the
+  30-minute inactivity window — that is implemented by the cookie's rolling
+  expiry on the client (K3) and asserted client-side in T-F5 / E-SESSION
+  (T109/T110). The "(injected clock)" in the task text refers to the
+  scenario's 30-minute window, not a server-side time check; the two page
+  views are therefore posted in quick succession and grouped by cookie value.
+- File restructure (T039's block nested under the shared parent describe) is
+  an in-file refactor of a file this session created — no external file is
+  touched. The T040 per-file commit block carries the overlap WARNING against
+  T039's un-run block for the same file.
+
+---
+
+## [2026-07-21T14:45:00.000+01:00] — test(analytics): T039 ingest happy-path integration suite (analytics-ingest.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-ingest.test.ts` — T-B1 happy-path
+  integration test for `POST /api/analytics/events` (plan §2.3 M1/M2, research
+  R2/R3, FR-007):
+  - A valid `{ path }` payload carrying `mh_vid` / `mh_sid` cookies responds
+    **204** (M1).
+  - Exactly one `analytics_events` row is stored for the minted visitor,
+    round-tripping `path`, `visitorId`, `sessionId`, and `sourceGroup`
+    (DIRECT for a no-referrer payload per S3).
+  - `occurredAt` is the **server clock** (M2: never client time), asserted
+    within a `[before, after]` wall-clock window captured around the POST.
+  - The `analytics_visitors` row is upserted with server-authoritative
+    `firstSeenAt` = `lastSeenAt` = server-now (research R2, data-model §3
+    write pattern).
+
+### Notes
+- "Done when" met: test red only because the endpoint does not exist
+  (supertest `expected 404 to be 204` — the notFoundHandler returns 404 for
+  the unmounted `/api/analytics/events` route); not a test compile error.
+  Red member of the multi-task unit T039–T044, expected to stay red until
+  T042 (service) + T043 (route) + T044 (app mount) land.
+- **Clock strategy (Phase 1 integration-test pattern).** The ingest route
+  uses the server's wall clock for `occurredAt` (`new Date()` through the
+  route), so the happy-path `occurredAt` assertion uses a `[before, after]`
+  window on the same machine — deterministic for a local test. The
+  exact-time determinism required by constitution III belongs to the
+  session-boundary (T109), realtime-window, range-math (T102), and DST
+  (T105) suites, which call the service directly with an injected clock.
+  The T005 injected clock is therefore not used for `occurredAt` here; the
+  T005 `analyticsCookieHeader` helper IS used for the cookie header.
+- **Seed isolation.** The shared analytics seed (T006) reuses
+  `FIXED_VISITOR_IDS` from `tests/helpers/analyticsFixtures.ts`. To avoid
+  colliding with those rows (and to avoid wiping the shared seed for the
+  overview/realtime suites), every test mints a fresh `crypto.randomUUID()`
+  visitor/session pair, queries scoped to that visitor id, and cleans up
+  only its own rows in `afterEach`. `resetAnalyticsTables` is deliberately
+  NOT called.
+
+---
+
+## [2026-07-21T14:42:00.000+01:00] — feat(analytics): T038 trafficSource classification service (trafficSource.ts)
+
+### Added
+- `apps/api/src/services/trafficSource.ts` — the Phase 2 traffic-source
+  classification service (plan §2.4, S1–S5, FR-011, T-B4 basis):
+  - **`SEARCH_HOSTS` / `SOCIAL_HOSTS`** — extensible readonly hostname arrays
+    containing the plan §2.4 minimum host sets. Extend-by-append only
+    (Open-Closed); never remove a pinned host.
+  - **`OWN_HOSTS`** — the public site's own hostnames (`modularhouse.ie` —
+    the canonical production host per `apps/web/src/utils/schema-generators.ts`
+    BASE_URL and routes-metadata canonicalUrl — plus `localhost` for dev).
+    Own-host referrers classify as DIRECT (S3).
+  - **`extractReferrerHost`** — reduces a raw referrer to its bare hostname
+    (lowercased, no scheme/path/query/fragment/port) or `null` for empty /
+    whitespace-only / unparsable input (S5 + the S3 DIRECT inputs). Uses a
+    `://` heuristic to distinguish real URLs from bare `host:port` pairs so
+    `localhost:3000` resolves to `localhost`.
+  - **`classify(referrer, utmSource, adClick)`** — the S1-precedence entry
+    point returning an `AnalyticsSourceGroup`. CAMPAIGN (non-empty utmSource
+    OR `adClick === true`) short-circuits over every referrer-based group;
+    then DIRECT for own/empty/unparsable (S3); then SEARCH; then SOCIAL; then
+    REFERRAL for any other external hostname.
+
+### Notes
+- "Done when" met: T037 suite green (36 passing); `eslint` clean on both
+  files; `tsc --noEmit` 0 errors. Green half of the T037/T038 atomic unit,
+  closed by this change-log entry.
+- **Pass 2 matcher is deliberately naive.** `matchesList` uses
+  case-insensitive substring containment, which correctly classifies
+  unambiguous hostnames (`www.google.com` -> SEARCH, `x.com` -> SOCIAL) but
+  also matches lookalikes (`notgoogle.com` contains `google`). This is
+  intentional: the exact S2 registrable-second-level-label / dot-suffix /
+  lookalike-rejection semantics are hardened in Pass 3 (T100 writes the red
+  edge suite, T101 implements the precise matcher). Own-host matching uses
+  exact-or-`.`-suffix (not substring) so `notmodularhouse.ie` never matches.
+- `OWN_HOSTS` and `extractReferrerHost` are supporting exports beyond the
+  T038 task text's `SEARCH_HOSTS`/`SOCIAL_HOSTS`/`classify` minimum — they
+  are required by T037's S3 (own-host) and S5 (hostname-only) assertions and
+  by the later ingest service (T042 stores `referrerHost` via
+  `extractReferrerHost`). Not a deviation from the spec; the task text names
+  the minimum surface, not the maximum.
+
+---
+
+## [2026-07-21T14:35:00.000+01:00] — test(analytics): T037 trafficSource classification unit suite (trafficSource.test.ts)
+
+### Added
+- `apps/api/tests/unit/trafficSource.test.ts` — 36-test unit suite pinning the
+  plan §2.4 source-classification rules at the Pass 2 happy-path level
+  (T-B4 basis, S1/S2/S3/S5, FR-011):
+  - **S5 — extractReferrerHost returns the bare hostname only.** Strips
+    scheme/path/query/fragment and port; lowercases; returns null for empty,
+    whitespace-only, and unparsable values (the S3 DIRECT inputs).
+  - **S1 precedence — CAMPAIGN outranks everything.** `utmSource` present or
+    `adClick` true yields CAMPAIGN across search/social/unknown/own-host/empty
+    referrer combinations, proving CAMPAIGN > SEARCH > SOCIAL > REFERRAL >
+    DIRECT (S1).
+  - **S2 happy-path list membership.** Known search hosts (google, bing,
+    duckduckgo) -> SEARCH; known social hosts (facebook, x.com, t.co,
+    www.x.com) -> SOCIAL. Dot-containing entries match exact and subdomain
+    forms.
+  - **S3 — own-host / empty / unparsable -> DIRECT.** Covers modularhouse.ie,
+    www.modularhouse.ie, localhost dev origin, empty string, null, and an
+    unparsable value.
+  - **Unknown external host -> REFERRAL** (example.com, an unknown blog host).
+  - **S5 — classification consumes hostname only.** Same hostname with
+    different path/query yields the same group; a long query string never
+    leaks into matching.
+  - **Exported host lists contain the plan §2.4 minimums.** SEARCH_HOSTS and
+    SOCIAL_HOSTS each contain every pinned host (Open-Closed append surface).
+
+### Notes
+- "Done when" met: suite red only because `trafficSource.ts` does not exist
+  (Vitest `Cannot find module '../../src/services/trafficSource.js'`); not a
+  test compile error. Red half of the T037/T038 atomic unit — expected to stay
+  red until T038 implements the service.
+- The exact-vs-label S2 matching semantics (lookalike `notgoogle.com`,
+  registrable second-level label for multi-part TLDs, dot-suffix boundaries)
+  are deliberately deferred to Pass 3 (T100/T101) — only unambiguous
+  happy-path hostnames are asserted here so T100 can still fail red against
+  the Pass 2 matcher.
+- `OWN_HOSTS` own-host detection uses the production host `modularhouse.ie`
+  (canonical per `apps/web/src/utils/schema-generators.ts` BASE_URL and
+  routes-metadata canonicalUrl) plus `localhost` for dev; the own-host check
+  is exact-or-`.`-suffix so `www.modularhouse.ie` matches.
+
+---
+
 ## [2026-07-21T14:00:00.000+01:00] — docs(specs): T036 PARITY GATE approved — "good enough for now" (tasks.md, ui-components.md)
 
 ### Changed

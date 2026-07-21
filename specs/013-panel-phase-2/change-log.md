@@ -18,6 +18,92 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T13:45:00.000+01:00] — docs(specs): T036f gate status + deviation #7 (ui-components.md)
+
+### Changed
+- `specs/013-panel-phase-2/ui-components.md` — §6 "Side-by-side visual
+  check" line updated to record T036f (found live via browser automation
+  after the human reported the background was still not changing with only
+  T036a–T036e applied) and the agent's own live-browser confirmation that
+  the fix works in both light and dark, with the human's final confirmation
+  still the open item. Added Recorded deviation #7 documenting T036f in the
+  same format as #4–#6.
+
+### Notes
+- No source/test changes in this entry — a follow-on doc update to the
+  T036f entry immediately prior, kept separate per this file's existing
+  convention (source-change entries vs. gate-status wrap-up entries).
+
+---
+
+## [2026-07-21T13:30:00.000+01:00] — fix(admin-ui): T036f fix dead --color-* var references in admin.css (admin.css)
+
+### Fixed
+- `apps/web/src/admin/theme/admin.css` — replaced all four hand-written
+  `var(--color-*)` references with the raw token names tokens.css actually
+  defines: `background-color: var(--color-background)` → `var(--background)`;
+  `color: var(--color-foreground)` → `var(--foreground)`;
+  `border-color: var(--color-border, currentColor)` → `var(--border,
+  currentColor)`; the H4 focus ring's `color-mix(in oklch,
+  var(--color-ring) 50%, transparent)` → `var(--ring)`. `@theme inline`
+  (tokens.css) is a compile-time alias Tailwind's own utility generator uses
+  to inline `bg-background`/`text-foreground`/etc. classes directly to
+  `var(--background)` at build time — it never emits `--color-background`
+  (etc.) as an actual runtime custom property, so these four hand-written
+  references (in a `@layer base` block, not Tailwind utility classes) always
+  resolved to nothing, regardless of theme.
+
+### Discovery
+- Found live in a real browser, not by static analysis. The user reported
+  (after the T036a–T036e handoff) that the page background still wasn't
+  changing in dark mode. Used claude-in-chrome to load the new
+  `/admin/_preview/analytics` route, toggle the theme, and inspect computed
+  styles directly: `getComputedStyle(document.querySelector('.admin-root'))
+  .backgroundColor` was `rgba(0, 0, 0, 0)` (transparent) in BOTH light and
+  dark mode, while `.getPropertyValue('--background')` correctly showed
+  `oklch(1 0 0)` / `oklch(0.145 0 0)` respectively — proving T036a/T036b's
+  fixes were working correctly underneath, and the break was specifically
+  in how `admin.css`'s hand-written rules consumed those tokens. Screenshots
+  before/after the fix show the sidebar/top-bar/cards (real Tailwind utility
+  classes) going dark correctly in both, while the page's own background,
+  heading, and gaps stayed stubbornly white until this fix landed.
+- This class of bug (a hand-authored `var()` reference to a name that
+  doesn't exist at runtime) is invisible to every jsdom-based Vitest suite
+  in this project — jsdom never runs a real CSS cascade, so `getComputedStyle`
+  in tests can't catch it. Only a live browser render surfaces it, which is
+  exactly why T036's own gate insists on a real side-by-side rather than
+  trusting the automated suites alone.
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — new "Raw-token references in
+  hand-written CSS (T036f)" describe block asserting admin.css uses the raw
+  token names and contains none of the four dead `--color-*` aliases.
+  Verified this test fails against the pre-fix file (via `git stash`) and
+  passes against the fix, confirming it's a real regression guard despite
+  being written after the fix (the bug was caught via live browser
+  inspection first, not TDD in the usual order).
+
+### Notes
+- `pnpm --filter @modular-house/web test:run` — 45 files/371 tests passing
+  (up from 370, +1 new assertion); `pnpm --filter @modular-house/web lint` /
+  `tsc --noEmit` — clean.
+- Live re-verification in the browser: toggled light → dark → light via the
+  TopBar theme button on `/admin/_preview/analytics`; background, heading
+  text, tab styling, and card colours all now track the toggle correctly in
+  both directions with no visible regression to what was already correct
+  (sidebar, top bar, individual cards).
+- Noted but explicitly NOT chased down (out of scope, tangential): while
+  testing the H4 focus ring fix, a TopBar button's `:focus-visible` outline
+  rendered as a 2px solid indigo colour that doesn't match either the
+  browser default or the pinned `--ring` token — likely coming from that
+  button's own explicit `focus-visible:ring-3 ...` Tailwind classes (a
+  box-shadow-based ring, not the `outline` this fix touches) or possibly
+  global non-admin-scoped CSS bleeding in. Flagged for a future session, not
+  investigated further here per the task's own scope (T036 is background/
+  dark-mode/tabs/padding/badge parity, not a full focus-ring audit).
+
+---
+
 ## [2026-07-21T13:00:00.000+01:00] — fix(admin-ui): T036a self-correction — @import ordering (admin.css); temp preview route (App.tsx)
 
 ### Fixed

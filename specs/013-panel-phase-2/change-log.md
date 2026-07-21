@@ -18,6 +18,47 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T15:30:00.000+01:00] — fix(analytics): T039/T040 review-nit fix — injected clock replaces wall-clock window (analytics-ingest.test.ts)
+
+### Changed
+- `apps/api/tests/integration/analytics-ingest.test.ts` — replaced the
+  wall-clock `[before, after]` window with the T005 injected clock via
+  `vi.useFakeTimers({ toFake: ['Date'] })`, addressing the T039 review nit
+  ("wall-clock window, not injected clock") and the T040 task text's
+  "(injected clock)" requirement:
+  - **T005 clock bridge.** `createAnalyticsClock()` / `ANALYTICS_FIXED_NOW`
+    from `tests/helpers/analyticsFixtures.ts` now drive the test's time.
+    `vi.useFakeTimers({ toFake: ['Date'] })` fakes only `Date` (not
+    `setTimeout`/`setInterval`) so the route's `new Date()` returns the
+    injected clock's value while Prisma I/O and supertest stay real —
+    verified by a 1.88s non-hanging run.
+  - **Exact `occurredAt` assertions.** T039 now asserts
+    `event.occurredAt.toISOString() === ANALYTICS_FIXED_NOW.toISOString()`
+    (and the same for `firstSeenAt` / `lastSeenAt`) instead of a
+    `GreaterThanOrEqual(before)` / `LessThanOrEqual(after)` range.
+  - **T040 time progression.** The same-session test advances the clock 5
+    minutes (within V1's 30-minute window); the fresh-session test advances
+    31 minutes (past K3's boundary) — both via `clock.advance()` +
+    `vi.setSystemTime(clock.now())`, with exact `occurredAt` assertions for
+    both events.
+  - **Header docstring updated** to describe the injected-clock-via-fake-Date
+    strategy and why `toFake: ['Date']` is used (constitution III
+    determinism for the integration path; Prisma I/O stays real).
+
+### Notes
+- Review verdicts: T037 PASS, T038 PASS, T039 PASS-WITH-NITS (wall-clock
+  window, not injected clock — fixed here), T040 PASS-WITH-NITS (shares
+  T039's single commit — commit-hygiene nit, human's domain; T040's code
+  also needed the injected clock per its task text, fixed here alongside
+  T039).
+- "Done when" re-verified: all 3 tests still red only because the endpoint
+  does not exist (`expected 404 to be 204`); not test compile errors, no
+  hanging. Member of the multi-task unit T039–T044.
+- T037/T038 unaffected — `trafficSource.test.ts` still 36/36 green.
+- `review-log.md` NOT modified (no permission to change review logs).
+
+---
+
 ## [2026-07-21T14:50:00.000+01:00] — test(analytics): T040 session-grouping integration suite (analytics-ingest.test.ts)
 
 ### Added

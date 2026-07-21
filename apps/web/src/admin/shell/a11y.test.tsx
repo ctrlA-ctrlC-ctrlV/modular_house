@@ -135,6 +135,16 @@ const TOKENS_CSS_PATH = path.join(
   'tokens.css',
 );
 
+// admin.css source path (T036a) — read directly so the class-based dark
+// variant registration can't silently drift from the actual source file,
+// mirroring the tokens.css read pattern above.
+const ADMIN_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'theme',
+  'admin.css',
+);
+
 interface Oklch {
   l: number;
   c: number;
@@ -190,15 +200,21 @@ function parseThemeTokens(cssBlock: string): Record<string, Oklch> {
 }
 
 const tokensCss = readFileSync(TOKENS_CSS_PATH, 'utf8');
+const adminCss = readFileSync(ADMIN_CSS_PATH, 'utf8');
 
-// Isolate the `.admin-root { ... }` (light) and `.admin-root.dark { ... }`
-// (dark) blocks so identically-named custom properties don't collide; the
-// light-mode pattern does not match the dark selector because `.dark`
-// immediately follows `.admin-root` there instead of whitespace + `{`.
-const lightBlockMatch = tokensCss.match(/\.admin-root\s*\{([^}]+)\}/);
-const darkBlockMatch = tokensCss.match(/\.admin-root\.dark\s*\{([^}]+)\}/);
+// Isolate the unconditional `.admin-root { ... }` (light) block from the
+// `.dark .admin-root { ... }` (dark) descendant-selector block (T036b — the
+// dark palette must engage wherever `.admin-root` renders under an ancestor
+// carrying `.dark`, since `ThemeProvider` only ever toggles `.dark` on
+// `document.documentElement`, never on the nested `.admin-root` div) so
+// identically-named custom properties don't collide. The light-mode pattern
+// uses a negative lookbehind to skip the `.admin-root {` text embedded
+// inside the dark block's own selector (`.dark .admin-root {` also
+// textually matches a bare `\.admin-root\s*\{` scan).
+const lightBlockMatch = tokensCss.match(/(?<!\.dark )\.admin-root\s*\{([^}]+)\}/);
+const darkBlockMatch = tokensCss.match(/\.dark\s+\.admin-root\s*\{([^}]+)\}/);
 if (!lightBlockMatch || !darkBlockMatch) {
-  throw new Error('Could not locate .admin-root / .admin-root.dark blocks in tokens.css');
+  throw new Error('Could not locate .admin-root / .dark .admin-root blocks in tokens.css');
 }
 const lightTokens = parseThemeTokens(lightBlockMatch[1]);
 const darkTokens = parseThemeTokens(darkBlockMatch[1]);
@@ -480,6 +496,50 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
         oklchToRelativeLuminance(darkTokens[bg]),
       );
       expect(ratio).toBeGreaterThanOrEqual(4.5);
+    });
+  });
+
+  // ── Dark-mode class-based variant (T036a) ────────────────────────────────
+  // Tailwind v4's default `dark:` strategy is `@media (prefers-color-scheme:
+  // dark)` — a `dark:`-prefixed utility only reacts to the OS colour-scheme
+  // unless the class-based strategy is registered explicitly. Without this
+  // registration every `dark:` class already shipped (button, input, select,
+  // tabs, badge, dropdown-menu, input-otp, KpiStrip) tracks the visitor's OS
+  // preference instead of the in-app light/dark toggle (`ThemeProvider`'s
+  // `.dark` class on `document.documentElement`).
+
+  describe('Dark-mode class-based variant (T036a)', () => {
+    it('registers the class-based dark variant so dark: utilities track the in-app toggle, not the OS colour-scheme', () => {
+      expect(adminCss).toMatch(/@custom-variant\s+dark\s*\(&:is\(\.dark \*\)\)\s*;/);
+    });
+  });
+
+  // ── Dark-mode selector scope (T036b) ─────────────────────────────────────
+  // The dark OKLCH palette must be scoped to a selector that can actually
+  // match a real element. `ThemeProvider.applyThemeToDOM` toggles `.dark` on
+  // `document.documentElement`, several DOM levels above the nested
+  // `.admin-root` div (`AppShell.tsx`) — a compound `.admin-root.dark`
+  // selector (same-element match) never matches anything there; the
+  // descendant selector `.dark .admin-root` does.
+
+  describe('Dark-mode selector scope (T036b)', () => {
+    it('scopes the dark palette to `.dark .admin-root` (descendant), not the dead `.admin-root.dark` compound form', () => {
+      expect(tokensCss).toMatch(/\.dark\s+\.admin-root\s*\{/);
+      expect(tokensCss).not.toMatch(/\.admin-root\.dark\s*\{/);
+    });
+  });
+
+  // ── Radius scale completeness (T036e) ────────────────────────────────────
+  // The `@theme inline` bridge redefines `--radius-sm` through `--radius-2xl`
+  // relative to the pinned base `--radius`, but previously stopped short of
+  // `--radius-3xl` / `--radius-4xl` (used by badge.tsx's `rounded-4xl` pill),
+  // which silently fell back to Tailwind v4's static built-in defaults
+  // (1.5rem / 2rem) instead of scaling with the pinned base radius.
+
+  describe('Radius scale completeness (T036e)', () => {
+    it('bridges --radius-3xl and --radius-4xl to the pinned base radius', () => {
+      expect(tokensCss).toMatch(/--radius-3xl:\s*calc\(var\(--radius\)\s*\+\s*12px\)/);
+      expect(tokensCss).toMatch(/--radius-4xl:\s*calc\(var\(--radius\)\s*\+\s*16px\)/);
     });
   });
 });

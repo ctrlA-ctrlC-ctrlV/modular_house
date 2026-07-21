@@ -18,6 +18,205 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T12:30:00.000+01:00] — docs(specs): T036 gate status — fixes applied, re-check pending (ui-components.md)
+
+### Changed
+- `specs/013-panel-phase-2/ui-components.md` — §6 "Side-by-side visual
+  check" line updated from `FAILED (2026-07-21, human review)` to
+  `FAILED ...; fixes applied, re-check PENDING`: T036a–T036e are all
+  implemented and green (own assertions pass; full web suite 45 files/370
+  tests, lint, typecheck clean). T036 remains unchecked — the visual
+  re-approval is a human-only step (the agent cannot render web pages).
+
+### Notes
+- Full pre-handoff verification this session:
+  `pnpm --filter @modular-house/web test:run` — 45 files/370 tests passing;
+  `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` —
+  52 files/389 tests passing (Docker Desktop + the port-5434 Postgres
+  container were not running at session start; started per prior session's
+  memory note, then two integration files transiently failed once with 500s
+  during the container's first few seconds up — confirmed a cold-start
+  flake, not a regression, by rerunning both in isolation and then the full
+  suite again, both fully green; zero apps/api files were touched this
+  session); `pnpm lint` / `pnpm typecheck` (full monorepo) clean;
+  `pnpm test:coverage` (root) clean on both packages; `pnpm --filter
+  @modular-house/api docs:validate` — OpenAPI spec valid.
+- Dev server started (`pnpm --filter @modular-house/web dev`) on
+  `http://localhost:3001/` for the human side-by-side. Reference template
+  root: `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard`.
+
+---
+
+## [2026-07-21T12:15:00.000+01:00] — fix(admin-ui): T036e scale radius-3xl/4xl to the pinned base radius (tokens.css)
+
+### Fixed
+- `apps/web/src/admin/theme/tokens.css` — `@theme inline` bridge extended
+  with `--radius-3xl: calc(var(--radius) + 12px);` and
+  `--radius-4xl: calc(var(--radius) + 16px);` (matching the template's
+  `globals.css:18-19`). The bridge previously stopped at `--radius-2xl`;
+  `badge.tsx`'s `rounded-4xl` pill still rendered — Tailwind v4 ships static
+  fallback values (`theme.css`: `1.5rem` / `2rem`) — but at the un-scaled
+  default rather than the template's formula, a small curvature drift from
+  the pinned base radius (0.625rem) every other radius step already honours.
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — new
+  "Radius scale completeness (T036e)" describe block asserting both keys
+  are present in tokens.css with the correct `calc()` formula. Written first
+  and confirmed red (keys absent) before the tokens.css fix.
+
+### Notes
+- `pnpm --filter @modular-house/web test:run -- src/admin/shell/a11y.test.tsx`
+  — 26/26 passing (up from 25, +1 new assertion);
+  `src/admin/ui/badge.test.tsx` (the only `rounded-4xl` consumer) re-run as a
+  sanity check — 13/13 still passing (class-string assertions unaffected).
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean.
+- This is the last of the five T036a–T036e root-cause fixes from the
+  previous session's analysis; deviation: real-browser confirmation (badge
+  corner curvature matches the template) deferred to the consolidated T036
+  side-by-side re-run, per explicit instruction this session.
+
+---
+
+## [2026-07-21T12:00:00.000+01:00] — fix(admin-ui): T036d add page-level padding to Analytics.tsx (Analytics.tsx)
+
+### Fixed
+- `apps/web/src/admin/pages/Analytics.tsx` — page root gained `p-4 md:p-6`
+  (`"flex flex-col gap-4"` → `"flex flex-col gap-4 p-4 md:p-6"`). The
+  template's page root itself carries no padding either — the padding comes
+  from the Next.js `dashboard/layout.tsx` wrapping `{children}`, a layout
+  with no equivalent in this port (`AppShell`'s `<main>` is Phase 1, frozen,
+  and intentionally unpadded so full-bleed pages stay possible). This
+  project's own convention is that each page self-supplies its padding
+  instead (see `Settings.tsx`'s `p-6`); `Analytics.tsx` never had it, so its
+  widgets sat flush against the sidebar/top bar. Added a documented-adaptation
+  paragraph to the page's JSDoc explaining the gap and the fix.
+
+### Added
+- `apps/web/src/admin/pages/Analytics.test.tsx` — new
+  "Page-level padding (T036d)" test asserting the page root carries
+  `p-4`/`md:p-6`. Written first and confirmed red (classes absent) before
+  the Analytics.tsx fix.
+
+### Notes
+- `pnpm --filter @modular-house/web test:run -- src/admin/pages/Analytics.test.tsx`
+  — 5/5 passing (up from 4, +1 new assertion).
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean.
+- `AppShell.tsx` (Phase 1) was not touched — the fix is entirely local to
+  the Phase 2-owned page file, per the guardrail against Phase 1 shell edits.
+- Deviation: real-browser confirmation (page no longer touches the shell
+  edges) deferred to the consolidated T036 side-by-side re-run, per explicit
+  instruction this session.
+
+---
+
+## [2026-07-21T11:45:00.000+01:00] — fix(admin-ui): T036c fix TabsTrigger active-state selector (tabs.tsx)
+
+### Fixed
+- `apps/web/src/admin/ui/tabs.tsx` — replaced all 11 occurrences of the
+  `data-active:` shorthand on `TabsTrigger` (default/line variant shadow,
+  background, border, text-colour, and the `::after` underline opacity,
+  including their `dark:` pairings) with `data-[state=active]:`.
+  `@radix-ui/react-tabs` sets `data-state="active"` / `data-state="inactive"`
+  on its trigger — it never sets a bare `data-active` attribute — so the
+  `data-active:` classes never matched anything and the active tab rendered
+  with no pill background, no shadow, and no underline indicator, visually
+  indistinguishable from an inactive tab. Also corrected the trigger's JSDoc,
+  which previously (incorrectly) attributed active-state styling to a
+  `data-active` / `data-state` attribute pair.
+
+### Added
+- `apps/web/src/admin/ui/tabs.test.tsx` — new assertion in the "Active
+  state" block: the default-active trigger's className contains
+  `data-[state=active]:bg-background` / `data-[state=active]:text-foreground`
+  and contains no residual `data-active:` substring. Written first and
+  confirmed red (old classes present) before the tabs.tsx fix.
+
+### Notes
+- `pnpm --filter @modular-house/web test:run -- src/admin/ui/tabs.test.tsx`
+  — 10/10 passing (up from 9, +1 new assertion);
+  `src/admin/pages/Analytics.test.tsx` (the tabs consumer) re-run as a
+  sanity check — 4/4 still passing.
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean.
+- This graduates ui-components.md §6 Recorded deviation #1 (previously
+  "deferred to T036", visual impact assumed minimal) from documented
+  adaptation to fixed defect — the 2026-07-21 human side-by-side found the
+  impact was not minimal.
+- Deviation: real-browser confirmation (active tab now shows pill/shadow/
+  underline in both themes) deferred to the consolidated T036 side-by-side
+  re-run, per explicit instruction this session.
+
+---
+
+## [2026-07-21T11:30:00.000+01:00] — fix(admin-ui): T036b scope dark palette to `.dark .admin-root` (tokens.css)
+
+### Fixed
+- `apps/web/src/admin/theme/tokens.css` — changed the dark-palette block's
+  selector from the compound `.admin-root.dark` (same-element match) to the
+  descendant selector `.dark .admin-root`. `ThemeProvider.applyThemeToDOM`
+  (Phase 1, frozen) only ever toggles `.dark` on `document.documentElement`,
+  several DOM levels above the nested `.admin-root` div (`AppShell.tsx`) — the
+  compound selector never matched a real element, so the dark values for
+  `--background`, `--foreground`, `--card`, `--popover`, `--sidebar`,
+  `--border`, `--muted`, `--ring`, etc. were dead code; `.admin-root`'s
+  unconditional light-mode block kept winning regardless of theme state. This
+  mirrors the pattern `chart.tsx`'s `ChartStyle` already uses correctly
+  (`.dark [data-chart=...]`, a working descendant selector).
+
+### Changed
+- `apps/web/src/admin/shell/a11y.test.tsx` — `darkBlockMatch` regex updated
+  from `/\.admin-root\.dark\s*\{([^}]+)\}/` to
+  `/\.dark\s+\.admin-root\s*\{([^}]+)\}/` to track the corrected selector;
+  `lightBlockMatch` gained a negative lookbehind (`(?<!\.dark )`) so it still
+  isolates the true light-mode block and doesn't also match the `.admin-root
+  {` text embedded inside the dark block's own selector. Added a
+  `Dark-mode selector scope (T036b)` describe block asserting the new
+  selector is present and the dead compound form is gone.
+
+### Notes
+- `pnpm --filter @modular-house/web test:run -- src/admin/shell/a11y.test.tsx`
+  — 25/25 passing (up from 24, +1 new guard test); the existing H6 dark-mode
+  contrast tests (which depend on `darkBlockMatch`) still pass unchanged —
+  same token values, corrected selector.
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean.
+- Deviation: real-browser confirmation (background/card/popover/sidebar
+  actually shift on toggle) deferred to the consolidated T036 side-by-side
+  re-run after T036a–T036e all land, per explicit instruction this session.
+
+---
+
+## [2026-07-21T11:15:00.000+01:00] — fix(admin-ui): T036a register class-based dark variant (admin.css)
+
+### Fixed
+- `apps/web/src/admin/theme/admin.css` — registered
+  `@custom-variant dark (&:is(.dark *));` (verbatim from the template's
+  `src/app/globals.css:10`), placed after the `tailwindcss/theme` /
+  `tailwindcss/utilities` imports and before the `tokens.css` import. Tailwind
+  v4's default `dark:` strategy is `@media (prefers-color-scheme: dark)`; this
+  registration switches every `dark:`-prefixed utility already shipped
+  (button, input, select, tabs, badge, dropdown-menu, input-otp, KpiStrip) to
+  key off `ThemeProvider`'s `.dark` class on `document.documentElement`
+  instead of the visitor's OS colour-scheme.
+
+### Added
+- `apps/web/src/admin/shell/a11y.test.tsx` — new `ADMIN_CSS_PATH` constant +
+  `adminCss` source read (mirrors the existing `tokens.css` read pattern) and
+  a `Dark-mode class-based variant (T036a)` describe block asserting
+  admin.css contains the custom-variant registration. Written first and
+  confirmed red (missing string) before the admin.css fix.
+
+### Notes
+- `pnpm --filter @modular-house/web test:run -- src/admin/shell/a11y.test.tsx`
+  — 24/24 passing (up from 23, +1 new assertion).
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean on both
+  touched files.
+- Deviation: the real-browser confirmation half of T036a's "Done when"
+  (toggling now moves every `dark:`-styled surface, not just OS-matching
+  ones) is deferred to the consolidated T036 side-by-side re-run after
+  T036a–T036e all land, per explicit instruction this session.
+
+---
+
 ## [2026-07-21T11:00:00.000+01:00] — docs(specs): T036 root-cause analysis — five fix tasks T036a-T036e (tasks.md, ui-components.md)
 
 ### Changed

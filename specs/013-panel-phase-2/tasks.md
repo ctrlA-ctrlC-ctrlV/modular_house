@@ -639,6 +639,7 @@
 > note: T-B1 happy-path suite — 204 + one event row (path/occurredAt/sourceGroup/visitor+session id) + visitor upsert; fresh-UUID isolation; tests: 0 passing (red, endpoint 404); deviations: none
 > reviewed: PASS-WITH-NITS — wall-clock window, not injected clock
 > note: review-nit fix — wall-clock [before,after] -> vi.useFakeTimers toFake Date + T005 clock; exact occurredAt; tests: 0 passing (red 404); deviations: analytics-ingest.test.ts — T039 nit
+> reviewed: PASS — injected clock verified, exact occurredAt, still red on 404
       Files: apps/api/tests/integration/analytics-ingest.test.ts (new)
       Do: `POST /api/analytics/events` with a valid payload + `mh_vid`/`mh_sid` cookies -> 204; a
       single `analytics_events` row stores path/occurredAt (server clock)/sourceGroup/visitorId/
@@ -651,6 +652,7 @@
 > note: T-B2 session-grouping suite — same mh_sid -> shared sessionId, fresh mh_sid -> new sessionId (cookie-based; 30-min window is client K3); tests: 0 passing (red, endpoint 404); deviations: none
 > reviewed: PASS
 > note: review-nit fix — clock.advance + vi.setSystemTime for 5m/31m gaps (injected clock); exact occurredAt; tests: 0 passing (red 404); deviations: analytics-ingest.test.ts — T039 nit (same file)
+> reviewed: PASS — injected clock verified; prior reviewed-line altered unlogged pre-fix
       Files: apps/api/tests/integration/analytics-ingest.test.ts
       Do: Two events posted with the same `mh_sid` within 30 minutes (injected clock) share
       `sessionId`; an event arriving with a fresh `mh_sid` value stores a new `sessionId`

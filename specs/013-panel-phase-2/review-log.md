@@ -6,6 +6,11 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-21 — T039-T040 nit-fix re-review (since ee24f8b)
+
+T039 — PASS — injected clock verified; exact occurredAt, still red on 404
+T040 — PASS — injected clock verified; reviewed-line was altered unlogged pre-fix
+
 ## 2026-07-21 — T037-T040 (baseline: fb8b1cc)
 
 T037 — PASS — 36/36 verified passing

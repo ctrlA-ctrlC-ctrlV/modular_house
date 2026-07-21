@@ -161,4 +161,17 @@ describe('Analytics page — static render contract (T034)', () => {
     // TopPages + TrafficSources. Both carry the responsive class pair.
     expect(grids.length).toBeGreaterThanOrEqual(2);
   });
+
+  // ── Page-level padding (T036d) ───────────────────────────────────────
+  // The template's page padding comes from the Next.js dashboard layout
+  // wrapping `{children}` (`p-4 md:p-6`) — this port has no equivalent
+  // layout (AppShell's `<main>` is Phase 1, frozen, and intentionally
+  // unpadded so full-bleed pages stay possible). Each admin page therefore
+  // self-supplies its own padding (see Settings.tsx's `p-6`); Analytics.tsx
+  // must do the same or its widgets sit flush against the sidebar/top bar.
+
+  it('carries its own p-4 md:p-6 page padding (T036d)', () => {
+    const { container } = render(<Analytics />);
+    expect(container.firstElementChild).toHaveClass('p-4', 'md:p-6');
+  });
 });

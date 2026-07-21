@@ -18,6 +18,37 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T14:00:00.000+01:00] — docs(specs): T036 PARITY GATE approved — "good enough for now" (tasks.md, ui-components.md)
+
+### Changed
+- `specs/013-panel-phase-2/tasks.md` — T036 checked off. Human approved the
+  side-by-side after T036a–T036f (missing `@custom-variant dark`
+  registration, dead `.admin-root.dark` selector, TabsTrigger `data-active:`
+  vs Radix's `data-state=active`, Analytics page's missing outer padding,
+  unscaled `--radius-3xl`/`--radius-4xl` tokens, admin.css referencing the
+  dead `--color-*` @theme-inline aliases) all landed and were agent-verified
+  live via browser automation. T037+ (Pass 2 widget-consuming tasks) are now
+  unblocked.
+- `specs/013-panel-phase-2/ui-components.md` — §6 "Side-by-side visual
+  check" item checked off and approved, with the accepted residual issue
+  recorded: a TopBar button's `:focus-visible` outline renders a 2px solid
+  indigo colour that doesn't match the pinned `--ring` token or an obvious
+  browser default (flagged, not chased down, in the T036f entry above). The
+  human explicitly chose to accept this as a known issue for someone else
+  to fix later rather than block the gate on it.
+
+### Notes
+- No source changes in this entry — bookkeeping only, closing out the T036
+  parity-gate investigation that spanned this session and the prior one.
+- The temporary `/admin/_preview/analytics` route (App.tsx, dev-only,
+  `import.meta.env.DEV`-gated) was left in place — it may still be useful
+  for whoever picks up the deferred focus-ring issue, and its removal is
+  already tracked as a prerequisite of the real Pass 2 `/admin/analytics`
+  wiring task (plan §4.3 Q7), not a separate cleanup item.
+- Dev server (`http://localhost:3001/`) left running for continued access.
+
+---
+
 ## [2026-07-21T13:45:00.000+01:00] — docs(specs): T036f gate status + deviation #7 (ui-components.md)
 
 ### Changed

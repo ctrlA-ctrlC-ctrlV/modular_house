@@ -447,6 +447,115 @@
       Done when: T034 green; page renders from fixtures in light and dark.
       Refs: ui-components.md §4, research R11, FR-022/FR-024
 
+> **T036 side-by-side FAILED (2026-07-21, human review).** The ported UI reads as visibly
+> off-template and the light/dark toggle only recolors isolated surfaces (button/input
+> backgrounds, native form-control chrome) while the page background never changes. Root-caused
+> into T036a–T036e below; T036's own §6 checklist cannot be re-approved until all five land and
+> the side-by-side is re-run. See ui-components.md §6 Recorded deviations #4–#6 (and the amended
+> #1) for the full evidence trail.
+
+- [ ] T036a Register the class-based dark variant for Tailwind v4
+      Files: apps/web/src/admin/theme/admin.css
+      Do: Add `@custom-variant dark (&:is(.dark *));` (verbatim from the template's
+      `src/app/globals.css:10`), placed after the `tailwindcss/theme` / `tailwindcss/utilities`
+      imports and before the `tokens.css` import. Without it, Tailwind v4's default `dark:`
+      strategy is `@media (prefers-color-scheme: dark)` — compiled-in default behaviour,
+      confirmed absent from `node_modules/tailwindcss/{index,theme,utilities}.css`, so no missing
+      import restores it. Every `dark:`-prefixed class already shipped in this codebase —
+      `button.tsx:32`, `input.tsx:23-24`, `select.tsx:133`, `tabs.tsx:106,109,110`,
+      `badge.tsx:33,41,45`, `dropdown-menu.tsx:146`, `input-otp.tsx:46,75`, `KpiStrip.tsx:141` —
+      currently reacts to the visitor's OS colour-scheme instead of the in-app light/dark toggle,
+      which is why only some surfaces (buttons, inputs) ever appear to change, and only
+      incidentally when the OS setting happens to match.
+      Done when: admin.css declares the custom variant before any `dark:` utility is consumed;
+      extend the tokens.css text-parsing pattern already used by
+      `apps/web/src/admin/shell/a11y.test.tsx` with an assertion that admin.css contains the
+      line; a human confirms in a real browser (OS preference held constant) that toggling the
+      in-app theme now moves every `dark:`-styled surface, not just the ones matching the OS.
+      Refs: ui-components.md §1 rule 6 ("a class that cannot resolve is a token-layer gap to fix,
+      not a class to improvise"), ui-components.md §6 Recorded deviations #5, template
+      `src/app/globals.css:10`
+
+- [ ] T036b Scope the dark OKLCH palette to where `.dark` actually lands
+      Files: apps/web/src/admin/theme/tokens.css
+      Do: Change the dark-palette block's selector from the compound `.admin-root.dark`
+      (tokens.css:112 — matches only an element carrying both classes at once) to the descendant
+      selector `.dark .admin-root`. `ThemeProvider.applyThemeToDOM` (Phase 1, frozen — asserted
+      30+ times across `ThemeProvider.test.tsx`, `persistence.test.tsx`, `a11y.test.tsx`,
+      `AppShell.test.tsx`, `keyboard.test.tsx`, `mobile.test.tsx`) only ever toggles `.dark` on
+      `document.documentElement`, never on the nested `.admin-root` div (`AppShell.tsx:90`) — the
+      compound selector has therefore never matched any real element, and the entire dark
+      override block (`--background`, `--foreground`, `--card`, `--popover`, `--sidebar`,
+      `--border`, `--muted`, `--ring`, etc.) is dead. `.admin-root`'s unconditional light-mode
+      block keeps winning regardless of theme state, which is why the main background never
+      changes. This mirrors the pattern `chart.tsx`'s `ChartStyle` already uses correctly
+      (its generated `${prefix} [data-chart=${id}]` resolves to a working `.dark [data-chart=...]`
+      descendant selector) — apply the same fix to the token layer. Do NOT touch
+      `ThemeProvider.tsx`, `boot.ts`, or any Phase 1 test asserting `.dark` on
+      `document.documentElement` — this is a CSS-only fix.
+      Done when: tokens.css's dark block selector is `.dark .admin-root`; extend
+      `a11y.test.tsx`'s existing tokens.css regex-parsing helper to assert the new selector text;
+      a human confirms in a real browser that toggling dark mode now changes the page background,
+      card, popover, and sidebar colours, not just isolated component accents.
+      Refs: ui-components.md §1 rule 6, ui-components.md §6 Recorded deviations #4,
+      tokens.css:68-141, AppShell.tsx:90
+
+- [ ] T036c Fix TabsTrigger's active-state selector to match Radix's real attribute
+      Files: apps/web/src/admin/ui/tabs.tsx
+      Do: Replace every `data-active:`-prefixed class on `TabsTrigger` (tabs.tsx:107,109,110 —
+      `data-active:bg-background data-active:text-foreground dark:data-active:border-input
+      dark:data-active:bg-input/30 dark:data-active:text-foreground` and the
+      `group-data-[variant=...]/tabs-list:data-active:*` variants) with the equivalent
+      `data-[state=active]:` form. `@radix-ui/react-tabs` sets `data-state="active"` /
+      `data-state="inactive"` on its trigger — it never sets a bare `data-active` attribute — so
+      today's `data-active:*` classes never match anything and the active tab renders with no
+      pill background, no shadow, and no underline indicator: it looks identical to an inactive
+      tab. Flagged as deviation #1 in ui-components.md §6 ("deferred to T036"); the human
+      side-by-side now confirms real visual impact, graduating it from documented-adaptation to
+      required fix.
+      Done when: TabsTrigger's active-state classes read `data-[state=active]:...`; extend
+      `tabs.test.tsx` (T012) with an assertion that an activated trigger's className contains
+      `data-[state=active]:bg-background` and no residual bare `data-active:` prefix; a human
+      confirms the active tab now shows the template's pill/shadow/underline treatment in both
+      themes.
+      Refs: ui-components.md §6 Recorded deviations #1, ui-components.md §1 rule 6,
+      tabs.tsx:100-116
+
+- [ ] T036d Give the Analytics page its own outer padding
+      Files: apps/web/src/admin/pages/Analytics.tsx
+      Do: Wrap the page root (`Analytics.tsx`'s top-level `<div className="flex flex-col
+      gap-4">`) with responsive padding, e.g. `p-4 md:p-6`, matching the values the template's
+      `dashboard/layout.tsx:86` applies around `{children}`. That Next.js layout has no
+      equivalent in this port (the admin shell, `AppShell.tsx`, is Phase 1 and frozen); the
+      page-root itself already matches the template's `page.tsx` exactly (no padding there
+      either — the template supplies it one level up, in the layout). This project's own
+      convention is that each page self-supplies its padding instead — see `Settings.tsx:238`
+      (`'mx-auto max-w-2xl space-y-6 p-6'`) — because `AppShell`'s `<main>` intentionally ships
+      unpadded so full-bleed pages stay possible. `Analytics.tsx` never added the compensating
+      padding, so its widgets sit flush against the sidebar/top bar. Do not modify `AppShell.tsx`
+      (Phase 1, out of scope).
+      Done when: Analytics.tsx's root carries the padding classes; extend `Analytics.test.tsx`
+      (T034) with an assertion on the root element's className; a human confirms the page no
+      longer touches the shell edges.
+      Refs: ui-components.md §4, template `dashboard/layout.tsx:86`, `Settings.tsx:238`
+
+- [ ] T036e Scale the 3xl/4xl radius tokens with the pinned base radius
+      Files: apps/web/src/admin/theme/tokens.css
+      Do: Add `--radius-3xl: calc(var(--radius) + 12px);` and
+      `--radius-4xl: calc(var(--radius) + 16px);` to the `@theme inline` bridge (tokens.css:22-28
+      currently stops at `--radius-2xl`), matching the template's `globals.css:18-19`. Without
+      these two keys, `badge.tsx`'s `rounded-4xl` pill (the badge's only radius class) still
+      renders — Tailwind v4 ships static defaults
+      (`node_modules/tailwindcss/theme.css:403-404`: `--radius-3xl: 1.5rem; --radius-4xl: 2rem;`)
+      — but at the wrong absolute value (2rem instead of the template's H3/H4-derived ~1.625rem),
+      a minor but measurable drift from the pinned base radius (0.625rem) every other radius step
+      already honours.
+      Done when: tokens.css's `@theme inline` block defines both keys; extend the tokens.css
+      parsing test with an assertion the keys are present; a human confirms badge corner
+      curvature now matches the template.
+      Refs: ui-components.md §3 (badge), plan §2 H3/H4, tokens.css:22-28,
+      template `globals.css:18-19`, `node_modules/tailwindcss/theme.css:397-404`
+
 - [ ] T036 PARITY GATE: approve the ported UI against the template (blocks Pass 2)
       Files: specs/013-panel-phase-2/ui-components.md (§6 checklist + recorded deviations)
       Do: For every §3 primitive and §4/§5 composition run the ui-components.md §6 checklist: DOM
@@ -1283,11 +1392,11 @@
 | Phase | Tasks | Count |
 |-------|-------|-------|
 | Phase 0 — Setup / scaffolding | T001–T008 | 8 |
-| Pass 1 — Design the UI (gate: T036) | T009–T036 | 28 |
+| Pass 1 — Design the UI (gate: T036) | T009–T036, +T036a–T036e | 33 |
 | Pass 2 — Make it work (§4.1 green) | T037–T090 | 54 |
 | Pass 3 — Make it right (§4.2 green) | T091–T121 | 31 |
 | Final — DoD verification | T122–T129 | 8 |
-| **Total** | | **129** |
+| **Total** | | **134** |
 
 Coverage cross-check: all FR-001…FR-029 map to tasks (traceability held in quickstart §6 and
 re-verified by T129); every §2 assertion K1–K5, N1–N5, M1–M10, S1–S5, V1–V6, Q1–Q8, and §2.7

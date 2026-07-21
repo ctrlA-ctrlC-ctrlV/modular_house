@@ -15,6 +15,7 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 // Import routes
 import healthRouter from './routes/health.js';
 import submissionsRouter from './routes/submissions.js';
+import analyticsRouter from './routes/analytics.js';
 import { authRouter } from './routes/admin/auth.js';
 import { pagesRouter } from './routes/admin/pages.js';
 import { galleryRouter } from './routes/admin/gallery.js';
@@ -59,6 +60,11 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')
 // Routes
 app.use('/health', healthRouter);
 app.use('/submissions', submissionsRouter);
+// Public analytics ingest — POST /api/analytics/events (plan §2.3 M1).
+// Mounted after httpLogger so every request carries a correlation id (req.id),
+// and before notFoundHandler so the route is reachable. The route applies its
+// own rate limit + validate middleware internally (T043).
+app.use('/api/analytics', analyticsRouter);
 app.use('/admin/auth', authRouter);
 app.use('/admin/pages', pagesRouter);
 app.use('/admin/gallery', galleryRouter);

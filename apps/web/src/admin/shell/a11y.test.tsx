@@ -542,4 +542,28 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       expect(tokensCss).toMatch(/--radius-4xl:\s*calc\(var\(--radius\)\s*\+\s*16px\)/);
     });
   });
+
+  // ── Raw-token references in hand-written CSS (T036f) ─────────────────────
+  // `@theme inline` is a compile-time alias Tailwind's own utility generator
+  // uses to inline `bg-background`/`text-foreground`/etc. classes directly
+  // to `var(--background)` at build time — it never emits `--color-background`
+  // (etc.) as an actual runtime custom property. Confirmed live in a real
+  // browser (T036 re-check, 2026-07-21): `.admin-root`'s `background-color:
+  // var(--color-background)` resolved to `rgba(0,0,0,0)` (transparent) in
+  // BOTH light and dark mode, because `--color-background` never existed at
+  // runtime — this is why the page's own background never visibly changed
+  // even after T036a/T036b correctly fixed the dark-mode selector/variant
+  // machinery underneath it. Hand-written CSS (as opposed to Tailwind
+  // utility classes generated from `className` strings) must reference the
+  // raw token names tokens.css actually defines.
+
+  describe('Raw-token references in hand-written CSS (T036f)', () => {
+    it('references raw tokens (--background/--foreground/--border/--ring), not the dead --color-* @theme-inline aliases, in admin.css', () => {
+      expect(adminCss).toMatch(/background-color:\s*var\(--background\)/);
+      expect(adminCss).toMatch(/color:\s*var\(--foreground\)/);
+      expect(adminCss).toMatch(/border-color:\s*var\(--border,/);
+      expect(adminCss).toMatch(/color-mix\(in oklch, var\(--ring\)/);
+      expect(adminCss).not.toMatch(/var\(--color-(background|foreground|border|ring)/);
+    });
+  });
 });

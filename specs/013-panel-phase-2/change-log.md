@@ -18,6 +18,95 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T11:00:00.000+01:00] — docs(specs): T036 root-cause analysis — five fix tasks T036a-T036e (tasks.md, ui-components.md)
+
+### Changed
+- `specs/013-panel-phase-2/ui-components.md` — §6 parity gate checklist: the
+  "side-by-side visual check" item flips from `PENDING HUMAN APPROVAL` to
+  `FAILED (2026-07-21, human review)`, with pointers to the five fix tasks
+  below. Recorded-deviation #1 (tabs `data-active:`/`data-state` mismatch)
+  amended: the human side-by-side confirms real visual impact (no pill
+  background/shadow/underline on the active tab), so it graduates from
+  documented-adaptation to required fix (T036c).
+- `specs/013-panel-phase-2/tasks.md` — Summary table: Pass 1 count 28 → 33,
+  Total 129 → 134, reflecting the five new sub-tasks inserted before T036.
+
+### Added
+- `specs/013-panel-phase-2/ui-components.md` — §6 Recorded deviations #4–#6,
+  documenting three newly found root causes (see tasks.md for the fix specs):
+  1. **#4 — dead dark-palette selector.** `tokens.css` scopes the dark OKLCH
+     overrides to the compound selector `.admin-root.dark` (same-element
+     match), but `ThemeProvider` (Phase 1, frozen) only ever toggles `.dark`
+     on `document.documentElement` — several DOM levels above the nested
+     `.admin-root` div (`AppShell.tsx:90`). The compound selector has never
+     matched a real element in this project; the dark values for
+     `--background`, `--foreground`, `--card`, `--popover`, `--sidebar`,
+     `--border`, `--muted`, `--ring` are dead code. This is the direct cause
+     of "the main background never changes" in dark mode.
+  2. **#5 — missing Tailwind v4 class-based dark variant.** The template's
+     `@custom-variant dark (&:is(.dark *));` (globals.css:10) was never
+     ported to `admin.css`/`tokens.css`, so every literal `dark:`-prefixed
+     class already shipped (button, input, select, tabs, badge,
+     dropdown-menu, input-otp, KpiStrip) tracks the visitor's OS
+     colour-scheme (Tailwind v4's compiled-in default `dark:` strategy —
+     confirmed absent from `node_modules/tailwindcss/{index,theme,
+     utilities}.css`) instead of the in-app light/dark toggle. This is the
+     direct cause of "only button/input backgrounds change."
+  3. **#6 — unscaled 3xl/4xl radius tokens (minor).** `tokens.css`'s `@theme
+     inline` bridge stops at `--radius-2xl`; `badge.tsx`'s `rounded-4xl`
+     pill falls back to Tailwind's static default (`theme.css`: `2rem`)
+     instead of the template's `calc(var(--radius) + 16px)` (~1.625rem) —
+     a small curvature drift, not a functional break.
+- `specs/013-panel-phase-2/tasks.md` — five new Pass 1 sub-tasks inserted
+  between T035 and the existing T036, each with Files/Do/Done
+  when/Refs matching the file's own convention:
+  - **T036a** — add `@custom-variant dark (&:is(.dark *));` to `admin.css`
+    (fixes deviation #5).
+  - **T036b** — change `tokens.css`'s dark-block selector from
+    `.admin-root.dark` to `.dark .admin-root` (fixes deviation #4); mirrors
+    the working descendant-selector pattern `chart.tsx`'s `ChartStyle`
+    already uses (`.dark [data-chart=...]`).
+  - **T036c** — replace `tabs.tsx`'s `data-active:` classes with
+    `data-[state=active]:` to match the real Radix attribute (fixes
+    deviation #1/amended).
+  - **T036d** — add `p-4 md:p-6` page-level padding to `Analytics.tsx`,
+    following the `Settings.tsx` self-padding convention (AppShell's
+    `<main>`, Phase 1/frozen, intentionally ships unpadded).
+  - **T036e** — add `--radius-3xl`/`--radius-4xl` to `tokens.css`'s `@theme
+    inline` bridge so the badge pill scales with the pinned base radius
+    (fixes deviation #6, minor).
+
+### Notes
+- This session's scope (per explicit instruction) was root-cause analysis
+  and task-authoring only — no source code was changed. All five sub-tasks
+  are `[ ]` unchecked; a future implementation session picks them up under
+  the normal per-task TDD loop (test/assert extension + fix + human visual
+  re-check per task).
+- Root causes were established by direct evidence, not inference: read
+  `ThemeProvider.tsx`/`AppShell.tsx`/`tokens.css`/`admin.css` to trace where
+  `.dark` actually lands vs. where the token overrides are scoped; grepped
+  every `dark:`-prefixed class in `apps/web/src/admin`; compared
+  `tokens.css`'s `@theme inline` block and `admin.css`'s imports against the
+  template's `src/app/globals.css` line by line; inspected
+  `node_modules/tailwindcss/theme.css` to confirm Tailwind v4's built-in
+  radius/variant defaults rather than assume; compared `Analytics.tsx`
+  against both the template's `page.tsx` (identical, no padding) and its
+  `dashboard/layout.tsx` (padding lives there) to locate exactly where the
+  padding gap opened up; cross-checked `Settings.tsx` to confirm the
+  project's own self-padding convention before proposing the fix.
+- Scope note: T036a/T036b/T036e touch `tokens.css`/`admin.css`, files
+  created in Phase 1 (012-panel-phase-1 T002/T003), not Phase 2. This is
+  judged in-scope under this phase's own `ui-components.md` §1 rule 6 ("a
+  class that cannot resolve is a token-layer gap to fix, not a class to
+  improvise") and because the guardrail explicitly protecting Phase 1 work
+  names "auth/OTP/reset/settings" suites, not the shared theme/token layer —
+  but this reasoning is flagged to the human for confirmation before
+  implementation, since it is the one judgment call in this session that
+  isn't purely mechanical.
+- No `pnpm lint`/`typecheck`/test runs performed — no source files changed.
+
+---
+
 ## [2026-07-20T15:53:05.934+01:00] — docs(specs): T036 parity gate — programmatic checks complete, visual side-by-side pending (ui-components.md)
 
 ### Changed

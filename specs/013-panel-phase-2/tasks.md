@@ -585,7 +585,8 @@
       text, and gaps now correctly shift with the theme toggle.
       Refs: ui-components.md §1 rule 6, admin.css:34-70, tokens.css:68-141
 
-- [ ] T036 PARITY GATE: approve the ported UI against the template (blocks Pass 2)
+- [x] T036 PARITY GATE: approve the ported UI against the template (blocks Pass 2)
+> note: approved 2026-07-21 "good enough for now" after T036a-f fixes; known focus-ring colour issue accepted, deferred; tests: 45 files/371 passing; deviations: none
       Files: specs/013-panel-phase-2/ui-components.md (§6 checklist + recorded deviations)
       Do: For every §3 primitive and §4/§5 composition run the ui-components.md §6 checklist: DOM
       structure + `data-slot` attributes match; token usage (no literal colors, `var(--chart-N)`

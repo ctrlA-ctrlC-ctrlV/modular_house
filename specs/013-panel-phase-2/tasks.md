@@ -454,7 +454,8 @@
 > the side-by-side is re-run. See ui-components.md §6 Recorded deviations #4–#6 (and the amended
 > #1) for the full evidence trail.
 
-- [ ] T036a Register the class-based dark variant for Tailwind v4
+- [x] T036a Register the class-based dark variant for Tailwind v4
+> note: admin.css +@custom-variant dark; a11y.test.tsx T036a assertion added; tests: 24 passing; deviations: visual re-check deferred to consolidated T036 gate
       Files: apps/web/src/admin/theme/admin.css
       Do: Add `@custom-variant dark (&:is(.dark *));` (verbatim from the template's
       `src/app/globals.css:10`), placed after the `tailwindcss/theme` / `tailwindcss/utilities`
@@ -476,7 +477,8 @@
       not a class to improvise"), ui-components.md §6 Recorded deviations #5, template
       `src/app/globals.css:10`
 
-- [ ] T036b Scope the dark OKLCH palette to where `.dark` actually lands
+- [x] T036b Scope the dark OKLCH palette to where `.dark` actually lands
+> note: tokens.css .admin-root.dark -> .dark .admin-root; a11y.test.tsx regex+guard test updated; tests: 25 passing; deviations: visual re-check deferred to T036 gate
       Files: apps/web/src/admin/theme/tokens.css
       Do: Change the dark-palette block's selector from the compound `.admin-root.dark`
       (tokens.css:112 — matches only an element carrying both classes at once) to the descendant
@@ -500,7 +502,8 @@
       Refs: ui-components.md §1 rule 6, ui-components.md §6 Recorded deviations #4,
       tokens.css:68-141, AppShell.tsx:90
 
-- [ ] T036c Fix TabsTrigger's active-state selector to match Radix's real attribute
+- [x] T036c Fix TabsTrigger's active-state selector to match Radix's real attribute
+> note: tabs.tsx data-active: -> data-[state=active]: (11 occurrences); tabs.test.tsx new active-class assertion; tests: 10 passing; deviations: visual re-check deferred to T036 gate
       Files: apps/web/src/admin/ui/tabs.tsx
       Do: Replace every `data-active:`-prefixed class on `TabsTrigger` (tabs.tsx:107,109,110 —
       `data-active:bg-background data-active:text-foreground dark:data-active:border-input
@@ -521,7 +524,8 @@
       Refs: ui-components.md §6 Recorded deviations #1, ui-components.md §1 rule 6,
       tabs.tsx:100-116
 
-- [ ] T036d Give the Analytics page its own outer padding
+- [x] T036d Give the Analytics page its own outer padding
+> note: Analytics.tsx root +p-4 md:p-6 page padding; Analytics.test.tsx new className assertion; tests: 5 passing; deviations: visual re-check deferred to T036 gate
       Files: apps/web/src/admin/pages/Analytics.tsx
       Do: Wrap the page root (`Analytics.tsx`'s top-level `<div className="flex flex-col
       gap-4">`) with responsive padding, e.g. `p-4 md:p-6`, matching the values the template's
@@ -539,7 +543,8 @@
       longer touches the shell edges.
       Refs: ui-components.md §4, template `dashboard/layout.tsx:86`, `Settings.tsx:238`
 
-- [ ] T036e Scale the 3xl/4xl radius tokens with the pinned base radius
+- [x] T036e Scale the 3xl/4xl radius tokens with the pinned base radius
+> note: tokens.css +--radius-3xl/--radius-4xl scaled from base; a11y.test.tsx new assertion; tests: 26 passing; deviations: visual re-check deferred to T036 gate
       Files: apps/web/src/admin/theme/tokens.css
       Do: Add `--radius-3xl: calc(var(--radius) + 12px);` and
       `--radius-4xl: calc(var(--radius) + 16px);` to the `@theme inline` bridge (tokens.css:22-28

@@ -614,6 +614,7 @@
 
 - [x] T037 Write failing trafficSource classification unit tests
 > note: 36-test suite — S1 precedence, S2 happy-path lists, S3 own/empty/unparsable, REFERRAL, S5 hostname-only, constant membership; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS
       Files: apps/api/tests/unit/trafficSource.test.ts (new)
       Do: Assert precedence S1 (utmSource present or adClick true -> CAMPAIGN over everything),
       happy-path list membership per S2 (google/bing/... -> SEARCH; facebook/x.com/t.co/... ->
@@ -625,6 +626,7 @@
 
 - [x] T038 Implement the trafficSource service
 > note: SEARCH/SOCIAL/OWN_HOSTS + extractReferrerHost + classify; S1 precedence, S2 happy-path substring match (T101 hardens), S3 own/empty/unparsable DIRECT; tests: 36 passing; deviations: none
+> reviewed: PASS
       Files: apps/api/src/services/trafficSource.ts (new)
       Do: Export `SEARCH_HOSTS`/`SOCIAL_HOSTS` constant arrays (extend-by-append, Open-Closed) and
       a classify function (referrer, utmSource, adClick) -> `AnalyticsSourceGroup` with S1
@@ -635,6 +637,7 @@
 
 - [x] T039 Write failing ingest happy-path integration test (T-B1)
 > note: T-B1 happy-path suite — 204 + one event row (path/occurredAt/sourceGroup/visitor+session id) + visitor upsert; fresh-UUID isolation; tests: 0 passing (red, endpoint 404); deviations: none
+> reviewed: PASS-WITH-NITS — wall-clock window, not injected clock
       Files: apps/api/tests/integration/analytics-ingest.test.ts (new)
       Do: `POST /api/analytics/events` with a valid payload + `mh_vid`/`mh_sid` cookies -> 204; a
       single `analytics_events` row stores path/occurredAt (server clock)/sourceGroup/visitorId/
@@ -645,6 +648,7 @@
 
 - [x] T040 Write failing session-grouping integration test (T-B2)
 > note: T-B2 session-grouping suite — same mh_sid -> shared sessionId, fresh mh_sid -> new sessionId (cookie-based; 30-min window is client K3); tests: 0 passing (red, endpoint 404); deviations: none
+> reviewed: PASS-WITH-NITS — shares T039's single commit
       Files: apps/api/tests/integration/analytics-ingest.test.ts
       Do: Two events posted with the same `mh_sid` within 30 minutes (injected clock) share
       `sessionId`; an event arriving with a fresh `mh_sid` value stores a new `sessionId`

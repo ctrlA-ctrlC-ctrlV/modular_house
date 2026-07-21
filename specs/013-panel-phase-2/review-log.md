@@ -6,6 +6,13 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-21 — T037-T040 (baseline: fb8b1cc)
+
+T037 — PASS — 36/36 verified passing
+T038 — PASS — service verified, T037 green
+T039 — PASS-WITH-NITS — wall-clock window, not injected clock
+T040 — PASS-WITH-NITS — shares T039's single commit
+
 ## 2026-07-21 — T034-T036 incl. T036a-T036f (baseline: 95ed21a)
 
 T034 — PASS

@@ -18,6 +18,68 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T16:47:00.000+01:00] — fix(analytics): T041/T042/T043 review-fix — referrer redacted from logs via REDACT_PATHS (logger.ts, analytics-privacy.test.ts)
+
+### Fixed
+- `apps/api/src/middleware/logger.ts` — closed the referrer log-leak vector
+  flagged by the T041–T044 review (T042 CHANGES-REQUIRED: "referrer field
+  not added to REDACT_PATHS"; T043 CHANGES-REQUIRED: "validateBody logs raw
+  referrer on 400"):
+  - **`REDACT_PATHS`** now includes `'referrer'` (top-level) and
+    `'body.referrer'` (nested under `body`, covering the `validateBody`
+    middleware's `body: req.body` log on a 400). The ingest payload's
+    `referrer` field is `document.referrer` — a full URL that may carry
+    query-string PII (search terms, ad click IDs). The ingest service
+    stores only the hostname (S5), but `validateBody` logs the raw body on
+    a validation failure, which would otherwise write the full referrer URL
+    to stdout. The `body.referrer` path redacts it at the logger level
+    (M7/R2/S5 — no PII in logs); the top-level `referrer` path covers any
+    direct logger call that accidentally includes the field (defense in
+    depth, mirroring the existing `password` / `body.password` pattern).
+  - **Docstring updated** to explain the referrer redaction rationale and
+    the two nesting levels. The `REDACT_PATHS` array remains additive-only
+    (Open-Closed) — the new entries are appended without touching existing
+    ones, and no existing test is affected (435 → 437 passing).
+- `apps/api/tests/integration/analytics-privacy.test.ts` — closed the T041
+  PASS-WITH-NITS ("missing log-redaction assertion"):
+  - **Log-redaction layer added** as a third `describe` block with two
+    tests: (1) a static configuration check asserting `REDACT_PATHS`
+    includes `'referrer'` and `'body.referrer'`; (2) a behavioural check
+    that constructs a Pino instance with the production `REDACT_PATHS` and a
+    buffer `Writable` destination, logs an object mimicking the
+    `validateBody` 400 log (`body: { referrer: 'https://...' }`), and
+    asserts the referrer value is replaced with `[Redacted]` in the
+    serialized output — the full URL never reaches the log stream.
+  - **Header docstring updated** to document the log-redaction layer.
+  - Test count: 7 → 9 (2 new log-redaction tests).
+
+### Security
+- Referrer URL PII vector closed at the logger level (M7/R2/S5). The full
+  referrer URL — which may contain query strings with search terms or ad
+  click IDs — is now redacted from all log output via Pino's `redact`
+  option, both at the top level and nested under `body.*` (the
+  `validateBody` log path). This is defense in depth: the ingest service
+  never persists the full URL (only the hostname, S5), but the validation
+  middleware's failure log previously wrote the raw body to stdout before
+  the service ran.
+
+### Notes
+- Review verdicts addressed: T041 PASS-WITH-NITS (missing log-redaction
+  assertion — fixed by the new test layer), T042 CHANGES-REQUIRED
+  (referrer missing from REDACT_PATHS — fixed in logger.ts), T043
+  CHANGES-REQUIRED (validateBody logs raw referrer on 400 — fixed by the
+  same `body.referrer` REDACT_PATH entry). T044 PASS — no fix needed.
+- `logger.ts` is a Phase 1 file; the change is purely additive (two new
+  entries appended to `REDACT_PATHS`, docstring updated). The guardrail
+  against touching Phase 1 test suites is honoured — no Phase 1 test is
+  modified. The `REDACT_PATHS` comment explicitly says "Additive only —
+  new secret field names can be appended without touching existing entries
+  (Open-Closed)", so this is the sanctioned extension path.
+- Full api suite green: 55 files, 437 tests passing (435 original + 2 new
+  log-redaction tests). Lint + typecheck clean.
+
+---
+
 ## [2026-07-21T16:13:00.000+01:00] — feat(analytics): T044 mount public ingest route in app (app.ts)
 
 ### Changed

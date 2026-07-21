@@ -8,9 +8,16 @@
  * - All base resets are re-issued inside `.admin-root` so they cannot cascade out.
  */
 
-/* Tailwind v4: design-token bridge (CSS vars) + utility classes; no preflight. */
+/*
+ * Tailwind v4: design-token bridge (CSS vars) + utility classes; no
+ * preflight; OKLCH tokens (T003). All `@import` rules must stay contiguous
+ * at the top of the file (CSS spec: any other statement between imports
+ * invalidates the ones that follow) — the `@custom-variant` registration
+ * below therefore comes after every import, not between them.
+ */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
+@import "./tokens.css";
 
 /*
  * Class-based dark-mode variant (T036a). Tailwind v4's default `dark:`
@@ -18,13 +25,10 @@
  * custom variant switches every `dark:`-prefixed utility to key off an
  * ancestor `.dark` class instead, matching `ThemeProvider`'s toggle target
  * (`document.documentElement.classList`) and the template's own
- * `src/app/globals.css` registration. Must be declared before any `dark:`
- * utility is consumed.
+ * `src/app/globals.css` registration (which registers it after its own
+ * three `@import` statements, in the same position as here).
  */
 @custom-variant dark (&:is(.dark *));
-
-/* OKLCH tokens — light/dark, scoped to .admin-root (T003) */
-@import "./tokens.css";
 
 /* Admin-scoped base reset (replaces preflight; confined to .admin-root subtree) */
 @layer base {

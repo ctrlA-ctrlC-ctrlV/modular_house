@@ -12,6 +12,17 @@
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
 
+/*
+ * Class-based dark-mode variant (T036a). Tailwind v4's default `dark:`
+ * strategy is `@media (prefers-color-scheme: dark)`; registering this
+ * custom variant switches every `dark:`-prefixed utility to key off an
+ * ancestor `.dark` class instead, matching `ThemeProvider`'s toggle target
+ * (`document.documentElement.classList`) and the template's own
+ * `src/app/globals.css` registration. Must be declared before any `dark:`
+ * utility is consumed.
+ */
+@custom-variant dark (&:is(.dark *));
+
 /* OKLCH tokens — light/dark, scoped to .admin-root (T003) */
 @import "./tokens.css";
 

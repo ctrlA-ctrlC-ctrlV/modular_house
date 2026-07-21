@@ -22,6 +22,16 @@ import { config } from '../config/env.js';
  *      vector at the logger level rather than relying on every caller to
  *      remember to scrub the body.
  *
+ * The `referrer` entries (Phase 2, plan §2.3 M7 / §2.4 S5 / §2.7 R2) close a
+ * PII vector specific to the analytics ingest pipeline: the beacon payload's
+ * `referrer` field is `document.referrer` — a full URL that may carry query
+ * strings with search terms or ad click IDs. The ingest service stores only
+ * the hostname (S5), but the `validateBody` middleware logs `body: req.body`
+ * verbatim on a validation failure (400), which would otherwise write the
+ * full referrer URL to the log stream. The `body.referrer` path redacts it at
+ * the logger level; the top-level `referrer` path covers any direct logger
+ * call that accidentally includes the field.
+ *
  * The array is exported so the redaction test (T102) can build a mock logger
  * with the exact same paths via `importOriginal`, tying the test to the
  * production configuration rather than a parallel copy that could drift.
@@ -39,6 +49,10 @@ export const REDACT_PATHS = [
   'code',
   'otp',
   'refreshToken',
+  // Top-level referrer — the analytics beacon payload's `referrer` field is
+  // a full URL that may carry query-string PII (search terms, ad click IDs).
+  // Redacted at the top level for any direct logger call (M7/R2/S5).
+  'referrer',
   // Nested under `body` — the validate middleware logs `body: req.body` on
   // validation failure, so request-body secrets must be redacted at this path.
   'body.password',
@@ -49,10 +63,16 @@ export const REDACT_PATHS = [
   'body.code',
   'body.otp',
   'body.refreshToken',
+  // Nested referrer under `body` — the analytics ingest route's
+  // `validateBody(ingestEventSchema)` logs `body: req.body` on a 400, and the
+  // body contains the raw `referrer` URL. This path redacts it so the full
+  // referrer URL never reaches the log stream (M7/R2/S5).
+  'body.referrer',
 ] as const;
 
 // Create base logger. The `redact` option ensures secrets (passwords, OTP
-// codes, reset tokens) never reach the log output regardless of how they are
+// codes, reset tokens, referrer URLs) never reach the log output regardless
+// of how they are
 // passed to a logger call (FR-039, I3).
 export const logger = pino({
   level: config.app.logLevel,

@@ -18,6 +18,50 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T13:00:00.000+01:00] — fix(admin-ui): T036a self-correction — @import ordering (admin.css); temp preview route (App.tsx)
+
+### Fixed
+- `apps/web/src/admin/theme/admin.css` — T036a's `@custom-variant dark` line
+  had been placed *between* `@import "tailwindcss/utilities"` and
+  `@import "./tokens.css"`. CSS spec requires all `@import` rules to stay
+  contiguous at the top of a stylesheet (only `@charset` or an empty
+  `@layer` may precede them) — any other statement between them invalidates
+  the imports that follow, and Vite's dev server surfaced exactly this as a
+  `[postcss] @import must precede all other statements` warning once the
+  file was actually served through the real build pipeline (something none
+  of the jsdom-based Vitest suites can detect, since jsdom does not run a
+  real CSS cascade — the gap this whole T036 investigation started from).
+  Reordered so all three `@import` statements are contiguous first, then
+  `@custom-variant dark` — matching the template's own `globals.css`, which
+  registers its custom variant after its three `@import` statements in the
+  same position.
+
+### Added
+- `apps/web/src/App.tsx` — temporary, dev-only `AnalyticsPreviewContainer`
+  mounted at `/admin/_preview/analytics`, gated behind
+  `import.meta.env.DEV` so it never ships in a production build. Renders
+  `<Analytics />` inside the real `AppShell` chrome (sidebar, top bar, theme
+  toggle) with a fixed preview user and no authentication, so the T036
+  human side-by-side doesn't depend on a working login flow — there is no
+  real `/admin/analytics` route yet (wiring one for real, with auth, is a
+  Pass 2 task per plan §4.3 Q7). Added at explicit user request ("there is
+  no way for me to visually confirm... add temporary visual page"). Must be
+  removed once that Pass 2 wiring task lands.
+
+### Notes
+- `pnpm --filter @modular-house/web test:run` — 45 files/370 tests still
+  passing (unaffected); `pnpm --filter @modular-house/web lint` / `tsc
+  --noEmit` — clean on both files.
+- The dev server (still running at `http://localhost:3001/`) picked up both
+  changes via HMR; the `[postcss] @import` warning is confirmed gone from
+  its output after the admin.css reorder.
+- This is a correction to T036a's own change, not a new root cause — logged
+  separately (not folded into T036a's existing note) since that task is
+  already checked off; the commit block for `admin.css` in this entry
+  overlaps the one already staged under T036a (1/4).
+
+---
+
 ## [2026-07-21T12:30:00.000+01:00] — docs(specs): T036 gate status — fixes applied, re-check pending (ui-components.md)
 
 ### Changed

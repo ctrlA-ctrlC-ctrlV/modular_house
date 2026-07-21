@@ -100,14 +100,16 @@ For each item in §3 and §4, before any data wiring:
       preserved verbatim per rule 6. Tailwind token class strings resolve
       against the Phase 1 token layer.
 - [ ] Side-by-side visual check against the template page in **light and dark** — approved
-      (feeds SC-010 / DoD-6). **FAILED (2026-07-21, human review)** — the ported UI reads as
-      visibly off-template and the light/dark toggle only recolors isolated surfaces (button/
-      input backgrounds, native form-control chrome) while the page background never changes.
-      Root-caused into five fix tasks in tasks.md — T036a (missing `@custom-variant dark`
-      registration), T036b (dead `.admin-root.dark` selector), T036c (TabsTrigger `data-active:`
-      vs Radix's `data-state=active`), T036d (Analytics page missing outer padding), T036e
-      (unscaled `--radius-3xl`/`--radius-4xl` tokens). T036 is not complete and T037+ (Pass 2
-      widget-consuming tasks) remain blocked until all five land and the side-by-side is re-run.
+      (feeds SC-010 / DoD-6). **FAILED (2026-07-21, human review); fixes applied, re-check
+      PENDING.** T036a–T036e (the fix tasks tracking the five root causes — missing
+      `@custom-variant dark` registration, dead `.admin-root.dark` selector, TabsTrigger
+      `data-active:` vs Radix's `data-state=active`, Analytics page's missing outer padding,
+      unscaled `--radius-3xl`/`--radius-4xl` tokens) are all implemented and green (their own
+      automated assertions pass; full web suite 45 files/370 tests, lint, typecheck all clean).
+      **PENDING HUMAN APPROVAL** — the agent cannot render web pages; this item requires a human
+      to run the admin app and the template side-by-side in light and dark themes and confirm
+      visual parity now holds. Until this is approved, T036 is not complete and T037+ (Pass 2
+      widget-consuming tasks) remain blocked.
 - [x] Keyboard operability and visible focus verified (constitution V).
       Verified by the Pass 1 keyboard suites: select (T010 — ArrowDown/Enter/
       Esc, H4 focus ring), tabs (T012 — ArrowRight/ArrowLeft roving focus,

@@ -100,15 +100,17 @@ For each item in §3 and §4, before any data wiring:
       preserved verbatim per rule 6. Tailwind token class strings resolve
       against the Phase 1 token layer.
 - [ ] Side-by-side visual check against the template page in **light and dark** — approved
-      (feeds SC-010 / DoD-6). **FAILED (2026-07-21, human review); fixes applied, re-check
-      PENDING.** T036a–T036e (the fix tasks tracking the five root causes — missing
-      `@custom-variant dark` registration, dead `.admin-root.dark` selector, TabsTrigger
-      `data-active:` vs Radix's `data-state=active`, Analytics page's missing outer padding,
-      unscaled `--radius-3xl`/`--radius-4xl` tokens) are all implemented and green (their own
-      automated assertions pass; full web suite 45 files/370 tests, lint, typecheck all clean).
-      **PENDING HUMAN APPROVAL** — the agent cannot render web pages; this item requires a human
-      to run the admin app and the template side-by-side in light and dark themes and confirm
-      visual parity now holds. Until this is approved, T036 is not complete and T037+ (Pass 2
+      (feeds SC-010 / DoD-6). **FAILED (2026-07-21, human review); T036a–T036f applied and
+      agent-verified live via browser automation (claude-in-chrome) — a sixth root cause, T036f
+      (admin.css referencing the dead `--color-*` @theme-inline aliases instead of raw tokens),
+      was found this way after the human reported the background was still not changing even
+      with T036a–T036e in place. Screenshots + `getComputedStyle` confirmed: before T036f, the
+      page background stayed transparent in both light and dark despite the underlying
+      `--background` token correctly updating (T036a/T036b working); after T036f, the whole page
+      — background, heading text, gaps — correctly tracks the theme in both directions, with no
+      regression to the already-correct sidebar/top-bar/cards.** **HUMAN FINAL CONFIRMATION
+      STILL PENDING** — the agent's live-browser check is strong evidence but not a substitute
+      for the human's own look; until confirmed, T036 is not complete and T037+ (Pass 2
       widget-consuming tasks) remain blocked.
 - [x] Keyboard operability and visible focus verified (constitution V).
       Verified by the Pass 1 keyboard suites: select (T010 — ArrowDown/Enter/
@@ -191,6 +193,27 @@ For each item in §3 and §4, before any data wiring:
    the template's un-scaled default rather than its `calc(var(--radius) +
    Npx)` formula, a small curvature drift from the pinned H3/H4 base radius
    every other radius step already honours.
+
+7. **`admin.css`'s hand-written CSS referenced the dead `--color-*` @theme-
+   inline aliases, not the raw tokens (found live in a real browser during
+   the T036 re-check, after T036a–T036e; fix tracked as T036f).**
+   `@theme inline` is a compile-time alias Tailwind's own utility generator
+   uses to inline `bg-background`/`text-foreground`/etc. classes directly to
+   `var(--background)` at build time — it never emits `--color-background`
+   (etc.) as an actual runtime custom property. `.admin-root`'s hand-written
+   base-layer rules (`background-color: var(--color-background)`,
+   `color: var(--color-foreground)`, `border-color: var(--color-border,
+   currentColor)`, and the H4 focus ring's `color-mix(in oklch,
+   var(--color-ring) 50%, transparent)`) referenced these non-existent
+   aliases instead. Confirmed live via `getComputedStyle`:
+   `.admin-root`'s `background-color` was `rgba(0,0,0,0)` in both light and
+   dark mode even after T036a/T036b correctly fixed the underlying
+   `--background` token to update between themes — this, not anything in
+   T036a/T036b, is why the page's own background never visibly changed
+   (sidebar/top-bar/cards, which use real Tailwind utility classes, DID
+   correctly go dark). This class of bug is invisible to every jsdom-based
+   Vitest suite in this project, since jsdom never runs a real CSS cascade —
+   only a live browser render surfaces it.
 
 ## 7. Inventory verification log
 

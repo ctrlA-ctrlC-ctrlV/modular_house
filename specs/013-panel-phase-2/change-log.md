@@ -18,6 +18,150 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-21T16:13:00.000+01:00] — feat(analytics): T044 mount public ingest route in app (app.ts)
+
+### Changed
+- `apps/api/src/app.ts` — registered the public analytics ingest route:
+  - **Import:** `import analyticsRouter from './routes/analytics.js';` added
+    alongside the other route imports (public-route default-export
+    convention, mirroring `routes/submissions.js`).
+  - **Mount:** `app.use('/api/analytics', analyticsRouter);` placed after
+    `/submissions` (the other public route) and before the `/admin/*`
+    routes. The mount sits after the app-level `httpLogger` middleware so
+    every ingest request carries a correlation id (`req.id` — constitution
+    II), and before `notFoundHandler` so `POST /api/analytics/events` is
+    reachable. The route applies its own `generalRateLimit` +
+    `validateBody(ingestEventSchema)` middleware internally (T043).
+
+### Notes
+- "Done when" met: T039 (T-B1 happy-path store), T040 (T-B2 session
+  grouping), and T041 (T-B8 privacy audit) all green — 10/10 passing across
+  `analytics-ingest.test.ts` (3) and `analytics-privacy.test.ts` (7). The
+  multi-task unit T039–T044 is closed: the ingest pipeline stores events
+  with server-clock `occurredAt`, anonymous cookie/UUID identity, hostname-
+  only referrer, and no IP/UA/full-URL at rest.
+- Lint + typecheck clean.
+- This completes the T039–T044 atomic unit (execution rule 4). The next
+  unchecked task is T045 (beacon unit tests).
+
+---
+
+## [2026-07-21T16:13:00.000+01:00] — feat(analytics): T043 public ingest route (analytics.ts)
+
+### Added
+- `apps/api/src/routes/analytics.ts` — the public `POST /events` router
+  (mounted at `/api/analytics` by T044, so the full path is
+  `/api/analytics/events` — contracts/analytics.openapi.yaml, plan §2.3 M1):
+  - **Middleware order:** `generalRateLimit` → `validateBody(ingestEventSchema)`
+    → async handler. Rate limiting runs before validation so a flood of
+    malformed payloads is still throttled (defense in depth); validation
+    replaces `req.body` with the Zod-validated `IngestEventInput` and returns
+    400 on failure (M2 — handled by the existing `validateBody` middleware, no
+    custom error mapping needed).
+  - **Handler:** reads `mh_vid` / `mh_sid` from `req.cookies` (cookie-parser is
+    app-wide), delegates to `ingestAnalyticsEvent` (T042), and responds 204
+    with an empty body on a store (M1). `next(error)` propagates Prisma /
+    unexpected errors to the app-level `errorHandler` (5xx).
+  - **Rate limit:** reuses the existing `generalRateLimit` middleware. The
+    analytics-specific 120/min/IP boundary (M6) is Pass 3 — the task text pins
+    it there ("M6 boundary configured/tested in Pass 3"); the general limiter
+    provides the 429 path now so the route is not unthrottled.
+  - **Correlation-id logging:** comes from the app-level `httpLogger`
+    middleware (T044 mounts the route after it); the service emits its own Pino
+    counter (no PII — M7).
+  - **Default export** mirrors `routes/submissions.ts` (public route
+    convention); T044 imports it as `import analyticsRouter from
+    './routes/analytics.js'`.
+
+### Notes
+- Pass 2 happy path only. Bot drop (M4), `/admin`-path drop (M5), and the
+  analytics-specific 120/min rate limit (M6) are Pass 3 boundary hardening
+  (plan §5.3) — the handler always stores and responds 204 for now.
+- "Done when" met: route module exports a router wired to the service
+  (typechecks, lints clean). T039/T040/T041 still red on 404 because the
+  route is not yet mounted in `app.ts` — that is T044.
+
+---
+
+## [2026-07-21T16:09:00.000+01:00] — feat(analytics): T042 analyticsIngest service happy path (analyticsIngest.ts)
+
+### Added
+- `apps/api/src/services/analyticsIngest.ts` — the happy-path ingest service
+  (plan §2.3 M2/M3, §2.4 S5, research R2/R3, data-model.md §3):
+  - **`ingestEventSchema`** — Zod object schema for the beacon payload with
+    `.strict()` (unknown keys rejected, M2). Fields: `path` (required string,
+    `^/`, length 1–512), `referrer` (optional, ≤ 2048), `utmSource` /
+    `utmMedium` / `utmCampaign` (optional, ≤ 100 each), `adClick` (optional
+    boolean). Over-length payloads are rejected, never truncated (M2).
+  - **`ingestAnalyticsEvent`** — the entry-point function: resolves
+    `visitorId` / `sessionId` from `mh_vid` / `mh_sid` cookies (one-off
+    `randomUUID()` when absent — M3), classifies the source via
+    `trafficSource.classify` (S1 precedence), reduces the referrer to its
+    bare hostname via `trafficSource.extractReferrerHost` (S5), upserts
+    `AnalyticsVisitor` (insert `firstSeenAt=lastSeenAt=now` on new, update
+    `lastSeenAt` on conflict — data-model §3, E-CONCURRENCY guard), inserts
+    one `AnalyticsEvent` with server-clock `occurredAt`, and emits a Pino
+    counter logging only `sourceGroup` + `path` (no IP/UA/full-referrer —
+    M7/R2). Accepts an optional injectable `clock: () => Date` (default
+    `() => new Date()`) for deterministic timestamps (constitution III).
+  - **Types** — `IngestEventInput`, `IngestCookies`, `IngestResult`
+    (`{ status: 'stored' }`; Pass 3 will extend the union with `dropped`
+    variants without touching the happy path — Open-Closed).
+
+### Notes
+- Pass 2 happy path only — deliberately minimal. Bot exclusion (M4),
+  `/admin`-path exclusion (M5), rate-limit boundary (M6), path
+  canonicalization (M10), and the 4 KB body cap are Pass 3 boundary
+  hardening (plan §5.3) and are absent by design so the E-INGEST boundary
+  tests can drive their addition red-first.
+- "Done when" met: service is unit-callable (exported function, typechecks,
+  lints clean); T039/T040/T041 still red ONLY on the missing route
+  (`expected 404 to be 204`) — no new error introduced. 8 red / 2 schema
+  pass across the two integration files.
+- Module-level `PrismaClient` mirrors `services/submissions.ts`; the
+  exported-function style mirrors the sibling `trafficSource.ts` (T038).
+
+---
+
+## [2026-07-21T16:05:00.000+01:00] — test(analytics): T041 failing privacy-audit integration suite (analytics-privacy.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-privacy.test.ts` — T-B8 privacy-audit
+  suite with two layers (plan §2.7 R2, §2.3 M7, §2.4 S5, FR-015/FR-016,
+  SC-008, constitution I):
+  - **Schema layer (green from T003).** `Prisma.dmmf.datamodel.models`
+    introspection asserts `AnalyticsEvent` and `AnalyticsVisitor` each have
+    EXACTLY the data-model field set (data-model.md §2/§3). Exact field-set
+    equality is the privacy-floor proof: any IP / UA / full-referrer-URL
+    column would widen the set. A targeted `FORBIDDEN_COLUMN_NAMES`
+    exact-match check (never substring — so `referrerHost` and `visitorId`
+    never false-positive) makes the privacy intent legible.
+  - **Row layer (red until T044).** Posts real events via supertest —
+    including one carrying `X-Forwarded-For: 203.0.113.42` and a `User-Agent`
+    header plus a full referrer URL
+    `https://www.google.com/search?q=garden+rooms` — then reads the stored
+    rows back and asserts: 204 response, exactly one event row,
+    `referrerHost` is the bare hostname with no `://` / `/` / `?`, the row's
+    keys are exactly the data-model columns (no IP/UA field leaked), and a
+    no-referrer event stores `referrerHost = null`. A short-host referrer
+    (`https://t.co/abc123?utm=1`) is also audited.
+  - **Clock + isolation.** Mirrors `analytics-ingest.test.ts` (T039/T040):
+    the T005 `createAnalyticsClock` / `ANALYTICS_FIXED_NOW` helpers drive
+    `vi.useFakeTimers({ toFake: ['Date'] })` so the route's `new Date()` is
+    deterministic while Prisma I/O and supertest stay real (constitution
+    III). Each test mints fresh `randomUUID()` visitor/session ids and
+    cleans up only its own rows, so the shared seed (T006) and the
+    overview/realtime suites are never disturbed.
+
+### Notes
+- "Done when" met: 2 schema-level tests pass (green from T003), 5 row-level
+  tests red on `expected 404 to be 204` — the endpoint does not exist. Not
+  test compile errors. Member of the multi-task unit T039–T044, expected to
+  stay red until T042 (service) + T043 (route) + T044 (app mount) land.
+- Lint + typecheck clean on the touched file.
+
+---
+
 ## [2026-07-21T15:30:00.000+01:00] — fix(analytics): T039/T040 review-nit fix — injected clock replaces wall-clock window (analytics-ingest.test.ts)
 
 ### Changed

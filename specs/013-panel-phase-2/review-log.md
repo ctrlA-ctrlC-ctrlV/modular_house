@@ -6,6 +6,13 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-21 — T041-T044 (baseline: edc8ecf)
+
+T041 — PASS-WITH-NITS — missing log-redaction assertion
+T042 — CHANGES-REQUIRED — referrer missing from REDACT_PATHS
+T043 — CHANGES-REQUIRED — leaks referrer via validateBody log
+T044 — PASS — mount verified, 435/435 green
+
 ## 2026-07-21 — T039-T040 nit-fix re-review (since ee24f8b)
 
 T039 — PASS — injected clock verified; exact occurredAt, still red on 404

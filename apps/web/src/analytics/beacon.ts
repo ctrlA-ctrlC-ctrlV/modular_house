@@ -24,12 +24,14 @@
  *   survives navigation); `fetch(url, { keepalive: true })` is the fallback when
  *   sendBeacon is unavailable or fails. The beacon ignores every response.
  *
- * Payload (plan §2.3 M2, research R3): `{ path, adClick? }`. `adClick` is a
- * boolean set when the landing URL carries a known ad click-ID parameter
- * (`gclid`/`fbclid`); the click-ID VALUE itself is never transmitted or stored
- * (FR-015). The ingest endpoint is the consumer; referrer/utm forwarding is out
- * of scope for the T045/T046 happy-path unit (the optional M2 fields are
- * deliberately omitted — add red-first in a future task).
+ * Payload (plan §2.3 M2, research R3): `{ path, referrer?, utmSource?,
+ * utmMedium?, utmCampaign?, adClick? }`. `referrer` is `document.referrer`
+ * (the full URL — the API stores only the hostname via S5). `utmSource` /
+ * `utmMedium` / `utmCampaign` are read from the URL search params when present.
+ * `adClick` is a boolean set when the landing URL carries a known ad click-ID
+ * parameter (`gclid`/`fbclid`); the click-ID VALUE itself is never transmitted
+ * or stored (FR-015). All optional fields are omitted from the payload when
+ * their source value is absent/empty.
  *
  * Admin exclusion (plan §2.3 M5, FR-014): `/admin` and `/admin/*` are never
  * measured — no cookie renewal, no dispatch — defence in depth on top of the
@@ -194,6 +196,45 @@ export function detectAdClick(search: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// UTM parameter extraction — M2, research R3.
+// ---------------------------------------------------------------------------
+
+/**
+ * Mapping from URL query-parameter names (snake_case, as used in campaign-
+ * tagged URLs) to the ingest payload field names (camelCase, per the M2
+ * contract / `ingestEventSchema`). Extend-by-append: a future UTM parameter
+ * would add an entry here with no other code change (Open-Closed).
+ */
+const UTM_PARAM_MAP: Readonly<Record<string, string>> = {
+  utm_source: 'utmSource',
+  utm_medium: 'utmMedium',
+  utm_campaign: 'utmCampaign',
+};
+
+/**
+ * Extract the UTM campaign parameters from a URL search string, mapping them
+ * to the M2 payload field names (M2, research R3). Returns an empty object
+ * when the search string is empty or carries no UTM parameters. Only non-empty
+ * values are included — an empty `utm_source=` is omitted, matching the M2
+ * optional-field semantics.
+ */
+function extractUtmParams(
+  search: string,
+): { utmSource?: string; utmMedium?: string; utmCampaign?: string } {
+  if (!search) return {};
+  const params = new URLSearchParams(search);
+  const result: { utmSource?: string; utmMedium?: string; utmCampaign?: string } =
+    {};
+  for (const [urlParam, payloadField] of Object.entries(UTM_PARAM_MAP)) {
+    const value = params.get(urlParam);
+    if (value) {
+      (result as Record<string, string>)[payloadField] = value;
+    }
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Transport — sendBeacon with keepalive-fetch fallback (M8, research R1).
 // ---------------------------------------------------------------------------
 
@@ -281,9 +322,28 @@ export function sendPageView(input: SendPageViewInput): void {
   ensureVisitorId();
   ensureSessionId();
 
-  // Build the M2 payload. `path` is always present; `adClick` is added only when
-  // a known ad click-ID parameter is present on the landing URL (M2/FR-015).
+  // Build the M2 payload (research R3). `path` is always present; the
+  // optional fields are included only when their source value is non-empty.
   const payload: Record<string, unknown> = { path: input.pathname };
+
+  // Forward `document.referrer` when non-empty (M2, research R3, S5). The
+  // browser sets this on navigation; it does not change during SPA route
+  // changes, so every event carries the same referrer. The API stores only
+  // the hostname via `extractReferrerHost` (S5) and classifies the traffic
+  // source via `trafficSource.classify` (S1–S3). The session's source is
+  // attributed from the first stored event (S4).
+  const referrer = document.referrer;
+  if (referrer) {
+    payload.referrer = referrer;
+  }
+
+  // Forward UTM campaign parameters from the URL search string (M2, research
+  // R3). These are typically present on the landing URL and drive CAMPAIGN
+  // classification (S1).
+  Object.assign(payload, extractUtmParams(input.search ?? ''));
+
+  // `adClick` is added only when a known ad click-ID parameter is present on
+  // the landing URL (M2/FR-015). The click-ID VALUE is never read.
   if (detectAdClick(input.search ?? '')) {
     payload.adClick = true;
   }

@@ -790,6 +790,7 @@
 
 - [x] T051 AMEND the TemplateLayout render tests for banner + beacon
 > note: amended suite — CookieBanner mount + beacon once-per-render (2 routes), transport mocks at sendBeacon/fetch boundary, cookie cleanup; tests: 11 passing 3 red on missing mounts; deviations: none
+> reviewed: PASS — amended suite verified, 14/14 green
       Do: Extend the existing expectations (amend — do not delete passing coverage): TemplateLayout
       mounts `CookieBanner` and invokes the beacon hook exactly once per route render; no other
       TemplateLayout behavior changes. Tests fail until T052.
@@ -798,6 +799,7 @@
 
 - [x] T052 Mount CookieBanner + beacon in TemplateLayout
 > note: TemplateLayout mounts CookieBanner (fixed-bottom, outside scroll container) + useBeacon hook (pathname-keyed effect); tests: 14 passing; deviations: none
+> reviewed: PASS — mount verified; no containing-block/CSS conflict
       Files: apps/web/src/components/TemplateLayout.tsx
       Do: Mount `CookieBanner` and the beacon hook — TemplateLayout is the enforced single mount
       point giving every current and future public page the banner + measurement with zero
@@ -807,6 +809,7 @@
 
 - [x] T053 Write failing register-consistency test (T-F11)
 > note: register-consistency suite (9 tests) — Phase2 coverage, K5 exact list, register<->policy 1:1; tests: 0 passing (red, missing cookieRegister.ts/CookiePolicy.tsx); deviations: cookieRegister.test.tsx (.tsx not .ts — JSX render)
+> reviewed: PASS — 9/9 verified; sources cross-checked vs code
       Files: apps/web/src/content/cookieRegister.test.ts (new)
       Do: Assert every cookie name Phase 2 code can set (`mh_vid`, `mh_sid` from beacon.ts;
       `mh_cookie_ack` from CookieBanner) appears in the register; the register additionally
@@ -818,6 +821,7 @@
 
 - [x] T054 Write failing CookiePolicy page test (T-F4, page half)
 > note: route-reachability suite (4 tests) via full App+MemoryRouter at /cookie-policy; tests: 0 passing (red, missing cookieRegister.ts); deviations: none
+> reviewed: PASS — 4/4 verified, route reachable
       Files: apps/web/src/test/routes/cookie-policy.test.tsx (new)
       Do: `/cookie-policy` renders a table with one row per cookieRegister entry showing name,
       purpose, category, duration — 1:1, no extra or missing rows (adding a register entry must
@@ -827,6 +831,7 @@
 
 - [x] T055 Create the authoritative cookie register module
 > note: COOKIE_REGISTER 9 entries (3 public+4 admin+2 GA), typed CookieCategory/Entry, no React import; tests: typecheck clean, T053 still red (CookiePolicy missing); deviations: none
+> reviewed: PASS — durations/categories verified vs source code
       Files: apps/web/src/content/cookieRegister.ts (new)
       Do: Typed readonly array (`name`, `purpose`, `category: "strictly-necessary" | "functional"
       | "performance"`, `duration`, `setBy`) listing exactly: `mh_vid`, `mh_sid`, `mh_cookie_ack`
@@ -841,6 +846,7 @@
 
 - [x] T056 Implement the CookiePolicy page
 > note: Bootstrap table 1:1 from COOKIE_REGISTER, Privacy.tsx SEO convention (no own Seo); tests: T053 9/9 green; deviations: cookieRegister.test.tsx — added HeaderProvider wrap (useHeaderConfig requires it)
+> reviewed: PASS — renders register 1:1, verified
       Files: apps/web/src/routes/CookiePolicy.tsx (new)
       Do: Public Bootstrap-styled page rendering its cookie table directly from cookieRegister.ts
       (no copy of the data); SEO metadata consistent with other public routes (follow
@@ -850,6 +856,7 @@
 
 - [x] T057 Register the /cookie-policy route
 > note: entry appended routes-metadata.ts + componentMap route-config.tsx (Open-Closed, no App.tsx edit needed); tests: T053 9/9 + T054 4/4 + full web 429/429 green; deviations: routes-metadata.ts, route-config.tsx — actual files (not App.tsx, which maps routes generically)
+> reviewed: PASS — route wired end-to-end; 429/429 + 437/437 green
       Files: apps/web/src/App.tsx
       Do: Add the public `/cookie-policy` route rendering CookiePolicy inside TemplateLayout, next
       to the existing public routes.

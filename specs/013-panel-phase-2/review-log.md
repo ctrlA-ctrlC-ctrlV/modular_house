@@ -6,6 +6,16 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-22 — T051-T057 (baseline: 90c1526)
+
+T051 — PASS — amended suite verified, 14/14 green
+T052 — PASS — mount verified; no containing-block/CSS conflict
+T053 — PASS — 9/9 verified; sources cross-checked vs code
+T054 — PASS — 4/4 verified, route reachable
+T055 — PASS — durations/categories verified vs source code
+T056 — PASS — renders register 1:1, verified
+T057 — PASS — route wired end-to-end; full suites green
+
 ## 2026-07-22 — T045/T046 review-fix re-review (since 3b027d3)
 
 T045 — PASS — unbacked "future task" claim removed; 28/28 verified

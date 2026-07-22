@@ -10,6 +10,8 @@ import {
           EventNewsBanner, 
         } from '@modular-house/ui';
 import { GoogleTag, GA_TRACKING_ID } from './GoogleTag';
+import { CookieBanner } from './CookieBanner';
+import { useBeacon } from '../analytics/beacon';
 //import { PROMO_CONFIG } from '../data/promo-config';
 
 // Import template styles to ensure theme-template variables are applied globally within this layout
@@ -40,6 +42,21 @@ const LayoutContent: React.FC = () => {
    * user is not unexpectedly returned to the top of the page.
    */
   const previousPathname = useRef<string>(location.pathname);
+
+  /**
+   * Page-view beacon — single mount point (Phase 2, plan §1.1, FR-001/SC-001).
+   *
+   * `useBeacon` fires one anonymous page-view event on initial mount and on
+   * each SPA navigation to a different `pathname` (M8). TemplateLayout is the
+   * enforced single mount point so every current and future public page is
+   * measured with zero page-specific setup. Admin routes (`/admin`,
+   * `/admin/*`) are skipped inside `sendPageView` (M5/FR-014); the hook is
+   * mounted here unconditionally because TemplateLayout only wraps public
+   * routes (App.tsx route structure). The effect depends on `pathname` only,
+   * so search-only changes (e.g. gallery filter updates) do not re-trigger
+   * the beacon.
+   */
+  useBeacon();
 
   /**
    * Layout Effect: Scroll Restoration Logic
@@ -223,6 +240,20 @@ const LayoutContent: React.FC = () => {
         
         <Footer />
       </div>
+
+      {/*
+        Cookie notice banner — single mount point (Phase 2, plan §1.1,
+        FR-001/SC-001).
+
+        TemplateLayout is the enforced mount point so every current and future
+        public page shows the notice with zero page-specific setup. The banner
+        is `position: fixed` (Bootstrap `fixed-bottom`) so it overlays the page
+        without affecting layout flow, and it renders client-side only (N2 —
+        absent from prerendered HTML). It self-hides when the `mh_cookie_ack`
+        cookie is present, so acknowledged visitors see nothing. Mounted
+        outside the scrollable container so it never scrolls with the content.
+      */}
+      <CookieBanner />
     </div>
   );
 };

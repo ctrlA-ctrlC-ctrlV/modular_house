@@ -18,6 +18,95 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-22T15:05:00.000+01:00] — feat(layout): T052 mount CookieBanner + beacon hook in TemplateLayout (TemplateLayout.tsx)
+
+### Changed
+- `apps/web/src/components/TemplateLayout.tsx` — mounted the two Phase 2
+  public-site singletons so every current and future public page gets the
+  cookie notice and page-view measurement with zero page-specific setup
+  (plan §1.1, FR-001, SC-001):
+  - **`useBeacon()` hook** — called inside `LayoutContent` alongside the
+    existing router hooks (`useLocation`, `useNavigationType`). The hook
+    fires one anonymous page-view event on initial mount and on each SPA
+    navigation to a different `pathname` (M8); `location.search` is
+    intentionally excluded from the effect dependency array so same-path
+    navigations (e.g. gallery filter updates) do not re-trigger the beacon.
+    TemplateLayout only wraps public routes (App.tsx route structure), so
+    the hook is mounted unconditionally — admin routes (`/admin`, `/admin/*`)
+    are skipped inside `sendPageView` (M5/FR-014). No render-critical work:
+    the beacon module performs nothing at import time (research R1).
+  - **`<CookieBanner />`** — mounted as a sibling of the scrollable content
+    container, inside the outer layout div. The banner is Bootstrap
+    `fixed-bottom` (`position: fixed; bottom: 0`) so it overlays the page
+    without affecting layout flow (N1 — zero CLS), and it renders client-side
+    only (N2 — absent from prerendered HTML). It self-hides when the
+    `mh_cookie_ack` cookie is present, so acknowledged visitors see nothing.
+    Placed outside the scrollable container so it never scrolls with content.
+  - **No other layout change.** The existing SEO injection, scroll
+    restoration, EventNewsBanner, Header/Footer, and GoogleTag mounts are
+    untouched. `GoogleTag` and its `VITE_GA_TRACKING_ID` plumbing are not
+    modified (owner decision 2026-07-14 — documenting its cookies in the
+    register is K5/T055, not a TemplateLayout change).
+
+### Notes
+- "Done when" met: the T051 amended suite is green (14/14 — 3 new banner +
+  beacon assertions pass, 11 pre-existing route/SEO assertions still pass).
+  `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean.
+- This closes the T051/T052 atomic unit (execution rule 4). The next
+  unchecked task is T053 (failing register-consistency test, T-F11).
+- The beacon's `sendBeacon`/`fetch` transports are mocked at the module
+  boundary in `template-layout.test.tsx` (T051), so no real network call
+  leaves the test process when the hook fires inside the integration suite
+  (constitution I/III, research R1).
+
+---
+
+## [2026-07-22T14:50:00.000+01:00] — test(layout): T051 amend TemplateLayout render tests for CookieBanner + beacon mount (template-layout.test.tsx)
+
+### Changed
+- `apps/web/src/test/routes/template-layout.test.tsx` — amended the existing
+  TemplateLayout integration suite (plan §4.3 AMEND #1, FR-001, SC-001) to
+  assert the two mounts T052 will add, without deleting any passing coverage:
+  - **Transport mocks (file-level).** `navigator.sendBeacon` is undefined in
+    jsdom; it is defined as a `vi.fn` returning `true` in a file-level
+    `beforeAll`, and `fetch` is stubbed globally with a 204-resolving mock.
+    These are installed once for the whole file so the pre-existing `it.each`
+    route tests are also protected once T052 mounts the `useBeacon` hook —
+    without them, every existing route render would issue a real `fetch`
+    against the ingest URL inside jsdom. No real network call leaves the test
+    process (constitution I/III, research R1), matching the boundary-mock
+    pattern established in `beacon.test.ts` (T045).
+  - **Cookie cleanup (file-level `beforeEach`).** Clears `document.cookie`
+    before every test so the beacon's `mh_vid`/`mh_sid` and the banner's
+    `mh_cookie_ack` never leak across tests — the banner renders only while
+    `mh_cookie_ack` is absent, so a stale ack from a prior test would suppress
+    it and false-pass the mount assertion.
+  - **New describe block "CookieBanner + beacon mount (T051)".** Three tests:
+    (1) `findByTestId('cookie-banner')` confirms TemplateLayout mounts the
+    real `CookieBanner` (client-only, so `findByTestId` waits for the effect
+    flush); (2) `sendBeaconMock` called exactly once for `/` — the `useBeacon`
+    hook fires one `sendPageView` per route render (M8); (3) the same
+    once-per-render assertion for `/about`, proving the beacon is not
+    route-specific (FR-001/SC-001).
+  - **Pre-existing coverage untouched.** The 9-test `it.each` route suite and
+    the 2-test Open Graph suite remain the regression guard for
+    header/footer/main/SEO behavior — "no other TemplateLayout behavior
+    changes" (plan §4.3 AMEND #1).
+
+### Notes
+- "Done when" met: the 3 new assertions are red only because TemplateLayout
+  does not yet mount `CookieBanner` or `useBeacon` (banner: "Unable to find
+  element by [data-testid='cookie-banner']"; beacon: "expected 1 calls, got
+  0"). All 11 pre-existing tests remain green. Red half of the T051/T052
+  atomic unit — expected to stay red until T052.
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit` — clean.
+- This is a sanctioned AMEND task (plan §4.3, tasks.md guardrail) — the only
+  Phase 1-era public suite touched is this one TemplateLayout render file,
+  and the amendment is purely additive (new describe + file-level mocks); no
+  existing assertion is deleted or weakened (SC-003).
+
+---
+
 ## [2026-07-22T14:00:00.000+01:00] — fix(analytics): T046 review fix — beacon now forwards document.referrer + UTM params (beacon.ts, beacon.test.ts)
 
 ### Fixed

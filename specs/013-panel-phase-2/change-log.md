@@ -18,6 +18,76 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-22T12:00:00.000+01:00] — feat(analytics): T045/T046 public page-view beacon — cookie set/renew + sendBeacon transport + adClick (beacon.ts, beacon.test.ts)
+
+### Added
+- `apps/web/src/analytics/beacon.ts` (new) — the public page-view beacon
+  module (plan §2.1 K1–K3, §2.3 M8, research R1/R2):
+  - **Cookie set/renew** for `mh_vid` (UUID v4, 365-day rolling Max-Age,
+    renewed same value + fresh expiry per measured view; re-issued when
+    absent — K2) and `mh_sid` (UUID v4, 30-minute rolling Max-Age = the
+    session inactivity window — K3/V1). Both `Path=/`, `SameSite=Lax`,
+    `Secure` in production only (K1). Values are random identifiers only —
+    no session/credential value (constitution I).
+  - **Transport** — `navigator.sendBeacon(url, Blob)` primary, fallback
+    `fetch(url, { keepalive: true })` when sendBeacon is unavailable or
+    fails; 0 retries; every failure swallowed (no error surfaces to the
+    page — FR-012/SC-009, research R1). The fetch fallback attaches both
+    settle handlers synchronously so a rejected promise can never become an
+    unhandled rejection.
+  - **Payload** — `{ path, adClick? }` (M2 happy-path subset; referrer/utm
+    forwarding is deliberately omitted — the optional M2 fields are not in
+    T045/T046 scope and would be added red-first in a future task).
+    `adClick: true` is set when the landing URL carries a known ad click-ID
+    parameter; the click-ID VALUE is never read into the payload (FR-015).
+  - **Admin skip** — `/admin` and `/admin/*` short-circuit before any
+    cookie is touched or dispatch attempted (M5/FR-014).
+  - **Exports** — `AD_CLICK_PARAMS = ['gclid','fbclid']` (extend-by-append,
+    Open-Closed), `VISITOR_COOKIE_NAME` / `SESSION_COOKIE_NAME` (for the
+    T053 register-consistency test), `detectAdClick`, `sendPageView`, the
+    `useBeacon` hook, and the `SendPageViewInput` type.
+  - **`useBeacon` hook** — `useLocation()` + `useEffect` keyed on
+    `location.pathname` only: fires once on initial mount and once per SPA
+    pathname change; same-path navigation (search-only) sends nothing (M8).
+    Mounted once in `TemplateLayout` by T052 (no render-critical import;
+    the module does no work at import time).
+- `apps/web/src/analytics/beacon.test.ts` (new) — the 21-test T045 suite
+  (T-F5, US2-1), authored test-first against the pinned §2 values:
+  - **Cookies (K1/K2/K3)** — `mh_vid` UUID v4 + 365-day max-age +
+    Path=/ + SameSite=Lax; `mh_sid` UUID v4 + 30-minute max-age; renewal
+    reuses the same value with a fresh max-age and does NOT regenerate
+    (asserted via a `crypto.randomUUID` spy with sequenced once-values
+    plus call-count); re-issue of a fresh `mh_vid` when the cookie is
+    cleared between views.
+  - **Transport (M8, R1)** — sendBeacon is the transport (fetch NOT
+    called) when available; `fetch(keepalive: true)` fallback when
+    sendBeacon is undefined.
+  - **Silent failures (FR-012)** — a throwing sendBeacon and a rejecting
+    keepalive fetch both leave `sendPageView` not throwing and
+    `console.error` uncalled.
+  - **Admin skip (M5, FR-014)** — `/admin` and `/admin/*` send nothing and
+    set no cookies; `/administration` (public) still sends.
+  - **adClick (M2, FR-015)** — `adClick: true` for `gclid` / `fbclid`; the
+    click-ID value string never appears in the serialized payload; no
+    adClick field when absent.
+  - **useBeacon (M8)** — via `renderHook` + a hoisted mutable `useLocation`
+    mock: exactly one dispatch on initial load, one per pathname change,
+    and zero on same-path (search-only) navigation.
+  - **Determinism (constitution III)** — fake timers (Date only) for a
+    fixed epoch; `document.cookie` overridden with a controlled store that
+    captures full attribute strings; `navigator.sendBeacon` / `fetch` /
+    `Blob` mocked at the module boundary (no real network call leaves the
+    process).
+
+### Security
+- The beacon sets only the two random-identifier cookies (`mh_vid` /
+  `mh_sid`); no IP, user agent, or full referrer URL is ever transmitted
+  (M7/R2). The ad click-ID value is never read into the payload (FR-015) —
+  only its presence is detected. Cookies are `SameSite=Lax` +
+  `Secure`-in-production with no session/credential value (constitution I).
+
+---
+
 ## [2026-07-21T16:47:00.000+01:00] — fix(analytics): T041/T042/T043 review-fix — referrer redacted from logs via REDACT_PATHS (logger.ts, analytics-privacy.test.ts)
 
 ### Fixed

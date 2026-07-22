@@ -713,7 +713,8 @@
 
 ### Beacon + cookies (public web)
 
-- [ ] T045 Write failing beacon unit tests (T-F5)
+- [x] T045 Write failing beacon unit tests (T-F5)
+> note: 21-test suite — K1/K2/K3 cookie set+renew, sendBeacon->keepalive fallback, silent failures, /admin skip, adClick value-absence, useBeacon route tracking; tests: 21 passing; deviations: none
       Files: apps/web/src/analytics/beacon.test.ts (new)
       Do: With fake timers and mocked `navigator.sendBeacon`/`fetch`: exactly one event on initial
       load and one per SPA pathname change (same-path navigation sends nothing); `/admin` and
@@ -726,7 +727,8 @@
       Done when: suite fails only because beacon.ts does not exist.
       Refs: T-F5 (US2-1), M8, K1/K2/K3, research R1/R2, FR-007/FR-008/FR-012/FR-014, M2 (adClick)
 
-- [ ] T046 Implement the public beacon module
+- [x] T046 Implement the public beacon module
+> note: beacon.ts — mh_vid/mh_sid cookies (365d/30m, Path=/, SameSite=Lax), sendBeacon->keepalive fallback, /admin skip, AD_CLICK_PARAMS, useBeacon hook; tests: 21 passing; deviations: none
       Files: apps/web/src/analytics/beacon.ts (new)
       Do: Cookie set/renew for `mh_vid` (365 d) + `mh_sid` (30 min) via `crypto.randomUUID()`,
       `Path=/`, `SameSite=Lax`, `Secure` in production; page-view send on load + route change with

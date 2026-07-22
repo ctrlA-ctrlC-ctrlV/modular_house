@@ -788,15 +788,16 @@
       Done when: T047, T048, T049 green.
       Refs: research R8, K4, N1/N3/N5, FR-001–FR-004, FR-028
 
-- [ ] T051 AMEND the TemplateLayout render tests for banner + beacon
-      Files: apps/web/src/test/routes/template-layout.test.tsx
+- [x] T051 AMEND the TemplateLayout render tests for banner + beacon
+> note: amended suite — CookieBanner mount + beacon once-per-render (2 routes), transport mocks at sendBeacon/fetch boundary, cookie cleanup; tests: 11 passing 3 red on missing mounts; deviations: none
       Do: Extend the existing expectations (amend — do not delete passing coverage): TemplateLayout
       mounts `CookieBanner` and invokes the beacon hook exactly once per route render; no other
       TemplateLayout behavior changes. Tests fail until T052.
       Done when: amended assertions exist and are red only on the missing mounts.
       Refs: plan §4.3 AMEND #1, FR-001, SC-001
 
-- [ ] T052 Mount CookieBanner + beacon in TemplateLayout
+- [x] T052 Mount CookieBanner + beacon in TemplateLayout
+> note: TemplateLayout mounts CookieBanner (fixed-bottom, outside scroll container) + useBeacon hook (pathname-keyed effect); tests: 14 passing; deviations: none
       Files: apps/web/src/components/TemplateLayout.tsx
       Do: Mount `CookieBanner` and the beacon hook — TemplateLayout is the enforced single mount
       point giving every current and future public page the banner + measurement with zero

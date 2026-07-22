@@ -18,6 +18,231 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-22T16:30:00.000+01:00] — feat(routing): T057 register /cookie-policy route (routes-metadata.ts, route-config.tsx)
+
+### Added
+- `apps/web/src/routes-metadata.ts` — appended a `/cookie-policy` entry
+  (between `/terms` and the `*` catch-all) with `seo.title`/`description`/
+  `canonicalUrl`/`robots: 'index, follow'` and `sitemap.priority: 0.1`/
+  `changefreq: 'yearly'`, matching the `/privacy`/`/terms` legal-page
+  convention exactly (no `openGraph`/`twitter`/schema enrichment).
+- `apps/web/src/route-config.tsx` — imported `CookiePolicy` and added
+  `'/cookie-policy': CookiePolicy` to `componentMap`, so `routes` (consumed
+  by `App.tsx`'s generic `{routes.map(...)}` renderer, the sitemap
+  generator, and the prerender script) picks it up automatically.
+
+### Notes
+- **Deviation from the task's literal `Files:` field** — T057 names
+  `apps/web/src/App.tsx`, but this codebase does not register public routes
+  as individual JSX lines in `App.tsx`; `/privacy` and `/terms` touch zero
+  lines there either. `App.tsx`'s public-route block
+  (`{routes.map(({ path, component: Component }) => <Route .../>)}`,
+  App.tsx:427-429) generates every public route from the `routes` array
+  assembled in `route-config.tsx` from `routesMetadata` +
+  `componentMap` — exactly the Open-Closed extension point
+  `routes-metadata.ts`'s own header comment documents ("add new routes by
+  appending entries to the routesMetadata array"). Registering the route the
+  same way every other public page already does was judged more faithful to
+  the task's actual intent (and the hard constraint's Open-Closed principle)
+  than inventing a bespoke `<Route>` line in `App.tsx` that would break with
+  the established pattern. `App.tsx` itself needed zero changes.
+- Verified: `pnpm --filter @modular-house/web test:run -- src/content/
+  cookieRegister.test.tsx src/test/routes/cookie-policy.test.tsx` — 13/13
+  passing (T053's full 9 + T054's full 4, both fully green for the first
+  time this session). Full `pnpm --filter @modular-house/web test:run` —
+  429/429 passing, confirming no other suite (sitemap generator, SEO
+  integration, TemplateLayout routing) regressed from the new route.
+  Lint and typecheck clean on both touched files.
+- This closes the T053-T057 atomic unit (tasks.md execution rule 4):
+  T-F11 (T053) and the T-F4 page half (T054) are both green now that the
+  route is registered.
+
+---
+
+## [2026-07-22T16:15:00.000+01:00] — feat(routes): T056 CookiePolicy page renders the register 1:1 (CookiePolicy.tsx, cookieRegister.test.tsx)
+
+### Added
+- `apps/web/src/routes/CookiePolicy.tsx` (new) — the public `/cookie-policy`
+  page (plan §2.2 N4, research R9):
+  - **Renders directly from `COOKIE_REGISTER`** — no copy of the data; a
+    Bootstrap-styled `<table>` with one `<tr>` per entry, columns Cookie /
+    Purpose / Category / Duration / Set by. The Category cell renders the
+    raw `category` value verbatim (e.g. `strictly-necessary`) with no
+    appended label text, so its `textContent` matches the register entry
+    exactly — the data contract the T053/T054 suites assert against.
+  - **SEO**: follows `routes/Privacy.tsx`'s convention exactly (no own
+    `<Seo />` — metadata comes from `TemplateLayout` + `routes-metadata.ts`,
+    avoiding duplicate head elements), per the task's explicit instruction to
+    match that file's convention rather than `routes/Terms.tsx`'s (which
+    renders its own `<Seo />` in addition to its `routes-metadata.ts` entry
+    — an existing inconsistency in the codebase, not followed here).
+  - **Header configuration**: `useHeaderConfig` sets `{ variant: 'light',
+    positionOver: false }` on mount, matching Privacy/Terms.
+
+### Fixed
+- `apps/web/src/content/cookieRegister.test.tsx` — `renderPolicyPage` now
+  wraps `CookiePolicy` in `HeaderProvider` (in addition to the existing
+  `HelmetProvider` + `MemoryRouter`). `CookiePolicy` calls `useHeaderConfig`
+  (the Privacy.tsx convention above), which throws outside a `HeaderProvider`
+  — in the real app `TemplateLayout` supplies it, but this suite renders
+  `CookiePolicy` standalone for the unit-level register-vs-page diff. Without
+  this fix the "Register <-> policy page 1:1 match" describe block (3 tests)
+  failed on `useHeaderConfig must be used within a HeaderProvider`, a
+  provider-wiring gap rather than the intended "module does not exist" red
+  state the file's own header comment anticipated.
+
+### Notes
+- T053's full 9-test suite is now green (`Phase 2 cookie coverage` +
+  `K5 exact list` + `Register <-> policy page 1:1 match`, all passing).
+- T054's 4 tests remain red, and correctly so — the fix above only resolves
+  a rendering-environment gap in T053's isolated-component render; T054 goes
+  through the real `/cookie-policy` route via full `<App/>`, which still
+  falls through to the 404 catch-all until T057 registers the route.
+- `pnpm --filter @modular-house/web typecheck` and lint both clean on every
+  file touched this task.
+
+---
+
+## [2026-07-22T16:00:00.000+01:00] — feat(content): T055 authoritative cookie register (cookieRegister.ts)
+
+### Added
+- `apps/web/src/content/cookieRegister.ts` (new) — the single authoritative
+  `COOKIE_REGISTER` constant (plan §2.1 K5, research R9, FR-025/FR-026/
+  FR-027), a typed readonly array of nine entries with the exact K5 set:
+  - **Public site (3)** — `mh_vid` (performance, 365 days), `mh_sid`
+    (performance, 30-minute rolling), `mh_cookie_ack` (strictly-necessary,
+    365 days). Categorised per spec.md line 111's framing ("the public
+    site's performance cookie[s] and acknowledgment record") — `mh_vid`/
+    `mh_sid` are the measurement cookies; `mh_cookie_ack` is the consent
+    record itself, categorised strictly-necessary since it exists to operate
+    the notice mechanism, not to measure traffic.
+  - **Admin panel (4, FR-026)** — `refreshToken` (strictly-necessary, 7 days,
+    httpOnly), `admin_theme_mode` (functional, 30 days),
+    `admin_sidebar_collapsed` (functional, 30 days), `sidebar_state`
+    (functional, 7 days, legacy shadcn/ui sidebar mirror). Names/durations
+    verified directly against the code that sets them
+    (`apps/api/src/routes/admin/auth.ts`, `apps/web/src/admin/theme/
+    ThemeProvider.tsx`, `apps/web/src/admin/ui/sidebar.tsx`) rather than
+    assumed.
+  - **Google Analytics (2, K5)** — `_ga` and `_ga_<container-id>`
+    (performance, 2-year duration renewed per visit, browsers may cap at
+    ~400 days, set by Google Analytics). Documented without touching
+    `GoogleTag.tsx` or its `VITE_GA_TRACKING_ID` plumbing (guardrail).
+  - **Design**: no React import — a pure data module (mirrors
+    `routes-metadata.ts`'s zero-framework-coupling convention) so it stays
+    prerenderable with no data dependency. Cookie-name literals are not
+    re-exported from `beacon.ts`/`CookieBanner.tsx` to avoid a
+    content-module -> component-module dependency running backwards; each
+    entry cites its source file/constant in a comment instead, and the T053
+    suite closes the loop by importing the real constants and asserting
+    they appear here.
+  - Extend-by-append (Open-Closed, FR-027): a future cookie is documented by
+    appending one entry.
+
+### Notes
+- `pnpm --filter @modular-house/web typecheck` clean except the still-
+  expected `../routes/CookiePolicy` module-not-found error in
+  `cookieRegister.test.tsx` (T056 dependency) — the six TS7006
+  implicit-`any` errors present before this task (on `COOKIE_REGISTER.map`
+  callbacks in the T053 suite) are gone now that the array has a concrete
+  type, confirming inference flows through without any test-file change.
+- T053's suite still fails as a whole file (its `CookiePolicy` import has
+  not resolved yet) — expected; T055's "register-content assertions green"
+  can only be observed in practice once T056 lands too, since both modules
+  are imported at the top of the same test file. Verified once T056 landed
+  later in this session.
+
+---
+
+## [2026-07-22T15:45:00.000+01:00] — test(routes): T054 failing cookie-policy route-reachability suite (cookie-policy.test.tsx)
+
+### Added
+- `apps/web/src/test/routes/cookie-policy.test.tsx` (new) — the 4-test T-F4
+  page-half suite (US1-3/US4-2, N4, FR-005/FR-025/FR-027), authored test-first
+  and modelled on `template-layout.test.tsx`'s `renderRoute` helper (full
+  `App` + `MemoryRouter` + `HelmetProvider`) rather than rendering
+  `CookiePolicy` in isolation:
+  - **Renders a table with one row per register entry at `/cookie-policy`** —
+    proves the route is reachable through real route-matching, not just that
+    the component renders when instantiated directly (T053 already covers
+    the latter).
+  - **Each row matches its register entry** (name/purpose/category/duration)
+    and **no row exists outside the register** — mirrors T053's content
+    assertions but through the live route, sourcing expected values from the
+    same `COOKIE_REGISTER` constant (no hardcoded duplicate list, FR-027).
+  - **Does not fall through to the 404 catch-all** — regression guard so a
+    future accidental route removal fails loudly instead of silently
+    rendering `NotFound`.
+  - **Beacon transport safety** — every public route mounts the T052
+    page-view beacon via `TemplateLayout`; `navigator.sendBeacon` is stubbed
+    and `fetch` is stubbed globally before any route renders (mirrors
+    `template-layout.test.tsx` exactly), so no real network call leaves the
+    test process (constitution I/III, research R1). Cookies are cleared
+    between tests for the same reason `template-layout.test.tsx` clears them.
+
+### Notes
+- "Done when" met: suite fails only because `../../content/cookieRegister`
+  does not exist (Vite `Failed to resolve import`) — the same failure mode
+  as T053, and expected: `CookiePolicy.tsx` doesn't exist yet either (T056),
+  and the route itself isn't registered yet (T057). Continues red — for the
+  route-reachability reason specifically — until T057, even after T055/T056
+  land, per the T053-T057 atomic unit.
+- Deliberately does not duplicate T053's isolated-render coverage as a
+  competing source of truth; both suites assert against the same
+  `COOKIE_REGISTER` import so a future register change cannot make one pass
+  while the other fails silently.
+
+---
+
+## [2026-07-22T15:30:00.000+01:00] — test(content): T053 failing register-consistency suite (cookieRegister.test.tsx)
+
+### Added
+- `apps/web/src/content/cookieRegister.test.tsx` (new) — the 9-test T-F11
+  register-consistency suite (US4-1, K5, FR-025/FR-026/FR-027, SC-011,
+  DoD-4), authored test-first against modules that do not exist yet:
+  - **Phase 2 cookie coverage** — every cookie name Phase 2 code can set
+    (`mh_vid`/`mh_sid` sourced from `beacon.ts`'s `VISITOR_COOKIE_NAME`/
+    `SESSION_COOKIE_NAME`; `mh_cookie_ack` sourced from `CookieBanner.tsx`'s
+    `ACK_COOKIE_NAME`) must appear in `COOKIE_REGISTER` (FR-027).
+  - **K5 exact list** — the register contains every K5-pinned cookie name
+    (the three public `mh_*` cookies, the four Phase 1 admin cookies —
+    `refreshToken`, `admin_theme_mode`, `admin_sidebar_collapsed`,
+    `sidebar_state` — and the two Google Analytics cookies `_ga`/
+    `_ga_<container-id>`) and no cookie name outside that list (register
+    names, sorted, must equal the K5 set, sorted); every entry has a
+    non-empty `name`/`purpose`/`duration`/`setBy` and a `category` in
+    `strictly-necessary | functional | performance`.
+  - **Register <-> policy page 1:1 match** — renders `CookiePolicy` (inside
+    `HelmetProvider` + `MemoryRouter`) and diffs its `<table><tbody>` rows
+    against `COOKIE_REGISTER`: exactly one row per entry, each row's four
+    cells (name/purpose/category/duration) match the entry, and no row
+    exists that doesn't correspond to a register entry.
+  - Admin cookie names/durations sourced by inspection of the code that
+    sets them (`apps/api/src/routes/admin/auth.ts` for `refreshToken`,
+    `apps/web/src/admin/theme/ThemeProvider.tsx` for
+    `admin_theme_mode`/`admin_sidebar_collapsed`, `apps/web/src/admin/ui/
+    sidebar.tsx` for the legacy `sidebar_state` mirror) rather than
+    hardcoded independently, so the test stays coupled to the real cookie
+    names.
+
+### Notes
+- "Done when" met: suite fails only because `./cookieRegister` and
+  `../routes/CookiePolicy` do not exist (Vite `Failed to resolve import`);
+  not a test-authoring error. Red half of the T053-T057 atomic unit
+  (T-F11 stays red across T054/T055/T056, going green only once T057
+  registers the route).
+- **Deviation**: file is `cookieRegister.test.tsx`, not the task's literal
+  `cookieRegister.test.ts` — this project's vitest config requires `.tsx`
+  for any file rendering JSX (`renderPolicyPage` renders `<CookiePolicy />`),
+  and every other JSX-rendering suite in the codebase already follows that
+  convention. Documented in the file's own header comment.
+- This test file was drafted in a prior session that ended before its task
+  loop closed (no box/note/change-log/commit trail existed for it at this
+  session's boot). Content was reviewed and adopted as-is per this
+  session's explicit go-ahead; no functional changes were made to it.
+
+---
+
 ## [2026-07-22T15:05:00.000+01:00] — feat(layout): T052 mount CookieBanner + beacon hook in TemplateLayout (TemplateLayout.tsx)
 
 ### Changed

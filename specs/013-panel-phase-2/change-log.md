@@ -1,6 +1,166 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-22T17:45:00.000+01:00] — test(analytics): T060/T061 failing overview integration suite (analytics-overview.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-overview.test.ts` (new) — 4 tests
+  against `GET /api/admin/analytics/overview`, which does not exist yet
+  (the route is later Pass 2 work, T066-T068). Unlike the T058 unit suite,
+  these tests deliberately depend on the shared `db:seed` analytics
+  fixtures (T006) — T060's Do text says "matching the seeded fixtures",
+  and T-B6's variety (five distinct source groups, several paths) only the
+  shared seed conveniently provides:
+  - **T060 (T-B5)** — today (2026-07-15 London) vs. yesterday
+    (2026-07-14): every KPI's `current`/`previous`/`deltaPercent`
+    (pageViews 5/4/+25%, uniqueVisitors 4/3/+33.3%, sessions 4/3/+33.3%,
+    returningVisitorRate 0.5/0.667/-25%, pagesPerSession 1.25/1.333/-6.25%);
+    a second test proves the "no prior data" Q5 case using the seed's
+    3-day range, whose preceding 3-day window has zero events and ends
+    before the first-ever stored event.
+  - **T061 (T-B6, overview half)** — the today-only query doubles as the
+    <= 2-day hour-bucket case (`range.bucket: 'hour'`), asserting the
+    top-pages shape and all five source groups including a genuinely
+    zero-valued one (`social: 0`, since no SOCIAL session occurred today);
+    the 3-day query proves day-bucketing (`range.bucket: 'day'`), the
+    `range.from`/`range.to` echo, and the seed's documented
+    one-session-per-source-group distribution.
+  - **Session setup** — a fresh `admin`-role (not `super_admin`) test user
+    via the real login-code + `verify-2fa` flow, mirroring the established
+    inline pattern already duplicated across ~22 other integration test
+    files (`edge-superadmin.test.ts` et al.) rather than introducing a new
+    shared helper for one file's use.
+
+### Notes
+- "Done when" met for both tasks: every test is red only because
+  `GET /api/admin/analytics/overview` 404s (route unmounted) — the session
+  setup itself succeeds (a real 200 from `verify-2fa`), confirming the red
+  state is specifically "endpoint missing," not a setup/compile error.
+- **Every expected numeric value was independently verified before being
+  hard-coded**, by calling `analyticsQuery.getOverview` (T059) directly
+  against the seeded test database in a throwaway script (bypassing the
+  not-yet-existent HTTP layer), rather than hand-computed and trusted blind.
+  This matters because these tests cannot be run against a real
+  implementation yet — if the hard-coded expectations were wrong, the
+  suite would still look "correctly red" today but would fail for the
+  *wrong* reason once T066-T068 wire the route in a future session,
+  defeating the point of writing them test-first now. The script's output
+  matched the by-hand arithmetic exactly and was deleted afterward (not
+  part of this task's deliverable).
+- Lint and typecheck clean; full suite 449/454 at authoring time (the other
+  4 non-2xx-vs-404 failures are this file's own intentional red state; a
+  5th, unrelated pre-existing flake in `edge-otp.test.ts` reproduced
+  independently of this change on a prior run this session too).
+
+---
+
+## [2026-07-22T17:15:00.000+01:00] — feat(analytics): T059 analyticsQuery service (analyticsQuery.ts)
+
+### Added
+- `apps/api/src/services/analyticsQuery.ts` (new) — `getOverview` and
+  `getRealtime`, the two aggregation entry points behind the future admin
+  analytics endpoints (T-B5/T-B6 basis, research R6/R7):
+  - **Timezone/DST correctness owned by Postgres, not app code (research
+    R6)** — every bucket boundary and day-boundary comparison uses
+    parameterized `$queryRaw` with `AT TIME ZONE 'Europe/London'`; no TZ
+    library on the Node side.
+  - **`getOverview(prisma, { current, previous })`** — `current`/`previous`
+    are caller-resolved half-open UTC instant windows (`from` inclusive,
+    `to` exclusive); the service is deliberately form-agnostic about Q1/Q2's
+    calendar-day-vs-datetime request forms — that date math belongs to the
+    future route/rangePresets layer (T066/T070), keeping this service a pure
+    "aggregate `[from, to)`" seam (research R7: "internals replaceable
+    without touching routes").
+  - **Q4 bucketing** — `resolveBucket` picks `hour` for a `current` span
+    <= 2 days, else `day`, purely from the resolved instants (no knowledge
+    of which Q1 form produced them).
+  - **Zero-filled timeseries** — `generate_series` over Europe/London-aligned
+    bucket boundaries, `LEFT JOIN`ed against the real aggregates, so every
+    bucket in range appears even with zero events. The `generate_series`
+    step is a literal interval string (`'1 hour'`/`'1 day'`) chosen in JS
+    per bucket kind, not built via SQL string concatenation (a bare unit
+    word like `'hours'` has no quantity and is not a valid interval literal)
+    — caught during implementation review, before the first test run.
+  - **V2/V3/V4 KPI math** — `uniqueVisitors`/`sessions`/`pageViews` via
+    `COUNT(DISTINCT ...)`; `returningVisitorRate` via a CTE comparing each
+    in-range visitor's first-event-in-range London day against their
+    `AnalyticsVisitor.firstSeenAt` London day (V3), guarded to `0` (never
+    `NaN`) when the range has no visitors; `pagesPerSession` guarded the
+    same way.
+  - **Q5 deltas** — `previous` is `null` only when the previous window ends
+    at or before the server's global `MIN(occurred_at)` ("no prior data");
+    otherwise a real (possibly zero) number. `deltaPercent` is `null` when
+    `previous` is `null` or `0`, and additionally guarded by
+    `Number.isFinite` so no residual edge case can render `NaN`/`Infinity`.
+  - **Q6 top pages** — top-10 paths by view count with each entry's share of
+    the range's total page views (guarded to `0` share on an empty range).
+  - **S4/Q6 source breakdown** — `unnest(enum_range(NULL::"AnalyticsSourceGroup"))`
+    zero-fills all five groups; each session's group is attributed from a
+    `DISTINCT ON (session_id) ... ORDER BY occurred_at ASC` subquery — the
+    session's FIRST stored event within the range, never a later event's
+    differing source, and sessions are counted once each (S4: "sessions
+    counted, not events").
+  - **V5 realtime** — `getRealtime(prisma, clock?)` takes an injectable clock
+    (constitution III) and counts distinct visitors / ranks top-5 paths by
+    distinct-visitor count in the trailing 5-minute window
+    `[now - 5m, now)`.
+
+### Notes
+- T058's 13-test suite is fully green against this implementation
+  (`pnpm --filter @modular-house/api test:run -- tests/unit/analyticsQuery.test.ts`
+  — 13/13 passing, full suite 450/450, no regressions). Lint and typecheck
+  clean on both files.
+- Postgres enum labels for `AnalyticsSourceGroup` are already the lowercase
+  contract values (`direct`/`search`/.../`campaign`, per the schema's
+  `@map` directives — confirmed against the `add_analytics_events` migration
+  SQL) — `source_group::text` in the breakdown query needs no JS-side
+  translation table.
+
+---
+
+## [2026-07-22T17:00:00.000+01:00] — test(analytics): T058 failing analyticsQuery unit suite (analyticsQuery.test.ts)
+
+### Added
+- `apps/api/tests/unit/analyticsQuery.test.ts` (new) — a 13-test unit suite
+  exercising `analyticsQuery.ts` directly against the real test database (no
+  HTTP layer — the route is later Pass 2 work, T066/T067), covering plan
+  §2.5 V-series, §2.6 Q-series, and §2.4 S4:
+  - **Q4** — a 3-day range bucketed by day with a zero-filled middle day; a
+    3-hour range bucketed by hour with a zero-filled middle hour.
+  - **V2/V3/V4** — exact unique-visitor, returning-visitor-rate, and
+    pages-per-session math from a known 2-visitor/2-session/4-event fixture;
+    a zero-visitor range renders `0` (never `NaN`).
+  - **Q5** — a normal +100% delta; the "no prior data" case (previous window
+    ends before the only stored event, `previous: null`); the
+    not-computable case (previous window measured but empty, `previous: 0`,
+    `deltaPercent: null`).
+  - **Q6** — an 11-path fixture (views 11 down to 1) proving the top-10 cap
+    excludes the 11th-ranked page entirely, not just its duplicate views.
+  - **S4/Q6** — all five source groups always present (four zero-valued);
+    a two-event session (SEARCH then DIRECT) attributed to SEARCH — its
+    FIRST stored event — never DIRECT, and counted once.
+  - **V5** — the trailing-5-minute realtime window (with an injected clock)
+    excludes a 6-minutes-ago event; the top-active-pages list caps at 5; an
+    empty window renders an all-zero snapshot.
+  - Every test resets both analytics tables (`resetAnalyticsTables`) in
+    `beforeEach` and inserts only its own fixture rows via the T005 helpers
+    — this suite never depends on the shared `db:seed` fixtures (T006) or on
+    file execution order (`analyticsFixtures.test.ts`, T005's own
+    round-trip suite, already wipes both tables in its own `afterAll`).
+
+### Notes
+- "Done when" met: suite fails only because
+  `../../src/services/analyticsQuery.js` does not exist (Vitest
+  `Cannot find module`) — not a test-authoring error. Full suite otherwise
+  unaffected (437/437 passing elsewhere at authoring time). Lint clean
+  (non-null assertions on array indexing replaced with a `nth()` helper that
+  asserts definedness via `expect`, matching the pattern already used in
+  `cookieRegister.test.tsx`).
+- Half of the T058/T059 atomic pair — stays red until T059 implements the
+  service (confirmed green in the T059 entry above).
+
+---
+
 > ## [YYYY-MM-DDTHH:mm:ss.sss+00:00] - [git commit hash] - [commit title] (one line summary, only include section true to the commit)
 > ### Added 
 > - 

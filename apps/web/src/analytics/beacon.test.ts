@@ -14,6 +14,10 @@
  *   - M2/FR-015 — `adClick: true` is sent when the landing URL carries a known
  *     ad click-ID parameter (`gclid`/`fbclid`); the click-ID VALUE itself never
  *     appears in any payload.
+ *   - M2/R3 — `document.referrer` is forwarded as `referrer` and
+ *     `utm_source`/`utm_medium`/`utm_campaign` are forwarded as
+ *     `utmSource`/`utmMedium`/`utmCampaign` when present; all optional fields
+ *     are omitted when their source value is absent/empty.
  *
  * Determinism (constitution III): fake timers (Date only) provide a fixed
  * deterministic epoch; `crypto.randomUUID` is wrapped so renewal assertions can
@@ -130,6 +134,22 @@ beforeAll(() => {
 });
 
 // ---------------------------------------------------------------------------
+// Controlled document.referrer.
+// ---------------------------------------------------------------------------
+// jsdom's `document.referrer` is a read-only property defaulting to `''`. A
+// configurable getter override lets individual tests set a non-empty referrer
+// to verify the beacon forwards it (M2, research R3). The module-level
+// `documentReferrer` is reset to `''` in `beforeEach` so tests start clean.
+let documentReferrer = '';
+
+beforeAll(() => {
+  Object.defineProperty(document, 'referrer', {
+    configurable: true,
+    get: () => documentReferrer,
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Transport mocks — sendBeacon + fetch.
 // ---------------------------------------------------------------------------
 // `navigator.sendBeacon` is undefined in jsdom, so it is defined here as a mock.
@@ -204,6 +224,7 @@ beforeEach(() => {
   cookieSetCalls = [];
   mockLocation.pathname = '/';
   mockLocation.search = '';
+  documentReferrer = '';
 
   uuidSpy.mockReset();
   uuidSpy.mockImplementation(() => realRandomUUID());
@@ -491,7 +512,9 @@ describe('sendPageView — adClick detection (M2, FR-015)', () => {
   });
 
   it('omits adClick when no ad click-ID parameter is present', async () => {
-    sendPageView({ pathname: '/landing', search: '?utm_source=newsletter' });
+    // Use a non-UTM param so the assertion isolates the adClick omission from
+    // the UTM-forwarding behaviour tested in the referrer/UTM describe block.
+    sendPageView({ pathname: '/landing', search: '?foo=bar' });
 
     expect(await lastPayload()).toEqual({ path: '/landing' });
   });
@@ -513,6 +536,96 @@ describe('sendPageView — adClick detection (M2, FR-015)', () => {
     expect(detectAdClick('?fbclid=abc')).toBe(true);
     expect(detectAdClick('?foo=bar')).toBe(false);
     expect(detectAdClick('')).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Referrer + UTM forwarding — M2, research R3 (T046 review fix).
+// ---------------------------------------------------------------------------
+
+describe('sendPageView — referrer + UTM forwarding (M2, research R3)', () => {
+  it('forwards document.referrer as referrer in the payload when non-empty (M2, R3, S5)', async () => {
+    documentReferrer = 'https://www.google.com/search?q=garden+rooms';
+    sendPageView({ pathname: '/garden-rooms' });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({
+      path: '/garden-rooms',
+      referrer: 'https://www.google.com/search?q=garden+rooms',
+    });
+  });
+
+  it('omits referrer when document.referrer is empty (M2 optional field)', async () => {
+    // documentReferrer is reset to '' in beforeEach.
+    sendPageView({ pathname: '/garden-rooms' });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({ path: '/garden-rooms' });
+    expect(payload).not.toHaveProperty('referrer');
+  });
+
+  it('forwards utm_source/utm_medium/utm_campaign from the URL search params (M2, R3)', async () => {
+    sendPageView({
+      pathname: '/landing',
+      search: '?utm_source=google&utm_medium=cpc&utm_campaign=spring_sale',
+    });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({
+      path: '/landing',
+      utmSource: 'google',
+      utmMedium: 'cpc',
+      utmCampaign: 'spring_sale',
+    });
+  });
+
+  it('forwards a single UTM param without requiring the others (M2 optional fields)', async () => {
+    sendPageView({ pathname: '/landing', search: '?utm_source=newsletter' });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({
+      path: '/landing',
+      utmSource: 'newsletter',
+    });
+    expect(payload).not.toHaveProperty('utmMedium');
+    expect(payload).not.toHaveProperty('utmCampaign');
+  });
+
+  it('omits UTM params when not present in the URL (M2 optional fields)', async () => {
+    sendPageView({ pathname: '/landing', search: '?foo=bar' });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({ path: '/landing' });
+    expect(payload).not.toHaveProperty('utmSource');
+    expect(payload).not.toHaveProperty('utmMedium');
+    expect(payload).not.toHaveProperty('utmCampaign');
+  });
+
+  it('omits empty UTM param values (utm_source= with no value)', async () => {
+    sendPageView({ pathname: '/landing', search: '?utm_source=' });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({ path: '/landing' });
+    expect(payload).not.toHaveProperty('utmSource');
+  });
+
+  it('forwards the full M2 payload shape when all sources are present', async () => {
+    documentReferrer = 'https://www.facebook.com/';
+    sendPageView({
+      pathname: '/landing',
+      search:
+        '?utm_source=facebook&utm_medium=social&utm_campaign=launch&gclid=abc123',
+    });
+
+    const payload = await lastPayload();
+    expect(payload).toEqual({
+      path: '/landing',
+      referrer: 'https://www.facebook.com/',
+      utmSource: 'facebook',
+      utmMedium: 'social',
+      utmCampaign: 'launch',
+      adClick: true,
+    });
   });
 });
 

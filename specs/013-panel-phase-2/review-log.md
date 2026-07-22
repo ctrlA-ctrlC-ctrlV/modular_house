@@ -6,6 +6,15 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-22 — T045-T050 (baseline: 53ca675)
+
+T045 — PASS-WITH-NITS — 'future task' referrer/utm claim unverified
+T046 — CHANGES-REQUIRED — referrer/utm never captured; no follow-up task exists
+T047 — PASS
+T048 — PASS
+T049 — PASS
+T050 — PASS
+
 ## 2026-07-22 — T041-T043 review-fix re-review (since e435f9b)
 
 T041 — PASS. The prior nit ("no assertion against the log-leak") is closed: analytics-privacy.test.ts gained a third describe block with (1) a static check that REDACT_PATHS contains 'referrer'/'body.referrer', and (2) a behavioral check building a real Pino instance with the production REDACT_PATHS, logging a validateBody-shaped payload, and asserting the raw URL never appears in the output while [Redacted] does. Ran the file directly — 9/9 passing, matching the claimed count.

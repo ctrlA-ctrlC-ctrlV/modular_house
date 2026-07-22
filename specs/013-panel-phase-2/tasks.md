@@ -715,6 +715,7 @@
 
 - [x] T045 Write failing beacon unit tests (T-F5)
 > note: 21-test suite — K1/K2/K3 cookie set+renew, sendBeacon->keepalive fallback, silent failures, /admin skip, adClick value-absence, useBeacon route tracking; tests: 21 passing; deviations: none
+> reviewed: PASS-WITH-NITS — 21/21 verified red-then-green; docstring's "referrer/utm added in a future task" claim is unbacked — no such task exists anywhere in tasks.md (see T046)
       Files: apps/web/src/analytics/beacon.test.ts (new)
       Do: With fake timers and mocked `navigator.sendBeacon`/`fetch`: exactly one event on initial
       load and one per SPA pathname change (same-path navigation sends nothing); `/admin` and
@@ -729,6 +730,7 @@
 
 - [x] T046 Implement the public beacon module
 > note: beacon.ts — mh_vid/mh_sid cookies (365d/30m, Path=/, SameSite=Lax), sendBeacon->keepalive fallback, /admin skip, AD_CLICK_PARAMS, useBeacon hook; tests: 21 passing; deviations: none
+> reviewed: CHANGES-REQUIRED — K1-K3/M8/adClick correct, but payload never captures document.referrer or utm_source/utm_medium/utm_campaign (research R3); no task in tasks.md ever adds this to beacon.ts, so FR-011/S1-S5 source classification can never see SEARCH/SOCIAL/REFERRAL from real traffic
       Files: apps/web/src/analytics/beacon.ts (new)
       Do: Cookie set/renew for `mh_vid` (365 d) + `mh_sid` (30 min) via `crypto.randomUUID()`,
       `Path=/`, `SameSite=Lax`, `Secure` in production; page-view send on load + route change with
@@ -742,6 +744,7 @@
 
 - [x] T047 Write failing CookieBanner first-render tests (T-F1)
 > note: T-F1 first-render suite — statement/ack/close/policy link, fixed-bottom, mh_cookie_ack=1 suppresses; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS — component confirmed absent at test commit; suite genuinely red-then-green
       Files: apps/web/src/components/CookieBanner.test.tsx (new)
       Do: Fresh state (no `mh_cookie_ack`) -> banner renders the performance-cookies-only
       statement, acknowledge button, close ("x") control, and a link to `/cookie-policy`; it is a
@@ -752,6 +755,7 @@
 
 - [x] T048 Write failing CookieBanner acknowledgment tests (T-F2)
 > note: T-F2 ack suite — ack/close set mh_cookie_ack=1 (365d, Path=/, SameSite=Lax), hide banner, remount suppresses, no skip; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS — K4/N3 attributes and same-frame hide verified against delivered component
       Files: apps/web/src/components/CookieBanner.test.tsx
       Do: Acknowledge sets `mh_cookie_ack=1` with 365-day Max-Age (Path=/, SameSite=Lax) and hides
       the banner in the same frame; close ("x") has the identical effect; remount with the cookie
@@ -761,6 +765,7 @@
 
 - [x] T049 Write failing CookieBanner a11y/non-blocking tests (T-F3)
 > note: T-F3 a11y suite — role=region+aria-label, keyboard reachable/operable, no trap, content interactive, cookie-cleared returns, axe; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS — N5 a11y assertions verified; jest-axe zero violations confirmed on rerun
       Files: apps/web/src/components/CookieBanner.test.tsx
       Do: Banner never intercepts input outside its own bounds (page content stays interactive);
       keyboard reachable and operable (both controls), visible focus, `role="region"` +
@@ -770,6 +775,7 @@
 
 - [x] T050 Implement the CookieBanner component
 > note: CookieBanner.tsx — Bootstrap fixed-bottom, role=region+aria-label, ack/close single seam (FR-028), client-only mount (N2), mh_cookie_ack (K4); tests: 14 passing; deviations: none
+> reviewed: PASS — 14/14 verified; Bootstrap-only styling confirmed, no admin design-system leak
       Files: apps/web/src/components/CookieBanner.tsx (new)
       Do: Public-site Bootstrap-styled fixed bottom overlay (NOT the admin design system);
       statement, acknowledge + close controls both writing `mh_cookie_ack` through a single

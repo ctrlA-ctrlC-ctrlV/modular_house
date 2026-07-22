@@ -805,7 +805,8 @@
       Done when: T051 amended suite green; all pre-existing TemplateLayout assertions still green.
       Refs: FR-001, SC-001, plan §1.1
 
-- [ ] T053 Write failing register-consistency test (T-F11)
+- [x] T053 Write failing register-consistency test (T-F11)
+> note: register-consistency suite (9 tests) — Phase2 coverage, K5 exact list, register<->policy 1:1; tests: 0 passing (red, missing cookieRegister.ts/CookiePolicy.tsx); deviations: cookieRegister.test.tsx (.tsx not .ts — JSX render)
       Files: apps/web/src/content/cookieRegister.test.ts (new)
       Do: Assert every cookie name Phase 2 code can set (`mh_vid`, `mh_sid` from beacon.ts;
       `mh_cookie_ack` from CookieBanner) appears in the register; the register additionally
@@ -815,7 +816,8 @@
       Done when: suite fails only because cookieRegister.ts (and CookiePolicy) do not exist.
       Refs: T-F11 (US4-1), K5, FR-025/FR-026/FR-027, SC-011, DoD-4
 
-- [ ] T054 Write failing CookiePolicy page test (T-F4, page half)
+- [x] T054 Write failing CookiePolicy page test (T-F4, page half)
+> note: route-reachability suite (4 tests) via full App+MemoryRouter at /cookie-policy; tests: 0 passing (red, missing cookieRegister.ts); deviations: none
       Files: apps/web/src/test/routes/cookie-policy.test.tsx (new)
       Do: `/cookie-policy` renders a table with one row per cookieRegister entry showing name,
       purpose, category, duration — 1:1, no extra or missing rows (adding a register entry must
@@ -823,7 +825,8 @@
       Done when: test red because the page/route does not exist.
       Refs: T-F4 (US1-3, US4-2), N4, FR-005/FR-025/FR-027
 
-- [ ] T055 Create the authoritative cookie register module
+- [x] T055 Create the authoritative cookie register module
+> note: COOKIE_REGISTER 9 entries (3 public+4 admin+2 GA), typed CookieCategory/Entry, no React import; tests: typecheck clean, T053 still red (CookiePolicy missing); deviations: none
       Files: apps/web/src/content/cookieRegister.ts (new)
       Do: Typed readonly array (`name`, `purpose`, `category: "strictly-necessary" | "functional"
       | "performance"`, `duration`, `setBy`) listing exactly: `mh_vid`, `mh_sid`, `mh_cookie_ack`
@@ -836,7 +839,8 @@
       match half stays red until T057).
       Refs: research R9, K5, FR-025/FR-026/FR-027, plan §1.4
 
-- [ ] T056 Implement the CookiePolicy page
+- [x] T056 Implement the CookiePolicy page
+> note: Bootstrap table 1:1 from COOKIE_REGISTER, Privacy.tsx SEO convention (no own Seo); tests: T053 9/9 green; deviations: cookieRegister.test.tsx — added HeaderProvider wrap (useHeaderConfig requires it)
       Files: apps/web/src/routes/CookiePolicy.tsx (new)
       Do: Public Bootstrap-styled page rendering its cookie table directly from cookieRegister.ts
       (no copy of the data); SEO metadata consistent with other public routes (follow
@@ -844,7 +848,8 @@
       Done when: component renders the register 1:1.
       Refs: research R9, N4, FR-005
 
-- [ ] T057 Register the /cookie-policy route
+- [x] T057 Register the /cookie-policy route
+> note: entry appended routes-metadata.ts + componentMap route-config.tsx (Open-Closed, no App.tsx edit needed); tests: T053 9/9 + T054 4/4 + full web 429/429 green; deviations: routes-metadata.ts, route-config.tsx — actual files (not App.tsx, which maps routes generically)
       Files: apps/web/src/App.tsx
       Do: Add the public `/cookie-policy` route rendering CookiePolicy inside TemplateLayout, next
       to the existing public routes.

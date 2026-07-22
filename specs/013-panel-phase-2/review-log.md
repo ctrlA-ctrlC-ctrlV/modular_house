@@ -8,9 +8,11 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ## 2026-07-22 — T041-T043 review-fix re-review (since e435f9b)
 
-T041 — PASS — log-redaction assertion added
-T042 — PASS-WITH-NITS — fix committed before its test
-T043 — PASS — referrer leak closed via REDACT_PATH
+T041 — PASS. The prior nit ("no assertion against the log-leak") is closed: analytics-privacy.test.ts gained a third describe block with (1) a static check that REDACT_PATHS contains 'referrer'/'body.referrer', and (2) a behavioral check building a real Pino instance with the production REDACT_PATHS, logging a validateBody-shaped payload, and asserting the raw URL never appears in the output while [Redacted] does. Ran the file directly — 9/9 passing, matching the claimed count.
+
+T042 — PASS-WITH-NITS. logger.ts:52-70 — REDACT_PATHS now includes 'referrer' (top-level) and 'body.referrer' — verified against validate.ts:43-49, which really does call logger.warn({..., body: req.body}, ...) through the shared, redact-configured logger export, so the path correctly matches at runtime. Docstring updated accurately. Nit: commit 4d4f3f7 (the fix) landed before 6a43e81 (the test) — the reverse of tasks.md rule 3's "no exceptions" TDD order. The new tests were never observed red in this repo's history; functionally they're real assertions (independently confirmed they'd fail without the fix), but the ordering itself is a process deviation.
+
+T043 — PASS. Same root-cause fix resolves this finding too ("validateBody logs raw referrer on 400") — body.referrer redacts the exact log line T043's route triggers on a 400. No separate code change was needed or made.
 
 ## 2026-07-21 — T041-T044 (baseline: edc8ecf)
 

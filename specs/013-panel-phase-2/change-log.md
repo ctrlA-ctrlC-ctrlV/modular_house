@@ -18,6 +18,61 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-22T14:00:00.000+01:00] — fix(analytics): T046 review fix — beacon now forwards document.referrer + UTM params (beacon.ts, beacon.test.ts)
+
+### Fixed
+- `apps/web/src/analytics/beacon.ts` — closed the T046 CHANGES-REQUIRED
+  finding ("payload never captures document.referrer or
+  utm_source/utm_medium/utm_campaign (research R3); no task in tasks.md
+  ever adds this to beacon.ts, so FR-011/S1-S5 source classification can
+  never see SEARCH/SOCIAL/REFERRAL from real traffic"):
+  - **`document.referrer` forwarding** — `sendPageView` now reads
+    `document.referrer` and includes it as `referrer` in the payload when
+    non-empty (M2, research R3). The browser sets `document.referrer` on
+    navigation; it does not change during SPA route changes, so every
+    event carries the same referrer. The API's `extractReferrerHost` (S5)
+    stores only the hostname and `trafficSource.classify` (S1–S3) uses it
+    for source classification. Session source is attributed from the
+    first stored event (S4).
+  - **UTM parameter forwarding** — a new `extractUtmParams` helper reads
+    `utm_source` / `utm_medium` / `utm_campaign` from the URL search
+    string and maps them to the M2 payload field names (`utmSource` /
+    `utmMedium` / `utmCampaign`) via a `UTM_PARAM_MAP` constant. Only
+    non-empty values are included; absent/empty UTM params are omitted
+    (M2 optional-field semantics).
+  - **Module docstring corrected** — the prior "referrer/utm forwarding
+    is out of scope for the T045/T046 happy-path unit (the optional M2
+    fields are deliberately omitted — add red-first in a future task)"
+    claim (T045 PASS-WITH-NITS: "unbacked — no such task exists") was
+    replaced with an accurate description of the full M2 payload:
+    `{ path, referrer?, utmSource?, utmMedium?, utmCampaign?, adClick? }`.
+- `apps/web/src/analytics/beacon.test.ts` — added 7 new tests for the
+  referrer/UTM forwarding (section 8) and fixed the "omits adClick" test:
+  - **`document.referrer` mock infrastructure** — a module-level
+    `documentReferrer` variable with a configurable getter override on
+    `document.referrer` (jsdom's native property is read-only `''`),
+    reset to `''` in `beforeEach`.
+  - **New tests** — forwards `document.referrer` as `referrer` when
+    non-empty; omits `referrer` when empty; forwards all three UTM params
+    from the URL search; forwards a single UTM param without requiring
+    the others; omits UTM params when not present; omits empty UTM values
+    (`utm_source=` with no value); forwards the full M2 payload shape
+    when all sources are present (referrer + UTM + adClick).
+  - **"omits adClick" test fixed** — changed `?utm_source=newsletter` to
+    `?foo=bar` so the adClick-omission assertion is isolated from the
+    new UTM-forwarding behaviour.
+  - **Module header updated** to mention referrer/UTM forwarding.
+  - Test count: 21 → 28 (7 new referrer/UTM tests).
+
+### Security
+- The beacon forwards `document.referrer` (the full URL) to the API, which
+  stores only the hostname via `extractReferrerHost` (S5) — the full URL
+  never reaches the database. UTM parameter values are campaign tags (not
+  PII) and are stored as-is per the M2 contract. The click-ID value
+  remains never transmitted (FR-015).
+
+---
+
 ## [2026-07-22T13:00:00.000+01:00] — feat(analytics): T047-T050 CookieBanner — notice + acknowledgment + a11y (CookieBanner.tsx, CookieBanner.test.tsx)
 
 ### Added

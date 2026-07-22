@@ -18,6 +18,69 @@ Note: keep the most latest entry on top
 > - 
 > ---
 
+## [2026-07-22T13:00:00.000+01:00] — feat(analytics): T047-T050 CookieBanner — notice + acknowledgment + a11y (CookieBanner.tsx, CookieBanner.test.tsx)
+
+### Added
+- `apps/web/src/components/CookieBanner.tsx` (new) — the public-site cookie
+  notice banner (plan §2.1 K4, §2.2 N1–N5, research R8):
+  - **Bootstrap-styled fixed bottom overlay** — uses the public site's
+    existing Bootstrap 5.3 classes (`fixed-bottom`, `bg-dark`, `text-light`,
+    `container`, `d-flex`, `btn`, `btn-primary`, `btn-close`) imported via
+    `main.tsx`. NO admin design-system (Tailwind/OKLCH) leakage into the
+    public site (research R8, Phase 1 isolation rule). `fixed-bottom`
+    provides `position: fixed; bottom: 0` (N1 — zero layout shift by
+    construction).
+  - **Client-only mount** (N2) — a `mounted` flag starts `false` and flips
+    to `true` inside `useEffect`, so the banner is absent from
+    server-rendered / prerendered HTML and appears only after hydration.
+    Crawlers see unchanged pages (SC-003/SEO); acknowledged visitors get
+    zero banner flash.
+  - **Single acknowledgment seam** (FR-028) — both the acknowledge button
+    and the close ("x") control call one `acknowledge` callback that writes
+    `mh_cookie_ack=1` (365-day Max-Age, `Path=/`, `SameSite=Lax`, `Secure`
+    in production — K4) and hides the banner in the same frame (N3). A
+    future opt-in accept/decline model would extend this seam without
+    replacing the component. There is no dismissal path that skips the
+    cookie (N3).
+  - **Accessibility** (N5) — `role="region"` + `aria-label="Cookie notice"`;
+    both controls are native `<button>` elements (keyboard reachable and
+    operable — browsers fire click on Enter/Space); no focus trap (the
+    container has no `tabindex` that would capture focus); visible focus
+    via the browser's native `:focus-visible` ring on buttons; `btn-close`
+    carries `aria-label="Close"`.
+  - **Exports** — `ACK_COOKIE_NAME` for the T053 register-consistency test.
+- `apps/web/src/components/CookieBanner.test.tsx` (new) — the 14-test
+  T047/T048/T049 suite (T-F1/T-F2/T-F3, US1), authored test-first in three
+  increments against the pinned §2 values:
+  - **T047 (T-F1, first render)** — fresh state renders the
+    performance-cookies-only statement, acknowledge button, close ("x")
+    control, and `/cookie-policy` link; `fixed-bottom` class present
+    (position:fixed proxy); `mh_cookie_ack=1` suppresses the banner.
+  - **T048 (T-F2, acknowledgment)** — acknowledge and close both set
+    `mh_cookie_ack=1` with `max-age=31536000`, `path=/`, `samesite=lax`;
+    banner hidden in the same frame; remount with cookie suppresses; no
+    dismissal path skips the cookie (both controls verified independently).
+  - **T049 (T-F3, a11y/non-blocking)** — `role="region"` +
+    `aria-label="Cookie notice"`; both controls keyboard reachable
+    (`element.focus()` → `document.activeElement`); keyboard operable
+    (Enter → click → cookie written); no focus trap (focus moves from
+    banner's last control to an outside element); page content stays
+    interactive (outside button clickable while banner visible); clearing
+    the cookie makes the banner return; `jest-axe` scan — zero violations.
+  - **Determinism (constitution III)** — controlled `document.cookie`
+    override captures every cookie write's full attribute string (jsdom's
+    native getter returns only `name=value` pairs). No real timers, no
+    real network — the banner is a pure client-side component with no I/O.
+
+### Security
+- The banner sets only the `mh_cookie_ack` acknowledgment cookie (value
+  `"1"`, no PII); no IP, user agent, or identifiers are transmitted. The
+  cookie is `SameSite=Lax` + `Secure`-in-production with no
+  session/credential value (constitution I). The FR-028 seam is the single
+  point of control for future consent-model extensions.
+
+---
+
 ## [2026-07-22T12:00:00.000+01:00] — feat(analytics): T045/T046 public page-view beacon — cookie set/renew + sendBeacon transport + adClick (beacon.ts, beacon.test.ts)
 
 ### Added

@@ -717,6 +717,7 @@
 > note: 21-test suite — K1/K2/K3 cookie set+renew, sendBeacon->keepalive fallback, silent failures, /admin skip, adClick value-absence, useBeacon route tracking; tests: 21 passing; deviations: none
 > reviewed: PASS-WITH-NITS — 21/21 verified red-then-green; docstring's "referrer/utm added in a future task" claim is unbacked — no such task exists anywhere in tasks.md (see T046)
 > note: review fix — beacon.ts docstring "future task" claim removed (T046 fix adds referrer/utm forwarding); tests: 28 passing; deviations: none
+> reviewed: PASS — unbacked claim confirmed removed from docstring; 28/28 verified passing (7 new referrer/UTM tests)
       Files: apps/web/src/analytics/beacon.test.ts (new)
       Do: With fake timers and mocked `navigator.sendBeacon`/`fetch`: exactly one event on initial
       load and one per SPA pathname change (same-path navigation sends nothing); `/admin` and
@@ -733,6 +734,7 @@
 > note: beacon.ts — mh_vid/mh_sid cookies (365d/30m, Path=/, SameSite=Lax), sendBeacon->keepalive fallback, /admin skip, AD_CLICK_PARAMS, useBeacon hook; tests: 21 passing; deviations: none
 > reviewed: CHANGES-REQUIRED — K1-K3/M8/adClick correct, but payload never captures document.referrer or utm_source/utm_medium/utm_campaign (research R3); no task in tasks.md ever adds this to beacon.ts, so FR-011/S1-S5 source classification can never see SEARCH/SOCIAL/REFERRAL from real traffic
 > note: review fix — beacon.ts now forwards document.referrer + utm_source/utm_medium/utm_campaign (M2/R3); 7 new tests; docstring corrected; tests: 28 passing; deviations: none
+> reviewed: PASS — fix verified by checkout: pre-fix tree failed 4/28 for the right reason, HEAD passes 28/28; extractUtmParams maps to exact ingestEventSchema field names; full web suite (413/413), lint, typecheck all clean; no new privacy exposure (S5 hostname-only storage + REDACT_PATHS already cover the now-live referrer field)
       Files: apps/web/src/analytics/beacon.ts (new)
       Do: Cookie set/renew for `mh_vid` (365 d) + `mh_sid` (30 min) via `crypto.randomUUID()`,
       `Path=/`, `SameSite=Lax`, `Secure` in production; page-view send on load + route change with

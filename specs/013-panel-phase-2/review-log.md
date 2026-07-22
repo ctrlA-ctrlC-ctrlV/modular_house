@@ -6,6 +6,11 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-22 — T045/T046 review-fix re-review (since 3b027d3)
+
+T045 — PASS — unbacked "future task" claim removed; 28/28 verified
+T046 — PASS — referrer/utm forwarding closed; red-then-green confirmed by checkout
+
 ## 2026-07-22 — T045-T050 (baseline: 53ca675)
 
 T045 — PASS-WITH-NITS — 'future task' referrer/utm claim unverified

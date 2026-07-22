@@ -6,6 +6,12 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-22 — T041-T043 review-fix re-review (since e435f9b)
+
+T041 — PASS — log-redaction assertion added
+T042 — PASS-WITH-NITS — fix committed before its test
+T043 — PASS — referrer leak closed via REDACT_PATH
+
 ## 2026-07-21 — T041-T044 (baseline: edc8ecf)
 
 T041 — PASS-WITH-NITS — missing log-redaction assertion

@@ -740,7 +740,8 @@
 
 ### Banner + register + policy page
 
-- [ ] T047 Write failing CookieBanner first-render tests (T-F1)
+- [x] T047 Write failing CookieBanner first-render tests (T-F1)
+> note: T-F1 first-render suite — statement/ack/close/policy link, fixed-bottom, mh_cookie_ack=1 suppresses; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/components/CookieBanner.test.tsx (new)
       Do: Fresh state (no `mh_cookie_ack`) -> banner renders the performance-cookies-only
       statement, acknowledge button, close ("x") control, and a link to `/cookie-policy`; it is a
@@ -749,7 +750,8 @@
       Done when: suite fails only because CookieBanner.tsx does not exist.
       Refs: T-F1 (US1-1), N1/N2, K4, FR-001/FR-002
 
-- [ ] T048 Write failing CookieBanner acknowledgment tests (T-F2)
+- [x] T048 Write failing CookieBanner acknowledgment tests (T-F2)
+> note: T-F2 ack suite — ack/close set mh_cookie_ack=1 (365d, Path=/, SameSite=Lax), hide banner, remount suppresses, no skip; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/components/CookieBanner.test.tsx
       Do: Acknowledge sets `mh_cookie_ack=1` with 365-day Max-Age (Path=/, SameSite=Lax) and hides
       the banner in the same frame; close ("x") has the identical effect; remount with the cookie
@@ -757,7 +759,8 @@
       Done when: test red for the missing component.
       Refs: T-F2 (US1-2/3), N3, K1/K4, FR-002/FR-003
 
-- [ ] T049 Write failing CookieBanner a11y/non-blocking tests (T-F3)
+- [x] T049 Write failing CookieBanner a11y/non-blocking tests (T-F3)
+> note: T-F3 a11y suite — role=region+aria-label, keyboard reachable/operable, no trap, content interactive, cookie-cleared returns, axe; tests: 0 passing (red on missing module); deviations: none
       Files: apps/web/src/components/CookieBanner.test.tsx
       Do: Banner never intercepts input outside its own bounds (page content stays interactive);
       keyboard reachable and operable (both controls), visible focus, `role="region"` +
@@ -765,7 +768,8 @@
       Done when: test red for the missing component.
       Refs: T-F3 (US1-4/6/9), N5, FR-004, SC-002
 
-- [ ] T050 Implement the CookieBanner component
+- [x] T050 Implement the CookieBanner component
+> note: CookieBanner.tsx — Bootstrap fixed-bottom, role=region+aria-label, ack/close single seam (FR-028), client-only mount (N2), mh_cookie_ack (K4); tests: 14 passing; deviations: none
       Files: apps/web/src/components/CookieBanner.tsx (new)
       Do: Public-site Bootstrap-styled fixed bottom overlay (NOT the admin design system);
       statement, acknowledge + close controls both writing `mh_cookie_ack` through a single

@@ -775,6 +775,102 @@ paths:
         '413':
           description: Payload too large
 
+  # ─── Analytics (Phase 2 — cookies + performance visualisation) ────────
+
+  /api/analytics/events:
+    post:
+      summary: Record one public-site page view (fire-and-forget beacon target)
+      operationId: ingestAnalyticsEvent
+      description: >-
+        Public, unauthenticated, rate-limited. Visitor/session identifiers come
+        from the mh_vid / mh_sid cookies; absent cookies yield one-off
+        server-generated UUIDs. The beacon ignores every response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestEventRequest'
+      responses:
+        '204':
+          description: Event stored, or deliberately dropped (bot / admin path).
+        '400':
+          description: Malformed payload - validation failure or body over 4 KB.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: IP rate limit exceeded (120/min/IP). The beacon does not retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/analytics/overview:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Range-scoped KPIs, deltas, timeseries, top pages, and source breakdown
+      operationId: getAnalyticsOverview
+      description: >-
+        Authenticated (any admin role). One payload feeds every
+        range-dependent dashboard widget so a range change updates them
+        consistently. Comparison values cover the immediately preceding
+        window of equal length.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: >-
+            Inclusive start: a Europe/London calendar day (YYYY-MM-DD) or an
+            ISO 8601 UTC datetime for sub-day ranges; must use the same form
+            as `to`.
+          schema: { type: string, example: '2026-04-14' }
+        - name: to
+          in: query
+          required: true
+          description: Inclusive end, same form as `from`.
+          schema: { type: string, example: '2026-07-14' }
+      responses:
+        '200':
+          description: Overview payload for the validated range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewResponse'
+        '400':
+          description: from > to, to in the future, span too large, or bad date format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/analytics/realtime:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Visitors active in the trailing 5 minutes
+      operationId: getAnalyticsRealtime
+      description: Authenticated. Polled by the dashboard every 30 seconds.
+      responses:
+        '200':
+          description: Realtime snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeResponse'
+        '401':
+          description: Missing or invalid session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /sitemap.xml:
     get:
       summary: Sitemap
@@ -1020,3 +1116,100 @@ components:
       properties:
         error: { type: string }
         message: { type: string }
+
+    # ─── Analytics (Phase 2) schemas ──────────────────────────────────────
+    IngestEventRequest:
+      type: object
+      additionalProperties: false
+      required: [path]
+      properties:
+        path: { type: string, minLength: 1, maxLength: 512, pattern: '^/' }
+        referrer: { type: string, maxLength: 2048 }
+        utmSource: { type: string, maxLength: 100 }
+        utmMedium: { type: string, maxLength: 100 }
+        utmCampaign: { type: string, maxLength: 100 }
+        adClick: { type: boolean }
+    KpiValue:
+      type: object
+      required: [current, previous, deltaPercent]
+      properties:
+        current: { type: number }
+        previous: { type: number, nullable: true }
+        deltaPercent: { type: number, nullable: true }
+    OverviewResponse:
+      type: object
+      required: [range, kpis, timeseries, topPages, sources]
+      properties:
+        range:
+          type: object
+          required: [from, to, bucket]
+          properties:
+            from: { type: string }
+            to: { type: string }
+            bucket: { type: string, enum: [hour, day] }
+        kpis:
+          type: object
+          required: [pageViews, uniqueVisitors, sessions, returningVisitorRate, pagesPerSession]
+          properties:
+            pageViews: { $ref: '#/components/schemas/KpiValue' }
+            uniqueVisitors: { $ref: '#/components/schemas/KpiValue' }
+            sessions: { $ref: '#/components/schemas/KpiValue' }
+            returningVisitorRate: { $ref: '#/components/schemas/KpiValue' }
+            pagesPerSession: { $ref: '#/components/schemas/KpiValue' }
+        timeseries:
+          type: array
+          items:
+            type: object
+            required: [bucketStart, pageViews, sessions]
+            properties:
+              bucketStart: { type: string, format: date-time }
+              pageViews: { type: integer, minimum: 0 }
+              sessions: { type: integer, minimum: 0 }
+        topPages:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            required: [path, views, share]
+            properties:
+              path: { type: string }
+              views: { type: integer, minimum: 0 }
+              share: { type: number }
+        sources:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: object
+            required: [group, sessions, share]
+            properties:
+              group: { type: string, enum: [direct, search, social, referral, campaign] }
+              sessions: { type: integer, minimum: 0 }
+              share: { type: number }
+    RealtimeResponse:
+      type: object
+      required: [activeVisitors, topActivePages, windowMinutes]
+      properties:
+        activeVisitors: { type: integer, minimum: 0 }
+        topActivePages:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            required: [path, activeVisitors]
+            properties:
+              path: { type: string }
+              activeVisitors: { type: integer, minimum: 0 }
+        windowMinutes: { type: integer, enum: [5] }
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message: { type: string }
+            details:
+              type: array
+              items: { type: object }

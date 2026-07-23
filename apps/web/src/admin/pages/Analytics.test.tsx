@@ -34,13 +34,14 @@
  * fixtures regardless of what the mock returns, so these assertions are red
  * for the right reason.
  */
-import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { Analytics } from './Analytics.js';
 import { useOverview, useRealtime } from '../analytics/useAnalytics.js';
 import { overviewPopulated, realtimePopulated } from '../analytics/fixtures.js';
 import type { OverviewResponse, RealtimeResponse } from '../analytics/fixtures.js';
+import { presetToRange } from '../analytics/rangePresets.js';
 
 // Mocked at the module boundary (T072's own convention) — these tests pin the
 // page's data-consumption contract, not the hooks' own fetch/poll behavior
@@ -270,3 +271,114 @@ describe('Analytics page — live-data path (T074, T-F7)', () => {
     expect(screen.getByText('4242')).toBeInTheDocument();
   });
 });
+
+// ── Range-selector wiring (T076, T-F8, US3-3, Q2) ──────────────────────────
+//
+// Proves the RangeToolbar selection drives a refetch with the exact Q2
+// `from`/`to` for the chosen preset, and that every widget updates from the
+// single new payload. `Date` is faked (not timers — Radix's own internal
+// focus-shift `setTimeout` still needs real `waitFor` polling) so the range
+// math the page computes at selection time is deterministic (constitution
+// III: never a real, uncontrolled clock in a range-math assertion).
+
+describe('Analytics page — range-selector wiring (T076, T-F8)', () => {
+  const FIXED_NOW = new Date('2026-07-15T12:00:00.000Z');
+
+  beforeAll(() => {
+    // Same idempotent Radix pointer/scroll polyfill as the T034 block above —
+    // duplicated here so this describe block's Select interaction does not
+    // depend on sibling-describe execution order.
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: FIXED_NOW, toFake: ['Date'] });
+    // mockReset (not mockClear) so this block's tests never inherit a
+    // leftover mockImplementation/mockReturnValue from an earlier describe
+    // block — there is no global clearMocks/restoreMocks configuration.
+    mockUseOverview.mockReset();
+    mockUseRealtime.mockReset();
+    mockUseRealtime.mockReturnValue({ data: realtimePopulated, loading: false, error: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows exactly the five Q2 options defaulting to 3 months, and refetches every widget on selection (T-F8)', async () => {
+    // The exact Q2 7-day range for the fixed clock, computed via the same
+    // trusted rangePresets helper (T070/T071) the page itself calls — this
+    // keeps the expectation coupled to the Q2 contract, not a hand-derived
+    // date the test could get wrong independently of the implementation.
+    const sevenDayRange = presetToRange('7d', FIXED_NOW);
+    const liveOverviewFor7d: OverviewResponse = {
+      ...overviewPopulated,
+      range: { from: sevenDayRange.from, to: sevenDayRange.to, bucket: 'day' },
+      topPages: [{ path: '/live-7d-marker', views: 42, share: 1 }],
+    };
+
+    // Only the exact 7-day range returns the distinctive payload; any other
+    // range (including the initial 3-month mount range) returns the fixture
+    // — so the marker appearing is unambiguous proof of a refetch with the
+    // right params, not just a re-render with stale data.
+    mockUseOverview.mockImplementation((range) =>
+      range.from === sevenDayRange.from && range.to === sevenDayRange.to
+        ? { data: liveOverviewFor7d, loading: false, error: null }
+        : { data: overviewPopulated, loading: false, error: null },
+    );
+
+    render(<Analytics />);
+
+    // Q2: "Range-selector options = exactly: 24 hours, 7 days, 28 days,
+    // 3 months, More"; default = 3 months.
+    const trigger = screen.getByRole('combobox');
+    expect(trigger).toHaveTextContent('3 months');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+
+    const options = screen.getAllByRole('option');
+    expect(options.map((option) => option.textContent)).toEqual([
+      '24 hours',
+      '7 days',
+      '28 days',
+      '3 months',
+      'More',
+    ]);
+
+    // Radix opens focused on the currently-selected "3 months" item (index
+    // 3); ArrowUp twice reaches "7 days" (index 1), mirroring the keyboard
+    // interaction already proven by RangeToolbar.test.tsx (T030).
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute('data-slot', 'select-item');
+    });
+    expect(document.activeElement).toHaveTextContent('3 months');
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowUp' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent('28 days');
+    });
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowUp' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent('7 days');
+    });
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
+
+    // T-F8: switching presets refetches overview with the exact Q2 from/to,
+    // and every widget updates from the single new payload — proven here via
+    // TopPages' distinctive marker, present only in the 7-day mock response.
+    await waitFor(() => {
+      expect(screen.getByText('/live-7d-marker')).toBeInTheDocument();
+    });
+  });
+});
+

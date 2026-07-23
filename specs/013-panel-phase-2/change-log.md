@@ -1,6 +1,123 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T19:05:00.000+01:00] — feat(analytics): T079 wire RangeDialog apply flow (Analytics.tsx, RangeDialog.tsx)
+
+### Changed
+- `apps/web/src/admin/pages/Analytics.tsx` — added `handleDialogSelect(preset, customStart?,
+  customEnd?)`: the three month presets (`6m`/`12m`/`16m`) resolve via the same
+  `presetToRange(preset, new Date())` the toolbar uses (T077); `custom` passes `customStart`/
+  `customEnd` straight through as `{from, to}` — Q1 already defines the custom-range form as
+  `YYYY-MM-DD`, exactly what the native `<input type="date">` fields produce, so no additional
+  date math is needed for the happy path. A `!customStart || !customEnd` guard is null-safety for
+  the callback's optional parameters (not Q3 validation — RangeDialog only omits them on the
+  month-preset branches, so in practice they are always present when `preset === 'custom'`). Both
+  branches call `setDialogOpen(false)`, since RangeDialog's own contract is that it never closes
+  itself. `RangeDialog`'s `onSelect` prop now points at this handler (replacing the T077 no-op).
+- `apps/web/src/admin/analytics/RangeDialog.tsx` — doc-only correction, matching T077's
+  `RangeToolbar.tsx` precedent: the header and three docstring passages referenced stale task
+  numbers ("Pass 2 wiring (T080+)", "T033: no validation logic or data wiring yet") for behavior
+  that actually landed in T079 (or, for Q3 rejection handling, will land in T115/T116); all now
+  cite the correct tasks. No functional change — the component's callback contract was already
+  exactly what `Analytics.tsx` needed since T033.
+
+### Notes
+- Both T078 tests are now green (449/449 web suite, up from 447/449 red). `pnpm --filter
+  @modular-house/web lint` and `typecheck` clean.
+- Explicitly out of scope per T079's own "Do:" text and confirmed by the T078 test's own
+  docstring: Q3 rejection paths (`start > end`, `end > today`, span > 490 days) are not
+  implemented here — a custom pair is applied as-is with no validation. Pass 3 / E-DIALOG
+  (T115/T116) adds that hardening and the `validationMessage` wiring.
+
+---
+
+## [2026-07-23T18:45:00.000+01:00] — test(analytics): T078 range-dialog apply test (Analytics.test.tsx)
+
+### Added
+- `apps/web/src/admin/pages/Analytics.test.tsx` — new `Analytics page — range-dialog apply flow
+  (T078, T-F9)` describe block, two tests, both against `Date`-faked fixed time (same
+  `toFake: ['Date']`-only approach as T076, for real `waitFor` polling on Radix's own deferred
+  work):
+  1. Keyboard-opens RangeDialog via RangeToolbar's `More` option (ArrowDown to open, one more
+     ArrowDown from the default-focused `3 months` to reach the last option `More`, Enter to
+     confirm — extends the T030/T076 interaction pattern); asserts the four Q2 buttons (`6 months`/
+     `12 months`/`16 months`/`Custom`) render; clicks `12 months`; asserts the dialog closes and a
+     distinctive `topPages` marker (present only in the mocked `useOverview` response for the
+     *exact* Q2 12-month range, via the trusted `presetToRange('12m', FIXED_NOW)`) appears.
+  2. Same flow via Custom: reveals the date inputs, fills a valid `2026-01-01`/`2026-01-15` pair
+     (Q1's calendar-day form, well inside the 490-day span cap), clicks Apply, asserts the dialog
+     closes and a distinctive marker for that exact custom range appears. Only the happy path is
+     covered — Q3 rejection paths (`start > end`, `end > today`, span > 490 days) are Pass 3 /
+     E-DIALOG (T115/T116), explicitly out of this task's scope per its own "Do:" text.
+- A shared `openRangeDialogViaToolbar()` helper factors the keyboard-open sequence used by both
+  tests.
+- Duplicated the idempotent Radix pointer/scroll polyfill in this describe block's own `beforeAll`,
+  matching the T034/T076 blocks' self-containment convention.
+
+### Notes
+- Red for the expected reason: both tests' `expect(screen.queryByRole('dialog')).not.toBeInTheDocument()`
+  time out, because `RangeDialog`'s `onSelect` is still the T077 no-op — clicking a preset or
+  Apply does nothing, so the dialog never closes and no refetch occurs (2 red / 449 total; all 447
+  prior assertions remain green).
+
+---
+
+## [2026-07-23T18:20:00.000+01:00] — feat(analytics): T077 wire RangeToolbar to dashboard state (Analytics.tsx, RangeToolbar.tsx)
+
+### Changed
+- `apps/web/src/admin/pages/Analytics.tsx` — `range` is now `useState<RangeParams>` (still seeded
+  once at mount from the Q2 default preset) instead of a read-only value; `useOverview(range)`
+  therefore refetches whenever it changes. Added `handleToolbarSelect(presetId)`: the four direct
+  presets (`24h`/`7d`/`28d`/`3m`) resolve immediately via `presetToRange(presetId, new Date())` and
+  `setRange`; `more` does not touch the range — it only opens the dialog (`setDialogOpen(true)`).
+  `RangeToolbar`'s `onSelect` prop now points at this handler (replacing the Pass 1 no-op). Also
+  mounted `RangeDialog` with `open`/`onOpenChange` wired to a new `dialogOpen` state — its own
+  `onSelect` stays a no-op, since the dialog's preset buttons/custom-range Apply flow is T079's
+  scope, not T077's.
+- `apps/web/src/admin/analytics/RangeToolbar.tsx` — doc-only correction: the file's header and two
+  docstring bullets referenced "Pass 2 wiring (T033/T080+)" for the `more`-opens-dialog behavior
+  and "the dashboard page owns the preset in Pass 2" — both now correctly cite T077 (the task that
+  actually landed this wiring) instead of the stale task numbers. No functional change; the widget
+  was already fully capable of reporting every preset id (including `more`) to its `onSelect` prop
+  since T031 — only the page's consumption of that callback changed.
+
+### Notes
+- T076's test is now green (447/447 web suite, up from 446/447 red). `pnpm --filter
+  @modular-house/web lint` and `typecheck` clean. `RangeDialog.test.tsx`/`RangeToolbar.test.tsx`
+  (unmodified) remain green, confirming no regression to either widget's own suite.
+
+---
+
+## [2026-07-23T18:00:00.000+01:00] — test(analytics): T076 range-selector behavior test (Analytics.test.tsx)
+
+### Added
+- `apps/web/src/admin/pages/Analytics.test.tsx` — new `Analytics page — range-selector wiring
+  (T076, T-F8)` describe block. `Date` is faked (`vi.useFakeTimers({ now, toFake: ['Date'] })`,
+  not timers — Radix's own internal focus-shift `setTimeout` still needs real `waitFor` polling)
+  so the range math the page will compute at selection time is deterministic. The test:
+  asserts the toolbar shows exactly the five Q2 options (`24 hours`/`7 days`/`28 days`/
+  `3 months`/`More`) defaulting to `3 months`; keyboard-selects `7 days` (ArrowDown to open,
+  ArrowUp ×2 from the default-focused `3 months` item, Enter to confirm — mirrors
+  `RangeToolbar.test.tsx`'s T030 interaction pattern); and awaits a distinctive `topPages` marker
+  present only in the mocked `useOverview` response for the *exact* Q2 7-day range (computed via
+  the already-trusted `presetToRange('7d', FIXED_NOW)`, T070/T071) — proving both that a refetch
+  happens with the right params and that a widget re-renders from the new payload.
+- The mock's `mockImplementation` returns the 7-day payload only when called with a range whose
+  `from`/`to` exactly match `sevenDayRange`; any other range (including the initial 3-month mount
+  range) returns the T008 fixture, so the marker appearing is unambiguous proof of a correctly
+  parameterized refetch, not just a stale re-render.
+- Duplicated the T034 block's idempotent Radix pointer/scroll polyfill in this describe block's
+  own `beforeAll` so the Select keyboard interaction does not implicitly depend on the T034
+  describe block having already run first in the same file.
+
+### Notes
+- Red for the expected reason: the `waitFor` awaiting `/live-7d-marker` times out because
+  `RangeToolbar`'s `onSelect` is still the Pass 1 no-op (T075) — selecting a preset does not yet
+  change `Analytics.tsx`'s range state, so `useOverview` keeps being called with the original
+  3-month range. All 446 other assertions in the file remain green (1 red / 447 total).
+
+---
+
 ## [2026-07-23T17:20:00.000+01:00] — feat(analytics): T075 wire Analytics page to live data (Analytics.tsx)
 
 ### Changed

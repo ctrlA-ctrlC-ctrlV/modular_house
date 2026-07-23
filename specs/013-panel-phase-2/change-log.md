@@ -1,6 +1,139 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T17:20:00.000+01:00] — feat(analytics): T075 wire Analytics page to live data (Analytics.tsx)
+
+### Changed
+- `apps/web/src/admin/pages/Analytics.tsx` — replaced the Pass 1 `fixtures.ts` import with the
+  live `useOverview`/`useRealtime` hooks (T073). The overview range is seeded once at mount from
+  the Q2 default preset (`presetToRange('3m', new Date())`, T071) via a lazy `useState`
+  initializer, so it is computed once, not recomputed every render; changing the range via
+  RangeToolbar/RangeDialog is Pass 2 wiring landing in T076-T079 and is out of this task's scope
+  (the toolbar's `onSelect` stays a no-op, unchanged from Pass 1).
+- KpiStrip/TrafficChart/TopPages/TrafficSources are gated on `overview.data` being non-null (the
+  hook's `data: T | null` return type requires a null-check before any widget prop can be read);
+  RealtimeCard is gated independently on `realtime.data`, since it polls on its own 30 s cycle
+  (V6) rather than sharing the overview range. Before a payload arrives (or on a fetch error), a
+  single dashed placeholder stands in for the gated widgets — this is also the "propagate loading
+  state" requirement, since there is no other way to represent "no data yet" against a non-nullable
+  widget prop. No widget file was touched: once a payload (including an empty-range one, US3-9)
+  lands, it passes straight through, and each widget's own existing empty-state handling
+  (`isEmptyRange`, `timeseries.length === 0`, `hasPages`/`hasSources`) takes over — satisfying
+  "propagate empty states to each widget" without adding a `loading`/`empty` prop to any of them.
+- `fixtures.ts` is no longer imported by the page — it remains for `Analytics.test.tsx`'s mocked
+  hook data and each widget's own dedicated test suite.
+
+### Notes
+- T074's live-data assertions are now green; every amended T034 static assertion is also green
+  (446/446 web suite). `pnpm --filter @modular-house/web lint` and `typecheck` clean.
+
+---
+
+## [2026-07-23T17:00:00.000+01:00] — test(analytics): T074 live-dashboard test (Analytics.test.tsx)
+
+### Changed
+- `apps/web/src/admin/pages/Analytics.test.tsx` — added a module-boundary mock of
+  `../analytics/useAnalytics.js` (`useOverview`/`useRealtime`) plus a `beforeEach` in the existing
+  T034 describe block that seeds the mock with the same T008 fixture payloads
+  (`overviewPopulated`/`realtimePopulated`) the page previously imported directly. Every existing
+  T034 assertion is unchanged — this is the "amend to inject mocked hook data, do not delete them"
+  requirement: the page's structural/label contract now runs against mocked-hook data instead of a
+  static import, with identical expected output since the mock defaults equal the old fixtures.
+
+### Added
+- A new `Analytics page — live-data path (T074, T-F7)` describe block with one test that overrides
+  the mocks with data distinct from every T008 fixture value (`pageViews.current: 9999`,
+  `deltaPercent: 12.3`, an empty `timeseries` to trip TrafficChart's own independent empty-state
+  panel, a distinctive `topPages` path, a distinctive `sources` session count, and
+  `activeVisitors: 42`) and asserts those distinct values render — proving the widgets read from
+  `useOverview`/`useRealtime`, not a static fixtures import.
+
+### Notes
+- Red for the expected reason: only the new live-data test's `getByText('9,999')` assertion fails
+  (`Analytics.tsx` still imports `fixtures.ts` directly until T075); all amended T034 assertions
+  pass unchanged (445/446 total, 1 red as expected).
+
+---
+
+## [2026-07-23T16:10:00.000+01:00] — test(analytics): T072 useAnalytics hook tests (useAnalytics.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/useAnalytics.test.tsx` — 9 cases across `useOverview` (fetches
+  with the given `from`/`to`; refetches on a real range change; does NOT refetch on an
+  equal-valued-but-new range object; surfaces an empty overview response, a rejected fetch, and a
+  non-ok response all as state, never a throw) and `useRealtime` (fetches immediately on mount,
+  polls every 30 s via `vi.advanceTimersByTimeAsync` — V6 — and does not poll early at 29 s;
+  surfaces an empty response and a rejected fetch without throwing).
+- `apiClient` is mocked at the module boundary (`vi.mock('../auth/apiClient.js', ...)`), not
+  global `fetch` — these tests exercise only the hooks' fetch/poll/state logic, not the
+  Bearer-token silent-refresh machinery `apiClient.fetch` already owns (covered separately by
+  `session.test.tsx`).
+
+### Notes
+- Red for the expected reason: `Failed to resolve import "./useAnalytics.js"` (module does not
+  exist yet — T073 creates it).
+
+---
+
+## [2026-07-23T16:25:00.000+01:00] — feat(analytics): T073 useAnalytics data hooks (useAnalytics.ts)
+
+### Added
+- `apps/web/src/admin/analytics/useAnalytics.ts` — `useOverview(range)` (fetches
+  `GET /api/admin/analytics/overview?from=...&to=...` via the admin `apiClient`, re-running only
+  when `range.from`/`range.to` change — primitive-keyed, not object-identity-keyed) and
+  `useRealtime()` (fetches `GET /api/admin/analytics/realtime` immediately on mount, then polls
+  every 30 s via `setInterval`, cleared on unmount — no websockets, per plan §5.2). Both return
+  `{ data, loading, error }`, typed to the contract's `OverviewResponse`/`RealtimeResponse`
+  (`fixtures.ts`); a rejected fetch or a non-ok response is caught and converted to the `error`
+  field — neither hook ever throws to its consumer.
+
+### Notes
+- T072's 9 tests now pass (445/445 web suite). `pnpm --filter @modular-house/web lint` and
+  `typecheck` clean. Dropped an initial `eslint-disable-next-line react-hooks/exhaustive-deps`
+  comment — that plugin rule isn't registered in this project's eslint config, so the disable
+  directive itself was flagged as unused; the intentional primitive-keyed dependency array is
+  explained by a plain comment instead.
+
+---
+
+## [2026-07-23T15:20:00.000+01:00] — feat(analytics): T071 range-preset helpers (rangePresets.ts)
+
+### Added
+- `apps/web/src/admin/analytics/rangePresets.ts` — `RANGE_PRESET_DEFINITIONS` (extensible list,
+  Open-Closed: `24h`/`7d`/`28d`/`3m`/`6m`/`12m`/`16m`, each an hours/days/months lookback) and
+  `presetToRange(preset, now)`, converting a preset id + reference instant into the `{from, to}`
+  query params `getAnalyticsOverview` expects (Q1/Q2). `now` is always caller-supplied — the
+  function never reads the wall clock — so production callers pass `new Date()` and tests pass a
+  fixed instant (constitution III).
+- London calendar-day resolution uses `Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London',
+  ... })` (the `en-CA` locale formats numeric dates in `YYYY-MM-DD` order), matching the existing
+  convention in `TrafficChart.tsx`'s `formatBucketLabel`. Day/month arithmetic on the resolved
+  calendar-day string uses plain `Date.UTC` + `setUTCDate`/month-index normalization — once the
+  correct London day is extracted, calendar-day math is timezone-agnostic.
+
+### Notes
+- T070's 7 tests now pass. `pnpm --filter @modular-house/web lint` and `typecheck` clean on the
+  new file.
+
+---
+
+## [2026-07-23T15:10:00.000+01:00] — test(analytics): T070 range-preset math tests (rangePresets.test.ts)
+
+### Added
+- `apps/web/src/admin/analytics/rangePresets.test.ts` — seven cases asserting the exact Q2
+  preset -> `{from, to}` mapping: `24h` (UTC datetime, `now - 24h .. now`), `7d`/`28d` (calendar
+  days, `today-6..today` / `today-27..today`), `3m`/`6m`/`12m`/`16m` (calendar days,
+  `today - N months + 1 day .. today`). Uses a fixed clock at `2026-07-14T23:30:00.000Z` —
+  `00:30` local (BST is UTC+1 in July) — so the suite proves "today" resolves against the
+  Europe/London calendar day (`2026-07-15`), not the UTC one (`2026-07-14`), matching Q2's
+  "'today' is the current Europe/London date" and the E-TZ boundary family (plan §4.2).
+
+### Notes
+- Red for the expected reason: `Failed to resolve import "./rangePresets.js"` (module does not
+  exist yet — T071 creates it). No implementation code written in this task.
+
+---
+
 ## [2026-07-23T14:00:00.000+01:00] — fix(analytics): T068/T069 review-fix (analyticsFixtures.ts, analyticsFixtures.test.ts, openapi.yaml)
 
 Addresses the two PASS-WITH-NITS findings from the T062-T069 review (review-log.md, baseline

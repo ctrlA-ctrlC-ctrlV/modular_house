@@ -913,21 +913,24 @@
       Done when: red for the missing endpoint.
       Refs: T-B6 (US3-3/4), Q1 (happy)/Q4/Q6, FR-019/FR-021/FR-029
 
-- [ ] T062 Write failing realtime integration test (T-B6, realtime half)
+- [x] T062 Write failing realtime integration test (T-B6, realtime half)
+> note: fresh-UUID isolation from seed, fake Date bridges injected clock to route; tests: 0/1 (red 404); deviations: none
       Files: apps/api/tests/integration/analytics-realtime.test.ts (new)
       Do: `GET /api/admin/analytics/realtime` (authenticated) returns distinct visitors with >= 1
       event in the trailing 5 minutes (injected clock), top-5 active paths, `windowMinutes: 5`.
       Done when: red for the missing endpoint.
       Refs: T-B6 (US3-5), V5, FR-020, contract RealtimeResponse
 
-- [ ] T063 Write failing returning-visitor integration test (T-B3)
+- [x] T063 Write failing returning-visitor integration test (T-B3)
+> note: fresh-UUID isolation, verified vs getOverview directly; tests: 0/1 (red 404); deviations: none
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: Visitor with `firstSeenAt` yesterday (London) and an event today counts returning in
       today's range; a brand-new visitor counts new (injected clock).
       Done when: red for the missing endpoint.
       Refs: T-B3 (US2-3), V3, FR-010, SC-004
 
-- [ ] T064 Write failing source-attribution integration test (T-B4)
+- [x] T064 Write failing source-attribution integration test (T-B4)
+> note: real POST /api/analytics/events ingest, S4 first-event-wins verified vs getOverview; tests: 0/1 (red 404); deviations: none
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: Ingest referrer/utm permutations end-to-end (search referrer, social referrer, unknown
       referrer, utm-tagged, direct) then assert overview `sources` groups them as

@@ -1,18 +1,18 @@
 /**
- * T060 / T061 — GET /api/admin/analytics/overview integration tests
- * (T-B5, T-B6 overview half).
+ * T060 / T061 / T063 / T064 — GET /api/admin/analytics/overview integration
+ * tests (T-B5, T-B6 overview half, T-B3, T-B4).
  *
  * Exercises the authenticated admin overview endpoint against the real
  * Express app via supertest and the shared `db:seed` analytics fixtures
  * (T006) — unlike the T058 unit suite (which deliberately avoids the seed
- * for isolation), these tests intentionally depend on it: T060's Do text
+ * for isolation), T060/T061 intentionally depend on it: T060's Do text
  * says "matching the seeded fixtures" and T-B6 needs enough distinct
  * source-group / path variety that only the shared seed conveniently
  * provides. `pnpm --filter @modular-house/api db:seed` must have populated
  * the fixtures (DoD-8) before this file runs.
  *
  * The endpoint does not exist yet — the route/handler is T066/T067/T068,
- * later Pass 2 work. Both tasks are red for that reason alone; every
+ * later Pass 2 work. All four tasks are red for that reason alone; every
  * expected value below was independently verified by calling
  * `analyticsQuery.getOverview` directly against the seeded test database
  * (bypassing the not-yet-existent HTTP layer) before being hard-coded here,
@@ -31,13 +31,28 @@
  * no events at all — the range predates the first-ever stored event), and
  * the today-only query doubles as the <= 2-day hour-bucket case, whose
  * top-pages/sources shape (including a zero-valued group) is asserted here.
+ *
+ * T063 (T-B3) and T064 (T-B4), unlike T060/T061, deliberately do NOT read
+ * the shared seed: each mints fresh `crypto.randomUUID()` visitor/session
+ * ids scoped to a query range the seed never touches (2026-08-01/02, versus
+ * the seed's 2026-07-13..15), so their KPI/source assertions are never
+ * contaminated by the seed's five fixed visitors, and cleans up its own rows
+ * in a `finally` block — mirroring the isolation pattern established in
+ * analytics-ingest.test.ts.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
+import { randomUUID } from 'node:crypto';
 import app from '../../src/app.js';
 import { prisma, disconnectDb } from '../helpers/db.js';
 import { createClock } from '../helpers/clock.js';
 import { LoginCodeService } from '../../src/services/loginCode.js';
+import {
+  createAnalyticsClock,
+  insertAnalyticsEvent,
+  upsertAnalyticsVisitor,
+  analyticsCookieHeader,
+} from '../helpers/analyticsFixtures.js';
 
 /**
  * Complete login + verify-2fa for a fresh `admin`-role test user and return
@@ -176,4 +191,61 @@ describe('GET /api/admin/analytics/overview', () => {
       }
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // T063 (T-B3) — returning vs. new visitor classification (V3)
+  // ---------------------------------------------------------------------------
+  describe('T063 (T-B3): returning-visitor classification within a range', () => {
+    it('counts a visitor with firstSeenAt yesterday as returning, and a same-day visitor as new', async () => {
+      // Isolated from the shared db:seed fixtures (2026-07-13..15) by a
+      // disjoint date and fresh randomUUID() ids, so uniqueVisitors /
+      // returningVisitorRate below reflect only these two rows.
+      const returningVisitorId = randomUUID();
+      const newVisitorId = randomUUID();
+
+      try {
+        // Returning: firstSeenAt on the London day before the queried range,
+        // with an in-range event today — V3: the first in-range event's
+        // London day is strictly later than firstSeenAt's London day.
+        await upsertAnalyticsVisitor(prisma, {
+          visitorId: returningVisitorId,
+          firstSeenAt: new Date('2026-07-31T11:00:00.000Z'),
+        });
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-08-01T11:00:00.000Z'),
+          path: '/t063-returning',
+          visitorId: returningVisitorId,
+          sessionId: randomUUID(),
+        });
+
+        // New: firstSeenAt falls on the same London day as the in-range event.
+        await upsertAnalyticsVisitor(prisma, {
+          visitorId: newVisitorId,
+          firstSeenAt: new Date('2026-08-01T11:05:00.000Z'),
+        });
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-08-01T11:05:00.000Z'),
+          path: '/t063-new',
+          visitorId: newVisitorId,
+          sessionId: randomUUID(),
+        });
+
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from: '2026-08-01', to: '2026-08-01' })
+          .set('Authorization', `Bearer ${accessToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.kpis.uniqueVisitors.current).toBe(2);
+        // 1 of 2 visitors classifies as returning (V3).
+        expect(res.body.kpis.returningVisitorRate.current).toBeCloseTo(0.5, 10);
+      } finally {
+        const visitorIds = [returningVisitorId, newVisitorId];
+        await prisma.analyticsEvent.deleteMany({ where: { visitorId: { in: visitorIds } } });
+        await prisma.analyticsVisitor.deleteMany({ where: { visitorId: { in: visitorIds } } });
+      }
+    });
+  });
+
+  
 });

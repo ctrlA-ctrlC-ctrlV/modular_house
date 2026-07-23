@@ -998,7 +998,7 @@
 
 ### Wire the dashboard to live data
 
-- [ ] T070 Write failing range-preset math tests
+- [x] T070 Write failing range-preset math tests
       Files: apps/web/src/admin/analytics/rangePresets.test.ts (new)
       Do: With a fixed clock assert the exact Q2 mapping: `24 hours` -> UTC datetimes
       `from = now - 24h`, `to = now`; `7 days` -> `today-6 .. today`; `28 days` ->
@@ -1006,43 +1006,49 @@
       the current Europe/London date.
       Done when: red because rangePresets.ts does not exist.
       Refs: Q1/Q2, research R10, FR-019
+> note: 7 cases (24h/7d/28d/3m/6m/12m/16m), fixed clock at 23:30 UTC/00:30 BST for London-day proof; tests: 7 red; deviations: none
 
-- [ ] T071 Implement the range-preset helpers
+- [x] T071 Implement the range-preset helpers
       Files: apps/web/src/admin/analytics/rangePresets.ts (new)
       Do: Preset definitions (extensible list, Open-Closed) and preset -> `{from, to}` conversion
       per Q2, London-aware, datetime form only for the 24-hour preset.
       Done when: T070 green.
       Refs: Q1/Q2, research R10
+> note: presetToRange() + RANGE_PRESET_DEFINITIONS, Intl.DateTimeFormat en-CA for London day; tests: 7 passing; deviations: none
 
-- [ ] T072 Write failing useAnalytics hook tests
+- [x] T072 Write failing useAnalytics hook tests
       Files: apps/web/src/admin/analytics/useAnalytics.test.tsx (new)
       Do: With mocked apiClient and fake timers: overview fetched with the given `from`/`to` and
       refetched on range change; realtime polled every 30 s (V6 — advance fake timers, count
       calls); loading, error, and empty responses surfaced to consumers without throwing.
       Done when: red because useAnalytics.ts does not exist.
       Refs: V6, T-F7 basis, FR-020, SC-006
+> note: mocks apiClient module (not global fetch); useRealtime polling via advanceTimersByTimeAsync; tests: 9 red; deviations: none
 
-- [ ] T073 Implement the useAnalytics data hooks
+- [x] T073 Implement the useAnalytics data hooks
       Files: apps/web/src/admin/analytics/useAnalytics.ts (new)
       Do: Overview hook keyed on the validated range and a realtime hook polling every 30 s via
       the admin apiClient (no websockets); typed to the contract shapes.
       Done when: T072 green.
       Refs: V6, research R7, FR-017/FR-020
+> note: useOverview keyed on from/to primitives, useRealtime setInterval 30s; never throws; tests: 9 passing; deviations: none
 
-- [ ] T074 Write failing live-dashboard test (T-F7)
+- [x] T074 Write failing live-dashboard test (T-F7)
       Files: apps/web/src/admin/pages/Analytics.test.tsx
       Do: With mocked overview/realtime responses (contract shapes) the page renders the KPI strip
       with deltas, traffic chart, realtime card, top pages, and sources from the live-data path
       (amend the T034 static assertions to inject mocked hook data — do not delete them).
       Done when: red because the page still renders fixtures.
       Refs: T-F7 (US3-2..5), FR-018/FR-020/FR-021/FR-029
+> note: mocks useAnalytics module; T034 unchanged, fed same fixtures via mock; new live-data test distinct values; tests: 1 red/445 passing; deviations: none
 
-- [ ] T075 Wire the Analytics page widgets to live data
+- [x] T075 Wire the Analytics page widgets to live data
       Files: apps/web/src/admin/pages/Analytics.tsx
       Do: Replace fixture feeds with useAnalytics results; propagate loading/empty states to each
       widget; keep fixtures.ts for tests only.
       Done when: T074 green; T034 amended assertions green.
       Refs: research R12 (Pass 2 wiring), FR-018–FR-021/FR-029
+> note: range seeded via presetToRange('3m', new Date()); dashed loading panels gate null data; tests: 446 passing; deviations: none
 
 - [ ] T076 Write failing range-selector behavior test (T-F8)
       Files: apps/web/src/admin/pages/Analytics.test.tsx

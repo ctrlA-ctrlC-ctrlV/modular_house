@@ -1,12 +1,15 @@
 /**
- * RangeToolbar widget — Phase 2 admin analytics (Pass 1, fixture state only).
+ * RangeToolbar widget — Phase 2 admin analytics (ported in Pass 1, wired to
+ * live range state by the page in Pass 2, T077).
  *
  * Adapts the Studio Admin template `_components/analytics-toolbar.tsx`
  * (ui-components.md §1 compatibility rules 1–10, §4) to the project's
  * Vite/React 18.3 setup. Renders the range selector for the analytics
  * dashboard: a single ported `Select` populated with the five Q2 presets,
  * defaulting to `3 months`. Selection is reported through a callback prop —
- * no data fetching, no range math, no dialog behaviour in Pass 1 (plan §5.3).
+ * the widget itself still does no data fetching, no range math, and no
+ * dialog behaviour; `Analytics.tsx` (T077) owns all three in response to the
+ * callback.
  *
  * Spec-driven adaptations (research R10/R11 / ui-components.md §4 — nothing
  * is taste):
@@ -23,8 +26,9 @@
  * - **`More` is a select option, not a separate control.** Q2 lists `More` as
  *   one of the five selector options; selecting it is reported through the
  *   same `onSelect` callback as the range presets. Opening the custom-range
- *   pop-up (RangeDialog) on `More` selection is Pass 2 wiring (T033/T080+) —
- *   the callback seam is the only behaviour shipped in Pass 1.
+ *   pop-up (RangeDialog) on `More` selection is `Analytics.tsx`'s Pass 2
+ *   wiring (T077) — this widget only ever reports the id upward; it never
+ *   opens the dialog itself.
  * - **Export/import/share ellipsis menu omitted.** The template's
  *   `DropdownMenu` (aria-label "More analytics actions") with Export report /
  *   Import data / Share dashboard / Refresh metrics items is not shipped this
@@ -41,8 +45,8 @@
  *   extension point for the page composition (T035) and Pass 2 range math.
  * - **Selection is a callback prop.** Per T031: "Selection is a callback
  *   prop — no data fetching." The select's `onValueChange` is bridged to
- *   `onSelect`; the widget holds no range state of its own (the dashboard
- *   page owns the preset in Pass 2).
+ *   `onSelect`; the widget holds no range state of its own — the dashboard
+ *   page owns the preset (wired in T077).
  *
  * Port mechanics (rules 1–10): no `"use client"` (rule 1); `@/components/ui`
  * rewritten to relative `../ui/select.js` for the ported Phase 2 select

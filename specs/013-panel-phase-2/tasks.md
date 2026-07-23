@@ -940,7 +940,8 @@
       Done when: red for the missing endpoint.
       Refs: T-B4 (US2-8), S1–S4, FR-011
 
-- [ ] T065 Write failing auth-gate integration test (T-B7)
+- [x] T065 Write failing auth-gate integration test (T-B7)
+> note: table-driven 401/401/200 x2 routes via real verify-2fa session; tests: 0/6 (red 404); deviations: none
       Files: apps/api/tests/integration/analytics-auth.test.ts (new)
       Do: Overview and realtime without a session -> 401; with an invalid/expired token -> 401;
       with a valid admin session (any role) -> 200. Cover every branch of the auth gate on these
@@ -948,7 +949,8 @@
       Done when: red for the missing endpoints.
       Refs: T-B7 (US3-12), FR-017, constitution I, DoD-3
 
-- [ ] T066 Implement the overview route handler
+- [x] T066 Implement the overview route handler
+> note: SQL Q1 resolver, timestamp not date cast (bug fixed); tests: 0 official/5 throwaway-verified vs T060-064; deviations: none
       Files: apps/api/src/routes/admin/analytics.ts (new)
       Do: `GET /overview` behind the Phase 1 `authenticate` middleware: parse `from`/`to` (happy
       path; full Q1 boundary validation hardened in Pass 3), call analyticsQuery, return the

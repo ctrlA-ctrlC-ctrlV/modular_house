@@ -31,8 +31,10 @@
  *   export/import/share menu are documented adaptations
  *   (ui-components.md §4). The toolbar is placed in the same flex row as the
  *   `TabsList`, matching the template's `flex flex-wrap items-center
- *   justify-between gap-3` layout. Its `onSelect` callback stays a no-op
- *   here — wiring the selector to the shared range state is T076/T077.
+ *   justify-between gap-3` layout. Its `onSelect` callback drives the shared
+ *   range state (T077): the four direct presets (`24h`/`7d`/`28d`/`3m`)
+ *   resolve immediately via `presetToRange`; `more` opens `RangeDialog`
+ *   instead of touching the range.
  * - **Widget composition.** The Overview tab content composes the six
  *   widgets in the template's two-row grid:
  *   - Row 1: KpiStrip (full width), then TrafficChart (xl:col-span-7) +
@@ -43,10 +45,12 @@
  *   are preserved verbatim from the template (FR-022: "adapt to small
  *   viewports without horizontal scrolling" — `grid-cols-1` is the mobile
  *   base, `xl:grid-cols-12` is the xl override).
- * - **Live data (T075).** `useOverview` is called with a range seeded from
- *   the Q2 default preset ("3 months", `rangePresets.ts`) computed once at
- *   mount; `useRealtime` polls independently (V6). Until a payload arrives,
- *   a dashed loading panel stands in place of the data-dependent widgets
+ * - **Live data (T075) + shared range state (T077).** `useOverview` is
+ *   called with the page's `range` state, seeded at mount from the Q2
+ *   default preset ("3 months", `rangePresets.ts`) and updated thereafter by
+ *   `RangeToolbar`/`RangeDialog` selections; `useRealtime` polls
+ *   independently of the range (V6). Until a payload arrives, a dashed
+ *   loading panel stands in place of the data-dependent widgets
  *   (KpiStrip/TrafficChart/TopPages/TrafficSources share one panel keyed on
  *   `overview`; RealtimeCard has its own, keyed on `realtime`) — this also
  *   satisfies the null-safety the hooks' `data: T | null` return type
@@ -55,8 +59,16 @@
  *   (`isEmptyRange`, `timeseries.length === 0`, `hasPages`/`hasSources`)
  *   already covers the "range with no data" case (US3-9), so no additional
  *   empty-state logic is needed at the page level.
- * - **No RangeDialog behavior.** The RangeDialog is not mounted here — it is
- *   wired in Pass 2 (T080+) when the `More` option opens the pop-up.
+ * - **RangeDialog mounted (T077), apply flow wired (T079).** The dialog's
+ *   `open` state is owned by the page and toggled by the toolbar's `more`
+ *   selection. Its `onSelect` callback (T079) resolves the three month
+ *   presets via `presetToRange` and passes a valid custom start/end pair
+ *   straight through as `{from, to}` (Q1: custom ranges already use the
+ *   `YYYY-MM-DD` calendar-day form the native date inputs produce — no
+ *   further conversion needed); both branches close the dialog and update
+ *   the shared range state. Q3's rejection paths (`start > end`,
+ *   `end > today`, span > 490 days) are Pass 3 / E-DIALOG (T115/T116) —
+ *   only the happy path is handled here, per T079's own scope.
  * - **Page-level padding (T036d).** The template's page root carries no
  *   padding of its own — the Next.js `dashboard/layout.tsx` supplies
  *   `p-4 md:p-6` around `{children}`, a layout with no equivalent in this
@@ -81,14 +93,15 @@
 import { useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs.js';
-import { RangeToolbar } from '../analytics/RangeToolbar.js';
+import { RangeToolbar, type RangePresetId } from '../analytics/RangeToolbar.js';
+import { RangeDialog, type RangeDialogPreset } from '../analytics/RangeDialog.js';
 import { KpiStrip } from '../analytics/KpiStrip.js';
 import { TrafficChart } from '../analytics/TrafficChart.js';
 import { RealtimeCard } from '../analytics/RealtimeCard.js';
 import { TopPages } from '../analytics/TopPages.js';
 import { TrafficSources } from '../analytics/TrafficSources.js';
 import { useOverview, useRealtime } from '../analytics/useAnalytics.js';
-import { presetToRange } from '../analytics/rangePresets.js';
+import { presetToRange, type RangeParams } from '../analytics/rangePresets.js';
 
 /**
  * Analytics — the admin analytics dashboard page (FR-022/FR-024, US3-13).
@@ -101,13 +114,65 @@ import { presetToRange } from '../analytics/rangePresets.js';
  */
 export function Analytics() {
   // Range state — seeded once from the Q2 default preset ("3 months",
-  // Europe/London-aware) at mount. Selecting a different preset or a custom
-  // range (RangeToolbar/RangeDialog) is Pass 2 wiring landing in T076-T079;
-  // this task only replaces the fixture feed with the live data hooks.
-  const [range] = useState(() => presetToRange('3m', new Date()));
+  // Europe/London-aware) at mount; thereafter updated by RangeToolbar's
+  // direct presets (T077) and RangeDialog's month presets/custom range
+  // (T079). `useOverview` (T072/T073) re-keys its fetch on `range.from`/
+  // `range.to`, so any state update here drives a refetch.
+  const [range, setRange] = useState<RangeParams>(() => presetToRange('3m', new Date()));
+
+  // RangeDialog's open state — toggled on by RangeToolbar's `more` option
+  // (T077), toggled off by the dialog itself (Esc/overlay/close button, or a
+  // successful Apply once T079 wires it).
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const overview = useOverview(range);
   const realtime = useRealtime();
+
+  /**
+   * RangeToolbar selection handler (T077, Q2). The four direct presets
+   * (`24h`/`7d`/`28d`/`3m`) resolve to `{from, to}` immediately via
+   * `presetToRange`; `more` does not touch the range — it only opens
+   * RangeDialog, whose own presets/custom range are T079's scope. The
+   * `presetId === 'more'` guard narrows the remaining branch's type to
+   * exactly `rangePresets.ts`'s `RangePresetKey`, so no cast is needed.
+   */
+  function handleToolbarSelect(presetId: RangePresetId): void {
+    if (presetId === 'more') {
+      setDialogOpen(true);
+      return;
+    }
+    setRange(presetToRange(presetId, new Date()));
+  }
+
+  /**
+   * RangeDialog apply handler (T079, Q2/Q3 happy path). The three month
+   * presets (`6m`/`12m`/`16m`) resolve via the same `presetToRange` helper
+   * the toolbar uses. `custom` passes `customStart`/`customEnd` straight
+   * through as `{from, to}` — Q1 already defines the custom-range form as
+   * `YYYY-MM-DD`, exactly what the native `<input type="date">` fields
+   * produce, so no additional date math is needed for the happy path. The
+   * `!customStart || !customEnd` guard is null-safety for the callback's
+   * optional parameters (RangeDialog only omits them for the month-preset
+   * branches), not Q3 range validation — start/end-order, future-date, and
+   * span-cap rejection are Pass 3 / E-DIALOG (T115/T116). Both branches
+   * close the dialog, matching RangeDialog's own contract that it never
+   * closes itself.
+   */
+  function handleDialogSelect(
+    preset: RangeDialogPreset,
+    customStart?: string,
+    customEnd?: string,
+  ): void {
+    if (preset === 'custom') {
+      if (!customStart || !customEnd) {
+        return;
+      }
+      setRange({ from: customStart, to: customEnd });
+    } else {
+      setRange(presetToRange(preset, new Date()));
+    }
+    setDialogOpen(false);
+  }
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
@@ -126,8 +191,7 @@ export function Analytics() {
             positions the TabsList and AnalyticsToolbar in the same row,
             wrapping on small viewports. RangeToolbar replaces the template's
             AnalyticsToolbar (documented adaptation, ui-components.md §4).
-            The onSelect callback stays a no-op — wiring the selector to the
-            shared range state is T076/T077. */}
+            The onSelect callback drives the shared range state (T077). */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList className="gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -137,8 +201,9 @@ export function Analytics() {
             <TabsTrigger value="conversions">Conversions</TabsTrigger>
           </TabsList>
 
-          <RangeToolbar onSelect={() => {}} />
+          <RangeToolbar onSelect={handleToolbarSelect} />
         </div>
+
 
         {/* Overview tab — the six widgets fed by the live overview/realtime
             payloads. The grid layout mirrors the template:

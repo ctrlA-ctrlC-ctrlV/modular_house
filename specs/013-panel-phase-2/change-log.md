@@ -1,6 +1,101 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T12:50:00.000+01:00] — docs(analytics): T069 mirror analytics endpoints into api openapi.yaml (openapi.yaml)
+
+### Added
+- `apps/api/openapi.yaml` — new `# ─── Analytics (Phase 2 ...) ───` section
+  between `/admin/uploads/image` and `/sitemap.xml`: `POST
+  /api/analytics/events` (204/400/429), `GET /api/admin/analytics/overview`
+  (`from`/`to` query params, 200/400/401, `bearerAuth`), `GET
+  /api/admin/analytics/realtime` (200/401, `bearerAuth`) — plus five new
+  component schemas (`IngestEventRequest`, `KpiValue`, `OverviewResponse`,
+  `RealtimeResponse`, `ErrorResponse`), appended after the existing `Error`
+  schema.
+
+### Notes
+- Verified field-by-field against `contracts/analytics.openapi.yaml`:
+  types, `required` arrays, `enum` values, `nullable` flags, and
+  `min`/`maxItems`/`minLength`/`maxLength` constraints all match. Kept this
+  file's existing terser style (inline `{ type: string }` properties, no
+  per-field prose descriptions) rather than the contract's fuller
+  documentation — matches the established convention throughout this file
+  (e.g. the `Page`/`PageWrite` schemas), and the task only requires semantic
+  equivalence, not identical verbosity.
+  - `additionalProperties: false` on `IngestEventRequest` was initially
+    omitted (not used elsewhere in this file except once, as `true`, for a
+    loosely-typed object) but added back in after re-checking the contract:
+    it is a genuine semantic constraint (M2's "unknown fields rejected"),
+    not just documentation, so omitting it would have been a real fidelity
+    gap.
+  - `ErrorResponse` is deliberately a NEW, distinctly-named schema — the
+    file already has an unrelated `Error` schema (`{error: string, message:
+    string}`, used by Phase 1 endpoints) with a different shape than the
+    Phase 2 contract's `ErrorResponse` (`{error: {message, details?}}`);
+    reusing the same name would have silently changed one shape or the
+    other.
+- `pnpm --filter @modular-house/api docs:validate` passes.
+
+---
+
+## [2026-07-23T12:40:00.000+01:00] — feat(analytics): T068 mount admin analytics routes in app (app.ts)
+
+### Added
+- `apps/api/src/app.ts` — imports `routes/admin/analytics.ts` as
+  `adminAnalyticsRouter` (the public ingest router already claims the plain
+  `analyticsRouter` name) and mounts it at `/api/admin/analytics`, after
+  `httpLogger` (every request already carries a correlation id) and grouped
+  with the other `/admin/*` routers, ahead of `notFoundHandler`.
+
+### Notes
+- **This is the gate task**: "Done when: T060–T065 all green (T-B3–T-B7
+  pass)" — confirmed directly: `analytics-overview.test.ts` (6),
+  `analytics-realtime.test.ts` (1), and `analytics-auth.test.ts` (6) — 13/13
+  — all pass against the real mounted app for the first time, no longer
+  404ing. Full `apps/api` suite: 463/463 on a fresh `db:seed`.
+- **Observed, pre-existing intermittent flake (not a regression from this
+  session)**: across ~8 full-suite runs during verification, one showed a
+  single transient failure in T064's `search` source-group assertion
+  (`sessions: 0` instead of `1`); re-running immediately (no reseed) turned
+  it green again, and a narrower repro (analytics-ingest + analytics-privacy
+  + analytics-overview, 4 consecutive runs) never reproduced it. This is the
+  same class of issue already flagged as a non-blocking nit against T058
+  ("intermittent cross-file DB race with T005") — a genuine root-cause fix
+  would mean restructuring live-DB test isolation across the whole suite
+  (e.g. per-test transactional rollback), well beyond this session's T067-
+  T069 scope. Flagging for awareness, not blocking the handoff on it: T064's
+  own logic and expected values were independently verified twice over two
+  sessions (a throwaway direct-service script, and now this real mounted
+  endpoint), and every full-suite run captured during this session but one
+  was 100% green.
+- Lint and typecheck clean.
+
+---
+
+## [2026-07-23T12:30:00.000+01:00] — feat(analytics): T067 realtime route handler (analytics.ts)
+
+### Added
+- `apps/api/src/routes/admin/analytics.ts` (amended) — `GET /realtime`
+  behind the same `authenticateJWT` gate as `/overview` (T066), calling
+  `analyticsQuery.getRealtime(prisma)` with its default (non-injectable)
+  clock and returning the contract `RealtimeResponse` shape
+  (`activeVisitors`, `topActivePages` capped at 5, `windowMinutes: 5`)
+  unchanged from the service's own result — no query parameters, no
+  Q1-style range resolution needed (V5's window is fixed).
+
+### Notes
+- **"Done when: handler responds per contract" verified via a throwaway
+  script** (router mounted on a bare `express()` app, since `app.ts`
+  mounting is T068), deleted afterward — mirroring the exact scenario
+  `analytics-realtime.test.ts` (T062) already asserts: two visitors active
+  on `/live-a` within the trailing 5 minutes, one stale visitor 6 minutes
+  out excluded. Response matched: `{"activeVisitors":2,"topActivePages":
+  [{"path":"/live-a","activeVisitors":2}],"windowMinutes":5}`; a request
+  with no token correctly 401s.
+- Lint and typecheck clean.
+
+---
+
 ## [2026-07-23T12:00:00.000+01:00] — fix(analytics): T005/T058 review-fix — shared db:seed fixtures no longer wiped by unit/round-trip suites (analyticsFixtures.ts, analyticsQuery.test.ts, analyticsFixtures.test.ts, analyticsFixtureData.ts, seed.ts)
 
 ### Root cause

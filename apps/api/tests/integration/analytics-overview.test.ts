@@ -247,5 +247,112 @@ describe('GET /api/admin/analytics/overview', () => {
     });
   });
 
-  
+  // ---------------------------------------------------------------------------
+  // T064 (T-B4) — source attribution via the full ingest -> overview pipeline
+  // ---------------------------------------------------------------------------
+  describe('T064 (T-B4): referrer/utm permutations classify into the five source groups', () => {
+    it('ingests one session per source group and attributes each session by its FIRST event (S4)', async () => {
+      // The ingest route's `occurredAt` is the server clock (`new Date()`,
+      // not injectable through HTTP) — bridged to a deterministic value via
+      // `vi.useFakeTimers({ toFake: ['Date'] })`, mirroring
+      // analytics-ingest.test.ts. Only `Date` is faked so Prisma I/O and
+      // supertest stay real. The chosen date (2026-08-02) is disjoint from
+      // the shared seed's 2026-07-13..15 range.
+      const clock = createAnalyticsClock(new Date('2026-08-02T11:00:00.000Z'));
+      vi.useFakeTimers({ now: clock.now(), toFake: ['Date'] });
+
+      const visitorSearch = randomUUID();
+      const sessionSearch = randomUUID();
+      const visitorSocial = randomUUID();
+      const sessionSocial = randomUUID();
+      const visitorReferral = randomUUID();
+      const sessionReferral = randomUUID();
+      const visitorCampaign = randomUUID();
+      const sessionCampaign = randomUUID();
+      const visitorDirect = randomUUID();
+      const sessionDirect = randomUUID();
+
+      try {
+        // Session A (SEARCH): first event via a Google referrer.
+        await request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorSearch, sessionSearch))
+          .send({ path: '/t064-a', referrer: 'https://www.google.com/search?q=modular+house' });
+
+        // Session A continues 1 minute later with a Facebook referrer — S4
+        // requires the SESSION's group to stay SEARCH (first event wins),
+        // even though this second event's own sourceGroup is SOCIAL.
+        clock.advance(60 * 1000);
+        vi.setSystemTime(clock.now());
+        await request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorSearch, sessionSearch))
+          .send({ path: '/t064-a2', referrer: 'https://www.facebook.com/' });
+
+        // Session B (SOCIAL): Instagram referrer.
+        clock.advance(60 * 1000);
+        vi.setSystemTime(clock.now());
+        await request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorSocial, sessionSocial))
+          .send({ path: '/t064-b', referrer: 'https://www.instagram.com/' });
+
+        // Session C (REFERRAL): an external host absent from the SEARCH/SOCIAL
+        // lists and not the site's own host.
+        clock.advance(60 * 1000);
+        vi.setSystemTime(clock.now());
+        await request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorReferral, sessionReferral))
+          .send({ path: '/t064-c', referrer: 'https://news.example.com/story' });
+
+        // Session D (CAMPAIGN): utm-tagged — S1 outranks any referrer.
+        clock.advance(60 * 1000);
+        vi.setSystemTime(clock.now());
+        await request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorCampaign, sessionCampaign))
+          .send({
+            path: '/t064-d',
+            utmSource: 'newsletter',
+            utmMedium: 'email',
+            utmCampaign: 'phase2-launch',
+          });
+
+        // Session E (DIRECT): no referrer, no campaign tags.
+        clock.advance(60 * 1000);
+        vi.setSystemTime(clock.now());
+        await request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorDirect, sessionDirect))
+          .send({ path: '/t064-e' });
+
+        vi.useRealTimers();
+
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from: '2026-08-02', to: '2026-08-02' })
+          .set('Authorization', `Bearer ${accessToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.sources).toHaveLength(5);
+
+        const byGroup = (group: string) =>
+          res.body.sources.find((s: { group: string }) => s.group === group);
+
+        // Sessions counted, not events (S4): each group has exactly the one
+        // session attributed to it, out of five total sessions.
+        expect(byGroup('search')).toMatchObject({ sessions: 1, share: 0.2 });
+        expect(byGroup('social')).toMatchObject({ sessions: 1, share: 0.2 });
+        expect(byGroup('referral')).toMatchObject({ sessions: 1, share: 0.2 });
+        expect(byGroup('campaign')).toMatchObject({ sessions: 1, share: 0.2 });
+        expect(byGroup('direct')).toMatchObject({ sessions: 1, share: 0.2 });
+      } finally {
+        vi.useRealTimers();
+        const visitorIds = [visitorSearch, visitorSocial, visitorReferral, visitorCampaign, visitorDirect];
+        await prisma.analyticsEvent.deleteMany({ where: { visitorId: { in: visitorIds } } });
+        await prisma.analyticsVisitor.deleteMany({ where: { visitorId: { in: visitorIds } } });
+      }
+    });
+  });
 });

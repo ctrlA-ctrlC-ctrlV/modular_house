@@ -845,11 +845,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Missing or invalid session.
+          description: >-
+            Missing or invalid session. Emitted by the shared, untouched
+            authenticateJWT middleware, which predates this schema and
+            returns the flat Error shape ({error: string, message: string}),
+            never the nested ErrorResponse shape used by this endpoint's own
+            400 responses.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
   /api/admin/analytics/realtime:
     get:
       security:
@@ -865,11 +870,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealtimeResponse'
         '401':
-          description: Missing or invalid session.
+          description: >-
+            Missing or invalid session. Emitted by the shared, untouched
+            authenticateJWT middleware — the flat Error shape, not
+            ErrorResponse (see /api/admin/analytics/overview's 401 for the
+            full rationale).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
 
   /sitemap.xml:
     get:

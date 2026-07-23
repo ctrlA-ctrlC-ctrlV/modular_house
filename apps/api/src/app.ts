@@ -24,6 +24,7 @@ import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/subm
 import { redirectsRouter } from './routes/admin/redirects.js';
 import { uploadsRouter } from './routes/admin/uploads.js';
 import { settingsRouter } from './routes/admin/settings.js';
+import adminAnalyticsRouter from './routes/admin/analytics.js';
 
 const app: Application = express();
 
@@ -73,6 +74,11 @@ app.use('/admin/submissions', adminSubmissionsRouter);
 app.use('/admin/redirects', redirectsRouter);
 app.use('/admin/uploads', uploadsRouter);
 app.use('/admin/settings', settingsRouter);
+// Admin analytics dashboard — GET overview/realtime (plan §5.1, T-B5-T-B7).
+// Mounted after httpLogger (every request already carries a correlation id,
+// req.id) and behind the same authenticateJWT gate as the other admin
+// routers; no separate requirePermission layer (FR-017: any admin role).
+app.use('/api/admin/analytics', adminAnalyticsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

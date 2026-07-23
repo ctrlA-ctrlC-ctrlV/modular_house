@@ -958,21 +958,24 @@
       Done when: handler responds per contract for valid input.
       Refs: contract GET /api/admin/analytics/overview, Q1 (happy), FR-017/FR-018
 
-- [ ] T067 Implement the realtime route handler
+- [x] T067 Implement the realtime route handler
+> note: GET /realtime behind authenticateJWT, calls getRealtime; verified via throwaway mount vs T062 scenario; deviations: none
       Files: apps/api/src/routes/admin/analytics.ts
       Do: `GET /realtime` behind `authenticate`: call analyticsQuery realtime, return
       RealtimeResponse (`activeVisitors`, `topActivePages` max 5, `windowMinutes: 5`).
       Done when: handler responds per contract.
       Refs: contract GET /api/admin/analytics/realtime, V5, FR-017/FR-020
 
-- [ ] T068 Register the admin analytics routes in the app
+- [x] T068 Register the admin analytics routes in the app
+> note: mounted /api/admin/analytics in app.ts after httpLogger; T060-T065 all green (13/13); tests: 463/463 suite; deviations: none
       Files: apps/api/src/app.ts
       Do: Mount routes/admin/analytics.ts under `/api/admin/analytics` with correlation-id
       logging.
       Done when: T060–T065 all green (T-B3–T-B7 pass).
       Refs: plan §5.1, constitution II
 
-- [ ] T069 Mirror the three endpoints into the api OpenAPI document
+- [x] T069 Mirror the three endpoints into the api OpenAPI document
+> note: 3 paths + 5 schemas added, field-by-field checked vs contract; docs:validate passes; deviations: none
       Files: apps/api/openapi.yaml
       Do: Add `POST /api/analytics/events`, `GET /api/admin/analytics/overview`,
       `GET /api/admin/analytics/realtime` with schemas semantically identical to

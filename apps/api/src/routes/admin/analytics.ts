@@ -3,9 +3,9 @@
  *
  * `GET /overview` — range-scoped KPIs with period-over-period deltas, a
  * zero-filled timeseries, top pages, and the five-group source breakdown
- * (T-B5/T-B6). `GET /realtime` (T067, a later task in this same file) will
- * add the trailing-5-minute snapshot. Both routes sit behind the shared
- * Phase 1 `authenticateJWT` gate (T-B7); per FR-017 the dashboard is
+ * (T-B5/T-B6). `GET /realtime` — the trailing-5-minute active-visitors/
+ * top-pages snapshot (T-B6 realtime half, V5). Both routes sit behind the
+ * shared Phase 1 `authenticateJWT` gate (T-B7); per FR-017 the dashboard is
  * readable by every admin role, so no additional `requirePermission` check
  * is layered on top — per-role analytics permissions are explicitly out of
  * scope this phase (plan §1.4).
@@ -26,7 +26,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateJWT } from '../../middleware/auth.js';
-import { getOverview, type DateRange } from '../../services/analyticsQuery.js';
+import { getOverview, getRealtime, type DateRange } from '../../services/analyticsQuery.js';
 
 const router: Router = Router();
 
@@ -148,6 +148,32 @@ router.get(
         timeseries: result.timeseries,
         topPages: result.topPages,
         sources: result.sources,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * GET /realtime — distinct visitors active in the trailing 5 minutes and the
+ * top-5 active paths in that same window (contract `RealtimeResponse`, V5).
+ * No query parameters: the window is fixed by `analyticsQuery.getRealtime`
+ * (V5), which reads the server's real wall clock (no clock is threaded
+ * through the route — only test suites inject one, by faking `Date` at the
+ * process level, as `analytics-realtime.test.ts` does).
+ */
+router.get(
+  '/realtime',
+  authenticateJWT,
+  async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await getRealtime(prisma);
+
+      res.status(200).json({
+        activeVisitors: result.activeVisitors,
+        topActivePages: result.topActivePages,
+        windowMinutes: result.windowMinutes,
       });
     } catch (error) {
       next(error);

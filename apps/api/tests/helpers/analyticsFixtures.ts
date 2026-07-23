@@ -7,6 +7,14 @@
  * `Date.now()` — so session windows, realtime boundaries, range math, and the
  * E-TZ DST case are fully reproducible (constitution III, plan §4 preamble).
  *
+ * Two reset helpers exist: `resetAnalyticsTables` (true blanket wipe — also
+ * destroys the shared `db:seed` fixtures) and `resetAnalyticsTablesExceptSeed`
+ * (same clean-slate guarantee, but spares rows keyed on `FIXED_VISITOR_IDS`).
+ * Any suite whose own tests use only fresh `randomUUID()` ids — i.e. never
+ * `FIXED_VISITOR_IDS`/`FIXED_SESSION_IDS` — MUST use the latter if it runs in
+ * the same process as suites depending on the seed persisting (see each
+ * function's docstring for the cross-file race this avoids).
+ *
  * Usage:
  *   import { createAnalyticsClock, insertAnalyticsEvent, analyticsCookieHeader, … } from '../helpers/analyticsFixtures.js';
  *
@@ -172,8 +180,35 @@ export async function upsertAnalyticsVisitor(
  * Call in `beforeEach` / `afterEach` to start each analytics test with a
  * clean slate. Order matters: events are deleted before visitors (though
  * there is no FK between them, this keeps the pattern consistent).
+ *
+ * WARNING: this is a true blanket wipe — it also destroys the shared
+ * `db:seed` analytics fixtures (`prisma/seed.ts`, keyed on `FIXED_VISITOR_IDS`
+ * below) that `analytics-overview.test.ts` / `analytics-realtime.test.ts`
+ * assume persist for the whole test run. Suites that do not themselves
+ * depend on those fixtures but run in the same process MUST use
+ * {@link resetAnalyticsTablesExceptSeed} instead, or they silently wipe the
+ * seed for whichever dependent file happens to run afterward (a real,
+ * previously observed cross-file race). Reserve this blanket function for
+ * suites that genuinely need (and prove) full-table-empty semantics.
  */
 export async function resetAnalyticsTables(prisma: PrismaClient): Promise<void> {
   await prisma.analyticsEvent.deleteMany();
   await prisma.analyticsVisitor.deleteMany();
+}
+
+/**
+ * Delete all rows from `analytics_events` and `analytics_visitors` EXCEPT
+ * those belonging to the shared `db:seed` analytics fixtures — identified by
+ * `FIXED_VISITOR_IDS`, the same ids `prisma/seed.ts` inserts (its own comment
+ * documents that the two files share these values on purpose). Use this in
+ * any suite whose own tests never touch `FIXED_VISITOR_IDS` themselves (they
+ * mint fresh `crypto.randomUUID()` ids instead): it gives that suite the same
+ * "clean slate before/after every test" guarantee as {@link resetAnalyticsTables}
+ * for its own rows, without destroying the seed other suites in the same
+ * test run depend on.
+ */
+export async function resetAnalyticsTablesExceptSeed(prisma: PrismaClient): Promise<void> {
+  const seedVisitorIds = Object.values(FIXED_VISITOR_IDS);
+  await prisma.analyticsEvent.deleteMany({ where: { visitorId: { notIn: seedVisitorIds } } });
+  await prisma.analyticsVisitor.deleteMany({ where: { visitorId: { notIn: seedVisitorIds } } });
 }

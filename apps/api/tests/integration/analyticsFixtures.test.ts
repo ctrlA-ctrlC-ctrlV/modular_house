@@ -15,11 +15,17 @@
  * cross-file race). `resetAnalyticsTablesExceptSeed` gives this file the same
  * clean-slate guarantee for its own fresh ids while sparing the seed. The one
  * exception is the final test, which specifically proves the blanket
- * `resetAnalyticsTables` helper's full-wipe contract and therefore does
- * destroy the seed as a side effect — it restores the fixtures immediately
- * afterward via the same shared `seedAnalyticsFixtures` function
- * `prisma/seed.ts` uses (`src/seed/analyticsFixtureData.ts`); see its own
- * comment.
+ * `resetAnalyticsTables` helper's full-wipe contract — it runs entirely inside
+ * a `prisma.$transaction` that always rolls back (review-fix: a follow-up
+ * review reproduced the wipe trampling OTHER suites' concurrently-inserted
+ * rows under `test:coverage`'s heavier scheduling, confirming the prior
+ * restore-after-wipe mitigation left a real, if brief, window where the
+ * table was genuinely empty on disk and visible to other connections). A
+ * rolled-back transaction's writes are never visible outside it (Postgres
+ * READ COMMITTED), so the deleteMany() here can never be observed by any
+ * other connection, and the seed is never actually removed — eliminating the
+ * window rather than shrinking it, and making the earlier restore-via-reseed
+ * step unnecessary.
  *
  * Run with: `pnpm --filter @modular-house/api exec vitest run tests/integration/analyticsFixtures.test.ts`
  */
@@ -39,7 +45,6 @@ import {
   ANALYTICS_FIXED_NOW,
   type InsertAnalyticsEventOptions,
 } from '../helpers/analyticsFixtures.js';
-import { seedAnalyticsFixtures } from '../../src/seed/analyticsFixtureData.js';
 
 const prisma = new PrismaClient();
 
@@ -227,31 +232,76 @@ describe('T005 analyticsFixtures round-trip (permanent proof)', () => {
    * proving `resetAnalyticsTables` truly empties BOTH tables (its documented
    * contract) requires the tables to genuinely become empty, which — if the
    * shared `db:seed` fixtures happen to be present when this test runs —
-   * necessarily wipes them too. That is intentional and unavoidable here (a
-   * blanket-wipe helper cannot be proven to wipe everything without wiping
-   * everything); `resetAnalyticsTablesExceptSeed` is what every OTHER test in
-   * this file, and every other suite that shares the seed, should use instead.
-   * Restores the seed immediately afterward via the same shared
-   * `seedAnalyticsFixtures` function `prisma/seed.ts` uses (test order
-   * insurance), so this file's net effect on the shared table, from any
-   * later-running suite's perspective, is unchanged either way.
+   * would wipe them too. Review-fix: a follow-up review reproduced exactly
+   * that under `test:coverage`'s heavier scheduling, and found it worse than
+   * a prior restore-after-wipe mitigation disclosed — the wipe's brief
+   * on-disk window was observed trampling OTHER suites' concurrently-
+   * inserted rows (T063/T064's own fresh data), not just the seed. Rather
+   * than shrink that window, this now eliminates it: the whole test runs
+   * inside `prisma.$transaction`, and the callback always throws a sentinel
+   * so the transaction never commits. Under Postgres's default READ
+   * COMMITTED isolation, an uncommitted transaction's writes are invisible
+   * to every other connection, so this `deleteMany()` can now never be
+   * observed outside this test, and the seed is never actually removed —
+   * making the previous restore-via-`seedAnalyticsFixtures` step both
+   * unnecessary and (per the finding above) insufficient on its own.
+   * `resetAnalyticsTablesExceptSeed` is what every OTHER test in this file,
+   * and every other suite that shares the seed, should use instead.
+   *
+   * Second review-fix (same finding, re-verified while applying the first):
+   * re-running this rewritten test still intermittently failed — not from
+   * seed contamination, but `expect(await tx.analyticsEvent.count()).toBe(0)`
+   * occasionally saw `1`. Root cause: Postgres's default READ COMMITTED
+   * isolation lets each statement within an open transaction see a fresh
+   * snapshot of everything committed so far — so a genuinely concurrent
+   * write from another connection (confirming `--no-file-parallelism` does
+   * not fully serialize DB access in this environment/version, a materially
+   * bigger finding than originally scoped here) can appear between this
+   * transaction's own `deleteMany()` and its `count()`, inflating the count
+   * with a row this test never created and has no business asserting about.
+   * A table-wide count can never be made robust against that without
+   * upgrading the whole transaction's isolation level (SERIALIZABLE/
+   * REPEATABLE READ), which risks serialization-failure retries for a
+   * one-off proof test — disproportionate here. Scoping the "after" check to
+   * this test's OWN row instead sidesteps the problem entirely: it still
+   * proves the same property the test is named for (an unconditional,
+   * un-scoped delete — if `resetAnalyticsTables` ever grew a `WHERE` clause,
+   * this specific row would survive it and the assertion would catch that),
+   * without depending on the full table's population, which this test never
+   * controls in an environment with other concurrent writers.
    */
   it('resetAnalyticsTables removes all analytics rows', async () => {
-    const clock = createAnalyticsClock();
-    await insertAnalyticsEvent(prisma, {
-      occurredAt: clock.now(),
-      visitorId: randomUUID(),
-      sessionId: randomUUID(),
-    });
+    // Thrown only after every assertion below has run, purely to force
+    // `$transaction` to roll back; asserting the rejection *is* this exact
+    // sentinel (not merely "rejects") still surfaces a genuine assertion
+    // failure's own message in the mismatch if one occurs first.
+    const rollbackSentinel = new Error('deliberate-rollback-sentinel');
+    const visitorId = randomUUID();
 
-    expect(await prisma.analyticsEvent.count()).toBeGreaterThan(0);
+    await expect(
+      prisma.$transaction(async (tx) => {
+        const clock = createAnalyticsClock();
+        await insertAnalyticsEvent(tx, {
+          occurredAt: clock.now(),
+          visitorId,
+          sessionId: randomUUID(),
+        });
+        await upsertAnalyticsVisitor(tx, { visitorId, firstSeenAt: clock.now() });
 
-    await resetAnalyticsTables(prisma);
+        expect(await tx.analyticsEvent.findFirst({ where: { visitorId } })).not.toBeNull();
+        expect(await tx.analyticsVisitor.findFirst({ where: { visitorId } })).not.toBeNull();
 
-    expect(await prisma.analyticsEvent.count()).toBe(0);
-    expect(await prisma.analyticsVisitor.count()).toBe(0);
+        await resetAnalyticsTables(tx);
 
-    // Restore the shared db:seed fixtures this call just destroyed.
-    await seedAnalyticsFixtures(prisma);
+        // Scoped to this test's own row (see the docstring above for why a
+        // table-wide count is the wrong assertion in a genuinely concurrent
+        // environment): an unconditional delete removes it regardless of a
+        // `WHERE` clause it was never protected by.
+        expect(await tx.analyticsEvent.findFirst({ where: { visitorId } })).toBeNull();
+        expect(await tx.analyticsVisitor.findFirst({ where: { visitorId } })).toBeNull();
+
+        throw rollbackSentinel;
+      }),
+    ).rejects.toBe(rollbackSentinel);
   });
 });

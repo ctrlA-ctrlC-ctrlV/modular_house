@@ -1,6 +1,102 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T11:20:00.000+01:00] — feat(analytics): T066 overview route handler (analytics.ts)
+
+### Added
+- `apps/api/src/routes/admin/analytics.ts` (new) — `GET /overview` behind the
+  Phase 1 `authenticateJWT` middleware (no additional `requirePermission`
+  gate: FR-017 makes the dashboard readable by every admin role, and
+  per-role analytics permissions are explicitly out of scope this phase).
+  Not yet mounted in `app.ts` (T068, a later task) so it has no effect on
+  the running app this session.
+- **Q1/Q5 range resolution** — the module's own `resolveRanges`/
+  `londonMidnightUtc` helpers convert the request's `from`/`to` query params
+  into the half-open UTC instant windows `analyticsQuery.getOverview`
+  expects: the calendar-day form (`YYYY-MM-DD`) resolves via a parameterized
+  `$queryRaw`, `AT TIME ZONE 'Europe/London'`, mirroring the project
+  convention (research R6) that Postgres owns timezone/DST correctness; the
+  ISO-datetime form (24-hour preset) is passed through as literal instants.
+  Q5's comparison window is derived generically for both forms (`previous.to
+  = current.from`, same span). This is the Pass 2 happy-path resolver only —
+  full Q1 boundary validation (mixed forms, the 490-day cap, future-date
+  rejection) is Pass 3 hardening (plan §5.3), matching T066's Do text.
+
+### Fixed (caught during this task's own verification, not a review-fix)
+- **Cast bug in `londonMidnightUtc`**: the first draft cast the query param
+  to `::date` before `AT TIME ZONE 'Europe/London'`. Postgres resolves that
+  through the `timestamptz AT TIME ZONE` overload (treats the input as a UTC
+  instant, returns the LOCAL wall-clock reading) — the reverse of what was
+  needed. A throwaway raw-SQL check (`'2026-07-13'::date AT TIME ZONE
+  'Europe/London'` → `2026-07-13T01:00:00Z`, i.e. +1h from UTC midnight,
+  instead of the correct `2026-07-12T23:00:00Z`) caught this before it was
+  hard-coded anywhere. Casting to `::timestamp` instead resolves the other
+  overload (naive input treated as LOCAL, output the correct UTC instant)
+  and was verified against the same raw SQL to produce the intended value.
+  The bug was silent for single-day KPI totals (the shift lands in an
+  overnight window with no seed events either side of it) but visibly wrong
+  for the 3-day timeseries, which gained a spurious 4th zero-valued bucket
+  once the upper boundary crossed a local-midnight bucket edge it shouldn't
+  have reached — this is what surfaced it.
+
+### Notes
+- **"Done when: handler responds per contract for valid input" verified via
+  a throwaway script** (mounted the router on a bare `express()` app, since
+  `app.ts` mounting is T068's job, out of this session's scope), not the
+  officially committed suite — deleted afterward, not part of this task's
+  deliverable. Confirmed, against the real seeded DB:
+  - T060's exact KPI/delta values (pageViews 5/4/+25%, uniqueVisitors
+    4/3/+33.3%, returningVisitorRate 0.5/0.667/-25%, etc.) and its
+    "no prior data" 12/null/null case.
+  - T061's `range.bucket` echo (`hour` for the single day, `day` for the
+    3-day span), the exact top-pages/sources shape (including the
+    zero-valued `social` group), and — after the cast fix — the 3-day
+    timeseries's exact `[3, 4, 5]` page-view bucket sequence.
+  - T063's `uniqueVisitors: 2` / `returningVisitorRate: 0.5`.
+  - T064's five `{sessions: 1, share: 0.2}` source groups, including the
+    S4 first-event-wins case (a SEARCH-then-SOCIAL two-event session still
+    attributes to SEARCH).
+  All four already-authored test files' hard-coded expectations are
+  therefore corroborated against this real implementation, not just against
+  `analyticsQuery.getOverview` in isolation (as in the prior session) —
+  though the four tests themselves stay red this session, since `app.ts`
+  wiring (T068) has not happened yet.
+- Re-seeded the port-5434 test DB (`db:seed`, with `DATABASE_URL`/`NODE_ENV`
+  overridden on the command line — the bare script defaults to the dev DB on
+  port 5432 via `.env`, which was unreachable) after finding the shared
+  analytics fixtures (T006) absent; the T058 unit suite's blanket
+  `resetAnalyticsTables()` in its own `beforeEach` is the most likely cause
+  (previously flagged as a nit: "intermittent cross-file DB race with
+  T005"), not anything from this session. Lint and typecheck clean.
+
+---
+
+## [2026-07-23T11:10:00.000+01:00] — test(analytics): T065 failing auth-gate integration suite (analytics-auth.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-auth.test.ts` (new) — table-driven
+  suite (one shared assertion set applied to both
+  `/api/admin/analytics/overview` and `/api/admin/analytics/realtime`, T-B7):
+  no `Authorization` header -> 401; a malformed bearer token -> 401 (reuses
+  the existing `admin.auth.spec.ts` / `unit/middleware/auth.spec.ts`
+  convention — `AuthService.verifyToken` returns `null` for both a malformed
+  and a genuinely expired token via the same catch block, so a malformed
+  string alone exercises the shared 401 branch without minting and waiting
+  out a real expiry); a genuine `admin`-role session (via the real
+  login-code + verify-2fa flow, mirroring `createAuthenticatedSession` from
+  `analytics-overview.test.ts`) -> 200, proving any admin role suffices
+  (FR-017).
+
+### Notes
+- "Done when" met: neither route is mounted yet (T068 is a later task), so
+  every one of the 6 assertions (3 outcomes x 2 routes) 404s regardless of
+  its Authorization header — confirmed red for "the missing endpoints," not
+  a setup/compile error (the session-setup `verify-2fa` call itself
+  returned a real 200 in the test log).
+- Lint and typecheck clean.
+
+---
+
 ## [2026-07-23T11:00:00.000+01:00] — test(analytics): T062-T064 failing realtime/returning-visitor/source-attribution tests (analytics-realtime.test.ts, analytics-overview.test.ts)
 
 ### Added

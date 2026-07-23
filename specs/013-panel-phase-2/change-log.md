@@ -1,6 +1,77 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T12:00:00.000+01:00] — fix(analytics): T005/T058 review-fix — shared db:seed fixtures no longer wiped by unit/round-trip suites (analyticsFixtures.ts, analyticsQuery.test.ts, analyticsFixtures.test.ts, analyticsFixtureData.ts, seed.ts)
+
+### Root cause
+Both `analyticsQuery.test.ts` (T058) and `analyticsFixtures.test.ts` (T005)
+called the shared `resetAnalyticsTables(prisma)` helper — a true blanket
+`deleteMany()` on both `analytics_events` and `analytics_visitors` — in their
+own `beforeEach`/`beforeAll`/`afterAll` hooks, to guarantee a clean slate for
+their own (fresh-`randomUUID()`, or in T005's case literally-seed-shaped)
+fixture rows. Neither file was written with the later-added
+`analytics-overview.test.ts` / `analytics-realtime.test.ts` / `analytics-auth.test.ts`
+in mind, which assume the shared `db:seed` analytics fixtures (5 visitors,
+12 events, T006) persist for the whole test-run process. Whichever of these
+two destructive files ran in the same process — regardless of
+`--no-file-parallelism`, since this is an execution-order dependency, not a
+true concurrency race — silently wiped the seed for any dependent file that
+ran afterward, with no automatic re-seed. Confirmed empirically: after
+re-seeding and running `analyticsQuery.test.ts` alone, direct DB queries
+showed 0/0 seed rows where 5/12 were expected.
+
+### Fixed
+- **`tests/helpers/analyticsFixtures.ts`** — added
+  `resetAnalyticsTablesExceptSeed(prisma)`, a `deleteMany({ where: { visitorId:
+  { notIn: Object.values(FIXED_VISITOR_IDS) } } })` variant that gives a
+  suite the same "clean slate for my own rows" guarantee as the original
+  blanket helper, without touching the seed's known ids. `resetAnalyticsTables`
+  itself is unchanged (still a true blanket wipe) and now documents the
+  hazard explicitly.
+- **`analyticsQuery.test.ts`** — switched `beforeEach`/`afterAll` to the new
+  scoped variant. Every one of its 13 tests already used fresh
+  `randomUUID()` ids (never the seed's), so this is a behaviorally-neutral
+  swap for the suite itself, while it no longer destroys the seed.
+  - One test ("no prior data" Q5 case) relied on `queryFirstEverEventAt`
+    (`MIN(occurred_at)`, a genuinely global query) treating its own inserted
+    row as the table's sole/earliest event — true under a blanket wipe, false
+    now that the seed's earlier (2026-07-13) rows are present. Fixed by
+    moving that test's dates to January 2026, before the seed's range,
+    mirroring the "measured but empty" test immediately below it, which
+    already used the same technique for the same underlying reason.
+- **`analyticsFixtures.test.ts`** — the four DB-writing tests now use fresh
+  `randomUUID()` ids instead of the shared `FIXED_VISITOR_IDS`/`FIXED_SESSION_IDS`
+  (previously reused on purpose, which is exactly what required this file's
+  own destructive `beforeAll`). The cookie-header-format test (a pure string
+  check, no DB write) keeps using the named constants. Hooks switched to
+  `resetAnalyticsTablesExceptSeed`. The file's one remaining test —
+  `resetAnalyticsTables removes all analytics rows`, which specifically
+  proves the blanket helper's full-wipe contract and therefore MUST still
+  wipe everything it finds, seed included, when it runs — now restores the
+  seed immediately afterward.
+- **New `src/seed/analyticsFixtureData.ts`** — extracted the
+  `ANALYTICS_FIXTURE_VISITORS`/`ANALYTICS_FIXTURE_EVENTS` data and the
+  delete-then-reinsert logic out of `prisma/seed.ts` into a shared module
+  (mirroring the existing `seedData.ts` RBAC pattern) exporting
+  `seedAnalyticsFixtures(prisma)`, so `analyticsFixtures.test.ts`'s
+  restore-after-wipe call and `prisma/seed.ts`'s `db:seed` CLI path can never
+  drift. `prisma/seed.ts` now delegates to this function, keeping its own
+  logging/console output unchanged.
+
+### Verification
+- Re-seeded the port-5434 test DB (`db:seed` with `DATABASE_URL`/`NODE_ENV`
+  overridden — the bare script otherwise targets the dev DB on port 5432 via
+  `.env`) and confirmed, via direct row-count queries: `analyticsQuery.test.ts`
+  alone no longer touches the seed (5/12 rows survive); `analyticsFixtures.test.ts`
+  alone now also leaves it intact (previously 0/0, now 5/12, via the restore
+  call); a full `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`
+  leaves the seed intact at the very end (5/12), run twice for stability.
+- Full suite: 450 passed / 13 failed both times — the unchanged, expected
+  red state for T060-T065 (all 404, pending T068's route mounting). No other
+  regressions. Lint and typecheck clean on all five touched files.
+
+---
+
 ## [2026-07-23T11:20:00.000+01:00] — feat(analytics): T066 overview route handler (analytics.ts)
 
 ### Added

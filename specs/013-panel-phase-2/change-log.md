@@ -1,6 +1,62 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T11:00:00.000+01:00] — test(analytics): T062-T064 failing realtime/returning-visitor/source-attribution tests (analytics-realtime.test.ts, analytics-overview.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-realtime.test.ts` (new) — **T062
+  (T-B6, realtime half)**: one test against `GET /api/admin/analytics/realtime`
+  (does not exist yet — T066-T068). Unlike `analytics-overview.test.ts`
+  (T060/T061), which intentionally reads the shared `db:seed` fixtures, this
+  file mints fresh `crypto.randomUUID()` visitor/session ids so its
+  trailing-5-minute window can never accidentally straddle the seed's own
+  2026-07-13..15 rows. Asserts three visitors active inside the injected
+  5-minute window (two sharing `/live-a`, one on `/live-b`) count toward
+  `activeVisitors`/`topActivePages`, while a fourth visitor's event 6 minutes
+  before the injected "now" is excluded entirely, plus `windowMinutes: 5`.
+  Clock strategy: the realtime route will call `getRealtime(prisma)` with its
+  default, non-injectable clock, so the test bridges the T005 injected clock
+  to the route's wall clock via `vi.useFakeTimers({ toFake: ['Date'] })` —
+  identical to the established `analytics-ingest.test.ts` technique.
+- `apps/api/tests/integration/analytics-overview.test.ts` (amended) — two new
+  nested `describe` blocks, both isolated from the shared seed via disjoint
+  dates (2026-08-01/02) and fresh UUIDs, cleaned up in a `finally` block:
+  - **T063 (T-B3)** — a visitor with `firstSeenAt` on the London day before
+    the queried range (with an in-range event today) counts as returning; a
+    visitor whose `firstSeenAt` falls on the same day as its in-range event
+    counts as new. Asserts `uniqueVisitors.current: 2`,
+    `returningVisitorRate.current: 0.5`.
+  - **T064 (T-B4)** — ingests one session per source group **through the
+    real `POST /api/analytics/events` endpoint** (search/social/unknown/
+    utm-tagged/no-referrer payloads), advancing a T005 injected clock (faked
+    `Date`) between posts for deterministic ordering. A second event is
+    posted into the SEARCH session with a Facebook referrer to prove S4:
+    the session's aggregated group stays SEARCH (first event wins) even
+    though that second event's own `sourceGroup` is individually SOCIAL.
+    Asserts all five `sources` groups at `{ sessions: 1, share: 0.2 }`.
+
+### Notes
+- All three tasks' "Done when" met: every new test is red only because its
+  endpoint 404s — T062/T063 confirmed via the same 404 (route unmounted);
+  T064's ingest calls succeed with real 204s (logged `sourceGroup` values
+  SEARCH/SOCIAL/SOCIAL/REFERRAL/CAMPAIGN/DIRECT, confirming
+  `trafficSource.classify` behaves as designed end-to-end) and only the
+  subsequent overview GET 404s.
+- **Every hard-coded expectation was independently verified** by calling
+  `analyticsQuery.getOverview` (T059) directly against the seeded test
+  database in a throwaway script (bypassing the not-yet-existent HTTP
+  layer) using the exact same fixture rows and a hand-resolved
+  Europe/London calendar-day-to-UTC range, then deleted — not part of this
+  task's deliverable. Output matched every hardcoded value exactly,
+  including T064's S4 first-event-wins attribution (`search: 1` despite the
+  session's second event being individually SOCIAL).
+- Lint and typecheck clean on both touched files. Full suite run alongside
+  T060/T061 shows all 7 analytics-overview/-realtime tests red for the
+  identical 404 reason — no regression in the two already-red T060/T061
+  tests from this session's edits.
+
+---
+
 ## [2026-07-22T17:45:00.000+01:00] — test(analytics): T060/T061 failing overview integration suite (analytics-overview.test.ts)
 
 ### Added

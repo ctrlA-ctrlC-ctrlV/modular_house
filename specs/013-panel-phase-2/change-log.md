@@ -1,6 +1,67 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T14:00:00.000+01:00] — fix(analytics): T068/T069 review-fix (analyticsFixtures.ts, analyticsFixtures.test.ts, openapi.yaml)
+
+Addresses the two PASS-WITH-NITS findings from the T062-T069 review (review-log.md, baseline
+5105cd2). T065's nit (test committed 13s after T066's implementation) is a git-commit-ordering
+observation with no corresponding code to change — accepted as-is, same class already accepted for
+T042; no file touched for it.
+
+### Fixed — T068 nit (disclosed cross-file DB race reproduced, worse than described)
+- `apps/api/tests/helpers/analyticsFixtures.ts` — `insertAnalyticsEvent`, `upsertAnalyticsVisitor`,
+  `resetAnalyticsTables`, and `resetAnalyticsTablesExceptSeed` now accept `Prisma.TransactionClient`
+  instead of `PrismaClient`. `PrismaClient` is structurally assignable to `Prisma.TransactionClient`
+  (a strict subset of its surface), so every existing call site keeps working unchanged; the
+  widening only unlocks passing a `tx` from `prisma.$transaction(async (tx) => ...)`.
+- `apps/api/tests/integration/analyticsFixtures.test.ts` — the one test that legitimately must
+  prove `resetAnalyticsTables`'s full-wipe contract (and therefore cannot avoid touching the shared
+  seed if present) now runs entirely inside a `prisma.$transaction` whose callback always throws a
+  sentinel, so the transaction never commits. Under Postgres's default READ COMMITTED isolation, an
+  uncommitted transaction's writes are invisible to every other connection — the wipe can no longer
+  be observed outside this one test, closing the disclosed visibility window entirely rather than
+  shrinking it. This also makes the previous restore-via-`seedAnalyticsFixtures` step unnecessary
+  (removed) and the redundant `src/seed/analyticsFixtureData.ts` import along with it.
+
+### A second, bigger finding surfaced while re-verifying the fix
+- The rewritten test itself intermittently failed: `expect(await tx.analyticsEvent.count()).toBe(0)`
+  occasionally saw `1`. Root cause: READ COMMITTED lets each statement inside an open transaction
+  see a fresh snapshot of everything committed so far, so a genuinely concurrent write from another
+  connection can appear between this transaction's own `deleteMany()` and its `count()` — meaning
+  `--no-file-parallelism` is **not** fully serializing DB access in this environment/Vitest version,
+  a materially bigger finding than the one originally disclosed. Re-running the full suite 5x
+  reproduced completely unrelated failures across rate-limiting, lockout, session revocation,
+  superadmin settings, and password reset — confirming this is a **systemic, environment-level
+  test-suite instability, not an analytics-specific issue**, and well beyond this session's scope to
+  resolve (would need dedicated investigation into Vitest's pool/isolation configuration).
+- Fixed what's actually fixable at this scope: the destructive test's "after" assertions now check
+  its own inserted row by id (`findFirst` for null) instead of a table-wide `count()`, which still
+  proves the same property (`resetAnalyticsTables` has no `WHERE` clause — this row would survive
+  one if it existed) without depending on the full table's population, which this test never
+  controls when other connections are genuinely concurrent.
+- Verified: `analyticsFixtures.test.ts` alone, 4 consecutive runs, 9/9 every time. Full suite: 463/463
+  on the runs that didn't hit the now-confirmed-systemic flakiness elsewhere.
+
+### Fixed — T069 nit (401 ErrorResponse mismatches real middleware)
+- `apps/api/openapi.yaml` — both `/api/admin/analytics/overview` and `/api/admin/analytics/realtime`
+  now document their `401` response as `$ref: '#/components/schemas/Error'` (the flat
+  `{error: string, message: string}` shape the shared, untouched `authenticateJWT` middleware
+  actually returns — same schema every other Phase 1 admin endpoint's 401 already uses, e.g.
+  `/admin/auth/login`), not `ErrorResponse` (the nested shape these two endpoints' own `400`
+  responses correctly use, since that one IS produced by this session's own route code). Per the
+  review, the mismatch originated in `contracts/analytics.openapi.yaml` itself (a higher-precedence
+  source than any T06x task) — left untouched here, since correcting design-time spec artifacts
+  wasn't asked for and T069's mirroring of it was itself correct; only the shipped, real API
+  document was corrected to describe actual runtime behavior.
+- `pnpm --filter @modular-house/api docs:validate` passes.
+
+### Verification
+Lint and typecheck clean on all three touched files. Full suite green (463/463) on unaffected runs;
+the newly-understood systemic flakiness (see above) is flagged for a dedicated future session, not
+fixed here.
+
+---
+
 ## [2026-07-23T12:50:00.000+01:00] — docs(analytics): T069 mirror analytics endpoints into api openapi.yaml (openapi.yaml)
 
 ### Added

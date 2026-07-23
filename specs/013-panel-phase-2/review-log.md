@@ -6,6 +6,17 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-23 — T062-T069 (baseline: 5105cd2)
+
+T062 — PASS — V5 boundaries hand-verified, now green
+T063 — PASS — V3 math hand-verified, now green
+T064 — PASS — S1-S4 verified via real ingest pipeline
+T065 — PASS-WITH-NITS — test committed 13s after T066 impl. Nit: commit 4c22942 (this test) landed at 11:30:05, 13 seconds after 0fe84e1 (T066's overview handler) at 11:29:52 — and after T065-T066 were already marked [x] in tasks.md (a379519/804fcce at 11:29:54/57). This reverses tasks.md's own T065-before-T066 order and rule 3's "no exceptions" TDD sequencing. Functionally still red at authoring (route unmounted until T068), so no behavioral harm — same class of deviation previously accepted as a nit for T042.
+T066 — PASS — real suite (T060-064) confirms green, 463/463
+T067 — PASS — matches RealtimeResponse contract exactly
+T068 — PASS-WITH-NITS — disclosed cross-file DB race reproduced. Nit: re-running under test:coverage reproduced the pre-existing, already-disclosed cross-file DB race — but worse than described: T063's uniqueVisitors.current and T064's search source-group both read back as 0 (not just one field as previously reported), i.e. a concurrent blanket wipe from analyticsFixtures.test.ts's one remaining destructive test trampled T063/T064's own fresh rows. A second run was clean. Non-deterministic, non-blocking, already flagged by the implementer with a correct root cause and a suggested fix (per-test transactional isolation) — but now confirmed to affect two tasks' assertions, not one field, so it belongs on the corrective backlog rather than staying a footnote.
+T069 — PASS-WITH-NITS — 401 ErrorResponse mismatches real middleware. Nit: both new admin endpoints' 401 response is documented as ErrorResponse ({error:{message}}), exactly matching contracts/analytics.openapi.yaml:82-87/103-108 — but the actual, untouched authenticateJWT middleware (middleware/auth.ts:40-50) emits {error: string, message: string}, the legacy Error shape every other Phase 1 admin endpoint documents for 401 (e.g. openapi.yaml:157-161). The mismatch originates in the Phase-2 contract itself (a higher-precedence source than any T06x task) — T069 correctly mirrored what the contract says — but it means the shipped docs promise a body shape for 401 that these two endpoints will never actually return. Doc-drift finding (§5-H), not a T069 rework.
+
 ## 2026-07-23 — T058-T061 (baseline: 4a7d17b)
 
 T058 — PASS-WITH-NITS — intermittent cross-file DB race with T005

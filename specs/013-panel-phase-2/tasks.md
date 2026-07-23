@@ -915,6 +915,7 @@
 
 - [x] T062 Write failing realtime integration test (T-B6, realtime half)
 > note: fresh-UUID isolation from seed, fake Date bridges injected clock to route; tests: 0/1 (red 404); deviations: none
+> reviewed: PASS — V5 boundaries hand-verified, now green
       Files: apps/api/tests/integration/analytics-realtime.test.ts (new)
       Do: `GET /api/admin/analytics/realtime` (authenticated) returns distinct visitors with >= 1
       event in the trailing 5 minutes (injected clock), top-5 active paths, `windowMinutes: 5`.
@@ -923,6 +924,7 @@
 
 - [x] T063 Write failing returning-visitor integration test (T-B3)
 > note: fresh-UUID isolation, verified vs getOverview directly; tests: 0/1 (red 404); deviations: none
+> reviewed: PASS — V3 math hand-verified, now green
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: Visitor with `firstSeenAt` yesterday (London) and an event today counts returning in
       today's range; a brand-new visitor counts new (injected clock).
@@ -931,6 +933,7 @@
 
 - [x] T064 Write failing source-attribution integration test (T-B4)
 > note: real POST /api/analytics/events ingest, S4 first-event-wins verified vs getOverview; tests: 0/1 (red 404); deviations: none
+> reviewed: PASS — S1-S4 verified via real ingest pipeline
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: Ingest referrer/utm permutations end-to-end (search referrer, social referrer, unknown
       referrer, utm-tagged, direct) then assert overview `sources` groups them as
@@ -942,6 +945,7 @@
 
 - [x] T065 Write failing auth-gate integration test (T-B7)
 > note: table-driven 401/401/200 x2 routes via real verify-2fa session; tests: 0/6 (red 404); deviations: none
+> reviewed: PASS-WITH-NITS — test committed 13s after T066 impl
       Files: apps/api/tests/integration/analytics-auth.test.ts (new)
       Do: Overview and realtime without a session -> 401; with an invalid/expired token -> 401;
       with a valid admin session (any role) -> 200. Cover every branch of the auth gate on these
@@ -951,6 +955,7 @@
 
 - [x] T066 Implement the overview route handler
 > note: SQL Q1 resolver, timestamp not date cast (bug fixed); tests: 0 official/5 throwaway-verified vs T060-064; deviations: none
+> reviewed: PASS — real suite (T060-064) confirms green, 463/463
       Files: apps/api/src/routes/admin/analytics.ts (new)
       Do: `GET /overview` behind the Phase 1 `authenticate` middleware: parse `from`/`to` (happy
       path; full Q1 boundary validation hardened in Pass 3), call analyticsQuery, return the
@@ -960,6 +965,7 @@
 
 - [x] T067 Implement the realtime route handler
 > note: GET /realtime behind authenticateJWT, calls getRealtime; verified via throwaway mount vs T062 scenario; deviations: none
+> reviewed: PASS — matches RealtimeResponse contract exactly
       Files: apps/api/src/routes/admin/analytics.ts
       Do: `GET /realtime` behind `authenticate`: call analyticsQuery realtime, return
       RealtimeResponse (`activeVisitors`, `topActivePages` max 5, `windowMinutes: 5`).
@@ -968,6 +974,7 @@
 
 - [x] T068 Register the admin analytics routes in the app
 > note: mounted /api/admin/analytics in app.ts after httpLogger; T060-T065 all green (13/13); tests: 463/463 suite; deviations: none
+> reviewed: PASS-WITH-NITS — disclosed cross-file DB race reproduced
       Files: apps/api/src/app.ts
       Do: Mount routes/admin/analytics.ts under `/api/admin/analytics` with correlation-id
       logging.
@@ -976,6 +983,7 @@
 
 - [x] T069 Mirror the three endpoints into the api OpenAPI document
 > note: 3 paths + 5 schemas added, field-by-field checked vs contract; docs:validate passes; deviations: none
+> reviewed: PASS-WITH-NITS — 401 ErrorResponse mismatches real middleware
       Files: apps/api/openapi.yaml
       Do: Add `POST /api/analytics/events`, `GET /api/admin/analytics/overview`,
       `GET /api/admin/analytics/realtime` with schemas semantically identical to

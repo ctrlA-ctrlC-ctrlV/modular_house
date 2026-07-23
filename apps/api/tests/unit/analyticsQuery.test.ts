@@ -3,13 +3,17 @@
  *
  * Exercises `analyticsQuery.ts` directly against the real test database (no
  * HTTP layer — the route wiring is Pass 2 later work, T066/T067). Every test
- * resets the two analytics tables to a known-empty state (`resetAnalyticsTables`)
- * and inserts its own fixture rows via the T005 helpers
- * (`insertAnalyticsEvent` / `upsertAnalyticsVisitor`), so this suite never
- * depends on the shared `db:seed` fixtures (T006) or on file execution order —
- * `analyticsFixtures.test.ts` (T005's own round-trip suite) already wipes both
- * tables in its own `afterAll`, so any test relying on the seed surviving past
- * that file would be order-dependent by accident, not by design.
+ * resets the two analytics tables to a known-empty state
+ * (`resetAnalyticsTablesExceptSeed`) and inserts its own fixture rows via the
+ * T005 helpers (`insertAnalyticsEvent` / `upsertAnalyticsVisitor`) under
+ * fresh `crypto.randomUUID()` ids, so this suite never depends on the shared
+ * `db:seed` fixtures (T006) — but, unlike a blanket reset, it also never
+ * destroys them: the "except seed" variant spares any row keyed on
+ * `FIXED_VISITOR_IDS`, so `analytics-overview.test.ts` / `analytics-realtime.test.ts`
+ * (which DO depend on those fixtures persisting for the whole test run) stay
+ * correct regardless of file execution order (review-fix: this suite
+ * previously used a true blanket `resetAnalyticsTables`, an intermittent
+ * cross-file race flagged against T058).
  *
  * Every timestamp is a fixed, hand-computed UTC instant (never `Date.now()`,
  * constitution III) chosen so its Europe/London calendar date/hour is
@@ -36,7 +40,7 @@ import { randomUUID } from 'node:crypto';
 import {
   insertAnalyticsEvent,
   upsertAnalyticsVisitor,
-  resetAnalyticsTables,
+  resetAnalyticsTablesExceptSeed,
 } from '../helpers/analyticsFixtures.js';
 import { getOverview, getRealtime, type DateRange } from '../../src/services/analyticsQuery.js';
 
@@ -60,11 +64,11 @@ const NO_OP_PREVIOUS: DateRange = {
 };
 
 beforeEach(async () => {
-  await resetAnalyticsTables(prisma);
+  await resetAnalyticsTablesExceptSeed(prisma);
 });
 
 afterAll(async () => {
-  await resetAnalyticsTables(prisma);
+  await resetAnalyticsTablesExceptSeed(prisma);
   await prisma.$disconnect();
 });
 
@@ -259,20 +263,28 @@ describe('analyticsQuery (T058)', () => {
     });
 
     it('renders previous = null ("no prior data") when the comparison window ends before the first stored event', async () => {
+      // `queryFirstEverEventAt` is a genuinely global `MIN(occurred_at)`
+      // across the whole table — with `resetAnalyticsTablesExceptSeed`
+      // (rather than a blanket wipe) the shared db:seed fixtures (earliest
+      // event 2026-07-13T11:00Z) are present during this test. Using January
+      // 2026 here, well before that date, keeps this test's own inserted
+      // event the true global "first ever," so the "no prior data" case
+      // stays self-contained regardless of the seed — the same technique the
+      // "measured but empty" test below already uses for the same reason.
       const previous: DateRange = {
-        from: new Date('2026-07-30T23:00:00.000Z'),
-        to: new Date('2026-07-31T23:00:00.000Z'),
+        from: new Date('2026-01-01T00:00:00.000Z'),
+        to: new Date('2026-01-02T00:00:00.000Z'),
       };
       const current: DateRange = {
-        from: new Date('2026-07-31T23:00:00.000Z'),
-        to: new Date('2026-08-01T23:00:00.000Z'),
+        from: new Date('2026-01-02T00:00:00.000Z'),
+        to: new Date('2026-01-03T00:00:00.000Z'),
       };
 
       // The ONLY stored event in the whole table is inside the current
       // window, so the previous window ends before the first-ever event.
       const visitorId = randomUUID();
       await upsertAnalyticsVisitor(prisma, { visitorId, firstSeenAt: current.from });
-      await insertAnalyticsEvent(prisma, { occurredAt: new Date('2026-08-01T10:00:00.000Z'), path: '/', visitorId, sessionId: randomUUID() });
+      await insertAnalyticsEvent(prisma, { occurredAt: new Date('2026-01-02T10:00:00.000Z'), path: '/', visitorId, sessionId: randomUUID() });
 
       const result = await getOverview(prisma, { current, previous });
 

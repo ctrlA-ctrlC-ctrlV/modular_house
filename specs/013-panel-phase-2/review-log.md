@@ -6,6 +6,19 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-23 — T070-T079 (baseline: 5ddc26e)
+
+T070 — PASS — 7/7 Q2 cases hand-verified, E-TZ boundary proven
+T071 — PASS — presetToRange matches Q1/Q2 exactly
+T072 — PASS — 9/9, V6 30s poll via fake timers
+T073 — PASS — race-safe refetch, never throws, contract-typed
+T074 — PASS — distinct-value proof, not stale fixtures
+T075 — PASS — loading/empty states correctly gated
+T076 — PASS — exact-range mock proves real Q2 refetch
+T077 — PASS — RangeToolbar.tsx confirmed doc-only diff
+T078 — PASS — Q3 rejection correctly out of scope (T115/T116)
+T079 — PASS — RangeDialog.tsx confirmed doc-only diff
+
 ## 2026-07-23 — T068/T069 review-fix re-review (since 0f89431)
 
 T068 — PASS. `resetAnalyticsTables`'s one live (non-test-double) caller — the destructive proof

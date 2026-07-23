@@ -1007,6 +1007,7 @@
       Done when: red because rangePresets.ts does not exist.
       Refs: Q1/Q2, research R10, FR-019
 > note: 7 cases (24h/7d/28d/3m/6m/12m/16m), fixed clock at 23:30 UTC/00:30 BST for London-day proof; tests: 7 red; deviations: none
+> reviewed: PASS — Q2 math hand-verified for all 7 cases, E-TZ proven
 
 - [x] T071 Implement the range-preset helpers
       Files: apps/web/src/admin/analytics/rangePresets.ts (new)
@@ -1015,6 +1016,7 @@
       Done when: T070 green.
       Refs: Q1/Q2, research R10
 > note: presetToRange() + RANGE_PRESET_DEFINITIONS, Intl.DateTimeFormat en-CA for London day; tests: 7 passing; deviations: none
+> reviewed: PASS — matches Q1/Q2 exactly, 7/7 verified
 
 - [x] T072 Write failing useAnalytics hook tests
       Files: apps/web/src/admin/analytics/useAnalytics.test.tsx (new)
@@ -1024,6 +1026,7 @@
       Done when: red because useAnalytics.ts does not exist.
       Refs: V6, T-F7 basis, FR-020, SC-006
 > note: mocks apiClient module (not global fetch); useRealtime polling via advanceTimersByTimeAsync; tests: 9 red; deviations: none
+> reviewed: PASS — fake-timer V6 poll assertions verified
 
 - [x] T073 Implement the useAnalytics data hooks
       Files: apps/web/src/admin/analytics/useAnalytics.ts (new)
@@ -1032,6 +1035,7 @@
       Done when: T072 green.
       Refs: V6, research R7, FR-017/FR-020
 > note: useOverview keyed on from/to primitives, useRealtime setInterval 30s; never throws; tests: 9 passing; deviations: none
+> reviewed: PASS — race-safe cancelled-flag pattern; contract types match
 
 - [x] T074 Write failing live-dashboard test (T-F7)
       Files: apps/web/src/admin/pages/Analytics.test.tsx
@@ -1041,6 +1045,7 @@
       Done when: red because the page still renders fixtures.
       Refs: T-F7 (US3-2..5), FR-018/FR-020/FR-021/FR-029
 > note: mocks useAnalytics module; T034 unchanged, fed same fixtures via mock; new live-data test distinct values; tests: 1 red/445 passing; deviations: none
+> reviewed: PASS — distinct-value proof confirms hook wiring not fixtures
 
 - [x] T075 Wire the Analytics page widgets to live data
       Files: apps/web/src/admin/pages/Analytics.tsx
@@ -1049,6 +1054,7 @@
       Done when: T074 green; T034 amended assertions green.
       Refs: research R12 (Pass 2 wiring), FR-018–FR-021/FR-029
 > note: range seeded via presetToRange('3m', new Date()); dashed loading panels gate null data; tests: 446 passing; deviations: none
+> reviewed: PASS — non-Overview tabs still placeholder-only, no scope creep
 
 - [x] T076 Write failing range-selector behavior test (T-F8)
       Files: apps/web/src/admin/pages/Analytics.test.tsx
@@ -1058,6 +1064,7 @@
       Done when: red because selection is not wired to refetch.
       Refs: T-F8 (US3-3), Q2, FR-019
 > note: keyboard-selects 7d, mockImplementation keyed on exact range, awaits distinctive marker; tests: 1 red/446 passing; deviations: none
+> reviewed: PASS — exact-range mock proves real Q2 param refetch
 
 - [x] T077 Wire RangeToolbar selection to the dashboard state
       Files: apps/web/src/admin/pages/Analytics.tsx, apps/web/src/admin/analytics/RangeToolbar.tsx
@@ -1066,6 +1073,7 @@
       Done when: T076 green.
       Refs: Q2, FR-019
 > note: range now useState; 4 presets resolve via presetToRange, more opens dialog; RangeToolbar.tsx docs-only; tests: 447 passing; deviations: none
+> reviewed: PASS — RangeToolbar.tsx diff confirmed doc-only, no logic change
 
 - [x] T078 Write failing range-dialog apply test (T-F9)
       Files: apps/web/src/admin/pages/Analytics.test.tsx
@@ -1075,6 +1083,7 @@
       Done when: red because the apply flow is not wired.
       Refs: T-F9 (US3-4/5), Q2/Q3 (happy), FR-019
 > note: 2 tests, preset(12m)+valid custom pair, assert dialog closes + distinctive marker; tests: 2 red/447 passing; deviations: none
+> reviewed: PASS — Q3 rejection correctly deferred to T115/T116, no gap
 
 - [x] T079 Wire the RangeDialog apply flow
       Files: apps/web/src/admin/analytics/RangeDialog.tsx, apps/web/src/admin/pages/Analytics.tsx
@@ -1083,6 +1092,7 @@
       Done when: T078 green.
       Refs: Q2/Q3 (happy), research R10, FR-019
 > note: handleDialogSelect in Analytics.tsx; custom passes through as-is (Q1 form); RangeDialog.tsx docs-only (stale T033/T080+ refs); tests: 449 passing; deviations: none
+> reviewed: PASS — onSelect signature matches RangeDialog's real prop type
 
 ### Navigation, redirect, footer, prerender
 

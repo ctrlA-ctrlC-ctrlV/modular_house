@@ -31,8 +31,21 @@
  *     .send({ path: '/' });
  */
 
-import { PrismaClient, type AnalyticsSourceGroup } from '@prisma/client';
+import { Prisma, type AnalyticsSourceGroup } from '@prisma/client';
 import { createClock, type AdvanceableClock } from './clock.js';
+
+/**
+ * Accepts either a top-level `PrismaClient` or an interactive-transaction
+ * client (`prisma.$transaction(async (tx) => ...)`). `PrismaClient` is
+ * structurally assignable to `Prisma.TransactionClient` (a strict subset of
+ * its surface, omitting `$connect`/`$disconnect`/`$transaction`/`$extends`),
+ * so every existing call site keeps working unchanged; the widening only
+ * unlocks callers that need transactional isolation (review-fix: see
+ * `analyticsFixtures.test.ts`'s `resetAnalyticsTables` proof, which runs
+ * inside a rolled-back transaction so its blanket wipe never becomes visible
+ * to concurrent connections from other test files).
+ */
+type AnalyticsPrismaClient = Prisma.TransactionClient;
 
 // ---------------------------------------------------------------------------
 // Fixed "now" — the deterministic epoch all analytics suites share
@@ -123,7 +136,7 @@ export interface InsertAnalyticsEventOptions {
  * No field defaults to `Date.now()` — `occurredAt` is always caller-supplied.
  */
 export async function insertAnalyticsEvent(
-  prisma: PrismaClient,
+  prisma: AnalyticsPrismaClient,
   options: InsertAnalyticsEventOptions,
 ) {
   return prisma.analyticsEvent.create({
@@ -157,7 +170,7 @@ export interface UpsertAnalyticsVisitorOptions {
  * write pattern (data-model §3, E-CONCURRENCY). Returns the persisted row.
  */
 export async function upsertAnalyticsVisitor(
-  prisma: PrismaClient,
+  prisma: AnalyticsPrismaClient,
   options: UpsertAnalyticsVisitorOptions,
 ) {
   return prisma.analyticsVisitor.upsert({
@@ -189,9 +202,15 @@ export async function upsertAnalyticsVisitor(
  * {@link resetAnalyticsTablesExceptSeed} instead, or they silently wipe the
  * seed for whichever dependent file happens to run afterward (a real,
  * previously observed cross-file race). Reserve this blanket function for
- * suites that genuinely need (and prove) full-table-empty semantics.
+ * suites that genuinely need (and prove) full-table-empty semantics — and
+ * even then, call it inside a `prisma.$transaction(async (tx) => ...)` that
+ * always rolls back (never resolves normally), passing `tx` here instead of
+ * the top-level client, so the wipe never commits and is therefore never
+ * visible to concurrent connections from other test files (review-fix: a
+ * genuinely observed instance of exactly that visibility window trampling
+ * unrelated suites' rows under `test:coverage`'s heavier scheduling).
  */
-export async function resetAnalyticsTables(prisma: PrismaClient): Promise<void> {
+export async function resetAnalyticsTables(prisma: AnalyticsPrismaClient): Promise<void> {
   await prisma.analyticsEvent.deleteMany();
   await prisma.analyticsVisitor.deleteMany();
 }
@@ -207,7 +226,7 @@ export async function resetAnalyticsTables(prisma: PrismaClient): Promise<void> 
  * for its own rows, without destroying the seed other suites in the same
  * test run depend on.
  */
-export async function resetAnalyticsTablesExceptSeed(prisma: PrismaClient): Promise<void> {
+export async function resetAnalyticsTablesExceptSeed(prisma: AnalyticsPrismaClient): Promise<void> {
   const seedVisitorIds = Object.values(FIXED_VISITOR_IDS);
   await prisma.analyticsEvent.deleteMany({ where: { visitorId: { notIn: seedVisitorIds } } });
   await prisma.analyticsVisitor.deleteMany({ where: { visitorId: { notIn: seedVisitorIds } } });

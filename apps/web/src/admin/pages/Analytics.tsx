@@ -204,6 +204,14 @@ export function Analytics() {
           <RangeToolbar onSelect={handleToolbarSelect} />
         </div>
 
+        {/* RangeDialog — the "More" pop-up (Q2: 6/12/16 months + Custom).
+            Mounted and open/close-wired (T077); onSelect drives the shared
+            range state and closes the dialog (T079, Q2/Q3 happy path). */}
+        <RangeDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSelect={handleDialogSelect}
+        />
 
         {/* Overview tab — the six widgets fed by the live overview/realtime
             payloads. The grid layout mirrors the template:

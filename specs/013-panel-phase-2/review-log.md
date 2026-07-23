@@ -6,6 +6,40 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-23 — T068/T069 review-fix re-review (since 0f89431)
+
+T068 — PASS. `resetAnalyticsTables`'s one live (non-test-double) caller — the destructive proof
+in `analyticsFixtures.test.ts` — now runs entirely inside a `prisma.$transaction` whose callback
+always throws a sentinel, so the blanket wipe never commits and is never visible to any other
+connection (Postgres READ COMMITTED): this closes the disclosed visibility window entirely rather
+than shrinking it, which is the right fix, not a mitigation. `analyticsFixtures.ts`'s helpers were
+correctly widened from `PrismaClient` to `Prisma.TransactionClient` (a strict structural supertype,
+so every existing call site keeps compiling unchanged — confirmed via a clean `tsc --noEmit`). The
+implementer's own further finding while re-verifying — a table-wide `count()` intermittently
+over-reading because READ COMMITTED re-snapshots per-statement, so a genuinely concurrent commit
+from another connection can land between this transaction's own `deleteMany()` and `count()` — is
+correctly diagnosed, and scoping the post-wipe assertion to the test's own row via `findFirst`
+(immune to that effect, since it's read-your-own-writes within the same tx) is the proportionate
+fix. Independently verified: `analyticsFixtures.test.ts` alone, 9/9 across 5 consecutive standalone
+runs; across 2x `test:run` + 2x `test:coverage` full-suite reruns the originally-reported symptom
+(T063/T064 reading back zeroed) never recurred — though each of those 4 runs surfaced a different,
+unrelated pre-existing test failing once (`analytics-ingest`, the `auth-login` rate-limit test,
+`analytics-privacy`), independently corroborating the change-log's own disclosure of a broader,
+environment-level test-suite instability that is genuinely out of this fix's scope.
+
+T069 — PASS. `apps/api/openapi.yaml` — both `/api/admin/analytics/overview` and
+`/api/admin/analytics/realtime` now document their `401` response as `$ref:
+'#/components/schemas/Error'` (the flat `{error, message}` shape `authenticateJWT` actually
+returns), leaving `400` on `ErrorResponse` (correct — that one IS produced by this session's own
+route code). Re-ran `docs:validate` myself — still passes. Leaving `contracts/analytics.openapi.yaml`
+(the design-time spec, the actual source of the original mismatch) untouched was the right call: it
+makes the shipped, real API document describe actual runtime behavior rather than propagating a
+spec-authoring error; it does leave the two OpenAPI files intentionally divergent on this one field,
+worth a one-line note in a future docs pass but not a blocker.
+
+T065 — not re-reviewed this round: no code was touched for it (a git-commit-ordering observation
+has no fix to apply short of rewriting history), matching the change-log's own stated disposition.
+
 ## 2026-07-23 — T062-T069 (baseline: 5105cd2)
 
 T062 — PASS — V5 boundaries hand-verified, now green

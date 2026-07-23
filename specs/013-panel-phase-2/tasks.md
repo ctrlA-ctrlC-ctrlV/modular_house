@@ -976,6 +976,7 @@
 > note: mounted /api/admin/analytics in app.ts after httpLogger; T060-T065 all green (13/13); tests: 463/463 suite; deviations: none
 > reviewed: PASS-WITH-NITS — disclosed cross-file DB race reproduced
 > note: review fix — resetAnalyticsTables's live call now runs inside a rolled-back $transaction (T068 NIT); tests: 463/463 suite; deviations: analyticsFixtures.ts, analyticsFixtures.test.ts
+> reviewed: PASS — rollback fix verified, symptom did not recur in 4 reruns
       Files: apps/api/src/app.ts
       Do: Mount routes/admin/analytics.ts under `/api/admin/analytics` with correlation-id
       logging.
@@ -986,6 +987,7 @@
 > note: 3 paths + 5 schemas added, field-by-field checked vs contract; docs:validate passes; deviations: none
 > reviewed: PASS-WITH-NITS — 401 ErrorResponse mismatches real middleware
 > note: review fix — /overview + /realtime 401 now ref Error not ErrorResponse, matching authenticateJWT's real shape (T069 NIT); tests: docs:validate passes; deviations: none
+> reviewed: PASS — Error ref confirmed correct; docs:validate reconfirmed
       Files: apps/api/openapi.yaml
       Do: Add `POST /api/analytics/events`, `GET /api/admin/analytics/overview`,
       `GET /api/admin/analytics/realtime` with schemas semantically identical to

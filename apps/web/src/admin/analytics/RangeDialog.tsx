@@ -1,5 +1,6 @@
 /**
- * RangeDialog widget — Phase 2 admin analytics (Pass 1, fixture state only).
+ * RangeDialog widget — Phase 2 admin analytics (ported in Pass 1, wired to
+ * live range state by the page in Pass 2, T079).
  *
  * Composed from the ported `dialog` primitive (T015) + Phase 1 `button` /
  * `label` / `input` primitives (ui-components.md §2, reused as-is) per
@@ -13,15 +14,17 @@
  * / `12 months` / `16 months` / `Custom` (Q2); Custom reveals two native
  * `<input type="date">` fields (Q3, plan §1.4: "no calendar-grid date picker
  * (two native date inputs)"). Preset and Apply selections are reported through
- * callback props — no validation logic, no data wiring (Pass 1, plan §5.3).
+ * callback props — the component itself still does no validation and no data
+ * wiring; `Analytics.tsx` (T079) resolves the callback into range params
+ * (Q2/Q3 happy path) and closes the dialog.
  *
  * Spec-driven design (research R10 / ui-components.md §5 — nothing is taste):
  * - **Controlled open state.** The dialog's open state is controlled by the
- *   parent (`open` + `onOpenChange`). The page (T035) / Pass 2 wiring (T080+)
- *   opens the dialog when the administrator selects `More` from the
- *   RangeToolbar and closes it on preset selection, valid Apply, or dismiss.
- *   Radix Dialog handles Esc / overlay-click / close-button internally and
- *   calls `onOpenChange(false)` — the component holds no open state.
+ *   parent (`open` + `onOpenChange`). `Analytics.tsx` (T077) opens the dialog
+ *   when the administrator selects `More` from the RangeToolbar and closes it
+ *   on a successful Apply (T079) or dismiss. Radix Dialog handles Esc /
+ *   overlay-click / close-button internally and calls `onOpenChange(false)` —
+ *   the component holds no open state.
  * - **Four options (Q2).** Exactly `6 months` / `12 months` / `16 months` /
  *   `Custom` — the three month-presets and the Custom toggle. The labels and
  *   their order are pinned by Q2 and asserted by the T032 suite.
@@ -37,18 +40,20 @@
  *   `Label` via `htmlFor`/`id` for screen readers (constitution V).
  * - **Apply fires `onSelect` with the custom dates.** The Apply button (only
  *   visible in Custom mode) calls `onSelect('custom', customStart,
- *   customEnd)`. The parent validates per Q3 ("Apply rejected with a visible
- *   message when start > end, end > today, or the span exceeds 490 days") and
- *   closes on success — the component does no validation itself (T033: "no
- *   validation logic or data wiring yet").
+ *   customEnd)`. The parent (`Analytics.tsx`, T079) passes the pair straight
+ *   through as `{from, to}` on the happy path and closes on success —
+ *   Q3's rejection paths (`start > end`, `end > today`, span > 490 days) are
+ *   Pass 3 / E-DIALOG (T115/T116); the component itself still does no
+ *   validation.
  * - **Validation message slot.** An optional `validationMessage` prop renders
  *   in `text-destructive` text per template form conventions
  *   (ui-components.md §5). The parent supplies the message when Apply is
- *   rejected (Q3); the component just renders it — no validation logic.
- * - **No data wiring.** The component holds only UI state (mode toggle,
- *   date-input values). All range math, param derivation, and API calls are
- *   Pass 2 (T080+). The `RANGE_DIALOG_PRESETS` array and `RangeDialogPreset`
- *   type are exported as the extension point for the page (T035) and Pass 2.
+ *   rejected (Q3, Pass 3 / E-DIALOG); the component just renders it — no
+ *   validation logic.
+ * - **No data wiring in the component itself.** The component holds only UI
+ *   state (mode toggle, date-input values). Range math, param derivation, and
+ *   the data hooks live in `Analytics.tsx` (T079). The `RANGE_DIALOG_PRESETS`
+ *   array and `RangeDialogPreset` type are exported as the extension point.
  *
  * Composition mechanics: `Dialog` + `DialogContent` + `DialogHeader` +
  * `DialogTitle` + `DialogDescription` + `DialogFooter` from the ported dialog
@@ -241,9 +246,10 @@ export function RangeDialog({
 
         <DialogFooter>
           {/* Apply button — only visible in Custom mode. Fires `onSelect`
-              with the custom dates; the parent validates per Q3 and closes
-              on success. The component does no validation itself (T033: "no
-              validation logic or data wiring yet"). */}
+              with the custom dates; the parent (T079) applies them on the
+              Q3 happy path and closes on success. Full Q3 rejection handling
+              is Pass 3 / E-DIALOG (T115/T116) — the component itself still
+              does no validation. */}
           {mode === 'custom' && (
             <Button
               onClick={() => onSelect('custom', customStart, customEnd)}

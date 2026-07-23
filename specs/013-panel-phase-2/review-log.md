@@ -6,6 +6,13 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-23 — T058-T061 (baseline: 4a7d17b)
+
+T058 — PASS-WITH-NITS — intermittent cross-file DB race with T005
+T059 — PASS — verified vs V2-V5/Q4-Q6/S4 line-by-line
+T060 — PASS — values hand-verified against seed; correctly red
+T061 — PASS — values hand-verified against seed; correctly red
+
 ## 2026-07-22 — T051-T057 (baseline: 90c1526)
 
 T051 — PASS — amended suite verified, 14/14 green

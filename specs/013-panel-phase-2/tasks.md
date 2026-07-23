@@ -868,6 +868,7 @@
 
 - [x] T058 Write failing analyticsQuery unit tests
 > note: 13-test suite — Q4 day/hour zero-fill, V2/V3/V4 math, Q5 delta variants, Q6 top pages, S4 sources, V5 realtime; tests: 0 passing (red on missing module); deviations: none
+> reviewed: PASS-WITH-NITS — intermittent shared-table race w/ T005
       Files: apps/api/tests/unit/analyticsQuery.test.ts (new)
       Do: With seeded fixtures and fixed injected timestamps assert the happy paths: Europe/London
       day buckets (zero-filled gaps), hour buckets for a <= 2-day span; KPI math V2 (distinct
@@ -882,6 +883,7 @@
 
 - [x] T059 Implement the analyticsQuery service
 > note: getOverview/getRealtime, parameterized $queryRaw + generate_series zero-fill, London TZ, S4 DISTINCT ON; tests: 13/13 passing; deviations: none
+> reviewed: PASS — verified vs V2-V5/Q4-Q6/S4 line-by-line
       Files: apps/api/src/services/analyticsQuery.ts (new)
       Do: Parameterized `$queryRaw` aggregations with `AT TIME ZONE 'Europe/London'` for buckets
       and day boundaries; single overview result (KPIs + deltas + zero-filled timeseries + top
@@ -893,6 +895,7 @@
 
 - [x] T060 Write failing overview KPI/delta integration test (T-B5)
 > note: today-vs-yesterday KPI/delta + no-prior-data case, expected values verified via getOverview directly; tests: 0/2 (red 404); deviations: none
+> reviewed: PASS — values hand-verified against seed; red as expected
       Files: apps/api/tests/integration/analytics-overview.test.ts (new)
       Do: `GET /api/admin/analytics/overview?from&to` (authenticated) returns page views, unique
       visitors, sessions, returning-visitor rate, pages per session, each with `current`,
@@ -902,6 +905,7 @@
 
 - [x] T061 Write failing overview range/shape integration test (T-B6, overview half)
 > note: hour/day bucket echo + top pages + 5 source groups (1 zero-valued), same file as T060; tests: 0/2 (red 404); deviations: none
+> reviewed: PASS — values hand-verified against seed; red as expected
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: Overview honors `from`/`to` (date form); buckets by day, and by hour for a <= 2-day
       span (`range.bucket` echoes `day`/`hour`); returns top-10 pages with share and exactly the

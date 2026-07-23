@@ -1050,35 +1050,39 @@
       Refs: research R12 (Pass 2 wiring), FR-018–FR-021/FR-029
 > note: range seeded via presetToRange('3m', new Date()); dashed loading panels gate null data; tests: 446 passing; deviations: none
 
-- [ ] T076 Write failing range-selector behavior test (T-F8)
+- [x] T076 Write failing range-selector behavior test (T-F8)
       Files: apps/web/src/admin/pages/Analytics.test.tsx
       Do: Selector shows exactly 24 hours / 7 days / 28 days / 3 months / More and defaults to
       3 months; switching presets refetches overview with the exact Q2 `from`/`to` and every
       widget updates from the single new payload.
       Done when: red because selection is not wired to refetch.
       Refs: T-F8 (US3-3), Q2, FR-019
+> note: keyboard-selects 7d, mockImplementation keyed on exact range, awaits distinctive marker; tests: 1 red/446 passing; deviations: none
 
-- [ ] T077 Wire RangeToolbar selection to the dashboard state
+- [x] T077 Wire RangeToolbar selection to the dashboard state
       Files: apps/web/src/admin/pages/Analytics.tsx, apps/web/src/admin/analytics/RangeToolbar.tsx
       Do: Selection drives the shared range state -> useAnalytics refetch; "More" opens
       RangeDialog.
       Done when: T076 green.
       Refs: Q2, FR-019
+> note: range now useState; 4 presets resolve via presetToRange, more opens dialog; RangeToolbar.tsx docs-only; tests: 447 passing; deviations: none
 
-- [ ] T078 Write failing range-dialog apply test (T-F9)
+- [x] T078 Write failing range-dialog apply test (T-F9)
       Files: apps/web/src/admin/pages/Analytics.test.tsx
       Do: "More" opens the pop-up with 6 / 12 / 16 months and Custom; applying a preset closes the
       dialog and updates all widgets to the new range; a valid custom start/end pair applies the
       same way (Q3 rejection paths are Pass 3 / E-DIALOG).
       Done when: red because the apply flow is not wired.
       Refs: T-F9 (US3-4/5), Q2/Q3 (happy), FR-019
+> note: 2 tests, preset(12m)+valid custom pair, assert dialog closes + distinctive marker; tests: 2 red/447 passing; deviations: none
 
-- [ ] T079 Wire the RangeDialog apply flow
+- [x] T079 Wire the RangeDialog apply flow
       Files: apps/web/src/admin/analytics/RangeDialog.tsx, apps/web/src/admin/pages/Analytics.tsx
       Do: Preset buttons and a valid custom date pair produce `{from, to}` via rangePresets/London
       date math, close the dialog, and update the shared range state.
       Done when: T078 green.
       Refs: Q2/Q3 (happy), research R10, FR-019
+> note: handleDialogSelect in Analytics.tsx; custom passes through as-is (Q1 form); RangeDialog.tsx docs-only (stale T033/T080+ refs); tests: 449 passing; deviations: none
 
 ### Navigation, redirect, footer, prerender
 

@@ -382,3 +382,142 @@ describe('Analytics page — range-selector wiring (T076, T-F8)', () => {
   });
 });
 
+// ── Range-dialog apply flow (T078, T-F9, US3-4/5, Q2/Q3 happy path) ────────
+//
+// Proves "More" opens the pop-up with exactly 6/12/16 months + Custom, and
+// that applying either a month preset or a valid custom start/end pair
+// closes the dialog and updates every widget to the new range. Q3 rejection
+// paths (start > end, end > today, span > 490 days) are Pass 3 / E-DIALOG
+// (T115/T116) and are out of scope here — only the happy path is asserted.
+
+describe('Analytics page — range-dialog apply flow (T078, T-F9)', () => {
+  const FIXED_NOW = new Date('2026-07-15T12:00:00.000Z');
+
+  beforeAll(() => {
+    // Same idempotent Radix pointer/scroll polyfill as the other describe
+    // blocks — duplicated so this block's Select + Dialog interactions do
+    // not depend on sibling-describe execution order.
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: FIXED_NOW, toFake: ['Date'] });
+    mockUseOverview.mockReset();
+    mockUseRealtime.mockReset();
+    mockUseRealtime.mockReturnValue({ data: realtimePopulated, loading: false, error: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /**
+   * Opens RangeToolbar's listbox and selects "More" (the fifth, last option)
+   * via keyboard — mirrors the T030/T076 interaction pattern. Radix opens
+   * focused on the currently-selected "3 months" item (index 3); one
+   * ArrowDown reaches "More" (index 4).
+   */
+  async function openRangeDialogViaToolbar(): Promise<void> {
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute('data-slot', 'select-item');
+    });
+    expect(document.activeElement).toHaveTextContent('3 months');
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent('More');
+    });
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
+    await screen.findByRole('dialog');
+  }
+
+  it('opens the pop-up with exactly 6/12/16 months + Custom, and applying a preset closes it and updates every widget', async () => {
+    const twelveMonthRange = presetToRange('12m', FIXED_NOW);
+    const liveOverviewFor12m: OverviewResponse = {
+      ...overviewPopulated,
+      range: { from: twelveMonthRange.from, to: twelveMonthRange.to, bucket: 'day' },
+      topPages: [{ path: '/live-12m-marker', views: 42, share: 1 }],
+    };
+
+    // Only the exact 12-month range returns the distinctive payload; any
+    // other range (including the initial 3-month mount range) returns the
+    // fixture — the marker appearing is unambiguous proof of a correctly
+    // parameterized refetch.
+    mockUseOverview.mockImplementation((range) =>
+      range.from === twelveMonthRange.from && range.to === twelveMonthRange.to
+        ? { data: liveOverviewFor12m, loading: false, error: null }
+        : { data: overviewPopulated, loading: false, error: null },
+    );
+
+    render(<Analytics />);
+    await openRangeDialogViaToolbar();
+
+    // Q2: "More opens the pop-up with exactly: 6 months, 12 months, 16
+    // months, Custom".
+    expect(screen.getByRole('button', { name: '6 months' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '12 months' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '16 months' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Custom' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '12 months' }));
+
+    // T-F9: applying a preset closes the dialog and updates every widget to
+    // the new range.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('/live-12m-marker')).toBeInTheDocument();
+    });
+  });
+
+  it('applies a valid custom start/end pair the same way (Q3 happy path)', async () => {
+    const customFrom = '2026-01-01';
+    const customTo = '2026-01-15';
+    const liveOverviewForCustom: OverviewResponse = {
+      ...overviewPopulated,
+      range: { from: customFrom, to: customTo, bucket: 'day' },
+      topPages: [{ path: '/live-custom-marker', views: 42, share: 1 }],
+    };
+
+    mockUseOverview.mockImplementation((range) =>
+      range.from === customFrom && range.to === customTo
+        ? { data: liveOverviewForCustom, loading: false, error: null }
+        : { data: overviewPopulated, loading: false, error: null },
+    );
+
+    render(<Analytics />);
+    await openRangeDialogViaToolbar();
+
+    // Q3: "Custom range in the pop-up: two date inputs". Reveal them, then
+    // fill a valid pair (start <= end <= today, span well under 490 days).
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }));
+    const startInput = screen.getByLabelText(/start date/i);
+    const endInput = screen.getByLabelText(/end date/i);
+    fireEvent.change(startInput, { target: { value: customFrom } });
+    fireEvent.change(endInput, { target: { value: customTo } });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    // T-F9: a valid custom pair applies the same way as a preset — dialog
+    // closes, every widget updates to the new range.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('/live-custom-marker')).toBeInTheDocument();
+    });
+  });
+});

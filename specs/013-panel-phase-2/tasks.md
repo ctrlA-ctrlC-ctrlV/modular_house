@@ -1096,7 +1096,7 @@
 
 ### Navigation, redirect, footer, prerender
 
-- [x] T080 AMEND the admin shell tests: Coming Soon -> Analytics nav item
+- [ ] T080 AMEND the admin shell tests: Coming Soon -> Analytics nav item
       Files: apps/web/src/admin/shell/AppShell.test.tsx, apps/web/src/admin/shell/keyboard.test.tsx,
       apps/web/src/admin/shell/a11y.test.tsx
       Do: Amend the sidebar "Coming Soon" content-area assertions to expect an "Analytics" nav
@@ -1106,14 +1106,20 @@
       Done when: amended assertions exist and are red only on the missing nav item.
       Refs: plan §4.3 AMEND #3, FR-017, US3-1
 > note: Coming Soon->Analytics link assertion; MemoryRouter wrap (Link needs Router); tests: 48 passing/3 red; deviations: none
+> note: unchecked by review — keyboard.test.tsx and a11y.test.tsx amendments never committed (working-tree only); HEAD is broken, see review report
+> note: re-verified 2026-07-24 — commits e8452e1/545350a land the missing files, content byte-identical to what was reviewed; web test:run 461/461 against real HEAD. Checkbox left unchecked per reviewer authority (may uncheck, must not re-check); implementer/user to re-tick.
+> reviewed: PASS — keyboard.test.tsx/a11y.test.tsx now committed, HEAD verified green
 
-- [x] T081 Add the Analytics nav item to the sidebar
+- [ ] T081 Add the Analytics nav item to the sidebar
       Files: apps/web/src/admin/shell/Sidebar.tsx
       Do: Add the "Analytics" navigation entry linking to `/admin/analytics` as primary nav,
       following the existing item pattern (icon via the inline-SVG convention).
       Done when: T080 amended suites green.
       Refs: FR-017, US3-1
 > note: real Link (BrowserRouter, no reload); asChild+Slot added to SidebarMenuButton; tests: 140 passing; deviations: ui/sidebar.tsx, mobile.test.tsx — asChild support + Router wrap
+> note: unchecked by review — ui/sidebar.tsx asChild deviation never committed; committed Sidebar.tsx depends on it and breaks without it (nested-interactive DOM, no Slot)
+> note: re-verified 2026-07-24 — commit d25c950 lands ui/sidebar.tsx, content byte-identical to what was reviewed; Sidebar.tsx's asChild usage now composes correctly via Slot. Checkbox left unchecked per reviewer authority; implementer/user to re-tick.
+> reviewed: PASS — ui/sidebar.tsx now committed, asChild/Slot composition verified
 
 - [x] T082 AMEND the /admin index-redirect tests -> /admin/analytics
       Files: apps/web/src/admin/pages/preAuthWiring.test.tsx (and any other suite asserting the
@@ -1124,6 +1130,7 @@
       Done when: amended assertions exist and are red only on the unchanged redirect.
       Refs: plan §4.3 AMEND #2, Q7, FR-017, US3-15
 > note: only preAuthWiring.test.tsx's TwoFactor landing test asserted the target; audited 4 other suites, route-fixture only; tests: 9 passing/1 red; deviations: none
+> reviewed: PASS — audit re-verified against session.test.tsx/preAuth.test.tsx too
 
 - [x] T083 Write failing sidebar-navigation test (T-F6)
       Files: apps/web/src/admin/shell/AppShell.test.tsx
@@ -1132,6 +1139,7 @@
       Done when: red because the route/redirect does not exist yet.
       Refs: T-F6 (US3-1), Q7, FR-017
 > note: renders real App+MemoryRouter at /admin, mocked /me; link resolves, heading red (still /admin/settings); tests: 17 passing/1 red; deviations: none
+> reviewed: PASS — self-contained, unaffected by T080/T081 gap
 
 - [x] T084 Register the guarded analytics route and change the /admin redirects
       Files: apps/web/src/App.tsx
@@ -1142,6 +1150,7 @@
       Done when: T082 amended tests and T083 green.
       Refs: Q7, FR-017, plan §1.1
 > note: index/catch-all -> /admin/analytics; added analytics route; removed T036 preview container; tests: 451/451; deviations: none
+> reviewed: PASS — Q7/FR-017 verbatim, preview container cleanly removed
 
 - [x] T085 Write failing footer-link test (T-F4, footer half)
       Files: apps/web/src/test/components/footer-cookie-link.test.tsx (new, or extend the existing
@@ -1150,6 +1159,7 @@
       Done when: red because the link does not exist.
       Refs: T-F4 (US1-3), N4, FR-005
 > note: new file, no prior Footer suite existed; asserts role=link name/cookie policy/i href; tests: 1 red; deviations: none
+> reviewed: PASS
 
 - [x] T086 Add the cookie-policy link to the footer
       Files: apps/web/src/components/Footer.tsx
@@ -1157,6 +1167,7 @@
       Done when: T085 green.
       Refs: N4, FR-005
 > note: navLinks prop (OCP extension point) + local NAV_LINKS copy, no @modular-house/ui edit; tests: 452/452; deviations: none
+> reviewed: PASS — copied array verified verbatim match to library default
 
 - [x] T087 Prerender the cookie-policy route
       Files: apps/web/scripts/prerender.ts, apps/web/src/routes-metadata.ts
@@ -1168,6 +1179,7 @@
       by the footer link.
       Refs: N2/N4, FR-005/FR-006, DoD-5, SC-003
 > note: already wired (T055/T056 routes-metadata.ts entry); ran real build, verified 9/9 rows + banner absent + footer diff; deviations: none
+> reviewed: PASS — user manually confirmed /cookie-policy live; human-verified per parity-gate precedent
 
 - [x] T088 Write failing dashboard states test (T-F10)
       Files: apps/web/src/admin/analytics/dashboard-states.test.tsx (new)
@@ -1178,6 +1190,7 @@
       — keep the test regardless).
       Refs: T-F10 (US3-9..11, 13), FR-022/FR-023, Q2/Q3
 > note: 4 scenario blocks, 9 tests, all green — Pass 1/2 already correct; TrafficSources Q6 exception documented; deviations: none
+> reviewed: PASS — Q6 exception correctly reasoned, real vitest run confirms 9/9
 
 - [x] T089 Close the gaps surfaced by T-F10
       Files: apps/web/src/admin/pages/Analytics.tsx, apps/web/src/admin/analytics/* (as surfaced)
@@ -1185,8 +1198,9 @@
       Done when: T088 green.
       Refs: FR-022/FR-023
 > note: no gaps surfaced, T088 already 9/9 green on first run; no source changes needed; tests: 9/9; deviations: none
+> reviewed: PASS
 
-- [x] T090 Pass 2 checkpoint: all §4.1 scenarios green
+- [ ] T090 Pass 2 checkpoint: all §4.1 scenarios green
       Files: — (verification only)
       Do: Run `pnpm --filter @modular-house/api test:run` and `pnpm --filter @modular-house/web
       test:run`; confirm T-B1..T-B8 and T-F1..T-F11 all pass and that no Phase 1 auth/OTP/reset/
@@ -1195,6 +1209,9 @@
       Done when: both suites green; diff audit clean.
       Refs: plan §5.3 Pass 2 exit, DoD-1, SC-003
 > note: api 463/463, web 461/461; diff audit clean — only T080 shell suites + T082 preAuthWiring touched; deviations: none
+> note: unchecked by review — "web 461/461" was run against uncommitted working tree; committed HEAD has 12 failing tests (a11y.test.tsx/keyboard.test.tsx crash without the uncommitted Router-wrap/asChild fixes)
+> note: re-verified 2026-07-24 — web test:run 461/461 against real committed HEAD (no stash needed). api test:run 462/463: the one failure (analytics-privacy.test.ts S5 hostname test) reproduces the pre-existing cross-file DB race already disclosed at T058/T068 — re-ran the file alone, 9/9 green; unrelated to this diff (zero apps/api files touched T080-T090). Diff audit re-confirmed clean across the full adbc335..HEAD range, 13 files, all expected. Checkbox left unchecked per reviewer authority; implementer/user to re-tick.
+> reviewed: PASS-WITH-NITS — green at real HEAD; pre-existing unrelated api DB-race flake noted
 
 ---
 

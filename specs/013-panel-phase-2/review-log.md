@@ -6,6 +6,46 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-24 — T080/T081/T090/T087 review-fix re-review (since d25c950)
+
+T080 — PASS. Commits e8452e1 (a11y.test.tsx) and 545350a (keyboard.test.tsx) land the exact
+content previously verified only in the working tree — `git diff 40c760e d25c950` confirms
+byte-identical to what was already inspected. `pnpm --filter @modular-house/web test:run` against
+the real committed HEAD (no stash trick needed this time): 461/461.
+
+T081 — PASS. Commit d25c950 lands `ui/sidebar.tsx`'s `asChild`/Slot support, matching the
+previously-inspected diff exactly. `Sidebar.tsx:91`'s `<SidebarMenuButton asChild>` now composes
+onto a single real `<a>` via Radix Slot as designed — the nested-interactive/DOM defect is closed.
+
+T090 — PASS-WITH-NITS. Re-ran both suites against real committed HEAD: web 461/461 clean; api
+462/463 — the lone failure (`analytics-privacy.test.ts` S5 hostname test) is the same
+pre-existing, already-disclosed cross-file DB race documented at T058/T068 (unrelated to this
+diff — zero `apps/api` files touched by T080-T090); re-ran the file alone, 9/9 green, confirming
+flake not regression. `git diff --name-only adbc335..d25c950` re-confirmed clean: 13 files, all
+expected, no scope creep, no Phase 1/marketing suite touched.
+
+T087 — PASS (upgraded from UNVERIFIED). User manually confirmed `/cookie-policy` is live and
+reachable. Reviewer did not independently rerun the production build (outside §6); accepted as
+human-verified, mirroring `ui-components.md`'s own parity-gate "human review" sign-off precedent.
+
+> Per §3 authority (reviewer MAY uncheck a wrongly-completed task but MUST NOT mark any task
+> [x]), the T080/T081/T090 checkboxes in tasks.md remain unchecked despite the PASS verdicts
+> above — re-ticking them is the implementer's/user's action, not the reviewer's.
+
+## 2026-07-24 — T080-T090 (baseline: adbc335)
+
+T080 — CHANGES-REQUIRED — keyboard.test.tsx/a11y.test.tsx fix uncommitted
+T081 — CHANGES-REQUIRED — ui/sidebar.tsx asChild fix uncommitted
+T082 — PASS
+T083 — PASS
+T084 — PASS
+T085 — PASS
+T086 — PASS
+T087 — UNVERIFIED — build rerun needed, inspection only
+T088 — PASS
+T089 — PASS
+T090 — CHANGES-REQUIRED — green/clean claims false at committed HEAD
+
 ## 2026-07-23 — T070-T079 (baseline: 5ddc26e)
 
 T070 — PASS — 7/7 Q2 cases hand-verified, E-TZ boundary proven

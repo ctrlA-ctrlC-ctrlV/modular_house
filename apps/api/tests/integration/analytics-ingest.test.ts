@@ -444,4 +444,63 @@ describe('POST /api/analytics/events', () => {
       expect(event?.path).toBe('/');
     });
   });
+
+  // -------------------------------------------------------------------------
+  // T107 — E-CONCURRENCY: visitor upsert race for a brand-new mh_vid
+  // -------------------------------------------------------------------------
+  // Two simultaneous first-ever POSTs for the same never-before-seen
+  // `mh_vid` both call `ingestAnalyticsEvent`'s `AnalyticsVisitor` upsert
+  // concurrently against the real test database (data-model.md §3 write
+  // pattern: "the upsert is the concurrency guard for the two-simultaneous-
+  // first-events race"). Only `Date` is faked by the outer `beforeEach`
+  // (`toFake: ['Date']`) — Prisma I/O and the Express request pipeline stay
+  // on the real event loop, so `Promise.all` genuinely interleaves both
+  // requests' database round trips rather than serializing them.
+  describe('concurrent ingest for a brand-new visitor (T107, E-CONCURRENCY)', () => {
+    it('collapses to exactly one AnalyticsVisitor row while storing BOTH events, for two simultaneous first-ever POSTs sharing a brand-new mh_vid', async () => {
+      const visitorId = randomUUID();
+      createdVisitorIds.push(visitorId);
+
+      // Two concurrent requests for the SAME brand-new visitor id (never
+      // upserted before this point) but distinct session ids and paths, so
+      // the two resulting event rows are independently identifiable.
+      const [res1, res2] = await Promise.all([
+        request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+          .send({ path: '/race-a' }),
+        request(app)
+          .post('/api/analytics/events')
+          .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+          .send({ path: '/race-b' }),
+      ]);
+
+      // M1: both concurrent requests still resolve to a stored-event 204 —
+      // the race must never surface as a 5xx to either caller.
+      expect(res1.status).toBe(204);
+      expect(res2.status).toBe(204);
+
+      // Exactly one AnalyticsVisitor row survives the race — a concurrent
+      // duplicate insert (unhandled) would either throw a unique-constraint
+      // violation (surfacing as a 500 above) or, if silently swallowed
+      // incorrectly, could leave two rows for the same id.
+      const visitors = await prisma.analyticsVisitor.findMany({ where: { visitorId } });
+      expect(visitors).toHaveLength(1);
+
+      // Both page-view events are stored — the race must never cause either
+      // request's event insert to be lost.
+      const events = await prisma.analyticsEvent.findMany({ where: { visitorId } });
+      expect(events).toHaveLength(2);
+      expect(events.map((e) => e.path).sort()).toEqual(['/race-a', '/race-b']);
+
+      // firstSeenAt is written exactly once, from whichever request's upsert
+      // performed the actual insert — both requests share the same injected
+      // "now" (the outer beforeEach's faked Date), so this also confirms the
+      // surviving row was never subsequently overwritten by the losing
+      // request's upsert.
+      const visitor = visitors[0];
+      expect(visitor.firstSeenAt.toISOString()).toBe(ANALYTICS_FIXED_NOW.toISOString());
+      expect(visitor.lastSeenAt.toISOString()).toBe(ANALYTICS_FIXED_NOW.toISOString());
+    });
+  });
 });

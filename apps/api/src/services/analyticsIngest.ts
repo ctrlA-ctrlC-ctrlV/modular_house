@@ -1,20 +1,19 @@
 /**
  * Analytics ingest service (Phase 2, plan §2.3 M-series, research R2/R3).
  *
- * Validates a public page-view beacon payload, reads the anonymous
- * visitor/session identifiers from the `mh_vid` / `mh_sid` request cookies
- * (generating one-off UUIDs when absent — M3), classifies the traffic source
- * via `trafficSource.classify`, reduces the referrer to its bare hostname
- * (S5), and persists exactly one `AnalyticsEvent` row plus an
- * `AnalyticsVisitor` upsert — storing NO personal data (M7/R2: no IP, no
- * User-Agent, no full referrer URL).
+ * Validates a public page-view beacon payload, drops known bot traffic (M4,
+ * T095), reads the anonymous visitor/session identifiers from the `mh_vid` /
+ * `mh_sid` request cookies (generating one-off UUIDs when absent — M3),
+ * classifies the traffic source via `trafficSource.classify`, reduces the
+ * referrer to its bare hostname (S5), and persists exactly one
+ * `AnalyticsEvent` row plus an `AnalyticsVisitor` upsert — storing NO
+ * personal data (M7/R2: no IP, no User-Agent, no full referrer URL).
  *
- * This is the **happy-path** implementation (Pass 2). The boundary-hardening
- * concerns — bot User-Agent exclusion (M4), `/admin` path exclusion (M5),
- * rate limiting (M6), path canonicalization (M10), and the 4 KB body cap —
- * are Pass 3 work (plan §5.3) and are deliberately absent here so the happy
- * path is minimal and the boundary tests (E-INGEST) can drive their addition
- * red-first.
+ * Pass 2 shipped the happy path only. Pass 3 (plan §5.3) hardens it against
+ * the E-INGEST boundary cases in task order: bot exclusion (M4, T095, this
+ * change) lands first; `/admin` path exclusion (M5), path canonicalization
+ * (M10), and rate limiting (M6) follow in T096/T097. The 4 KB body cap is
+ * enforced at the route layer (`routes/analytics.ts`, T093), not here.
  *
  * Exports:
  *   - `ingestEventSchema` — the Zod schema for the beacon payload (M2 shape,
@@ -34,6 +33,7 @@
 import { PrismaClient, type AnalyticsSourceGroup } from '@prisma/client';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
+import { isbot } from 'isbot';
 import { classify, extractReferrerHost } from './trafficSource.js';
 import { logger } from '../middleware/logger.js';
 
@@ -46,7 +46,7 @@ import { logger } from '../middleware/logger.js';
 const prisma = new PrismaClient();
 
 // ---------------------------------------------------------------------------
-// Payload schema — M2 happy-path shape, unknown keys rejected
+// Payload schema — M2 shape, unknown keys rejected (T092 hardening pass)
 // ---------------------------------------------------------------------------
 
 /**
@@ -68,6 +68,15 @@ const prisma = new PrismaClient();
  *
  * `.strict()` rejects unknown keys so a forged or malformed payload cannot
  * smuggle extra fields through validation (M2: "Unknown fields rejected").
+ *
+ * Every bound above rejects out-of-range input outright — `.max()` fails
+ * validation rather than truncating, so an over-length field can never be
+ * silently shortened and stored (M2). `tests/unit/analyticsIngestValidation
+ * .test.ts` (T091) exercises both sides of every bound at its exact pinned
+ * threshold; this schema required no changes to satisfy any of them (T092).
+ * The 4 KB total request-body cap is enforced separately at the route layer
+ * (`routes/analytics.ts`, T093) — it is a transport-size concern, not a
+ * per-field shape concern, and stays outside this schema.
  */
 export const ingestEventSchema = z
   .object({
@@ -98,50 +107,67 @@ export interface IngestCookies {
 }
 
 /**
- * The outcome of an ingest. The happy path always stores; Pass 3 will extend
- * this union with `dropped` variants (bot / admin path) that the route still
- * maps to 204 so callers cannot distinguish drop from store (M1/M4/M5).
+ * The outcome of an ingest. `dropped` covers every Pass 3 exclusion reason
+ * (bot traffic — M4, T095; `/admin` paths — M5, T096) the route still maps
+ * to 204 so callers cannot distinguish a drop from a store (M1).
  */
-export type IngestResult = { status: 'stored' };
+export type IngestResult = { status: 'stored' } | { status: 'dropped'; reason: 'bot' };
 
 // ---------------------------------------------------------------------------
-// ingestAnalyticsEvent — the happy-path entry point
+// ingestAnalyticsEvent — validate, exclude, then store
 // ---------------------------------------------------------------------------
 
 /**
- * Validate-then-store one page-view event (happy path, Pass 2).
+ * Validate-then-store one page-view event, dropping known bot traffic first.
  *
- * Steps (research R2/R3, data-model.md §3):
- *   1. Resolve `visitorId` / `sessionId` from the `mh_vid` / `mh_sid` cookies,
+ * Steps (research R2/R3/R4, data-model.md §3):
+ *   1. Evaluate `isbot(userAgent)` (M4); a match short-circuits before any
+ *      identity resolution or persistence — nothing is written, and the UA
+ *      string itself is never persisted or logged (M7).
+ *   2. Resolve `visitorId` / `sessionId` from the `mh_vid` / `mh_sid` cookies,
  *      generating one-off UUIDs for any that are absent (M3).
- *   2. Classify the traffic source via `trafficSource.classify` with S1
+ *   3. Classify the traffic source via `trafficSource.classify` with S1
  *      precedence (CAMPAIGN > SEARCH > SOCIAL > REFERRAL > DIRECT).
- *   3. Reduce the referrer to its bare hostname via
+ *   4. Reduce the referrer to its bare hostname via
  *      `trafficSource.extractReferrerHost` (S5: never a scheme, path, query,
  *      or fragment).
- *   4. Upsert `AnalyticsVisitor`: insert `{firstSeenAt: now, lastSeenAt: now}`
+ *   5. Upsert `AnalyticsVisitor`: insert `{firstSeenAt: now, lastSeenAt: now}`
  *      on a new id, update only `lastSeenAt` on conflict (data-model §3 write
  *      pattern; the upsert is the E-CONCURRENCY race guard).
- *   5. Insert one `AnalyticsEvent` row with the server-clock `occurredAt`,
+ *   6. Insert one `AnalyticsEvent` row with the server-clock `occurredAt`,
  *      the classified `sourceGroup`, the hostname-only `referrerHost`, and the
  *      campaign tags.
- *   6. Emit a Pino counter for the stored event — no PII in logs (M7: no IP,
- *      no UA, no full referrer URL; only the non-personal `sourceGroup` and
- *      `path` are logged).
+ *   7. Emit a Pino counter for the outcome — no PII in logs (M7: no IP, no
+ *      UA, no full referrer URL; only the non-personal `sourceGroup`/`path`,
+ *      or the drop reason, are logged).
  *
- * @param payload  - the Zod-validated beacon body.
- * @param cookies  - the `mh_vid` / `mh_sid` request cookies (optional).
- * @param clock    - injectable clock for deterministic `occurredAt` (default
- *                   `() => new Date()`).
- * @returns `{ status: 'stored' }` on success; throws on Prisma errors so the
- *          route's error middleware can map them to a 5xx (never a 4xx the
- *          beacon would surface).
+ * @param payload    - the Zod-validated beacon body.
+ * @param cookies    - the `mh_vid` / `mh_sid` request cookies (optional).
+ * @param userAgent  - the request's `User-Agent` header, consulted
+ *                      transiently for the M4 bot check only (never
+ *                      persisted or logged — M7).
+ * @param clock      - injectable clock for deterministic `occurredAt`
+ *                      (default `() => new Date()`).
+ * @returns `{ status: 'stored' }` or `{ status: 'dropped', reason: 'bot' }`;
+ *          throws on Prisma errors so the route's error middleware can map
+ *          them to a 5xx (never a 4xx the beacon would surface).
  */
 export async function ingestAnalyticsEvent(
   payload: IngestEventInput,
   cookies: IngestCookies,
+  userAgent?: string,
   clock: () => Date = () => new Date(),
 ): Promise<IngestResult> {
+  // M4: bot traffic is dropped before any identity resolution or storage.
+  // `userAgent` is read only for this in-memory check — it is never assigned
+  // to a variable that outlives this branch, never persisted to either
+  // analytics table, and never included in the log line below (M7: no
+  // User-Agent string at rest, not even in logs).
+  if (isbot(userAgent)) {
+    logger.info({ analyticsIngest: 'dropped', reason: 'bot' }, 'analytics event dropped');
+    return { status: 'dropped', reason: 'bot' };
+  }
+
   const now = clock();
 
   // M3: read identity from cookies; generate one-off UUIDs when absent so a

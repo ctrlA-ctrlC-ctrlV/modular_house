@@ -1,6 +1,100 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T14:25:00.000+01:00] — fix(analytics): T101 exact S2 hostname matching semantics (trafficSource.ts)
+
+### Changed
+- `apps/api/src/services/trafficSource.ts` — `matchesList` rewritten from substring containment to
+  the exact S2 semantics: dot-containing entries (`x.com`, `t.co`) now match the hostname exactly or
+  as a `.`-suffix only (`lowerHost === entry || lowerHost.endsWith(`.${entry}`)`); single-token
+  entries match a newly extracted `registrableLabel(host)` value instead of a substring.
+- Added `registrableLabel(host)`: splits the hostname on `.`; a host of two or fewer labels uses its
+  first label (`google.com` -> `google`); a host of three or more labels whose last two labels look
+  like a two-part public suffix (a two-letter country-code label preceded by a marker in the new
+  `TWO_LABEL_SUFFIX_MARKERS` constant — `co`, `com`, `org`, `net`, `gov`, `ac`, `edu`, `mil`) uses the
+  label before those two (`www.google.co.uk` -> `google`); otherwise it uses the label immediately
+  before the last one (`www.google.com` -> `google`).
+
+### Notes
+- **Scope of the two-part-TLD heuristic**: plan.md §2.4 S2 pins exactly one worked multi-part-TLD
+  example (`www.google.co.uk` -> label `google`). Rather than adding a public-suffix-list dependency
+  (out of scope — the project's existing pattern for host lists is small, hand-maintained,
+  extend-by-append constant arrays, e.g. `SEARCH_HOSTS`/`SOCIAL_HOSTS`/`OWN_HOSTS`), a small marker
+  list covering the common two-letter-country-code + generic-SLD pattern (`co.uk`, `com.au`, ...)
+  implements the pinned example correctly and generalizes safely: it only ever *narrows* which label
+  is checked, so it cannot introduce a false-positive match, only correct which label is compared.
+- Full unit suite: `48/48 passing` (up from 36; T100 added 12, all now green). No behaviour change
+  to `extractReferrerHost`, `isOwnHost` (own-host S3 matching was already exact/suffix, not
+  substring, and required no change), or `classify`'s S1 precedence ordering.
+- `lint` / `tsc --noEmit` clean on both touched files.
+
+---
+
+## [2026-07-24T14:20:00.000+01:00] — test(analytics): T100 S2 exact matching-semantics edge cases (trafficSource.test.ts)
+
+### Added
+- `apps/api/tests/unit/trafficSource.test.ts` — a new `T100 — S2 exact matching semantics
+  (E-SOURCE)` describe block, 12 cases: three re-assertions of already-covered S1/S3/REFERRAL
+  behaviour (kept for traceability to the E-SOURCE spec entry, not new coverage) plus nine genuinely
+  new edge cases — `notgoogle.com` -> REFERRAL (never SEARCH), `www.google.co.uk` -> SEARCH
+  (registrable second-level label across a two-part TLD), `x.com` exact match, `www.x.com`
+  `.`-suffix match, `notx.com` non-match, and case-insensitive variants of the label and
+  dot-suffix paths.
+
+### Notes
+- Run in isolation before any implementation change: **46 passed, 2 failed** — `notgoogle.com` and
+  `notx.com` both misclassified (SEARCH/SOCIAL instead of REFERRAL), because the Pass 2 matcher
+  (`matchesList`) used plain case-insensitive substring containment (`host.includes(entry)`), which
+  necessarily also matches any lookalike host containing the entry as a substring. Confirms the gap
+  the module's own doc comment flagged since T038 ("Pass 3 hardens exact-vs-label matching") is real
+  and exercised correctly by this suite — closed immediately after by T101 (see entry above).
+- The other 10 cases already passed against the Pass 2 matcher (unambiguous single-label/two-label
+  hosts, the pre-existing exact/suffix handling for `x.com`/`t.co`, and S1/S3 precedence, which are
+  unaffected by the matching-semantics gap). Not a TDD violation — the task's own "Done when"
+  criterion is scoped to the matching-semantics cases specifically, and those two were genuinely red.
+
+---
+
+## [2026-07-24T14:10:00.000+01:00] — docs(analytics): T099 beacon failure-path hardening — no change required (beacon.ts)
+
+### Notes
+- No implementation change: T098's 5 new edge-case tests passed immediately against the existing
+  `dispatch()` implementation (see the T098 entry below for the traced reasoning). `beacon.ts` is
+  left byte-for-byte unchanged by this task; the task's `Done when: T098 green` criterion is met.
+
+---
+
+## [2026-07-24T14:05:00.000+01:00] — test(analytics): T098 beacon transport-resilience edge cases (beacon.test.ts)
+
+### Added
+- `apps/web/src/analytics/beacon.test.ts` — a new `E-BEACON transport resilience edge cases`
+  describe block, 5 cases: a resolved (not merely rejected) 500 response from the keepalive-fetch
+  fallback with a follow-up page view proving the module keeps working afterward; a rejecting fetch
+  (network-down) with the same follow-up-view proof; `navigator.sendBeacon` returning `false` (as
+  opposed to being entirely `undefined`, already covered by the T045 suite) triggering the keepalive
+  fallback exactly once; and two explicit zero-retry assertions (after a `sendBeacon` throw, and
+  after a rejecting fetch) verifying no second transport attempt occurs without a new `sendPageView`
+  call.
+
+### Notes
+- Run against the existing `beacon.ts` implementation with **no code change**: all 5 new cases
+  passed immediately (33/33 file total, up from 28). Traced why: `dispatch()`'s `sent` variable
+  already captures `sendBeacon`'s boolean return (including an explicit `false`, not just
+  `undefined`/throw) and falls through to the keepalive-fetch branch unconditionally; the fetch
+  branch's `.then(noop, noop)` discards the resolved value regardless of HTTP status, so a 500
+  response is indistinguishable from a 204 to this code path; and no `setTimeout`/retry scheduling
+  exists anywhere in the module. This hardening was already done as part of the T046 review-fix pass
+  on this file (see the T046 entries below) — disclosed here honestly rather than manufacturing an
+  artificial red state, consistent with this branch's established disclosure practice (see the
+  T092/T095/T097 entries). Task text's own "Done when: any missing resilience path red" phrasing
+  anticipated this possibility.
+- Carried forward from the T097 review (2026-07-24 review-log entry): the pre-existing
+  `analytics-overview.test.ts` cross-file DB-race flakiness does not touch `beacon.test.ts` or
+  `trafficSource.test.ts` (this session's two files) and is out of this session's stated scope
+  (T098–T101); left for a future dedicated corrective task per the review's own framing.
+
+---
+
 ## [2026-07-24T13:15:00.000+01:00] — fix(specs): T097 review corrections (analytics.ts, analytics-ingest.test.ts)
 
 ### Changed

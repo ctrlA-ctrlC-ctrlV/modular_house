@@ -6,6 +6,38 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-24 — T092/T093/T094/T095 review-fix re-review (since 69a0d74)
+
+T092 — PASS-WITH-NITS. Commit `111eef3`'s false "no behavior change"/"deviations: none" claim is
+corrected: `tasks.md` now discloses that the commit also bundles T095's isbot implementation, and
+correctly explains why (both edits landed on disk before either was committed this session, so the
+first commit touching `analyticsIngest.ts` captured the file's whole current state). No `git amend`/
+`rebase` was used to rewrite history — appropriately, since that would itself be a destructive
+action outside the implementer's remit. T092's own scope (M2 bounds already correct) remains
+independently verified by T091's 17/18. The commit-boundary imperfection is now permanent-but-
+honestly-disclosed, which is what the CHANGES-REQUIRED finding asked for — upgraded to
+PASS-WITH-NITS, not full PASS, since the underlying mis-attribution in git history can't be undone.
+
+T093 — PASS (upgraded from PASS-WITH-NITS). `enforceIngestBodySizeCap`'s doc comment now discloses
+the spoofable-`Content-Length` limitation and the reasoning for accepting it (bounded by the
+app-wide 10 MB ceiling; M2 is abuse-protection, not a hard security boundary). Verified via
+`git diff` that only the comment changed — zero logic touched — and re-ran `analyticsIngestValidation
+.test.ts` (18/18) to confirm.
+
+T094 — PASS (upgraded from PASS-WITH-NITS). The "11 new tests" count is corrected to "8 new `it()`
+blocks (11 total in file, including 3 pre-existing)" — matches the diff exactly. The originally-
+accurate 6-passing/5-red split was untouched.
+
+T095 — PASS-WITH-NITS (unchanged verdict, now with root cause disclosed). New note cross-references
+T092's disclosure as the reason its implementation predates T094's failing test. No functional
+change — the isbot logic was already independently verified correct and M7-safe in the prior round.
+
+Independently re-ran the full `api test:run` suite: 484/489 — the 4 expected T096/T097-scoped reds
+(admin-path, rate-limit, 2x canonicalization) plus one new failure, `analytics-privacy.test.ts`'s S5
+hostname test; re-ran that file alone, 9/9 green — same pre-existing cross-file DB race already
+disclosed at T058/T068, not a regression from this fix (the only source change in scope is a
+doc-comment addition to an unrelated function). `lint`/`typecheck` clean.
+
 ## 2026-07-24 — T091-T095 (baseline: ace7cd6)
 
 T091 — PASS

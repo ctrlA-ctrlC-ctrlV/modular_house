@@ -1243,6 +1243,7 @@
 > note: unchecked by review — commit 111eef3 (labeled T092, "no behavior change") actually adds the isbot import, the full M4 bot-drop branch, and the IngestResult union/signature change (98 lines, not a doc comment) — that is T095's implementation, committed one commit before T094's own failing test existed. "deviations: none" is false. See review report.
 > reviewed: CHANGES-REQUIRED — commit contains undisclosed T095 logic
 > note: review-nit fix — commit 111eef3 cannot be split/rewritten (no git amend/rebase performed); disclosed here instead: it bundles T092's own doc-only schema-verification change with T095's isbot import/union/branch, because both edits were made to the same file before any commit ran this session. T092's own scope (M2 bounds already correct, no behavior change) is unaffected and independently verified by T091's 17/18; the bundled T095 logic is itself correct — see its own review verdict. Original "deviations: none" above was false; corrected here. tests: T091 17/18; deviations: analyticsIngest.ts — commit also contains T095's bot-exclusion code, undisclosed at authoring
+> reviewed: PASS-WITH-NITS — false "no behavior change"/"deviations: none" claim now corrected via honest disclosure; commit-boundary itself is permanent in history (no rebase performed) but no longer misrepresented
 
 - [x] T093 Enforce the 4 KB body cap on the ingest route
       Files: apps/api/src/routes/analytics.ts
@@ -1253,6 +1254,7 @@
 > note: Content-Length check (app-wide 10mb parser already consumes body, 2nd json() would no-op); HttpError->errorHandler; tests: T091 18/18; deviations: none
 > reviewed: PASS-WITH-NITS — Content-Length is client-declared, spoofable
 > note: review-nit fix — enforceIngestBodySizeCap's doc comment (analytics.ts) now discloses the spoofable-Content-Length limitation and why it is accepted (bounded by app.ts's 10MB ceiling; M2 is abuse-protection, not a hard security boundary); no logic change; tests: T091 18/18 unchanged; deviations: none
+> reviewed: PASS — nit resolved by disclosure comment; verified comment-only diff, T091 18/18 unchanged
 
 - [x] T094 Write failing ingest behavior edge tests (E-INGEST, behavior)
       Files: apps/api/tests/integration/analytics-ingest.test.ts
@@ -1266,6 +1268,7 @@
 > note: 11 new tests; 5 red (bot/admin-drop/rate-limit/2x canonicalization), 6 already true (M3/administration/root); tests: 6 passing/5 red; deviations: none
 > reviewed: PASS-WITH-NITS — note says 11 new, diff shows 8 new (3 pre-existing)
 > note: review-nit fix — count corrected: 8 new it() blocks added (cookieless/bot/2x admin-path/rate-limit/3x canonicalization), not 11; 11 was the file's total test count (8 new + 3 pre-existing T039/T040 happy-path/session tests). Pass/red split (6 passing/5 red) was already accurate. tests: 6 passing/5 red; deviations: none
+> reviewed: PASS — count correction verified accurate against the diff
 
 - [x] T095 Implement bot exclusion via isbot at ingest
       Files: apps/api/src/services/analyticsIngest.ts
@@ -1276,6 +1279,7 @@
 > note: isbot short-circuit before identity/storage; IngestResult union +dropped/bot; logs no UA; tests: T094 bot case green, 485/489 api; deviations: routes/analytics.ts — pass req UA header through
 > reviewed: PASS-WITH-NITS — functionally correct/M7-safe; impl predates T094 test (see T092)
 > note: review-nit fix — root cause disclosed under T092: this implementation's edits and T092's doc-only edits landed in the same file before either was committed this session, so the isbot logic was captured by the earlier (T092-labeled) commit rather than a dedicated T095 commit — same reason it precedes T094's test commit. No functional change; the implementation itself already carries PASS-WITH-NITS (functionally correct, M7-safe). tests: T094 bot case green, unchanged; deviations: none new
+> reviewed: PASS-WITH-NITS — root cause now disclosed under T092; implementation itself still verified correct and M7-safe
 
 - [ ] T096 Implement cookieless identity, admin-path boundary, and canonicalization
       Files: apps/api/src/services/analyticsIngest.ts

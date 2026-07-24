@@ -1,6 +1,51 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T13:15:00.000+01:00] — fix(specs): T097 review corrections (analytics.ts, analytics-ingest.test.ts)
+
+### Changed
+- `apps/api/src/routes/analytics.ts` — `analyticsIngestRateLimit`'s doc comment corrected: the
+  429 body's mismatch against `contracts/analytics.openapi.yaml`'s `ErrorResponse` schema
+  previously cited "review-log.md T069" as precedent, but T069 was actually about the *admin*
+  overview/realtime endpoints' *401* responses — a different endpoint family and status code that
+  has never covered this specific ingest/429 pairing. The comment now states plainly that this is
+  a newly-noted doc-drift (low severity: M8 means the beacon never reads this body), not a
+  previously-reviewed case.
+- `apps/api/tests/integration/analytics-ingest.test.ts` — the rate-limit describe block
+  (`ingest rate limit (T094, M6)`) gained its own `beforeEach` that sets the fake system clock to
+  `2099-01-01T00:00:00.000Z`, overriding the outer `beforeEach`'s `ANALYTICS_FIXED_NOW` (2026-07-15)
+  for this block's 121 requests only. Every row this test writes now carries an `occurredAt` far
+  outside any other suite's query window (day-range KPI queries, multi-day buckets, or realtime's
+  trailing-5-minutes), so even a transient cross-connection visibility window during the run can no
+  longer inflate another suite's counts.
+
+### Notes
+- **Why not full transactional isolation (as the review suggested, mirroring T068)**: T068's fix
+  applies to `resetAnalyticsTables`, a test *helper* the test calls directly and can pass a
+  transaction-scoped Prisma client into. This rate-limit test's 120 rows are written by the ingest
+  *service's* own module-level `PrismaClient` (`analyticsIngest.ts`), reached only through real
+  HTTP requests via `supertest` → Express middleware → the route handler. That client is private to
+  the service module (never exported) and belongs to a connection this test has no handle on, so
+  there is no `$transaction` this test could wrap around it that the service's own writes would
+  actually participate in — achieving literal transactional isolation here would require the
+  service itself to accept an injectable transaction client, a materially larger change than a
+  review-nit correction. The clock-retargeting fix instead neutralizes the *consequence* (count
+  inflation in date-scoped queries) without touching production code or the service's architecture.
+  Flagging the deeper fix (transaction-aware ingest service) as a corrective-backlog item for a
+  future dedicated task, per the review's own framing.
+- **Verification**: re-ran `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` 3x
+  post-fix: 2 fully clean (489/489); 1 showed 2 unrelated failures in `auth-login.test.ts` /
+  `auth-refresh.test.ts` (account-lockout / token-revocation tests — Phase 1 auth, untouched this
+  session). **Zero `analytics-overview.test.ts` failures across all 3 reruns**, versus the review's
+  own measurement of 6-of-9 failing before this fix — a marked improvement, though the small sample
+  size (3 runs) doesn't prove full elimination, and the newly-observed auth-test flakiness confirms
+  this class of shared-DB test-isolation issue is broader than just the analytics suites, further
+  out of this session's scope.
+- `analytics-ingest.test.ts` itself: 11/11 unaffected by either change. `lint` / `tsc --noEmit -p
+  tsconfig.test.json` clean on both touched files.
+
+---
+
 ## [2026-07-24T12:35:00.000+01:00] — feat(analytics): T097 configure 120/min ingest rate limit (analytics.ts)
 
 ### Added

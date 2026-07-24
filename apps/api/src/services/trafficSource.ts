@@ -17,13 +17,13 @@
  *   - `classify` — the precedence-driven entry point returning an
  *     `AnalyticsSourceGroup`.
  *
- * Matching semantics note (Pass 2 vs Pass 3): the matcher implemented here is
- * the happy-path matcher — a case-insensitive substring containment check
- * against the hostname. It correctly classifies unambiguous hostnames
- * (`www.google.com` -> SEARCH, `x.com` -> SOCIAL) but does NOT yet implement
- * the exact S2 registrable-second-level-label / dot-suffix / lookalike-rejection
- * semantics. Those are hardened in Pass 3 (T100/T101); T100's edge cases
- * (`notgoogle.com`, `notx.com`) are deliberately red against this matcher.
+ * Matching semantics (S2, hardened at T101): dot-containing entries (`x.com`,
+ * `t.co`) match the hostname exactly or as a `.`-suffix; single-token entries
+ * (`google`, `bing`, ...) match the hostname's registrable second-level label
+ * — the label identifying the registrable domain once subdomains and the
+ * public suffix (TLD) are stripped, so `www.google.co.uk` -> label `google`
+ * -> SEARCH, while `notgoogle.com` -> label `notgoogle` never matches.
+ * Matching is case-insensitive throughout.
  */
 import { type AnalyticsSourceGroup } from '@prisma/client';
 
@@ -120,22 +120,69 @@ export function extractReferrerHost(
 }
 
 // ---------------------------------------------------------------------------
-// Internal matchers
+// Internal matchers (S2 — hardened at T101)
 // ---------------------------------------------------------------------------
 
 /**
- * Return true when `host` matches an entry in `list`. The entry matches when it
- * appears as a case-insensitive substring of the lowercased `host`.
- *
- * Pass 2 happy-path matcher: sufficient for unambiguous hostnames
- * (`www.google.com` contains `google`; `x.com` contains `x.com`) and
- * deliberately naive about lookalikes (`notgoogle.com` also contains `google`)
- * so the Pass 3 edge suite (T100) fails red against it, driving the T101
- * hardening to exact S2 semantics.
+ * Second-level labels that, when immediately followed by a two-letter
+ * country-code label, mark a two-label public suffix (`co.uk`, `com.au`, ...)
+ * rather than a single-label one (`.com`, `.net`). This is a small, pinned-
+ * example-driven heuristic — plan S2's only worked multi-part-TLD example is
+ * `www.google.co.uk` -> label `google` — not a full public-suffix-list
+ * implementation; extend by appending only if a future host requires it.
+ */
+const TWO_LABEL_SUFFIX_MARKERS: readonly string[] = [
+  'co',
+  'com',
+  'org',
+  'net',
+  'gov',
+  'ac',
+  'edu',
+  'mil',
+];
+
+/**
+ * Extract the registrable second-level label from a lowercased hostname
+ * (S2): the label identifying the registrable domain once subdomains and the
+ * public suffix (TLD) are stripped. A one- or two-label host uses its first
+ * label (`google.com` -> `google`; a bare `localhost` -> `localhost`). A
+ * host of three or more labels whose last two labels resemble a two-part
+ * public suffix (a two-letter country-code label preceded by a marker in
+ * {@link TWO_LABEL_SUFFIX_MARKERS}) uses the label before those two
+ * (`www.google.co.uk` -> `google`); otherwise it uses the label immediately
+ * before the last one, ignoring any further subdomains (`www.google.com` ->
+ * `google`).
+ */
+function registrableLabel(host: string): string {
+  const labels = host.split('.');
+  if (labels.length <= 2) {
+    return labels[0] ?? '';
+  }
+  const last = labels[labels.length - 1] ?? '';
+  const secondLast = labels[labels.length - 2] ?? '';
+  const looksLikeTwoLabelSuffix =
+    last.length === 2 && TWO_LABEL_SUFFIX_MARKERS.includes(secondLast);
+  return looksLikeTwoLabelSuffix ? (labels[labels.length - 3] ?? '') : secondLast;
+}
+
+/**
+ * Return true when `host` matches an entry in `list` per the exact S2
+ * semantics: dot-containing entries (`x.com`, `t.co`) match `host` exactly or
+ * as a `.`-suffix (`www.x.com` matches, `notx.com` never does); single-token
+ * entries (`google`, `bing`, ...) match `host`'s registrable second-level
+ * label, so a lookalike such as `notgoogle.com` (label `notgoogle`) never
+ * matches the `google` entry. Matching is case-insensitive.
  */
 function matchesList(host: string, list: readonly string[]): boolean {
+  const lowerHost = host.toLowerCase();
+  const label = registrableLabel(lowerHost);
   for (const entry of list) {
-    if (host.includes(entry)) {
+    if (entry.includes('.')) {
+      if (lowerHost === entry || lowerHost.endsWith(`.${entry}`)) {
+        return true;
+      }
+    } else if (label === entry) {
       return true;
     }
   }

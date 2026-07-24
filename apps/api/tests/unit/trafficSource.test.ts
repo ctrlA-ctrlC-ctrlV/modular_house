@@ -250,4 +250,64 @@ describe('trafficSource classification (T037 — happy path)', () => {
       }
     });
   });
+
+  // -------------------------------------------------------------------------
+  // T100 — E-SOURCE: exact S2 matching-semantics edge cases.
+  // -------------------------------------------------------------------------
+  // These cases are deliberately red against the Pass 2 substring matcher
+  // (`matchesList`'s `host.includes(entry)` check matches `notgoogle.com`
+  // against the `google` entry) and drive the T101 hardening to the exact S2
+  // semantics: dot-containing entries match the host exactly or as a
+  // `.`-suffix; single-token entries match the host's registrable
+  // second-level label; matching is case-insensitive; lookalike hosts never
+  // match.
+  describe('T100 — S2 exact matching semantics (E-SOURCE)', () => {
+    it('S1: utmSource present + search referrer -> CAMPAIGN (precedence re-asserted at the edge suite)', () => {
+      expect(classify('https://www.google.com/', 'google', false)).toBe('CAMPAIGN');
+    });
+
+    it('S1: adClick true + search referrer -> CAMPAIGN (precedence re-asserted at the edge suite)', () => {
+      expect(classify('https://www.google.com/', undefined, true)).toBe('CAMPAIGN');
+    });
+
+    it('S3: own-host referrer -> DIRECT (re-asserted at the edge suite)', () => {
+      expect(classify('https://modularhouse.ie/', undefined, false)).toBe('DIRECT');
+    });
+
+    it('S3: unparsable referrer -> DIRECT (re-asserted at the edge suite)', () => {
+      expect(classify('not a valid url', undefined, false)).toBe('DIRECT');
+    });
+
+    it('unknown external host -> REFERRAL (re-asserted at the edge suite)', () => {
+      expect(classify('https://example.com/', undefined, false)).toBe('REFERRAL');
+    });
+
+    it('notgoogle.com -> REFERRAL, never SEARCH (lookalike hostname rejected)', () => {
+      expect(classify('https://notgoogle.com/', undefined, false)).toBe('REFERRAL');
+    });
+
+    it('www.google.co.uk -> SEARCH (registrable second-level label match across a two-part TLD)', () => {
+      expect(classify('https://www.google.co.uk/search', undefined, false)).toBe('SEARCH');
+    });
+
+    it('x.com matches exactly', () => {
+      expect(classify('https://x.com/status/1', undefined, false)).toBe('SOCIAL');
+    });
+
+    it('x.com matches as a `.`-suffix (www.x.com)', () => {
+      expect(classify('https://www.x.com/status/1', undefined, false)).toBe('SOCIAL');
+    });
+
+    it('notx.com does NOT match the x.com entry (lookalike hostname rejected)', () => {
+      expect(classify('https://notx.com/', undefined, false)).toBe('REFERRAL');
+    });
+
+    it('matching is case-insensitive (GOOGLE.COM -> SEARCH)', () => {
+      expect(classify('https://GOOGLE.COM/search', undefined, false)).toBe('SEARCH');
+    });
+
+    it('matching is case-insensitive for dot-containing entries (WWW.X.COM -> SOCIAL)', () => {
+      expect(classify('https://WWW.X.COM/status/1', undefined, false)).toBe('SOCIAL');
+    });
+  });
 });

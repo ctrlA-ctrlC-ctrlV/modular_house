@@ -341,6 +341,27 @@ describe('POST /api/analytics/events', () => {
     const rateLimitTestIp = '203.0.113.77';
     const rateLimitVisitorId = randomUUID();
 
+    // Review-fix (review-log.md T096-T097 nit, elevated): this test's 120
+    // real inserts share the outer `beforeEach`'s `ANALYTICS_FIXED_NOW` epoch
+    // by default — the same epoch `analytics-overview.test.ts` /
+    // `analytics-realtime.test.ts` query by date range. Full transactional
+    // isolation (T068's `resetAnalyticsTables` pattern) is not mechanically
+    // available here: those rows are written by the ingest *service's* own
+    // module-level `PrismaClient` via real HTTP requests through Express
+    // middleware, not by a helper this test calls directly with an
+    // injectable transaction client, so there is no connection this test
+    // could wrap in a rolled-back `$transaction` that the service's writes
+    // would actually participate in. Retargeting this block's own clock to a
+    // date far outside any other suite's query window instead neutralizes
+    // the consequence (KPI/count inflation) even if the rows are transiently
+    // visible to a concurrent reader mid-run — every request in this block
+    // now stores `occurredAt` around 2099, which no "today", "yesterday",
+    // multi-day range, or "trailing 5 minutes" realtime query in this suite
+    // can ever include.
+    beforeEach(() => {
+      vi.setSystemTime(new Date('2099-01-01T00:00:00.000Z'));
+    });
+
     afterAll(async () => {
       await prisma.analyticsEvent.deleteMany({ where: { visitorId: rateLimitVisitorId } });
       await prisma.analyticsVisitor.deleteMany({ where: { visitorId: rateLimitVisitorId } });

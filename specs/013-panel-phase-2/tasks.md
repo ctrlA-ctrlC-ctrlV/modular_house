@@ -1281,7 +1281,7 @@
 > note: review-nit fix — root cause disclosed under T092: this implementation's edits and T092's doc-only edits landed in the same file before either was committed this session, so the isbot logic was captured by the earlier (T092-labeled) commit rather than a dedicated T095 commit — same reason it precedes T094's test commit. No functional change; the implementation itself already carries PASS-WITH-NITS (functionally correct, M7-safe). tests: T094 bot case green, unchanged; deviations: none new
 > reviewed: PASS-WITH-NITS — root cause now disclosed under T092; implementation itself still verified correct and M7-safe
 
-- [ ] T096 Implement cookieless identity, admin-path boundary, and canonicalization
+- [x] T096 Implement cookieless identity, admin-path boundary, and canonicalization
       Files: apps/api/src/services/analyticsIngest.ts
       Do: Absent `mh_vid`/`mh_sid` -> one-off server UUIDs (M3); drop exactly `/admin` and
       `/admin/*` (other `/admin…`-prefixed words are public) with 204 + admin-dropped counter
@@ -1289,13 +1289,15 @@
       trailing slash stripped, root kept (M10).
       Done when: T094 M3/M5/M10 cases green.
       Refs: M3/M5/M10, FR-014, spec edge "Path variants"
+> note: M3 already implemented (T042); added canonicalizePath (M10) + admin-path drop (M5) using canonicalized value; tests: T094 10/11 (M6 remains, T097); deviations: none
 
-- [ ] T097 Configure the ingest rate limit
+- [x] T097 Configure the ingest rate limit
       Files: apps/api/src/routes/analytics.ts
       Do: Configure the reused `rateLimit` middleware at exactly 120 events/minute/IP -> 429 with
       a rate-limited counter log.
       Done when: T094 rate-limit case green.
       Refs: M6, M1, constitution I
+> note: dedicated analyticsIngestRateLimit (120/1min) replaces generalRateLimit on this route; logger.warn on 429; tests: T094 11/11 all green; deviations: none
 
 ### E-BEACON — transport resilience
 

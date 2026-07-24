@@ -68,7 +68,13 @@ async function createAuthenticatedSession(): Promise<string> {
     throw new Error('admin role not found — seed required');
   }
 
-  const email = `analytics-overview-${Date.now()}@example.com`;
+  // A UUID, not `Date.now()`, guarantees a fresh email even when this helper
+  // is called under a faked `Date` (T102/E-RANGE calls it under several fixed
+  // fake instants to keep a session's token valid at a far-future faked
+  // "now") — `Date.now()` would otherwise collide with a previous test run's
+  // leftover row sharing the same fake instant, since no `afterEach` truncates
+  // the `users` table between runs.
+  const email = `analytics-overview-${randomUUID()}@example.com`;
   const user = await prisma.user.create({
     data: {
       email,
@@ -230,16 +236,28 @@ describe('GET /api/admin/analytics/overview', () => {
           sessionId: randomUUID(),
         });
 
+        // T102/E-RANGE hardened the route's Q1 "to <= today" boundary, which
+        // reads `new Date()` directly (no injectable clock parameter on this
+        // route, mirroring the ingest route's own convention) — fake the
+        // clock to a deterministic instant safely after 2026-08-01 so this
+        // assertion never depends on the real wall clock (constitution III).
+        vi.useFakeTimers({ now: new Date('2026-08-02T00:00:00.000Z'), toFake: ['Date'] });
+        // The shared `accessToken` (minted in `beforeAll` at the real current
+        // time) has exceeded its 15-minute TTL by this faked instant — mint a
+        // fresh session so the token's own iat/exp are computed relative to
+        // the faked clock instead.
+        const token = await createAuthenticatedSession();
         const res = await request(app)
           .get('/api/admin/analytics/overview')
           .query({ from: '2026-08-01', to: '2026-08-01' })
-          .set('Authorization', `Bearer ${accessToken}`);
+          .set('Authorization', `Bearer ${token}`);
 
         expect(res.status).toBe(200);
         expect(res.body.kpis.uniqueVisitors.current).toBe(2);
         // 1 of 2 visitors classifies as returning (V3).
         expect(res.body.kpis.returningVisitorRate.current).toBeCloseTo(0.5, 10);
       } finally {
+        vi.useRealTimers();
         const visitorIds = [returningVisitorId, newVisitorId];
         await prisma.analyticsEvent.deleteMany({ where: { visitorId: { in: visitorIds } } });
         await prisma.analyticsVisitor.deleteMany({ where: { visitorId: { in: visitorIds } } });
@@ -327,12 +345,22 @@ describe('GET /api/admin/analytics/overview', () => {
           .set('Cookie', analyticsCookieHeader(visitorDirect, sessionDirect))
           .send({ path: '/t064-e' });
 
-        vi.useRealTimers();
+        // T102/E-RANGE hardened the route's Q1 "to <= today" boundary
+        // (`new Date()`, no injectable clock on this route). Keep the clock
+        // faked — advanced to an instant safely after the ingested events —
+        // rather than restoring the real wall clock, so this assertion never
+        // depends on when the suite happens to run (constitution III).
+        vi.setSystemTime(new Date('2026-08-03T00:00:00.000Z'));
 
+        // The shared `accessToken` (minted in `beforeAll` at the real current
+        // time) has exceeded its 15-minute TTL by this faked instant — mint a
+        // fresh session so the token's own iat/exp are computed relative to
+        // the faked clock instead.
+        const token = await createAuthenticatedSession();
         const res = await request(app)
           .get('/api/admin/analytics/overview')
           .query({ from: '2026-08-02', to: '2026-08-02' })
-          .set('Authorization', `Bearer ${accessToken}`);
+          .set('Authorization', `Bearer ${token}`);
 
         expect(res.status).toBe(200);
         expect(res.body.sources).toHaveLength(5);
@@ -352,6 +380,212 @@ describe('GET /api/admin/analytics/overview', () => {
         const visitorIds = [visitorSearch, visitorSocial, visitorReferral, visitorCampaign, visitorDirect];
         await prisma.analyticsEvent.deleteMany({ where: { visitorId: { in: visitorIds } } });
         await prisma.analyticsVisitor.deleteMany({ where: { visitorId: { in: visitorIds } } });
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // T102 (E-RANGE) — Q1 range-validation boundaries, Q4 bucket boundary, Q5
+  // zero-vs-null comparison-window edge cases.
+  // ---------------------------------------------------------------------------
+  // Every time-dependent case below fakes the JS `Date` global (`toFake:
+  // ['Date']` only, so real timers keep async I/O/supertest working) rather
+  // than relying on the real wall clock, per constitution III. The route
+  // reads `new Date()` directly for its Q1 "to <= today"/"to <= now" boundary
+  // (no injectable clock parameter on this route, mirroring the ingest
+  // route's established convention — see analytics-ingest.test.ts). Query
+  // dates below are chosen well clear of the shared db:seed range
+  // (2026-07-13..15) and every other describe block's isolated dates in this
+  // file (2026-08-01/02) to avoid any cross-test contamination.
+  describe('T102 (E-RANGE): Q1 range validation + Q4/Q5 edge cases', () => {
+    /** Format a Date's UTC calendar day as YYYY-MM-DD. Every fixed instant in
+     * this block is anchored at noon UTC, which falls inside the same
+     * Europe/London calendar day in both BST and GMT, so this simple
+     * UTC-slice is equivalent to the London day for these fixtures. */
+    function isoDay(instant: Date): string {
+      return instant.toISOString().slice(0, 10);
+    }
+
+    /** A new Date `days` calendar days before `instant` (whole-day UTC shift). */
+    function daysBefore(instant: Date, days: number): Date {
+      const shifted = new Date(instant);
+      shifted.setUTCDate(shifted.getUTCDate() - days);
+      return shifted;
+    }
+
+    it('rejects from > to with 400 (date form)', async () => {
+      const res = await request(app)
+        .get('/api/admin/analytics/overview')
+        .query({ from: '2026-07-15', to: '2026-07-14' })
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatchObject({ message: expect.any(String) });
+    });
+
+    it('rejects to = tomorrow (date form) with 400', async () => {
+      // Faked "today" (Europe/London) = 2026-07-20 (noon UTC during BST).
+      const fakeNow = new Date('2026-07-20T12:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      try {
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from: '2026-07-19', to: '2026-07-21' }) // to = tomorrow
+          .set('Authorization', `Bearer ${accessToken}`);
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatchObject({ message: expect.any(String) });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('accepts a span of exactly 490 days (date form)', async () => {
+      const fakeNow = new Date('2026-07-20T12:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      try {
+        const to = isoDay(fakeNow);
+        // 490 inclusive calendar days: from .. to spans 490 days when from is
+        // 489 calendar days before to.
+        const from = isoDay(daysBefore(fakeNow, 489));
+
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from, to })
+          .set('Authorization', `Bearer ${accessToken}`);
+
+        expect(res.status).toBe(200);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('rejects a span of 491 days with 400 (date form)', async () => {
+      const fakeNow = new Date('2026-07-20T12:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      try {
+        const to = isoDay(fakeNow);
+        // 491 inclusive calendar days: from is 490 calendar days before to.
+        const from = isoDay(daysBefore(fakeNow, 490));
+
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from, to })
+          .set('Authorization', `Bearer ${accessToken}`);
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatchObject({ message: expect.any(String) });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('rejects mixed date/datetime params with 400', async () => {
+      const res = await request(app)
+        .get('/api/admin/analytics/overview')
+        .query({ from: '2026-07-13', to: '2026-07-13T23:00:00.000Z' })
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatchObject({ message: expect.any(String) });
+    });
+
+    it('rejects a datetime-form to in the future with 400', async () => {
+      const fakeNow = new Date('2026-07-20T12:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      try {
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({
+            from: '2026-07-19T12:00:00.000Z',
+            to: '2026-07-20T13:00:00.000Z', // 1 hour after "now"
+          })
+          .set('Authorization', `Bearer ${accessToken}`);
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatchObject({ message: expect.any(String) });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('buckets an exact 2-day span by hour (Q4 boundary)', async () => {
+      const fakeNow = new Date('2026-09-12T12:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      try {
+        // The shared `accessToken` (minted in `beforeAll` at the real current
+        // time) has long exceeded its 15-minute TTL by this faked, far-future
+        // instant — mint a fresh session so the token's own iat/exp are
+        // computed relative to the faked clock instead.
+        const token = await createAuthenticatedSession();
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from: '2026-09-10', to: '2026-09-11' }) // exactly 2 calendar days
+          .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.range.bucket).toBe('hour');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('buckets a trailing-24h datetime span by hour', async () => {
+      const fakeNow = new Date('2026-09-14T00:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      try {
+        // See the previous test: a fresh session is required once the faked
+        // clock has moved well past the shared token's 15-minute TTL.
+        const token = await createAuthenticatedSession();
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({
+            from: '2026-09-12T15:00:00.000Z',
+            to: '2026-09-13T15:00:00.000Z', // exactly 24 hours
+          })
+          .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.range.bucket).toBe('hour');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('renders previous: 0 with deltaPercent: null when the comparison window is measured but empty (Q5)', async () => {
+      // Distinct from T060's "no prior data" case: here the comparison
+      // window (2026-09-19) falls AFTER the very first stored event ever
+      // (the shared db:seed's 2026-07-13 row), so it IS measured — it simply
+      // contains zero events of its own, which must render previous: 0 with
+      // a not-computable (null, never NaN) deltaPercent.
+      const fakeNow = new Date('2026-09-21T00:00:00.000Z');
+      vi.useFakeTimers({ now: fakeNow, toFake: ['Date'] });
+      const visitorId = randomUUID();
+      const sessionId = randomUUID();
+      try {
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-09-20T12:00:00.000Z'),
+          path: '/t102-zero-previous',
+          visitorId,
+          sessionId,
+        });
+
+        // See the earlier Q4-boundary tests: a fresh session is required once
+        // the faked clock has moved well past the shared token's 15-minute TTL.
+        const token = await createAuthenticatedSession();
+        const res = await request(app)
+          .get('/api/admin/analytics/overview')
+          .query({ from: '2026-09-20', to: '2026-09-20' })
+          .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.kpis.pageViews.current).toBe(1);
+        expect(res.body.kpis.pageViews.previous).toBe(0);
+        expect(res.body.kpis.pageViews.deltaPercent).toBeNull();
+      } finally {
+        vi.useRealTimers();
+        await prisma.analyticsEvent.deleteMany({ where: { visitorId } });
+        await prisma.analyticsVisitor.deleteMany({ where: { visitorId } });
       }
     });
   });

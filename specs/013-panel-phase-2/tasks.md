@@ -1290,6 +1290,7 @@
       Done when: T094 M3/M5/M10 cases green.
       Refs: M3/M5/M10, FR-014, spec edge "Path variants"
 > note: M3 already implemented (T042); added canonicalizePath (M10) + admin-path drop (M5) using canonicalized value; tests: T094 10/11 (M6 remains, T097); deviations: none
+> reviewed: PASS — M5/M10 verified exact vs spec; DoD-3 bare-/admin branch gap honestly disclosed
 
 - [x] T097 Configure the ingest rate limit
       Files: apps/api/src/routes/analytics.ts
@@ -1298,6 +1299,7 @@
       Done when: T094 rate-limit case green.
       Refs: M6, M1, constitution I
 > note: dedicated analyticsIngestRateLimit (120/1min) replaces generalRateLimit on this route; logger.warn on 429; tests: T094 11/11 all green; deviations: none
+> reviewed: PASS-WITH-NITS — 429 body cites inapplicable T069 precedent; DB-race now near-deterministic
 
 ### E-BEACON — transport resilience
 

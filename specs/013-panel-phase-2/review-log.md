@@ -6,6 +6,47 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-24 — T096-T097 (baseline: faf7ac1)
+
+T096 — PASS — canonicalizePath/admin-drop verified exact vs M5/M10; bare-/admin coverage gap disclosed
+T097 — PASS-WITH-NITS — M6 exact and reliable; 429-shape T069 citation inapplicable; DB-race worsened
+
+Detail: `canonicalizePath` (analyticsIngest.ts) hand-traced against all three T094 M10 cases
+(`/Page/`→`/page`, `//garden-rooms//configure?step=2#top`→`/garden-rooms/configure`, `/`→`/`) —
+exact match. M5 admin-path drop runs on the canonicalized value, correctly excludes `/admin` and
+`/admin/*` while sparing `/administration`; runs before any identity/storage, so no admin-path
+event is ever persisted (M1-consistent). `analyticsIngestRateLimit` (routes/analytics.ts) is exactly
+120/60s per M6; its own target test (`analytics-ingest.test.ts`) passed reliably across every run
+this session (11/11 isolated, and never itself failed inside 9 full-suite runs).
+
+Nit (T097): the new rate-limit `handler`'s 429 body (`{error: string, message, retryAfter}`) does
+not match `contracts/analytics.openapi.yaml`/`apps/api/openapi.yaml`'s declared `ErrorResponse`
+(`error` must be an object with `.message`, not a string) — pre-existing (inherited verbatim from
+`generalRateLimit`'s same shape, not introduced by T097), but the new code comment justifying it
+cites "review-log.md T069" as an already-disclosed precedent; T069 was actually about the *admin*
+overview/realtime endpoints' *401* responses, a different endpoint family and status code — this
+specific ingest-429/ErrorResponse mismatch has never actually been reviewed before. Low severity
+(M8: the beacon ignores every response), but the citation should be corrected to state this is a
+newly-noted, not previously-covered, doc-drift.
+
+Nit (T097, elevated): the change-log's own T097 entry (2026-07-24T12:35, "Notes") proactively and
+accurately discloses the pre-existing T058/T068 cross-file DB race resurfacing in
+`analytics-overview.test.ts`/`settings-password.test.ts` ("5 unrelated failures across two runs...
+same pre-existing... not a regression") — independently corroborated: traced the exact contamination
+mechanism (T094's rate-limit test now successfully inserts all 120 real `/rate-limit-check` rows,
+up from ~100 under the old, stricter `generalRateLimit`, before its own `afterAll` cleans them up;
+`analytics_events` confirmed empty at rest via direct psql query, so no permanent corruption). Ran
+`pnpm --filter @modular-house/api test:run` 9 times this session (incl. once with
+`--no-file-parallelism`): only 1 was fully clean — `analytics-overview.test.ts`'s T060/T061 failed
+in 6 of 9, `analytics-realtime.test.ts` once, `analytics-privacy.test.ts` once — a materially higher
+frequency than the change-log's own "two runs" framing suggests. Root cause and non-regression
+status are correctly diagnosed and disclosed (crediting the implementer for catching this proactively
+rather than me finding it first), but given the §6-mandated `test:run` command is now red on ~2/3 of
+invocations, this should move from a disclosed footnote to the top of the corrective backlog —
+transactional per-test isolation (the fix already applied to `analyticsFixtures.test.ts` at T068)
+is the natural candidate for `analytics-ingest.test.ts`'s rate-limit block.
+
+
 ## 2026-07-24 — T092/T093/T094/T095 review-fix re-review (since 69a0d74)
 
 T092 — PASS-WITH-NITS. Commit `111eef3`'s false "no behavior change"/"deviations: none" claim is

@@ -1,6 +1,58 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T12:00:00.000+01:00] — fix(specs): T092/T093/T094/T095 review corrections (analytics.ts, tasks.md)
+
+### Changed
+- `apps/api/src/routes/analytics.ts` — `enforceIngestBodySizeCap`'s doc comment now discloses the
+  T093 PASS-WITH-NITS finding: `Content-Length` is a client-declared header, not a measured byte
+  count, so a request that lies about it (declares <= 4096 while actually streaming more) slips
+  past this specific check. Documented as an accepted, bounded limitation rather than hardened
+  further — the worst case is still capped by `app.ts`'s app-wide 10 MB `express.json` ceiling, and
+  M2's 4 KB cap is a resource/abuse-protection rule for a public endpoint, not a hard security
+  boundary. No logic change.
+- `specs/013-panel-phase-2/tasks.md` — four `> note: review-nit fix` lines added (T092/T093/T094/
+  T095), each below its existing `> reviewed:` line, per review-log.md's 2026-07-24 "T091-T095"
+  entry:
+  - **T092 (CHANGES-REQUIRED)**: commit `111eef3` (labeled T092, "no behavior change") in fact
+    bundles T092's own doc-only schema-verification edit with the entirety of T095's isbot
+    implementation (import, `IngestResult` union, the bot-drop branch) — both were made to the same
+    file before either was committed this session, so the earlier-run commit block captured the
+    file's full current state rather than just T092's intended diff. This cannot be corrected by
+    rewriting the commit (no `git amend`/`rebase` performed, per the constitution's git-discipline
+    constraint); the fix is disclosure. T092's own scope — verifying every M2 bound already held
+    exactly, requiring no behavior change — is unaffected and independently confirmed by T091's
+    17/18 passing cases; the bundled T095 logic is itself functionally correct (see its own
+    PASS-WITH-NITS verdict). The original "deviations: none" note is corrected: the true deviation
+    is that this commit also contains T095's code. **Checkbox re-ticked** — the disclosure the
+    CHANGES-REQUIRED verdict asked for is now in place, and T092's own underlying work was never in
+    question.
+  - **T093 (PASS-WITH-NITS)**: cross-references the code comment added above.
+  - **T094 (PASS-WITH-NITS)**: corrected the test-count claim — 8 new `it()` blocks were added
+    (cookieless identity, bot exclusion, 2× admin-path, rate limit, 3× canonicalization), not 11;
+    11 was the file's total test count after the addition (8 new + 3 pre-existing T039/T040 tests).
+    The reported pass/red split (6 passing / 5 red at authoring) was already accurate.
+  - **T095 (PASS-WITH-NITS)**: cross-references T092's disclosure as the root cause of its own
+    nit (implementation committed before its paired test) — same underlying sequencing issue, not
+    a second, separate defect.
+
+### Notes
+- Root cause across T092/T095: this session's edits to `analyticsIngest.ts` were made
+  sequentially in the working tree (T092's doc comment, then T095's isbot logic) before any commit
+  ran — commits only happen at session end, from prepared blocks run in order. Because both edits
+  landed on disk before the first block touching that file was ever run, that block captured the
+  file's entire current state, not just its own task's intended diff. Future sessions should commit
+  (or ask the human to commit) between tasks that touch the same file, or explicitly flag the
+  overlap in the block header, rather than relying on edit-order alone.
+- No test behavior changed by this fix — `analyticsIngestValidation.test.ts` (18/18) and the
+  bot-exclusion case in `analytics-ingest.test.ts` are unaffected. `lint` / `tsc --noEmit -p
+  tsconfig.test.json` clean on `analytics.ts`.
+- Per §3 authority, `review-log.md` and the existing `> reviewed:` lines in `tasks.md` are
+  unchanged — this entry only adds new `> note:` lines below them and re-ticks T092's checkbox,
+  the implementer's action once the CHANGES-REQUIRED disclosure is in place.
+
+---
+
 ## [2026-07-24T11:35:00.000+01:00] — feat(analytics): T095 bot exclusion via isbot at ingest (analyticsIngest.ts, analytics.ts)
 
 ### Added

@@ -26,6 +26,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -111,8 +112,29 @@ function setMobileViewport(isMobile: boolean) {
  * focus indicator is rendered on its sibling `input-otp-slot` elements
  * instead, which already carry `data-[active=true]:ring-3` (T076, Session 22).
  */
-function assertVisibleFocusOnControls(root: HTMLElement) {
-  const controls = root.querySelectorAll('button, input:not([data-slot="input-otp"])');
+// Wrapped in MemoryRouter (T080): the sidebar's "Analytics" nav item (T081)
+// is a react-router Link, which throws outside a Router context.
+function renderShell(overrides?: Partial<React.ComponentProps<typeof AppShell>>) {
+  return render(
+    <MemoryRouter>
+      <AppShell user={testUser} {...overrides} />
+    </MemoryRouter>,
+  );
+}
+
+/**
+ * `includeAnchors` (T080, default false): the shell's sidebar carries an
+ * "Analytics" nav link (FR-017) styled with the H4 ring utility, but the
+ * pre-auth pages' plain-text links (e.g. Login's "Forgot password?") are
+ * deliberately unstyled underline links with no ring — scoping the anchor
+ * check to the shell keeps those pages' existing, already-passing coverage
+ * intact.
+ */
+function assertVisibleFocusOnControls(root: HTMLElement, includeAnchors = false) {
+  const selector = includeAnchors
+    ? 'button, a, input:not([data-slot="input-otp"])'
+    : 'button, input:not([data-slot="input-otp"])';
+  const controls = root.querySelectorAll(selector);
   expect(controls.length).toBeGreaterThan(0);
   controls.forEach((el) => {
     expect((el as HTMLElement).className).toMatch(/focus-visible:ring-3/);
@@ -353,14 +375,14 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
 
   describe('Shell (desktop)', () => {
     it('has zero accessibility violations', async () => {
-      const { container } = render(<AppShell user={testUser} />);
+      const { container } = renderShell();
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
-    it('shows a visible focus ring on every button and input (H4)', () => {
-      const { container } = render(<AppShell user={testUser} />);
-      assertVisibleFocusOnControls(container);
+    it('shows a visible focus ring on every button, link, and input (H4)', () => {
+      const { container } = renderShell();
+      assertVisibleFocusOnControls(container, true);
     });
   });
 
@@ -374,7 +396,7 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
   describe('Shell (mobile off-canvas drawer)', () => {
     it('has zero accessibility violations when the drawer is open', async () => {
       setMobileViewport(true);
-      render(<AppShell user={testUser} />);
+      renderShell();
 
       // Allow the isMobile useEffect (H5 matchMedia read) to resolve, then
       // open the drawer via the same trigger used on desktop — toggleSidebar
@@ -455,7 +477,7 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       applyBootTheme();
       expect(document.documentElement.classList.contains('dark')).toBe(true);
 
-      render(<AppShell user={testUser} />);
+      renderShell();
 
       // Checked immediately after the synchronous render — no waitFor.
       // ThemeProvider's lazy useState initializer reads the same cookie
@@ -469,7 +491,7 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       applyBootTheme();
       expect(document.documentElement.classList.contains('dark')).toBe(false);
 
-      render(<AppShell user={testUser} />);
+      renderShell();
 
       expect(document.documentElement.classList.contains('dark')).toBe(false);
       expect(document.documentElement.getAttribute('data-theme-mode')).toBe('light');

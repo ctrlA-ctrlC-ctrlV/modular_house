@@ -1,11 +1,15 @@
 // T079 — Admin shell test (T-F1).
 // Asserts collapsible sidebar, 48px top bar with four controls (collapse,
-// UI-preference, dark-mode, account), centered faded "Coming Soon", bottom
-// user section, and NO GitHub button.  Pins US2-1..4,7 + H7.
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+// UI-preference, dark-mode, account), an "Analytics" sidebar nav entry
+// (T080, supersedes the Phase 1 H7 "Coming Soon" content-area assertion),
+// bottom user section, and NO GitHub button.  Pins US2-1..4,7 + H7/FR-017.
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import type React from 'react';
 import { AppShell } from './AppShell.js';
+import App from '../../App';
 
 // Default test props for the shell's user section.
 // AuthProvider does not exist yet (T092); the shell accepts user data as props.
@@ -31,8 +35,14 @@ vi.stubGlobal('URL', Object.assign(URL, {
   revokeObjectURL: vi.fn(),
 }));
 
+// Wrapped in MemoryRouter: the sidebar's "Analytics" nav item (T081) is a
+// react-router Link, which throws outside a Router context.
 function renderShell(overrides?: Partial<React.ComponentProps<typeof AppShell>>) {
-  return render(<AppShell user={testUser} {...overrides} />);
+  return render(
+    <MemoryRouter>
+      <AppShell user={testUser} {...overrides} />
+    </MemoryRouter>,
+  );
 }
 
 describe('Admin shell (AppShell)', () => {
@@ -131,14 +141,23 @@ describe('Admin shell (AppShell)', () => {
     });
   });
 
-  // ── Coming Soon content region ─────────────────────────────────────
+  // ── Analytics nav item (T080, supersedes Phase 1 H7 "Coming Soon") ──
+  // FR-017: the sidebar MUST include an Analytics navigation entry opening
+  // the performance dashboard. The content area no longer shows the
+  // Phase 1 placeholder; future sections keep their own coming-soon
+  // placeholders (spec.md assumption), but Phase 2 adds no other entries.
 
-  describe('Coming Soon', () => {
-    it('renders a centered faded "Coming Soon" in the content area', () => {
+  describe('Analytics nav item', () => {
+    it('renders an "Analytics" navigation link in the sidebar content area', () => {
       renderShell();
-      const comingSoon = screen.getByText('Coming Soon');
-      expect(comingSoon).toBeInTheDocument();
-      expect(comingSoon).toHaveAttribute('data-slot', 'coming-soon');
+      const link = screen.getByRole('link', { name: /analytics/i });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', '/admin/analytics');
+    });
+
+    it('no longer renders the Phase 1 "Coming Soon" placeholder', () => {
+      renderShell();
+      expect(screen.queryByText('Coming Soon')).toBeNull();
     });
   });
 
@@ -228,4 +247,6 @@ describe('Admin shell (AppShell)', () => {
       expect(photoCalls).toHaveLength(0);
     });
   });
+
+  
 });

@@ -6,6 +6,14 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-24 — T091-T095 (baseline: ace7cd6)
+
+T091 — PASS
+T092 — CHANGES-REQUIRED — commit contains undisclosed T095 logic
+T093 — PASS-WITH-NITS — Content-Length cap is client-declared, spoofable. Nit: the check reads the client-declared Content-Length header rather than measured bytes — a request that lies about Content-Length (declares ≤4096 while sending more) could slip past this specific gate. Low severity: worst case is still bounded by the pre-existing global 10MB parser limit, and M2's cap is a resource/abuse-protection rule, not a hard security boundary. Worth a comment acknowledging the limitation, not a blocker.
+T094 — PASS-WITH-NITS — "11 new tests" note overcounts by 3. Nit: the note claims "11 new tests... 6 passing/5 red" — the diff actually adds 8 new it() blocks; 11 is the file's total test count (8 new + 3 pre-existing). The pass/red split itself (6/5 at authoring) is accurate.
+T095 — PASS-WITH-NITS — correct/M7-safe; impl landed before its own test. The nit is procedural, not functional: this task's real implementation predates its own failing test by two commits, for the reason documented under T092 above.
+
 ## 2026-07-24 — T080/T081/T090/T087 review-fix re-review (since d25c950)
 
 T080 — PASS. Commits e8452e1 (a11y.test.tsx) and 545350a (keyboard.test.tsx) land the exact

@@ -1096,7 +1096,7 @@
 
 ### Navigation, redirect, footer, prerender
 
-- [ ] T080 AMEND the admin shell tests: Coming Soon -> Analytics nav item
+- [x] T080 AMEND the admin shell tests: Coming Soon -> Analytics nav item
       Files: apps/web/src/admin/shell/AppShell.test.tsx, apps/web/src/admin/shell/keyboard.test.tsx,
       apps/web/src/admin/shell/a11y.test.tsx
       Do: Amend the sidebar "Coming Soon" content-area assertions to expect an "Analytics" nav
@@ -1109,8 +1109,9 @@
 > note: unchecked by review — keyboard.test.tsx and a11y.test.tsx amendments never committed (working-tree only); HEAD is broken, see review report
 > note: re-verified 2026-07-24 — commits e8452e1/545350a land the missing files, content byte-identical to what was reviewed; web test:run 461/461 against real HEAD. Checkbox left unchecked per reviewer authority (may uncheck, must not re-check); implementer/user to re-tick.
 > reviewed: PASS — keyboard.test.tsx/a11y.test.tsx now committed, HEAD verified green
+> note: box re-ticked; independent re-verify at HEAD ace7cd6: web test:run 461/461; deviations: none
 
-- [ ] T081 Add the Analytics nav item to the sidebar
+- [x] T081 Add the Analytics nav item to the sidebar
       Files: apps/web/src/admin/shell/Sidebar.tsx
       Do: Add the "Analytics" navigation entry linking to `/admin/analytics` as primary nav,
       following the existing item pattern (icon via the inline-SVG convention).
@@ -1120,6 +1121,7 @@
 > note: unchecked by review — ui/sidebar.tsx asChild deviation never committed; committed Sidebar.tsx depends on it and breaks without it (nested-interactive DOM, no Slot)
 > note: re-verified 2026-07-24 — commit d25c950 lands ui/sidebar.tsx, content byte-identical to what was reviewed; Sidebar.tsx's asChild usage now composes correctly via Slot. Checkbox left unchecked per reviewer authority; implementer/user to re-tick.
 > reviewed: PASS — ui/sidebar.tsx now committed, asChild/Slot composition verified
+> note: box re-ticked; independent re-verify at HEAD ace7cd6: web test:run 461/461; deviations: none
 
 - [x] T082 AMEND the /admin index-redirect tests -> /admin/analytics
       Files: apps/web/src/admin/pages/preAuthWiring.test.tsx (and any other suite asserting the
@@ -1200,7 +1202,7 @@
 > note: no gaps surfaced, T088 already 9/9 green on first run; no source changes needed; tests: 9/9; deviations: none
 > reviewed: PASS
 
-- [ ] T090 Pass 2 checkpoint: all §4.1 scenarios green
+- [x] T090 Pass 2 checkpoint: all §4.1 scenarios green
       Files: — (verification only)
       Do: Run `pnpm --filter @modular-house/api test:run` and `pnpm --filter @modular-house/web
       test:run`; confirm T-B1..T-B8 and T-F1..T-F11 all pass and that no Phase 1 auth/OTP/reset/
@@ -1212,6 +1214,7 @@
 > note: unchecked by review — "web 461/461" was run against uncommitted working tree; committed HEAD has 12 failing tests (a11y.test.tsx/keyboard.test.tsx crash without the uncommitted Router-wrap/asChild fixes)
 > note: re-verified 2026-07-24 — web test:run 461/461 against real committed HEAD (no stash needed). api test:run 462/463: the one failure (analytics-privacy.test.ts S5 hostname test) reproduces the pre-existing cross-file DB race already disclosed at T058/T068 — re-ran the file alone, 9/9 green; unrelated to this diff (zero apps/api files touched T080-T090). Diff audit re-confirmed clean across the full adbc335..HEAD range, 13 files, all expected. Checkbox left unchecked per reviewer authority; implementer/user to re-tick.
 > reviewed: PASS-WITH-NITS — green at real HEAD; pre-existing unrelated api DB-race flake noted
+> note: box re-ticked; independent re-verify at HEAD ace7cd6: web 461/461, api 463/463 (flake absent), diff audit clean 14 files; deviations: none
 
 ---
 
@@ -1219,7 +1222,7 @@
 
 ### E-INGEST — ingest boundaries (M2–M7, M10)
 
-- [ ] T091 Write failing ingest validation boundary unit tests (E-INGEST, validation)
+- [x] T091 Write failing ingest validation boundary unit tests (E-INGEST, validation)
       Files: apps/api/tests/unit/analyticsIngestValidation.test.ts (new)
       Do: 512-char path accepted / 513 rejected; missing `path` -> 400; path not starting with
       `/` -> 400; unknown field -> 400; `referrer` > 2048 -> 400; each utm field > 100 -> 400;
@@ -1227,22 +1230,25 @@
       carries the 100% branch requirement.
       Done when: new boundary cases red against the Pass 2 schema.
       Refs: E-INGEST, M2, DoD-3
+> note: 18 accept/reject boundary pairs at exact M2 thresholds; only 4KB-cap case red (needs T093); tests: 17 passing/1 red; deviations: none
 
-- [ ] T092 Harden the ingest validation schema
+- [x] T092 Harden the ingest validation schema
       Files: apps/api/src/services/analyticsIngest.ts
       Do: Enforce all M2 bounds exactly (lengths, `^/` pattern, strict unknown-key rejection,
       boolean adClick); rejection is 400 — never truncation.
       Done when: T091 green; branch coverage on the validation module = 100%.
       Refs: M2, DoD-3
+> note: schema already enforced every M2 bound exactly; no behavior change, doc comment only; T091 17/18 (4KB case is T093's, not schema); deviations: none
 
-- [ ] T093 Enforce the 4 KB body cap on the ingest route
+- [x] T093 Enforce the 4 KB body cap on the ingest route
       Files: apps/api/src/routes/analytics.ts
       Do: Apply a 4 KB JSON body limit to this route and map the oversize error to 400 via the
       existing error middleware.
       Done when: the 4 KB + 1 case in T091 passes through the HTTP layer.
       Refs: M2, M1
+> note: Content-Length check (app-wide 10mb parser already consumes body, 2nd json() would no-op); HttpError->errorHandler; tests: T091 18/18; deviations: none
 
-- [ ] T094 Write failing ingest behavior edge tests (E-INGEST, behavior)
+- [x] T094 Write failing ingest behavior edge tests (E-INGEST, behavior)
       Files: apps/api/tests/integration/analytics-ingest.test.ts
       Do: No cookies -> event stored with one-off UUID visitor/session (cookieless = new, M3);
       `isbot` UA (e.g. Googlebot) -> 204 and NOT stored (M4); `path=/admin/settings` -> 204 NOT
@@ -1251,13 +1257,15 @@
       stripped, duplicate slashes collapsed, root `/` kept (M10).
       Done when: each new case red against the Pass 2 implementation.
       Refs: E-INGEST, M3/M4/M5/M6/M10, FR-013/FR-014
+> note: 11 new tests; 5 red (bot/admin-drop/rate-limit/2x canonicalization), 6 already true (M3/administration/root); tests: 6 passing/5 red; deviations: none
 
-- [ ] T095 Implement bot exclusion via isbot at ingest
+- [x] T095 Implement bot exclusion via isbot at ingest
       Files: apps/api/src/services/analyticsIngest.ts
       Do: Evaluate `isbot(userAgent)` before storing; matches respond 204 and store nothing; the
       UA string is used transiently only and never persisted or logged; log a bot-dropped counter.
       Done when: T094 bot case green.
       Refs: research R4, M4/M7, FR-013
+> note: isbot short-circuit before identity/storage; IngestResult union +dropped/bot; logs no UA; tests: T094 bot case green, 485/489 api; deviations: routes/analytics.ts — pass req UA header through
 
 - [ ] T096 Implement cookieless identity, admin-path boundary, and canonicalization
       Files: apps/api/src/services/analyticsIngest.ts

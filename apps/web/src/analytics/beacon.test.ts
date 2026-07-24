@@ -630,6 +630,91 @@ describe('sendPageView — referrer + UTM forwarding (M2, research R3)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// 9. E-BEACON — transport resilience edge cases (T098, M8, research R1, SC-009).
+// ---------------------------------------------------------------------------
+// Extends section 4's silent-failure coverage with the specific edge cases
+// pinned by the E-BEACON spec entry: a resolved (not merely rejected) 500
+// response from the keepalive-fetch fallback, an explicit `sendBeacon`
+// `false` return (distinct from `sendBeacon` being entirely unavailable,
+// already covered in section 3), and an explicit zero-retry assertion.
+
+describe('sendPageView — E-BEACON transport resilience edge cases (M8, R1, SC-009)', () => {
+  it('ingest endpoint 500 (resolved response) -> no thrown error, no console error, page keeps running', async () => {
+    // sendBeacon unavailable forces the keepalive-fetch path, which is the
+    // only transport that ever observes an HTTP status: sendBeacon's browser
+    // contract returns only a boolean queued/not-queued result, never a
+    // response status.
+    (navigator as unknown as { sendBeacon: unknown }).sendBeacon = undefined;
+    fetchMock.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+    expect(() => sendPageView({ pathname: '/garden-rooms' })).not.toThrow();
+    await flushMicrotasks();
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    // "Page code keeps running": a subsequent, unrelated page view still
+    // dispatches normally — the 500 left no broken module-level state.
+    sendPageView({ pathname: '/about' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('ingest endpoint network-down (fetch rejects) -> no thrown error, page keeps running for the next view', async () => {
+    (navigator as unknown as { sendBeacon: unknown }).sendBeacon = undefined;
+    fetchMock.mockRejectedValueOnce(new Error('network down'));
+
+    expect(() => sendPageView({ pathname: '/garden-rooms' })).not.toThrow();
+    await flushMicrotasks();
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    // A later view is unaffected by the earlier rejection.
+    fetchMock.mockResolvedValueOnce({ ok: true, status: 204 } as Response);
+    sendPageView({ pathname: '/contact' });
+    await flushMicrotasks();
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('sendBeacon returning false (available but not queued) -> keepalive fetch fallback fires exactly once', async () => {
+    // Distinct from the section-3 "sendBeacon unavailable" case: here
+    // navigator.sendBeacon IS a function and IS called, it simply reports
+    // that the browser could not queue the request (e.g. payload/queue
+    // limits) — the fallback must still fire.
+    sendBeaconMock.mockReturnValue(false);
+
+    sendPageView({ pathname: '/garden-rooms' });
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init?.keepalive).toBe(true);
+  });
+
+  it('exactly 0 retries after a sendBeacon throw — no further dispatch without a new page view', async () => {
+    sendBeaconMock.mockImplementationOnce(() => {
+      throw new Error('sendBeacon synchronous failure');
+    });
+
+    sendPageView({ pathname: '/garden-rooms' });
+    await flushMicrotasks();
+
+    // One sendBeacon attempt, one fetch fallback attempt, and — critically —
+    // no additional attempt appears after settling: the failure is final.
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('exactly 0 retries after a rejecting keepalive fetch — no further dispatch without a new page view', async () => {
+    (navigator as unknown as { sendBeacon: unknown }).sendBeacon = undefined;
+    fetchMock.mockRejectedValue(new Error('network down'));
+
+    sendPageView({ pathname: '/garden-rooms' });
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    // A single attempt only — the rejection triggers no scheduled retry.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 7. useBeacon hook — exactly one event per page view (M8).
 // ---------------------------------------------------------------------------
 

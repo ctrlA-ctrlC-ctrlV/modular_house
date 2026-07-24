@@ -10,10 +10,10 @@
  * personal data (M7/R2: no IP, no User-Agent, no full referrer URL).
  *
  * Pass 2 shipped the happy path only. Pass 3 (plan §5.3) hardens it against
- * the E-INGEST boundary cases in task order: bot exclusion (M4, T095, this
- * change) lands first; `/admin` path exclusion (M5), path canonicalization
- * (M10), and rate limiting (M6) follow in T096/T097. The 4 KB body cap is
- * enforced at the route layer (`routes/analytics.ts`, T093), not here.
+ * the E-INGEST boundary cases in task order: bot exclusion (M4, T095) landed
+ * first; `/admin` path exclusion (M5) and path canonicalization (M10, T096,
+ * this change) land next; rate limiting (M6) follows in T097. The 4 KB body
+ * cap is enforced at the route layer (`routes/analytics.ts`, T093), not here.
  *
  * Exports:
  *   - `ingestEventSchema` — the Zod schema for the beacon payload (M2 shape,
@@ -96,6 +96,36 @@ export const ingestEventSchema = z
 /** The validated payload type the route hands to the service. */
 export type IngestEventInput = z.infer<typeof ingestEventSchema>;
 
+// ---------------------------------------------------------------------------
+// Path canonicalization (M10)
+// ---------------------------------------------------------------------------
+
+/**
+ * Reduce a raw `path` value to its canonical storage form (plan §2.3 M10).
+ *
+ * Applies, in order: strip any query string / fragment (pathname only),
+ * lowercase (case-insensitive page identity), collapse duplicate slashes,
+ * then strip a single trailing slash — except the root `/`, which is kept
+ * as-is. The result is what every metric groups by, so `/Page/` and `/page`
+ * are guaranteed to count as the same page.
+ *
+ * Schema validation (M2) only guarantees the raw value starts with `/` and
+ * is 1–512 characters; it does not guarantee the value is already
+ * canonical, so this normalization always runs regardless of what the
+ * client sent.
+ */
+function canonicalizePath(path: string): string {
+  const withoutQueryOrFragment = path.split(/[?#]/)[0];
+  const lowercased = withoutQueryOrFragment.toLowerCase();
+  const collapsedSlashes = lowercased.replace(/\/{2,}/g, '/');
+
+  if (collapsedSlashes.length > 1 && collapsedSlashes.endsWith('/')) {
+    return collapsedSlashes.slice(0, -1);
+  }
+
+  return collapsedSlashes;
+}
+
 /**
  * The subset of request cookies the ingest reads (plan §2.1 K1/K2/K3, M3).
  * Both are optional — when a cookie is absent the server generates a one-off
@@ -111,33 +141,42 @@ export interface IngestCookies {
  * (bot traffic — M4, T095; `/admin` paths — M5, T096) the route still maps
  * to 204 so callers cannot distinguish a drop from a store (M1).
  */
-export type IngestResult = { status: 'stored' } | { status: 'dropped'; reason: 'bot' };
+export type IngestResult =
+  | { status: 'stored' }
+  | { status: 'dropped'; reason: 'bot' | 'admin-path' };
 
 // ---------------------------------------------------------------------------
 // ingestAnalyticsEvent — validate, exclude, then store
 // ---------------------------------------------------------------------------
 
 /**
- * Validate-then-store one page-view event, dropping known bot traffic first.
+ * Validate-then-store one page-view event, dropping known bot traffic and
+ * `/admin` paths before any persistence, and canonicalizing the stored path.
  *
  * Steps (research R2/R3/R4, data-model.md §3):
  *   1. Evaluate `isbot(userAgent)` (M4); a match short-circuits before any
  *      identity resolution or persistence — nothing is written, and the UA
  *      string itself is never persisted or logged (M7).
- *   2. Resolve `visitorId` / `sessionId` from the `mh_vid` / `mh_sid` cookies,
+ *   2. Canonicalize `payload.path` (M10: pathname-only, lowercased,
+ *      duplicate slashes collapsed, trailing slash stripped except root).
+ *   3. Drop the event if the canonical path is exactly `/admin` or starts
+ *      with `/admin/` (M5) — defense in depth; the client never sends these
+ *      paths itself. Other `/admin`-prefixed public words (e.g.
+ *      `/administration`) do not match and are stored normally.
+ *   4. Resolve `visitorId` / `sessionId` from the `mh_vid` / `mh_sid` cookies,
  *      generating one-off UUIDs for any that are absent (M3).
- *   3. Classify the traffic source via `trafficSource.classify` with S1
+ *   5. Classify the traffic source via `trafficSource.classify` with S1
  *      precedence (CAMPAIGN > SEARCH > SOCIAL > REFERRAL > DIRECT).
- *   4. Reduce the referrer to its bare hostname via
+ *   6. Reduce the referrer to its bare hostname via
  *      `trafficSource.extractReferrerHost` (S5: never a scheme, path, query,
  *      or fragment).
- *   5. Upsert `AnalyticsVisitor`: insert `{firstSeenAt: now, lastSeenAt: now}`
+ *   7. Upsert `AnalyticsVisitor`: insert `{firstSeenAt: now, lastSeenAt: now}`
  *      on a new id, update only `lastSeenAt` on conflict (data-model §3 write
  *      pattern; the upsert is the E-CONCURRENCY race guard).
- *   6. Insert one `AnalyticsEvent` row with the server-clock `occurredAt`,
- *      the classified `sourceGroup`, the hostname-only `referrerHost`, and the
- *      campaign tags.
- *   7. Emit a Pino counter for the outcome — no PII in logs (M7: no IP, no
+ *   8. Insert one `AnalyticsEvent` row with the server-clock `occurredAt`,
+ *      the canonical `path`, the classified `sourceGroup`, the hostname-only
+ *      `referrerHost`, and the campaign tags.
+ *   9. Emit a Pino counter for the outcome — no PII in logs (M7: no IP, no
  *      UA, no full referrer URL; only the non-personal `sourceGroup`/`path`,
  *      or the drop reason, are logged).
  *
@@ -148,7 +187,7 @@ export type IngestResult = { status: 'stored' } | { status: 'dropped'; reason: '
  *                      persisted or logged — M7).
  * @param clock      - injectable clock for deterministic `occurredAt`
  *                      (default `() => new Date()`).
- * @returns `{ status: 'stored' }` or `{ status: 'dropped', reason: 'bot' }`;
+ * @returns `{ status: 'stored' }` or `{ status: 'dropped', reason }`;
  *          throws on Prisma errors so the route's error middleware can map
  *          them to a 5xx (never a 4xx the beacon would surface).
  */
@@ -166,6 +205,19 @@ export async function ingestAnalyticsEvent(
   if (isbot(userAgent)) {
     logger.info({ analyticsIngest: 'dropped', reason: 'bot' }, 'analytics event dropped');
     return { status: 'dropped', reason: 'bot' };
+  }
+
+  // M10: canonicalize the path before any further checks or storage, so the
+  // M5 admin-path comparison below and the eventually-stored value both use
+  // the same normalized form (`/Page/` and `/page` are the same page).
+  const path = canonicalizePath(payload.path);
+
+  // M5: exact `/admin` or any `/admin/*` path is dropped — admin routes are
+  // never public pages. Other `/admin`-prefixed words (e.g. `/administration`)
+  // do not satisfy the equality or `/`-suffixed prefix check and are stored.
+  if (path === '/admin' || path.startsWith('/admin/')) {
+    logger.info({ analyticsIngest: 'dropped', reason: 'admin-path' }, 'analytics event dropped');
+    return { status: 'dropped', reason: 'admin-path' };
   }
 
   const now = clock();
@@ -204,11 +256,12 @@ export async function ingestAnalyticsEvent(
   });
 
   // AnalyticsEvent insert — append-only (R1: no update, no delete path
-  // exists). `occurredAt` is the server clock (M2: never client time).
+  // exists). `occurredAt` is the server clock (M2: never client time); `path`
+  // is the M10-canonicalized value computed above, not the raw payload.
   await prisma.analyticsEvent.create({
     data: {
       occurredAt: now,
-      path: payload.path,
+      path,
       visitorId,
       sessionId,
       sourceGroup,
@@ -226,7 +279,7 @@ export async function ingestAnalyticsEvent(
     {
       analyticsIngest: 'stored',
       sourceGroup,
-      path: payload.path,
+      path,
     },
     'analytics event stored',
   );

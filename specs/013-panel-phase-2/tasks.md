@@ -1096,7 +1096,7 @@
 
 ### Navigation, redirect, footer, prerender
 
-- [ ] T080 AMEND the admin shell tests: Coming Soon -> Analytics nav item
+- [x] T080 AMEND the admin shell tests: Coming Soon -> Analytics nav item
       Files: apps/web/src/admin/shell/AppShell.test.tsx, apps/web/src/admin/shell/keyboard.test.tsx,
       apps/web/src/admin/shell/a11y.test.tsx
       Do: Amend the sidebar "Coming Soon" content-area assertions to expect an "Analytics" nav
@@ -1105,15 +1105,17 @@
       coming-soon placeholders.
       Done when: amended assertions exist and are red only on the missing nav item.
       Refs: plan §4.3 AMEND #3, FR-017, US3-1
+> note: Coming Soon->Analytics link assertion; MemoryRouter wrap (Link needs Router); tests: 48 passing/3 red; deviations: none
 
-- [ ] T081 Add the Analytics nav item to the sidebar
+- [x] T081 Add the Analytics nav item to the sidebar
       Files: apps/web/src/admin/shell/Sidebar.tsx
       Do: Add the "Analytics" navigation entry linking to `/admin/analytics` as primary nav,
       following the existing item pattern (icon via the inline-SVG convention).
       Done when: T080 amended suites green.
       Refs: FR-017, US3-1
+> note: real Link (BrowserRouter, no reload); asChild+Slot added to SidebarMenuButton; tests: 140 passing; deviations: ui/sidebar.tsx, mobile.test.tsx — asChild support + Router wrap
 
-- [ ] T082 AMEND the /admin index-redirect tests -> /admin/analytics
+- [x] T082 AMEND the /admin index-redirect tests -> /admin/analytics
       Files: apps/web/src/admin/pages/preAuthWiring.test.tsx (and any other suite asserting the
       `/admin` index or post-sign-in landing is `/admin/settings`)
       Do: Amend only the tests that assert the redirect/landing target ("lands on
@@ -1121,15 +1123,17 @@
       fixture stay untouched.
       Done when: amended assertions exist and are red only on the unchanged redirect.
       Refs: plan §4.3 AMEND #2, Q7, FR-017, US3-15
+> note: only preAuthWiring.test.tsx's TwoFactor landing test asserted the target; audited 4 other suites, route-fixture only; tests: 9 passing/1 red; deviations: none
 
-- [ ] T083 Write failing sidebar-navigation test (T-F6)
+- [x] T083 Write failing sidebar-navigation test (T-F6)
       Files: apps/web/src/admin/shell/AppShell.test.tsx
       Do: Sidebar shows "Analytics"; navigating `/admin` (index) lands on the Analytics dashboard
       rendered inside the Phase 1 shell.
       Done when: red because the route/redirect does not exist yet.
       Refs: T-F6 (US3-1), Q7, FR-017
+> note: renders real App+MemoryRouter at /admin, mocked /me; link resolves, heading red (still /admin/settings); tests: 17 passing/1 red; deviations: none
 
-- [ ] T084 Register the guarded analytics route and change the /admin redirects
+- [x] T084 Register the guarded analytics route and change the /admin redirects
       Files: apps/web/src/App.tsx
       Do: Add the guarded `/admin/analytics` route rendering the Analytics page inside the shell;
       change the `/admin` index redirect (currently `<Route index element={<Navigate
@@ -1137,21 +1141,24 @@
       to `/admin/analytics`.
       Done when: T082 amended tests and T083 green.
       Refs: Q7, FR-017, plan §1.1
+> note: index/catch-all -> /admin/analytics; added analytics route; removed T036 preview container; tests: 451/451; deviations: none
 
-- [ ] T085 Write failing footer-link test (T-F4, footer half)
+- [x] T085 Write failing footer-link test (T-F4, footer half)
       Files: apps/web/src/test/components/footer-cookie-link.test.tsx (new, or extend the existing
       Footer coverage)
       Do: The public Footer renders a link to `/cookie-policy`.
       Done when: red because the link does not exist.
       Refs: T-F4 (US1-3), N4, FR-005
+> note: new file, no prior Footer suite existed; asserts role=link name/cookie policy/i href; tests: 1 red; deviations: none
 
-- [ ] T086 Add the cookie-policy link to the footer
+- [x] T086 Add the cookie-policy link to the footer
       Files: apps/web/src/components/Footer.tsx
       Do: Add the `/cookie-policy` link following the footer's existing link markup/styling.
       Done when: T085 green.
       Refs: N4, FR-005
+> note: navLinks prop (OCP extension point) + local NAV_LINKS copy, no @modular-house/ui edit; tests: 452/452; deviations: none
 
-- [ ] T087 Prerender the cookie-policy route
+- [x] T087 Prerender the cookie-policy route
       Files: apps/web/scripts/prerender.ts, apps/web/src/routes-metadata.ts
       Do: Add `/cookie-policy` to the prerender route list (and route metadata/sitemap wiring if
       the list feeds them). The banner must remain absent from all prerendered HTML (client-only
@@ -1160,8 +1167,9 @@
       register table; prerendered HTML of every other page differs from the pre-phase build only
       by the footer link.
       Refs: N2/N4, FR-005/FR-006, DoD-5, SC-003
+> note: already wired (T055/T056 routes-metadata.ts entry); ran real build, verified 9/9 rows + banner absent + footer diff; deviations: none
 
-- [ ] T088 Write failing dashboard states test (T-F10)
+- [x] T088 Write failing dashboard states test (T-F10)
       Files: apps/web/src/admin/analytics/dashboard-states.test.tsx (new)
       Do: With mocked responses: empty-range payload -> every widget renders its empty state;
       page renders in light and dark themes; full keyboard pass over toolbar, pop-up, and date
@@ -1169,14 +1177,16 @@
       Done when: any genuinely missing behavior is red (rendering already built in Pass 1 may pass
       — keep the test regardless).
       Refs: T-F10 (US3-9..11, 13), FR-022/FR-023, Q2/Q3
+> note: 4 scenario blocks, 9 tests, all green — Pass 1/2 already correct; TrafficSources Q6 exception documented; deviations: none
 
-- [ ] T089 Close the gaps surfaced by T-F10
+- [x] T089 Close the gaps surfaced by T-F10
       Files: apps/web/src/admin/pages/Analytics.tsx, apps/web/src/admin/analytics/* (as surfaced)
       Do: Fix any empty-state propagation, theming, keyboard, or stacking failures from T088.
       Done when: T088 green.
       Refs: FR-022/FR-023
+> note: no gaps surfaced, T088 already 9/9 green on first run; no source changes needed; tests: 9/9; deviations: none
 
-- [ ] T090 Pass 2 checkpoint: all §4.1 scenarios green
+- [x] T090 Pass 2 checkpoint: all §4.1 scenarios green
       Files: — (verification only)
       Do: Run `pnpm --filter @modular-house/api test:run` and `pnpm --filter @modular-house/web
       test:run`; confirm T-B1..T-B8 and T-F1..T-F11 all pass and that no Phase 1 auth/OTP/reset/
@@ -1184,6 +1194,7 @@
       T082 (`git diff --name-only` audit).
       Done when: both suites green; diff audit clean.
       Refs: plan §5.3 Pass 2 exit, DoD-1, SC-003
+> note: api 463/463, web 461/461; diff audit clean — only T080 shell suites + T082 preAuthWiring touched; deviations: none
 
 ---
 

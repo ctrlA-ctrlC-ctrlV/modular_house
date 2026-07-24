@@ -252,4 +252,175 @@ describe('POST /api/analytics/events', () => {
       expect(events[1].occurredAt.toISOString()).toBe(clock.now().toISOString());
     });
   });
+
+  // -------------------------------------------------------------------------
+  // T094 — E-INGEST behavior edge tests (M3/M4/M5/M6/M10). Pass 2 only
+  // implements the happy path, so every case below is red against it except
+  // where a rule already happens to hold trivially (documented per case);
+  // T095/T096/T097 close each gap in turn.
+  // -------------------------------------------------------------------------
+  describe('cookieless identity (T094, M3)', () => {
+    it('stores an event with server-generated UUIDs when mh_vid/mh_sid cookies are absent', async () => {
+      // No `.set('Cookie', ...)` at all — the request carries neither cookie.
+      const res = await request(app).post('/api/analytics/events').send({ path: '/cookieless-check' });
+
+      expect(res.status).toBe(204);
+
+      // The visitor/session ids are unknown in advance (server-minted), so the
+      // row is located by its distinctive path + the injected clock's exact
+      // occurredAt (unique within this test's clean-slate table).
+      const events = await prisma.analyticsEvent.findMany({
+        where: { path: '/cookieless-check', occurredAt: ANALYTICS_FIXED_NOW },
+      });
+      events.forEach((e) => createdVisitorIds.push(e.visitorId));
+
+      expect(events).toHaveLength(1);
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      // A one-off UUID was minted server-side for both identifiers (M3:
+      // cookieless visitors still count as new — not rejected, not defaulted
+      // to a shared placeholder id).
+      expect(events[0].visitorId).toMatch(uuidPattern);
+      expect(events[0].sessionId).toMatch(uuidPattern);
+    });
+  });
+
+  describe('bot exclusion (T094, M4)', () => {
+    it('does not store an event when the User-Agent matches a known bot (Googlebot)', async () => {
+      const visitorId = randomUUID();
+      createdVisitorIds.push(visitorId);
+
+      const res = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+        .set('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')
+        .send({ path: '/bot-check' });
+
+      // M1/M4: bot traffic is dropped, never surfaced as an error — still 204.
+      expect(res.status).toBe(204);
+
+      const events = await prisma.analyticsEvent.findMany({ where: { visitorId } });
+      expect(events).toHaveLength(0);
+    });
+  });
+
+  describe('admin-path exclusion boundary (T094, M5)', () => {
+    it('drops /admin/settings without storing (204, defense in depth)', async () => {
+      const visitorId = randomUUID();
+      createdVisitorIds.push(visitorId);
+
+      const res = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+        .send({ path: '/admin/settings' });
+
+      expect(res.status).toBe(204);
+      const events = await prisma.analyticsEvent.findMany({ where: { visitorId } });
+      expect(events).toHaveLength(0);
+    });
+
+    it('stores /administration — an /admin-prefixed public word, not the /admin/ path (M5)', async () => {
+      const visitorId = randomUUID();
+      createdVisitorIds.push(visitorId);
+
+      const res = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+        .send({ path: '/administration' });
+
+      expect(res.status).toBe(204);
+      const events = await prisma.analyticsEvent.findMany({ where: { visitorId } });
+      expect(events).toHaveLength(1);
+    });
+  });
+
+  describe('ingest rate limit (T094, M6)', () => {
+    // A dedicated synthetic IP (TEST-NET-3, RFC 5737) isolates this test's
+    // request count from every other test/file sharing the same in-memory
+    // rate-limit store in this process (mirrors auth-ratelimit.test.ts's
+    // uniqueIp convention).
+    const rateLimitTestIp = '203.0.113.77';
+    const rateLimitVisitorId = randomUUID();
+
+    afterAll(async () => {
+      await prisma.analyticsEvent.deleteMany({ where: { visitorId: rateLimitVisitorId } });
+      await prisma.analyticsVisitor.deleteMany({ where: { visitorId: rateLimitVisitorId } });
+    });
+
+    it(
+      'accepts 120 events/minute/IP then rejects the 121st with 429 (M6)',
+      async () => {
+        for (let i = 0; i < 120; i++) {
+          const res = await request(app)
+            .post('/api/analytics/events')
+            .set('X-Forwarded-For', rateLimitTestIp)
+            .set('Cookie', analyticsCookieHeader(rateLimitVisitorId, randomUUID()))
+            .send({ path: '/rate-limit-check' });
+
+          expect(res.status).toBe(204);
+        }
+
+        const blocked = await request(app)
+          .post('/api/analytics/events')
+          .set('X-Forwarded-For', rateLimitTestIp)
+          .set('Cookie', analyticsCookieHeader(rateLimitVisitorId, randomUUID()))
+          .send({ path: '/rate-limit-check' });
+
+        expect(blocked.status).toBe(429);
+      },
+      20000, // 120+1 sequential real HTTP+DB round trips need headroom over the default 10s
+    );
+  });
+
+  describe('path canonicalization (T094, M10)', () => {
+    it('stores "/Page/" and "/page" as the same canonical "/page" (case-fold + trailing slash)', async () => {
+      const visitorId1 = randomUUID();
+      const visitorId2 = randomUUID();
+      createdVisitorIds.push(visitorId1, visitorId2);
+
+      const res1 = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId1, randomUUID()))
+        .send({ path: '/Page/' });
+      expect(res1.status).toBe(204);
+
+      const res2 = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId2, randomUUID()))
+        .send({ path: '/page' });
+      expect(res2.status).toBe(204);
+
+      const event1 = await prisma.analyticsEvent.findFirst({ where: { visitorId: visitorId1 } });
+      const event2 = await prisma.analyticsEvent.findFirst({ where: { visitorId: visitorId2 } });
+      expect(event1?.path).toBe('/page');
+      expect(event2?.path).toBe('/page');
+    });
+
+    it('collapses duplicate slashes and strips query string + fragment', async () => {
+      const visitorId = randomUUID();
+      createdVisitorIds.push(visitorId);
+
+      const res = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+        .send({ path: '//garden-rooms//configure?step=2#top' });
+      expect(res.status).toBe(204);
+
+      const event = await prisma.analyticsEvent.findFirst({ where: { visitorId } });
+      expect(event?.path).toBe('/garden-rooms/configure');
+    });
+
+    it('keeps the root path "/" as-is (never stripped to empty)', async () => {
+      const visitorId = randomUUID();
+      createdVisitorIds.push(visitorId);
+
+      const res = await request(app)
+        .post('/api/analytics/events')
+        .set('Cookie', analyticsCookieHeader(visitorId, randomUUID()))
+        .send({ path: '/' });
+      expect(res.status).toBe(204);
+
+      const event = await prisma.analyticsEvent.findFirst({ where: { visitorId } });
+      expect(event?.path).toBe('/');
+    });
+  });
 });

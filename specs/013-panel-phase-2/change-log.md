@@ -1,6 +1,78 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T12:35:00.000+01:00] — feat(analytics): T097 configure 120/min ingest rate limit (analytics.ts)
+
+### Added
+- `apps/api/src/routes/analytics.ts` — `analyticsIngestRateLimit`, a dedicated `express-rate-limit`
+  instance scoped to `POST /events`: `windowMs: 60_000` (1 minute), `max: 120` (M6's exact
+  120 events/minute/IP boundary). Replaces the generic `generalRateLimit` (100 requests/15 minutes)
+  this route used through Pass 2 — that shared, admin-facing default never matched M6's window or
+  cap. Constructed directly in this file via the `rateLimit` factory from `express-rate-limit`
+  (already a project dependency, used the same way in `middleware/rateLimit.ts`), keeping the
+  change inside the task's stated `Files:` scope rather than adding a new export to the shared
+  middleware module.
+- `keyGenerator` mirrors the existing limiters' IP-resolution logic (`X-Forwarded-For` first
+  segment, else `req.socket.remoteAddress`), namespaced under an `analytics-ingest:` key prefix so
+  it shares no counter state with `generalRateLimit`/`authRateLimit`/`submissionRateLimit`.
+- `handler` logs a `logger.warn` line per throttled request (the "rate-limited counter" the task
+  asks for — external log aggregation derives the count from these lines, the same convention
+  already used for the M4/M5 bot-dropped / admin-dropped counters, T095/T096) before responding
+  429 with the flat `{ error, message, retryAfter }` body shape the sibling limiters already use.
+- Doc comments at the top of the file and above the `router.post` call updated to describe M4/M5/M6
+  as implemented rather than pending Pass 3 work.
+
+### Notes
+- `tests/integration/analytics-ingest.test.ts` (T094): **11/11 passing** — the M6 rate-limit case
+  (120 accepted, 121st -> 429) is the last of T094's originally-red cases to close. All of
+  E-INGEST's M3/M4/M5/M6/M10 boundaries are now implemented.
+- Full API suite (`test:run -- --no-file-parallelism`) showed 5 unrelated failures across two runs
+  (`settings-password.test.ts`: 1 test, unrelated Phase 1 auth/settings; `analytics-overview.test.ts`:
+  4 tests, KPI/bucket/top-pages counts reading too-high). Both files pass cleanly in isolation
+  (7/7 and 6/6 respectively) — this is the same pre-existing, already-disclosed cross-file DB race
+  documented at T058/T068 (concurrent test files sharing one Postgres connection pool under READ
+  COMMITTED), not a regression: this session's only source changes are to `analyticsIngest.ts`
+  (T096) and `analytics.ts` (T097), neither of which touches `analyticsFixtures.ts`, the seed, or
+  any file `analytics-overview.test.ts`/`settings-password.test.ts` depend on.
+- `lint` / `tsc --noEmit -p tsconfig.test.json` clean on `analytics.ts`.
+
+---
+
+## [2026-07-24T12:15:00.000+01:00] — feat(analytics): T096 admin-path exclusion + path canonicalization (analyticsIngest.ts)
+
+### Added
+- `apps/api/src/services/analyticsIngest.ts` — `canonicalizePath` (private helper): strips any
+  query string / fragment (`path.split(/[?#]/)[0]`), lowercases, collapses duplicate slashes
+  (`/\/{2,}/g`), then strips a single trailing slash except when the result is the root `/` alone
+  (M10). Runs unconditionally on every payload — schema validation (M2) only guarantees the raw
+  value starts with `/` and is 1–512 characters, not that it is already canonical.
+- `ingestAnalyticsEvent` now canonicalizes `payload.path` immediately after the M4 bot check, then
+  drops the event (204, nothing stored) when the canonical path is exactly `/admin` or starts with
+  `/admin/` (M5) — checked against the canonicalized value so case/slash variants of admin paths
+  are caught too, even though the client never sends them. `IngestResult`'s `dropped` reason gained
+  `'admin-path'` alongside `'bot'`. The `AnalyticsEvent` insert and its Pino log line now use the
+  canonicalized `path`, not `payload.path`.
+- M3 (cookieless identity via one-off UUIDs) required no change — it was already implemented in
+  the Pass 2 happy path (`cookies.mh_vid || randomUUID()`) and is the part of this task already
+  proven green by T094's cookieless-identity test.
+
+### Notes
+- `tests/integration/analytics-ingest.test.ts` (T094): 10/11 passing, up from 6/11 at T094's
+  authoring and 7/11 after T095. The remaining failure is the M6 rate-limit boundary, T097's task.
+  Confirmed both admin-path cases (`/admin/settings` dropped, `/administration` stored) and all
+  three canonicalization cases (case-fold + trailing slash, duplicate-slash + query/fragment strip,
+  root kept) now pass.
+- Branch-coverage note (DoD-3): the M5 check `path === '/admin' || path.startsWith('/admin/')` has
+  no test exercising the bare `/admin` (no trailing segment) equality branch specifically — T094's
+  suite (this task's only paired tests, per its `Done when`) covers `/admin/settings` (prefix
+  branch) and `/administration` (neither branch), not exact `/admin`. Adding that case would mean
+  touching `analytics-ingest.test.ts`, outside this task's `Files:` scope; flagging for whichever
+  task next verifies Pass 3's full branch-coverage figure rather than adding it here unprompted.
+- `lint` / `tsc --noEmit -p tsconfig.test.json` clean; `analyticsIngestValidation.test.ts` (18/18)
+  re-confirmed unaffected.
+
+---
+
 ## [2026-07-24T12:00:00.000+01:00] — fix(specs): T092/T093/T094/T095 review corrections (analytics.ts, tasks.md)
 
 ### Changed

@@ -1,6 +1,191 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T11:35:00.000+01:00] — feat(analytics): T095 bot exclusion via isbot at ingest (analyticsIngest.ts, analytics.ts)
+
+### Added
+- `apps/api/src/services/analyticsIngest.ts` — `ingestAnalyticsEvent` now takes an optional
+  `userAgent?: string` parameter (new 3rd position, before the existing `clock` parameter — the
+  service's only caller never passed `clock` explicitly, so this is not a breaking change at the
+  one real call site) and evaluates `isbot(userAgent)` before any identity resolution or Prisma
+  write. A match returns `{ status: 'dropped', reason: 'bot' }` and persists nothing; the `IngestResult`
+  union gained the `dropped` variant the Pass 2 doc comment had already anticipated. The UA string
+  is read only for the `isbot` check — never assigned anywhere it could reach a log call or a
+  Prisma `data` object (M7).
+- `apps/api/src/routes/analytics.ts` — the handler now passes `req.headers['user-agent']` as the
+  new 3rd argument to `ingestAnalyticsEvent`; the response is still an unconditional 204 regardless
+  of `stored`/`dropped` (M1 — callers cannot distinguish the two). Doc comments updated to reflect
+  M4 as implemented rather than pending.
+
+### Notes
+- **Deviation from the task's `Files:` line**: `routes/analytics.ts` needed a one-line change (the
+  new argument) alongside the listed `analyticsIngest.ts`, because the `User-Agent` HTTP header is
+  not part of the Zod-validated payload body — it is only available to the route handler via
+  `req.headers`, so the service cannot evaluate it without the route passing it through. This
+  mirrors the class of deviation already accepted for T081 (`ui/sidebar.tsx` alongside the listed
+  `Sidebar.tsx`) — a minimal, necessary companion edit the task's file list didn't anticipate.
+- T094's bot-exclusion case is now green; `analytics-ingest.test.ts` stands at 7/11 (4 red cases —
+  admin-path, rate-limit, 2x canonicalization — remain, scoped to T096/T097, outside this session).
+- Full API suite: 485/489 passing, the 4 failures being exactly those same expected T096/T097 cases
+  — no regressions elsewhere. `analytics-privacy.test.ts` (9/9) and
+  `analyticsIngestValidation.test.ts` (18/18) re-confirmed unaffected.
+- `lint` / `tsc --noEmit -p tsconfig.test.json` clean on both touched files.
+
+---
+
+## [2026-07-24T11:20:00.000+01:00] — test(analytics): T094 ingest behavior edge tests (analytics-ingest.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-ingest.test.ts` — 5 new `describe` blocks appended after
+  the existing T039/T040 happy-path/session groups, exercising every M3/M4/M5/M6/M10 case named in
+  the task:
+  - **Cookieless identity (M3)** — a request with no `Cookie` header at all stores an event whose
+    `visitorId`/`sessionId` are both server-minted UUIDs (matched by pattern, not equality, since
+    they are unknown in advance); the row is located by its distinctive path + the injected clock's
+    exact `occurredAt`, not a known visitor id.
+  - **Bot exclusion (M4)** — a Googlebot `User-Agent` on an otherwise-valid request.
+  - **Admin-path boundary (M5)** — `/admin/settings` (must drop) vs. `/administration` (must
+    store — an `/admin`-prefixed public word, not the `/admin/` path itself).
+  - **Rate limit (M6)** — 120 requests from a dedicated synthetic IP (`203.0.113.77`, RFC 5737
+    TEST-NET-3, mirroring `auth-ratelimit.test.ts`'s `uniqueIp` isolation convention) must all
+    succeed; the 121st must return 429. Custom 20s test timeout (120+ sequential real HTTP+DB
+    round trips exceed the file's default 10s).
+  - **Path canonicalization (M10)** — `/Page/` and `/page` both resolve to the same stored
+    `/page`; `//garden-rooms//configure?step=2#top` collapses to `/garden-rooms/configure`
+    (duplicate slashes + query + fragment all stripped); root `/` is never stripped to empty.
+
+### Notes
+- Result: **6 passing / 5 red**, each for the expected reason — Pass 2 has no bot/admin-path/
+  canonicalization logic and no dedicated 120/min limiter yet:
+  - Red: bot exclusion (event stored when it must be dropped), `/admin/settings` (stored when it
+    must be dropped), the 120/121 rate-limit boundary (429 arrives at request 101 today, under the
+    generic `generalRateLimit`'s 100/15-min cap — the wrong threshold entirely, not yet M6's
+    120/min), both canonicalization cases (path stored verbatim, unmodified).
+  - Already green: cookieless identity (M3) — Pass 2's `cookies.mh_vid || randomUUID()` /
+    `cookies.mh_sid || randomUUID()` fallback already implements this; this suite is the first to
+    actually exercise the "absent" side of that branch (every prior test always supplied cookies),
+    closing part of the DoD-3 branch-coverage gap flagged in T091's notes. `/administration` (M5)
+    and root `/` (M10) also already pass trivially — neither requires new logic given the current
+    "store everything as-is" implementation.
+- T095 (bot exclusion), T096 (cookieless/admin-path/canonicalization — already partly proven here),
+  and T097 (120/min limiter) close the remaining red cases in turn; T095 is this session's next
+  task.
+- Verified no leftover rows after the run (`analyticsEvent.count` over every path this suite used):
+  0 — every test's `createdVisitorIds` tracking (shared file convention) or dedicated `afterAll`
+  (rate-limit block) cleaned up correctly regardless of pass/fail.
+- `lint` / `tsc --noEmit -p tsconfig.test.json` clean on the touched file.
+
+---
+
+## [2026-07-24T11:05:00.000+01:00] — feat(analytics): T093 enforce 4 KB ingest body cap (analytics.ts)
+
+### Added
+- `apps/api/src/routes/analytics.ts` — `enforceIngestBodySizeCap` middleware, mounted between
+  `generalRateLimit` and `validateBody` on `POST /events`. Rejects any request whose
+  `Content-Length` header exceeds 4096 bytes (M2) via `next(new HttpError(..., 400))`, routing the
+  rejection through the app's shared `errorHandler` (imported from `middleware/error.js`) rather
+  than writing an ad hoc inline response.
+
+### Notes
+- **Why a header check, not a second body-parser**: `app.ts` mounts an app-wide
+  `express.json({ limit: '10mb' })` ahead of every router, including this one — by the time a
+  request reaches `analytics.ts`, `body-parser` has already parsed `req.body` and set
+  `req._body = true`. `body-parser`'s own `json.js` middleware short-circuits with `next()`
+  whenever `req._body` is already truthy (verified directly against
+  `node_modules/.pnpm/body-parser@1.20.3/.../lib/types/json.js:102`), so chaining a second,
+  stricter `express.json({ limit: '4kb' })` here would silently never fire. Reading the
+  client-supplied `Content-Length` header instead enforces this route's own narrower cap without
+  touching the app-wide parser, its 10 MB ceiling, or any other route's behavior — keeping the
+  change scoped to `routes/analytics.ts` alone, as the task's `Files:` line specifies.
+- `Content-Length` is set automatically by both `navigator.sendBeacon` and
+  `fetch(..., { keepalive: true })` for a plain string/JSON body (the beacon's only two transports,
+  M8) — the header is reliably present for every real client this route serves.
+- T091's 4 KB case (`tests/unit/analyticsIngestValidation.test.ts`) now passes: 18/18. The
+  integration suites `analytics-ingest.test.ts` (3/3) and `analytics-privacy.test.ts` (9/9) were
+  re-run to confirm the new middleware does not affect any normal-sized request — both unchanged.
+- `lint` / `tsc --noEmit -p tsconfig.test.json` clean on the touched file.
+
+---
+
+## [2026-07-24T10:55:00.000+01:00] — docs(analytics): T092 confirm ingest schema hardening (analyticsIngest.ts)
+
+### Changed
+- `apps/api/src/services/analyticsIngest.ts` — `ingestEventSchema`'s doc comment now records that
+  every M2 bound (path length/prefix, referrer/utm max lengths, boolean `adClick`, strict
+  unknown-key rejection) rejects out-of-range input outright rather than truncating it, and cites
+  T091's boundary suite as the exercising proof. No behavioral change: the schema already satisfied
+  every M2 bound exactly (confirmed by all 17 schema-level T091 assertions passing unmodified).
+
+### Notes
+- T092's Do line ("enforce all M2 bounds exactly... rejection is 400 — never truncation") was
+  already true of the Pass 2 schema; this task closes as verification + documentation, the same
+  class of outcome previously accepted for T089 ("no gaps surfaced, no source changes needed").
+- T092's Done-when references "T091 green" — T091 sits at 17/18 (the 4 KB body-cap case is an
+  HTTP-layer, route-level concern closed by T093, not a schema concern this task can affect).
+  Documented here rather than overstated in the `tasks.md` note.
+- `lint` / `tsc --noEmit -p tsconfig.test.json` clean; T091 suite re-run unchanged (17/18, same
+  case red for the same reason).
+
+---
+
+## [2026-07-24T10:45:00.000+01:00] — test(analytics): T091 ingest validation boundary unit tests (analyticsIngestValidation.test.ts)
+
+### Added
+- `apps/api/tests/unit/analyticsIngestValidation.test.ts` (new) — 18 tests, each an accept/reject
+  pair at the exact M2 pinned threshold: `path` (512 accepted / 513 rejected, missing, empty,
+  not-`/`-prefixed), unknown-field strict rejection, `referrer` (2048/2049), each of
+  `utmSource`/`utmMedium`/`utmCampaign` (100/101, via `describe.each`), `adClick`
+  (true/false/non-boolean), and one HTTP-layer case for the 4 KB body cap.
+- The 4 KB case posts a schema-valid `{ path: '/a' }` payload padded with insignificant JSON
+  whitespace to exactly 4097 raw bytes (`Buffer.byteLength` asserted), isolating the size-cap
+  boundary from the per-field length boundaries above — every field individually satisfies M2,
+  so only a route-level size check (T093) can reject it.
+
+### Notes
+- All 17 schema-level cases pass immediately against the unmodified Pass 2 schema
+  (`analyticsIngest.ts`'s `ingestEventSchema` already implements every M2 bound exactly); only the
+  4 KB HTTP-layer case is red (204 received, 400 expected) — Pass 2 has no body-size enforcement
+  beyond the app-wide 10 MB limit in `app.ts`, mounted ahead of this router. This mirrors the
+  precedent already accepted for T088/T089 (a test may find Pass 2 already correct — the task's
+  value is the coverage it locks in, not necessarily new red).
+- `describe.each` covers the three identically-shaped utm fields without triplicating the pair —
+  each field still gets its own two dedicated assertions (18 total tests, not 6 collapsed into 2).
+- `lint` / `tsc --noEmit -p tsconfig.test.json` both clean on the new file.
+- Zod schema declarations have no branch points of their own (method-chain calls, not
+  conditionals) — the file's real branch-coverage gap is the `cookies.mh_vid || randomUUID()` /
+  `cookies.mh_sid || randomUUID()` fallbacks in `ingestAnalyticsEvent`, closed by the cookie-absent
+  case in T094/T096, not this suite. DoD-3's 100% branch coverage on ingest validation is a
+  whole-Pass-3 outcome (T091 through T097), not a single-task guarantee.
+
+---
+
+## [2026-07-24T10:30:00.000+01:00] — docs(specs): T080/T081/T090 checkbox re-tick (carry-forward from review-log)
+
+### Verified (no source files touched)
+- Boot-sequence carry-forward per review-log.md's 2026-07-24 "T080/T081/T090/T087 review-fix
+  re-review" entry: all three tasks were reviewed PASS / PASS-WITH-NITS against real committed
+  HEAD, but the reviewer explicitly left their `tasks.md` checkboxes unchecked ("reviewer MAY
+  uncheck a wrongly-completed task but MUST NOT mark any task [x]"), deferring the re-tick to the
+  implementer. Current HEAD (`ace7cd6`) is exactly the reviewed commits (`e8452e1`, `545350a`,
+  `d25c950`) plus the review-log update itself — no drift since the review.
+- Independently re-ran both suites rather than trusting the review verbatim:
+  `pnpm --filter @modular-house/web test:run`: 53 files, 461/461 passing — matches review.
+  `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`: 59 files, **463/463**
+  passing — the lone `analytics-privacy.test.ts` S5 flake the review reported (pre-existing
+  cross-file DB race, disclosed at T058/T068) did not reproduce this run.
+  `git diff --name-only adbc335..HEAD`: 14 files (the review's 13 plus `review-log.md` itself,
+  added by the review commit) — all attributable to T080-T090's own scope; no Phase 1 auth/OTP/
+  reset/settings suite and no public marketing/SEO/configurator suite touched beyond the T082/T086
+  exceptions the plan names.
+- Checkboxes re-ticked: T080, T081, T090.
+
+### Notes
+- Pass 2 exit criteria (plan §5.3, DoD-1, SC-003) reconfirmed satisfied at real HEAD, closing out
+  the session-boundary gap the 2026-07-24 review identified (working-tree-only fixes that were
+  never committed). Session proceeds to Pass 3 (T091 onward) per SESSION GOAL.
+
+---
+
 ## [2026-07-23T21:00:00.000+01:00] — chore(checkpoint): T090 Pass 2 exit — both suites green, diff audit clean
 
 ### Verified (no files touched)

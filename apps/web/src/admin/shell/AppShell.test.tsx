@@ -248,5 +248,67 @@ describe('Admin shell (AppShell)', () => {
     });
   });
 
-  
+  // ── Sidebar navigation integration (T083, T-F6) ──────────────────────
+  //
+  // Renders the real App tree (persistence.test.tsx/preAuthWiring.test.tsx
+  // pattern, not a stubbed route table) to prove the sidebar's "Analytics"
+  // entry (T081, already green) and the /admin index route (Q7) resolve
+  // together: an authenticated admin landing on /admin sees the Analytics
+  // dashboard rendered inside the Phase 1 shell, not the Settings page.
+  // Red until T084 changes the index redirect target.
+
+  describe('Sidebar navigation integration (T083, T-F6)', () => {
+    const authedUser = {
+      id: 'user-t083',
+      email: 'jane@example.com',
+      displayName: 'Jane Doe',
+      role: 'admin',
+      permissions: ['pages:view'],
+      hasProfilePhoto: false,
+      isSuperAdmin: false,
+      preferences: { themeMode: 'system' as const, sidebarCollapsed: false },
+    };
+
+    // Dedicated fetch stub for this block only: the file-level `mockFetch`
+    // above always resolves a photo blob regardless of URL (Profile photo
+    // block), which cannot serve /admin/auth/me's JSON contract. Swapped in
+    // for the duration of this block and restored in afterEach so the
+    // Profile photo tests keep using their own stub.
+    const meFetch = vi.fn((url: string, _init?: Parameters<typeof fetch>[1]) => {
+      if (String(url).includes('/admin/auth/me')) {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(authedUser) });
+      }
+      return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
+    });
+
+    beforeEach(() => {
+      vi.stubGlobal('fetch', meFetch);
+    });
+
+    afterEach(() => {
+      vi.stubGlobal('fetch', mockFetch);
+    });
+
+    it('sidebar shows "Analytics" and /admin (index) lands on the Analytics dashboard inside the shell', async () => {
+      render(
+        <HelmetProvider>
+          <MemoryRouter initialEntries={['/admin']}>
+            <App />
+          </MemoryRouter>
+        </HelmetProvider>,
+      );
+
+      // Sidebar nav entry (T081, already green independently of the redirect).
+      const analyticsLink = await screen.findByRole('link', { name: /analytics/i });
+      expect(analyticsLink).toHaveAttribute('href', '/admin/analytics');
+
+      // T-F6/Q7: the index route lands on the Analytics dashboard rendered
+      // inside the shell — the top-bar sidebar-toggle proves shell chrome
+      // wraps the page rather than a bare, unwrapped route.
+      expect(
+        await screen.findByRole('heading', { level: 1, name: 'Analytics' }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /toggle sidebar/i })).toBeInTheDocument();
+    });
+  });
 });

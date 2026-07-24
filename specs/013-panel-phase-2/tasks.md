@@ -1345,7 +1345,8 @@
 
 ### E-RANGE — overview validation, buckets, deltas
 
-- [ ] T102 Write failing overview range edge tests (E-RANGE)
+- [x] T102 Write failing overview range edge tests (E-RANGE)
+> note: 10 new E-RANGE cases (5 Q1 400s, 2 Q4 bucket, 1 Q5 zero-previous); required fixing T063/T064's un-faked future dates; tests: 5 red/5 green; deviations: same-file T063/T064 fake-timer fix
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: `from > to` -> 400; `to = tomorrow` (date form) -> 400; span of 490 days accepted / 491
       -> 400; mixed date/datetime params -> 400; datetime `to` in the future -> 400; 2-day span
@@ -1355,7 +1356,8 @@
       Done when: each case red against the Pass 2 happy-path validation.
       Refs: E-RANGE, Q1/Q4/Q5, FR-019
 
-- [ ] T103 Implement full Q1 range validation
+- [x] T103 Implement full Q1 range validation
+> note: resolveRanges returns {ranges}|{error}; form-consistency/from<=to/to<=today-now/span<=490 checks, nested ErrorResponse+details; tests: T102 5/5 400 cases green; deviations: none
       Files: apps/api/src/routes/admin/analytics.ts
       Do: Validate `from`/`to`: both `YYYY-MM-DD` (London days) or both ISO 8601 UTC datetimes —
       mixing -> 400; `from <= to`; `to <= today` (date) / `to <= now` (datetime); span <= 490
@@ -1363,7 +1365,8 @@
       Done when: T102 validation cases green.
       Refs: Q1, contract 400 responses
 
-- [ ] T104 Harden bucket and delta edge behavior
+- [x] T104 Harden bucket and delta edge behavior
+> note: no code change — resolveBucket/computeDeltaPercent already exact vs Q4/Q5 pinned values; tests: T102's 3 bucket/delta cases passed unmodified; deviations: none
       Files: apps/api/src/services/analyticsQuery.ts
       Do: Exact Q4 boundary (hour iff span <= 2 days, incl. the trailing-24h datetime case); Q5
       comparison window (preceding equal length, ending the day before `from` / at `from`

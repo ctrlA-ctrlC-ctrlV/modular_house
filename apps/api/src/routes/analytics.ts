@@ -1,14 +1,16 @@
 /**
  * Public analytics ingest route (Phase 2, plan §2.3 M1, research R3).
  *
- * `POST /api/analytics/events` — the fire-and-forget beacon target. Validates
- * the payload with the existing `validateBody` middleware (Zod → 400 on a
- * malformed body, M2), applies the existing `generalRateLimit` middleware
- * (429 on excess, M6 — the analytics-specific 120/min boundary is configured
- * and tested in Pass 3), and delegates to `ingestAnalyticsEvent` which stores
- * exactly one anonymous event. A stored event responds **204** with an empty
- * body (M1); Pass 3 will extend the handler so bot (M4) and `/admin`-path
- * (M5) drops also respond 204 so callers cannot distinguish drop from store.
+ * `POST /api/analytics/events` — the fire-and-forget beacon target. Enforces
+ * the 4 KB request-body cap (M2, T093), validates the payload with the
+ * existing `validateBody` middleware (Zod → 400 on a malformed body, M2),
+ * applies the existing `generalRateLimit` middleware (429 on excess, M6 —
+ * the analytics-specific 120/min boundary is configured and tested in Pass
+ * 3), and delegates to `ingestAnalyticsEvent`, which stores exactly one
+ * anonymous event or silently drops known bot traffic (M4, T095). Both
+ * outcomes respond **204** with an empty body (M1); Pass 3 will extend the
+ * service so `/admin`-path drops (M5) also respond 204, so callers cannot
+ * distinguish any drop from a store.
  *
  * The route is mounted under `/api/analytics` by `app.ts` (T044), so the full
  * path is `/api/analytics/events` — matching
@@ -17,13 +19,14 @@
  * service emits its own Pino counter for the stored event (no PII — M7).
  *
  * Status codes (contract POST /api/analytics/events):
- *   - 204 — event stored (or, in Pass 3, deliberately dropped: bot / admin path)
- *   - 400 — malformed payload / unknown field / over-length (validateBody → M2)
+ *   - 204 — event stored, or deliberately dropped (bot, M4; admin path in Pass 3, M5)
+ *   - 400 — malformed payload / unknown field / over-length / over-4KB body (M2)
  *   - 429 — IP rate limit exceeded (generalRateLimit → M6; Pass 3 configures 120/min)
  */
 import { Router, Request, Response, NextFunction } from 'express';
 import { validateBody } from '../middleware/validate.js';
 import { generalRateLimit } from '../middleware/rateLimit.js';
+import { HttpError } from '../middleware/error.js';
 import {
   ingestEventSchema,
   ingestAnalyticsEvent,
@@ -32,19 +35,52 @@ import {
 
 const router: Router = Router();
 
+/** M2: the ingest request body may not exceed 4 KB (4096 bytes). */
+const MAX_INGEST_BODY_BYTES = 4096;
+
+/**
+ * Reject any request whose declared body size exceeds the M2 4 KB cap.
+ *
+ * `app.ts` mounts an app-wide `express.json({ limit: '10mb' })` ahead of
+ * every router (including this one), so by the time a request reaches this
+ * middleware `body-parser` has already parsed `req.body` and marked
+ * `req._body = true` — a second, stricter `express.json({ limit: '4kb' })`
+ * chained here would be a silent no-op (body-parser skips re-parsing an
+ * already-parsed body). Reading the client-supplied `Content-Length` header
+ * instead lets this route enforce its own, narrower cap without altering the
+ * app-wide parser or its 10 MB ceiling for every other route.
+ *
+ * The oversize case is forwarded to the shared `errorHandler` (via
+ * `HttpError`) rather than written inline, so it flows through the same
+ * error-handling path as every other operational error in the app.
+ */
+function enforceIngestBodySizeCap(req: Request, _res: Response, next: NextFunction): void {
+  const contentLength = Number(req.headers['content-length']);
+
+  if (Number.isFinite(contentLength) && contentLength > MAX_INGEST_BODY_BYTES) {
+    next(new HttpError('Request body exceeds the 4 KB limit', 400));
+    return;
+  }
+
+  next();
+}
+
 /**
  * POST /events — record one public-site page view.
  *
- * Middleware order: rate limit → validate → handler. Rate limiting runs before
- * validation so a flood of malformed payloads is still throttled (defense in
- * depth). Validation runs before the handler so `req.body` is the Zod-validated
- * `IngestEventInput` by the time the handler reads it (the `validateBody`
- * middleware replaces `req.body` with the parsed data on success and returns
- * 400 on failure).
+ * Middleware order: rate limit → body-size cap → validate → handler. Rate
+ * limiting runs first so a flood of any kind of malformed or oversized
+ * request is still throttled (defense in depth). The body-size cap runs
+ * before schema validation so an oversized request is rejected on its own
+ * terms rather than being evaluated field-by-field first. Validation runs
+ * before the handler so `req.body` is the Zod-validated `IngestEventInput`
+ * by the time the handler reads it (the `validateBody` middleware replaces
+ * `req.body` with the parsed data on success and returns 400 on failure).
  */
 router.post(
   '/events',
   generalRateLimit,
+  enforceIngestBodySizeCap,
   validateBody(ingestEventSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -57,10 +93,6 @@ router.post(
         mh_sid: req.cookies?.mh_sid,
       };
 
-      // Happy-path store (T042). Pass 3 will add bot (M4) and `/admin`-path
-      // (M5) drops here, still responding 204 (M1: callers cannot distinguish
-      // drop from store).
-      await ingestAnalyticsEvent(req.body, cookies);
 
       // M1: a stored event responds 204 with an empty body — never an error
       // the page surfaces. The beacon ignores every response (R1).

@@ -1299,13 +1299,14 @@
       Done when: T094 rate-limit case green.
       Refs: M6, M1, constitution I
 > note: dedicated analyticsIngestRateLimit (120/1min) replaces generalRateLimit on this route; logger.warn on 429; tests: T094 11/11 all green; deviations: none
-> reviewed: PASS-WITH-NITS — 429 body cites inapplicable T069 precedent; DB-race now near-deterministic
+> reviewed: PASS-WITH-NITS — T069 citation fixed; note omits DB-race clock-retarget fix
 > note: review-nit fix — analytics.ts doc comment's T069 citation corrected (this is a newly-noted ingest-429/ErrorResponse doc-drift, not T069's admin-401 case)
 ### E-BEACON — transport resilience
 
 - [x] T098 Write failing beacon resilience tests (E-BEACON)
 > note: 5 new edge cases — 500 resolved response, network-down, sendBeacon-false fallback, 0-retry x2; tests: all 5 passed immediately (no red); deviations: none
 > note: no code gap found — M8 resilience (false-fallback, swallow-all, zero retries) already implemented at T046 review-fix; disclosed honestly rather than forcing artificial red, see change-log
+> reviewed: PASS — 5 cases verified against M8/R1; 33/33 file count confirmed exact
       Files: apps/web/src/analytics/beacon.test.ts
       Do: Ingest endpoint 500/network-down -> no thrown error, no console error, page code keeps
       running; `navigator.sendBeacon` undefined -> keepalive fetch used; sendBeacon returning
@@ -1315,6 +1316,7 @@
 
 - [x] T099 Harden the beacon failure paths
 > note: no implementation change required — dispatch() already swallows every path (throw/reject/false-return), zero retry logic exists; tests: T098's 5 cases green, 33/33 file total; deviations: none
+> reviewed: PASS — beacon.ts zero-diff verified; swallow-all/zero-retry hand-traced
       Files: apps/web/src/analytics/beacon.ts
       Do: Swallow every transport error, implement the sendBeacon-false fallback, guarantee zero
       retries.
@@ -1325,6 +1327,7 @@
 
 - [x] T100 Write failing source-classification edge tests (E-SOURCE)
 > note: 12 edge cases added (S1/S3/REFERRAL re-asserts + lookalike/label/case-insensitive); tests: 2/48 red (notgoogle.com, notx.com) — genuine matcher gap; deviations: none
+> reviewed: PASS — 12-case count verified exact; red/green split matches diff
       Files: apps/api/tests/unit/trafficSource.test.ts
       Do: `utmSource` + search referrer -> CAMPAIGN; `adClick` + search referrer -> CAMPAIGN (S1
       precedence); own-host referrer -> DIRECT; unparsable referrer -> DIRECT; unknown external
@@ -1336,6 +1339,7 @@
 
 - [x] T101 Harden the hostname matching semantics
 > note: registrableLabel() (co/com/.. + 2-letter cc heuristic) + exact/dot-suffix matchesList rewrite; tests: 48/48 passing; deviations: none
+> reviewed: PASS — matches plan S2 exactly incl. www.google.co.uk pinned example
       Files: apps/api/src/services/trafficSource.ts
       Do: Implement S2 exactly: dot-containing entries match the host exactly or as a `.`-suffix;
       single-token entries match the host's registrable second-level label; case-insensitive;
@@ -1347,6 +1351,7 @@
 
 - [x] T102 Write failing overview range edge tests (E-RANGE)
 > note: 10 new E-RANGE cases (5 Q1 400s, 2 Q4 bucket, 1 Q5 zero-previous); required fixing T063/T064's un-faked future dates; tests: 5 red/5 green; deviations: same-file T063/T064 fake-timer fix
+> reviewed: PASS-WITH-NITS — case count wrong: actual 9 (5 red/4 green), not 10 (5/5)
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: `from > to` -> 400; `to = tomorrow` (date form) -> 400; span of 490 days accepted / 491
       -> 400; mixed date/datetime params -> 400; datetime `to` in the future -> 400; 2-day span
@@ -1358,6 +1363,7 @@
 
 - [x] T103 Implement full Q1 range validation
 > note: resolveRanges returns {ranges}|{error}; form-consistency/from<=to/to<=today-now/span<=490 checks, nested ErrorResponse+details; tests: T102 5/5 400 cases green; deviations: none
+> reviewed: PASS — Q1 order/boundaries hand-verified exact; ErrorResponse matches contract
       Files: apps/api/src/routes/admin/analytics.ts
       Do: Validate `from`/`to`: both `YYYY-MM-DD` (London days) or both ISO 8601 UTC datetimes —
       mixing -> 400; `from <= to`; `to <= today` (date) / `to <= now` (datetime); span <= 490
@@ -1367,6 +1373,7 @@
 
 - [x] T104 Harden bucket and delta edge behavior
 > note: no code change — resolveBucket/computeDeltaPercent already exact vs Q4/Q5 pinned values; tests: T102's 3 bucket/delta cases passed unmodified; deviations: none
+> reviewed: PASS — analyticsQuery.ts zero-diff confirmed; Q4/Q5 logic already exact
       Files: apps/api/src/services/analyticsQuery.ts
       Do: Exact Q4 boundary (hour iff span <= 2 days, incl. the trailing-24h datetime case); Q5
       comparison window (preceding equal length, ending the day before `from` / at `from`

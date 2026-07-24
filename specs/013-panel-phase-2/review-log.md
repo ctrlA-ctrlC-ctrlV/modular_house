@@ -6,6 +6,92 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-24 — T096/T097 review-fix + T098-T104 (baseline: 9b268fa)
+
+T097 — PASS-WITH-NITS — T069 citation fixed; note omits DB-race clock-retarget fix
+T098 — PASS — 5 cases verified vs M8/R1; 33/33 file count exact
+T099 — PASS — beacon.ts zero-diff verified; swallow-all/zero-retry hand-traced
+T100 — PASS — 12-case count exact; 2/48 red matches lookalike gap
+T101 — PASS — registrableLabel matches S2 exactly incl. co.uk pinned example
+T102 — PASS-WITH-NITS — case count wrong: actual 9, not claimed 10 (5 red/5 green)
+T103 — PASS — Q1 order/boundaries exact; ErrorResponse shape matches contract
+T104 — PASS — analyticsQuery.ts zero-diff confirmed; Q4/Q5 already exact
+VITEST-FIX — PASS-WITH-NITS — fileParallelism root cause verified; still uncommitted
+
+Detail: This session's baseline is `9b268fa`, the commit where the prior T096-T097 review
+concluded — not `faf7ac1` (that review's own stated baseline, one round earlier). Four commits
+landed between `9b268fa` and the T098 work (`aae5847`, `f6711ce`, `94e6d6a`, `96e8623`) applying
+the T096-T097 review's own nits; those are re-reviewed here as "T097" since no prior re-review
+entry exists for them.
+
+T097: `analytics.ts`'s doc comment now correctly cites "review-log.md T096-T097" instead of the
+inapplicable T069 (hand-verified against both entries — T069 really is about the admin 401 shape,
+a different endpoint/status). The DB-race fix (`analytics-ingest.test.ts`'s rate-limit block now
+fakes its clock to 2099 so its 120 real inserted rows can never fall inside another suite's date-
+scoped query window) is real, correctly scoped (a `beforeEach` inside only the rate-limit
+`describe`), and change-log.md documents it fully — but `tasks.md`'s own `> note:` under T097
+mentions only the T069 citation fix, not this second change to the same file. Nit, not
+concealment: the higher-priority change-log index does disclose it.
+
+T098/T099 (beacon, E-BEACON): `beacon.test.ts` gained exactly 5 new `it()` blocks (500-resolved,
+network-down, sendBeacon-false fallback, sendBeacon-throw zero-retry, fetch-reject zero-retry) —
+33 total in file, matching the note. `beacon.ts` has a literal zero-line diff since `9b268fa`;
+hand-traced `dispatch()`: every `sendBeacon`/`fetch` failure path is caught and swallowed, no retry
+path exists anywhere in the function. Both notes' counts and "no code change" claims verified true.
+
+T100/T101 (source matching, E-SOURCE): `trafficSource.test.ts`'s new `T100` describe block has
+exactly 12 `it()` blocks (counted directly), matching the note; file total 48 (36 pre-existing +
+12), matching "2/48 red". `registrableLabel()`/`matchesList()` in `trafficSource.ts` were hand-
+traced against plan.md S2's exact wording, including its one worked multi-part-TLD example
+(`www.google.co.uk` -> label `google` -> SEARCH) — exact match. TDD order confirmed via git log:
+test commit `d12fee1` precedes implementation commit `f84e590`.
+
+T102/T103/T104 (range validation, E-RANGE): `resolveRanges()` in `admin/analytics.ts` was hand-
+traced against Q1's exact rule order (form-consistency, then from<=to, then the future-date
+boundary, then the 490-day span cap) and the 490-accepted/491-rejected boundary math checks out
+exactly. The 400 response body (`{error:{message,details:[{field,message}]}}`) matches
+`contracts/analytics.openapi.yaml`'s `ErrorResponse` schema exactly. TDD order confirmed: test
+commit `e144713` precedes implementation commit `49beab5`. T104's "no code change" claim is
+confirmed by a literal zero-diff on `analyticsQuery.ts`.
+
+Nit (T102, the one real finding this round): the task's own note and change-log entry claim "10
+new E-RANGE cases (5 Q1 400s, 2 Q4 bucket, 1 Q5 zero-previous)" and "5 red/5 green" — both
+arithmetically wrong on their own terms (5+2+1=8, not 10; and the change-log's T103 entry
+separately states "15/15 passing... 6 pre-existing + this task's 10 new," which is also wrong:
+6+10=16, not 15). Directly counting `it()` blocks in the file confirms 15 total, 9 of them new
+under T102's own describe block (5 red-at-authoring Q1 violations + 4 already-green: span-490-
+accepted, both Q4 bucket cases, and the Q5 zero-previous case) — not 10. The tests themselves are
+real, correctly written, and correctly TDD-sequenced; only the documented count is wrong. Same
+recurring pattern previously flagged at T010, T014, and T094.
+
+Independently re-verified the whole suite rather than trusting any change-log claim: `pnpm
+--filter @modular-house/api test:run` twice, both 60/60 files, 510/510 tests, clean — matching
+durations (82.15s, 80.39s) consistent with the corrective session's own claimed sequential-
+execution numbers (~82s). `pnpm --filter @modular-house/web test:run`: 53/53, 466/466, clean —
+also matching the corrective session's claimed count exactly. `prisma validate` clean; `prisma
+migrate status` — up to date, no drift; `prisma migrate diff --shadow-database-url ... --exit-code`
+— no difference (the bare command in §6 needs `--shadow-database-url`, absent from
+`schema.prisma`'s datasource block; supplied from `.env`'s `SHADOW_DATABASE_URL` to run it).
+`docs:validate`, `lint`, `typecheck` all clean.
+
+VITEST-FIX (not a `Txxx` task — the session's own "corrective session," explicitly in this
+session's stated scope as "pre-existing full-suite flakiness"): `apps/api/vitest.config.ts` now
+sets `fileParallelism: false` directly in config, with a detailed change-log entry explaining why
+the documented `-- --no-file-parallelism` CLI flag never actually worked (pnpm forwards its own
+`--` verbatim into the script's argv, and vitest's `cac`-based parser treats that forwarded `--` as
+its own positional-args marker, silently swallowing the flag). The technical claim is independently
+corroborated, not just trusted: this reviewer's own two `test:run` reruns landed at 82.15s/80.39s
+wall-clock duration, matching the change-log's claimed ~82s sequential-execution figure almost
+exactly (versus the previously-reported ~20-25s under the broken "parallel" default), and both runs
+were fully clean at 510/510 — a marked, verified improvement over the same review-log's own T096-
+T097 entry, which reported only 1-of-9 full-suite runs clean before this fix. Nit: the change-log's
+own citation "this spec's own §9/§11" doesn't resolve to any actual numbered section in
+`quickstart.md`, `tasks.md`, or `plan.md` — minor citation inaccuracy, does not affect the
+substance of the (independently verified) technical claim. Bigger issue, not a nit: both
+`apps/api/vitest.config.ts` and the change-log entry documenting it remain **uncommitted** in the
+working tree as of this review — a real, verified fix currently invisible to CI and to anyone
+pulling the branch. Flagged as the top must-do action item.
+
 ## 2026-07-24 — T096-T097 (baseline: faf7ac1)
 
 T096 — PASS — canonicalizePath/admin-drop verified exact vs M5/M10; bare-/admin coverage gap disclosed

@@ -1303,7 +1303,9 @@
 > note: review-nit fix — analytics.ts doc comment's T069 citation corrected (this is a newly-noted ingest-429/ErrorResponse doc-drift, not T069's admin-401 case)
 ### E-BEACON — transport resilience
 
-- [ ] T098 Write failing beacon resilience tests (E-BEACON)
+- [x] T098 Write failing beacon resilience tests (E-BEACON)
+> note: 5 new edge cases — 500 resolved response, network-down, sendBeacon-false fallback, 0-retry x2; tests: all 5 passed immediately (no red); deviations: none
+> note: no code gap found — M8 resilience (false-fallback, swallow-all, zero retries) already implemented at T046 review-fix; disclosed honestly rather than forcing artificial red, see change-log
       Files: apps/web/src/analytics/beacon.test.ts
       Do: Ingest endpoint 500/network-down -> no thrown error, no console error, page code keeps
       running; `navigator.sendBeacon` undefined -> keepalive fetch used; sendBeacon returning
@@ -1311,7 +1313,8 @@
       Done when: any missing resilience path red.
       Refs: E-BEACON, M8, research R1, FR-012, SC-009
 
-- [ ] T099 Harden the beacon failure paths
+- [x] T099 Harden the beacon failure paths
+> note: no implementation change required — dispatch() already swallows every path (throw/reject/false-return), zero retry logic exists; tests: T098's 5 cases green, 33/33 file total; deviations: none
       Files: apps/web/src/analytics/beacon.ts
       Do: Swallow every transport error, implement the sendBeacon-false fallback, guarantee zero
       retries.
@@ -1320,7 +1323,8 @@
 
 ### E-SOURCE — classification precedence and matching
 
-- [ ] T100 Write failing source-classification edge tests (E-SOURCE)
+- [x] T100 Write failing source-classification edge tests (E-SOURCE)
+> note: 12 edge cases added (S1/S3/REFERRAL re-asserts + lookalike/label/case-insensitive); tests: 2/48 red (notgoogle.com, notx.com) — genuine matcher gap; deviations: none
       Files: apps/api/tests/unit/trafficSource.test.ts
       Do: `utmSource` + search referrer -> CAMPAIGN; `adClick` + search referrer -> CAMPAIGN (S1
       precedence); own-host referrer -> DIRECT; unparsable referrer -> DIRECT; unknown external
@@ -1330,7 +1334,8 @@
       Done when: matching-semantics cases red against the Pass 2 matcher.
       Refs: E-SOURCE, S1/S2/S3, FR-011
 
-- [ ] T101 Harden the hostname matching semantics
+- [x] T101 Harden the hostname matching semantics
+> note: registrableLabel() (co/com/.. + 2-letter cc heuristic) + exact/dot-suffix matchesList rewrite; tests: 48/48 passing; deviations: none
       Files: apps/api/src/services/trafficSource.ts
       Do: Implement S2 exactly: dot-containing entries match the host exactly or as a `.`-suffix;
       single-token entries match the host's registrable second-level label; case-insensitive;

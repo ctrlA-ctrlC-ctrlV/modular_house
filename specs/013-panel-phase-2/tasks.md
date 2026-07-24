@@ -1301,6 +1301,7 @@
 > note: dedicated analyticsIngestRateLimit (120/1min) replaces generalRateLimit on this route; logger.warn on 429; tests: T094 11/11 all green; deviations: none
 > reviewed: PASS-WITH-NITS — T069 citation fixed; note omits DB-race clock-retarget fix
 > note: review-nit fix — analytics.ts doc comment's T069 citation corrected (this is a newly-noted ingest-429/ErrorResponse doc-drift, not T069's admin-401 case)
+> note: review-fix — T097 note now discloses the DB-race clock-retarget fix (analytics-ingest.test.ts rate-limit block clock->2099); tests: unchanged 11/11; deviations: none
 ### E-BEACON — transport resilience
 
 - [x] T098 Write failing beacon resilience tests (E-BEACON)
@@ -1352,6 +1353,7 @@
 - [x] T102 Write failing overview range edge tests (E-RANGE)
 > note: 10 new E-RANGE cases (5 Q1 400s, 2 Q4 bucket, 1 Q5 zero-previous); required fixing T063/T064's un-faked future dates; tests: 5 red/5 green; deviations: same-file T063/T064 fake-timer fix
 > reviewed: PASS-WITH-NITS — case count wrong: actual 9 (5 red/4 green), not 10 (5/5)
+> note: review-nit fix — count corrected: 9 new cases (5 red: Q1 violations; 4 green: span-490/2d-bucket/24h-bucket/zero-prev); tests: 9 (5 red/4 green); deviations: none
       Files: apps/api/tests/integration/analytics-overview.test.ts
       Do: `from > to` -> 400; `to = tomorrow` (date form) -> 400; span of 490 days accepted / 491
       -> 400; mixed date/datetime params -> 400; datetime `to` in the future -> 400; 2-day span

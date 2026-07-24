@@ -171,6 +171,137 @@ describe('analyticsQuery (T058)', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // E-TZ — timezone bucketing and DST safety (T105)
+  // ---------------------------------------------------------------------------
+  // Every bucket, day-boundary, and returning-visitor computation in
+  // analyticsQuery.ts goes through `AT TIME ZONE 'Europe/London'` (research
+  // R6), so Postgres — not application code — resolves the DST rules. These
+  // cases pin two distinct failure modes a naive UTC-day truncation would
+  // exhibit: (1) collapsing two events that are on the SAME UTC calendar day
+  // but different Europe/London calendar days into one bucket/one V3
+  // classification, and (2) assuming every local day is exactly 24 hours,
+  // which breaks across an actual BST transition. All fixed UTC instants
+  // below were independently verified against the real Postgres instance
+  // (`AT TIME ZONE 'Europe/London'`) rather than hand-computed alone.
+  describe('E-TZ: timezone bucketing and DST safety', () => {
+    it(
+      'buckets 23:30/00:30 Europe/London events (same UTC calendar day) into different day ' +
+        'buckets and classifies the visitor as returning across that same London-day boundary (V3/Q4)',
+      async () => {
+        // London midnight 2026-08-14 (BST, UTC+1) .. exclusive London midnight
+        // 2026-08-17 -> three day buckets: Aug 14, Aug 15, Aug 16. August is
+        // used (not July) so this range never overlaps the shared db:seed
+        // analytics fixtures, which occupy 2026-07-13..07-15 (see
+        // analyticsFixtureData.ts) and would otherwise inflate the counts
+        // asserted below, since this file's `beforeEach` only clears
+        // non-seed rows (`resetAnalyticsTablesExceptSeed`).
+        const current: DateRange = {
+          from: new Date('2026-08-13T23:00:00.000Z'),
+          to: new Date('2026-08-16T23:00:00.000Z'),
+        };
+
+        const visitorId = randomUUID();
+        // firstSeenAt = 23:30 Europe/London on Aug 14 (BST) = 22:30 UTC Aug 14.
+        const firstSeenAt = new Date('2026-08-14T22:30:00.000Z');
+        await upsertAnalyticsVisitor(prisma, { visitorId, firstSeenAt });
+
+        // This visitor's only in-range event: 00:30 Europe/London on Aug 15
+        // (BST) = 23:30 UTC Aug 14 — the SAME UTC calendar day as
+        // `firstSeenAt` above, but the NEXT Europe/London calendar day.
+        const sessionId = randomUUID();
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-08-14T23:30:00.000Z'),
+          path: '/late-night',
+          visitorId,
+          sessionId,
+        });
+
+        const result = await getOverview(prisma, { current, previous: NO_OP_PREVIOUS });
+
+        // Q4: three day buckets, the two 23:30/00:30 instants (1 hour apart in
+        // London wall-clock time, but on the same UTC calendar day) land in
+        // DIFFERENT buckets — the Aug 14 bucket stays empty of this event,
+        // the Aug 15 bucket holds it.
+        expect(result.bucket).toBe('day');
+        expect(result.timeseries).toHaveLength(3);
+        expect(nth(result.timeseries, 0).bucketStart.toISOString()).toBe('2026-08-13T23:00:00.000Z');
+        expect(nth(result.timeseries, 1).bucketStart.toISOString()).toBe('2026-08-14T23:00:00.000Z');
+        expect(nth(result.timeseries, 2).bucketStart.toISOString()).toBe('2026-08-15T23:00:00.000Z');
+        expect(nth(result.timeseries, 0)).toMatchObject({ pageViews: 0 });
+        expect(nth(result.timeseries, 1)).toMatchObject({ pageViews: 1 });
+        expect(nth(result.timeseries, 2)).toMatchObject({ pageViews: 0 });
+
+        // V3: the visitor's firstSeenAt Europe/London day (Aug 14) is
+        // strictly earlier than their first in-range event's Europe/London
+        // day (Aug 15) — returning, at rate 1.0 — even though both instants
+        // share the same UTC calendar day and are only 1 hour apart.
+        expect(result.kpis.uniqueVisitors.current).toBe(1);
+        expect(result.kpis.returningVisitorRate.current).toBeCloseTo(1, 10);
+      },
+    );
+
+    it(
+      'produces a correctly-bounded 25-hour day bucket across the 2026-10-25 BST-to-GMT ' +
+        'transition, with normal 24-hour buckets either side (DST-safe)',
+      async () => {
+        // Range spans three Europe/London calendar days straddling the actual
+        // 2026 "fall back" transition (clocks go from 02:00 BST to 01:00 GMT
+        // at 2026-10-25T01:00:00Z): Oct 24 (BST, 24h), Oct 25 (the transition
+        // day itself — 25h long in UTC terms), Oct 26 (GMT, 24h).
+        const current: DateRange = {
+          from: new Date('2026-10-23T23:00:00.000Z'), // Oct 24 00:00 BST
+          to: new Date('2026-10-27T00:00:00.000Z'), // Oct 27 00:00 GMT (exclusive)
+        };
+
+        const visitorId = randomUUID();
+        await upsertAnalyticsVisitor(prisma, { visitorId, firstSeenAt: current.from });
+
+        // One event per local day, each placed at local noon so it falls
+        // unambiguously on its intended side of the transition (Oct 24 noon
+        // is still BST; Oct 25/26 noon are already GMT, since the transition
+        // itself happens at 02:00 local, long before noon).
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-10-24T11:00:00.000Z'), // Oct 24 12:00 BST
+          path: '/oct24', visitorId, sessionId: randomUUID(),
+        });
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-10-25T11:00:00.000Z'), // Oct 25 11:00 GMT
+          path: '/oct25', visitorId, sessionId: randomUUID(),
+        });
+        await insertAnalyticsEvent(prisma, {
+          occurredAt: new Date('2026-10-26T11:00:00.000Z'), // Oct 26 11:00 GMT
+          path: '/oct26', visitorId, sessionId: randomUUID(),
+        });
+
+        const result = await getOverview(prisma, { current, previous: NO_OP_PREVIOUS });
+
+        expect(result.bucket).toBe('day');
+        expect(result.timeseries).toHaveLength(3);
+
+        const oct24Bucket = nth(result.timeseries, 0);
+        const oct25Bucket = nth(result.timeseries, 1);
+        const oct26Bucket = nth(result.timeseries, 2);
+
+        expect(oct24Bucket.bucketStart.toISOString()).toBe('2026-10-23T23:00:00.000Z');
+        expect(oct25Bucket.bucketStart.toISOString()).toBe('2026-10-24T23:00:00.000Z');
+        expect(oct26Bucket.bucketStart.toISOString()).toBe('2026-10-26T00:00:00.000Z');
+        expect(oct24Bucket).toMatchObject({ pageViews: 1 });
+        expect(oct25Bucket).toMatchObject({ pageViews: 1 });
+        expect(oct26Bucket).toMatchObject({ pageViews: 1 });
+
+        // The normal (pre-transition) gap is exactly 24 hours...
+        const normalGapMs = oct25Bucket.bucketStart.getTime() - oct24Bucket.bucketStart.getTime();
+        expect(normalGapMs).toBe(24 * 60 * 60 * 1000);
+        // ...but the transition day's own bucket spans 25 hours (the
+        // "fall back" hour is absorbed into the Oct 25 bucket, never dropped
+        // and never double-counted into a phantom fourth bucket).
+        const transitionGapMs = oct26Bucket.bucketStart.getTime() - oct25Bucket.bucketStart.getTime();
+        expect(transitionGapMs).toBe(25 * 60 * 60 * 1000);
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
   // V2 / V3 / V4 — KPI math
   // ---------------------------------------------------------------------------
   describe('V2/V3/V4: unique visitors, returning-visitor rate, pages per session', () => {

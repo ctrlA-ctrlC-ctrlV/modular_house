@@ -1,6 +1,96 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T15:20:00.000+01:00] — fix(api): disable vitest fileParallelism — root cause of the recurring cross-file DB race (vitest.config.ts)
+
+### Corrective session
+
+No `Txxx` task drives this entry — the session goal was the blocker raised at the end of the
+previous (T102-T104) session: "pre-existing full-suite flakiness, not caused by this session,"
+itself a re-statement of the cross-file DB race first disclosed at T058/T068 and repeatedly
+observed (T091-T097, T098-T101, T102-T104) without ever being root-caused. This session
+root-caused and fixed it.
+
+### Root cause
+
+The documented "safe" verification command (`pnpm --filter @modular-house/api test:run --
+--no-file-parallelism`, per this spec's own §9/§11) has **never actually disabled vitest's file
+parallelism**. Confirmed by comparing wall-clock `Duration` against the summed per-file
+`import`/`tests` timings in vitest's own reporter output:
+
+- Via the documented pnpm-forwarded command: `Duration 23.42s` but `import 113.69s` + `tests
+  171.07s` — over 280 seconds of work completed in 23 seconds of wall-clock time, only possible
+  under heavy file-level concurrency.
+- Via a direct `npx vitest run --no-file-parallelism` (bypassing pnpm entirely): `Duration 82.08s`
+  with `import 30.89s` + `tests 38.09s` — consistent with genuinely sequential execution, and the
+  run was clean (exit 0).
+
+Mechanism: `pnpm run <script> -- <extra-args>` forwards its own `--` separator **verbatim** into
+the invoked script's argv (this is pnpm/npm's documented behaviour — the separator is meant to
+reach the script, not be consumed by it). Since `apps/api/package.json`'s `test:run` script is
+bare `vitest run` (no args of its own), the forwarded argv vitest's CLI actually receives is `run
+-- --no-file-parallelism` — literally including pnpm's `--`. vitest's CLI parser (`cac`) treats a
+bare `--` as **its own** "everything after this is a raw/positional argument, not a flag" marker.
+`--no-file-parallelism` therefore arrives as a positional test-file-name filter (which matches no
+real file, so it silently has no filtering effect) rather than as the intended flag, and
+`fileParallelism` stays at vitest's default of `true`. This reproduces identically whether invoked
+through the root's `--filter` (`pnpm --filter @modular-house/api test:run -- ...`) or directly
+inside `apps/api` (`pnpm run test:run -- ...`) — the bug is in pnpm's `--`-forwarding convention
+interacting with vitest's own `--` handling, not in any per-invocation detail.
+
+**CI was equally affected, and by a different path**: `.github/workflows/*.yml`'s `test-api` job
+invokes `pnpm test:coverage` directly, with no parallelism flag at all — it was never even
+attempting the (broken) flag, so it has been running fully parallel since the workflow was
+written.
+
+With true file parallelism active, integration suites sharing one real Postgres test database (no
+per-file schema or transaction sandboxing) can and do observe each other's committed-but-not-yet-
+cleaned-up rows under READ COMMITTED isolation whenever two files' data windows happen to overlap
+in time — exactly the pattern repeatedly disclosed across sessions (e.g. `analytics-overview.test.ts`
+transiently seeing `analytics-realtime.test.ts`'s `/live-a`/`/live-b`/`/live-c` fixture rows). Several
+of the "flaky" failures observed in prior sessions were **not** analytics-specific at all (auth-login
+rate-limit counts, auth-refresh idle-timeout, verify-2fa/otp lockout thresholds, settings-photo file
+size) — a strong independent signal that the shared mechanism was file-level concurrency, not a bug
+confined to the analytics fixtures.
+
+### Changed
+
+- `apps/api/vitest.config.ts` — added `fileParallelism: false` to the `test` block. This makes
+  strictly-sequential file execution the **default** for this package's vitest invocation,
+  independent of how the command is later invoked (bare `vitest run`, any pnpm-forwarded flag
+  combination, or CI's own `pnpm test:coverage`) — a single point of truth rather than relying on
+  every caller supplying a flag correctly, which this session demonstrated is fragile through
+  pnpm's own tooling. `apps/web`'s vitest config is unaffected (public-site/admin-UI suites don't
+  share a live Postgres connection the way the API's integration suites do, so this is scoped to
+  `apps/api` only — no evidence of an equivalent race there).
+
+### Notes
+
+- **Verification**: `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` (the
+  documented command, its own flag-forwarding still broken but now moot) — **3 consecutive clean
+  runs, 60/60 files, 510/510 tests, exit 0 every time**, with `Duration` now consistently tracking
+  the summed per-file timings (~68-82s), confirming genuinely sequential execution. `pnpm
+  test:coverage` (root, both packages, CI's own exact invocation) — clean, exit 0, 60/60 + 53/53
+  files, 510/510 + 466/466 tests. DoD-3's gated files (`src/middleware/auth.ts`,
+  `src/services/auth.ts` per the existing `vitest.config.ts` thresholds) and `analyticsIngest.ts`
+  all confirmed 100% statements/branches/functions/lines in this run's coverage table.
+- `lint` (`pnpm --filter @modular-house/api lint`) / `tsc --noEmit` clean; `vitest.config.ts` is
+  itself excluded from the project's own ESLint globs (a pre-existing, unrelated ignore pattern),
+  confirmed by running the project's actual lint script rather than a raw per-file invocation.
+- **Trade-off, accepted deliberately**: sequential execution is slower in wall-clock terms than the
+  (broken, unsafe) parallel default — roughly 68-82s versus the 20-25s the broken flag combination
+  produced. Given this is a real-Postgres integration suite with cross-file shared state
+  (`db:seed` fixtures, no per-test transactional sandboxing beyond the isolated fixes already
+  applied at T068/T092-T097), correctness under constitution III's determinism mandate outweighs
+  the speed cost — a fast-but-flaky suite provides no actual signal.
+- **Not touched**: no Phase 1 auth/OTP/reset/settings test file's own logic, no CI workflow file
+  (the config-level fix covers CI without needing to edit `.github/workflows/*.yml`), no test
+  fixture/isolation helper (`analyticsFixtures.ts`'s existing transactional-rollback pattern from
+  T068 stays as-is — it remains a good defense-in-depth measure for the one call site that already
+  uses it, just no longer the sole line of defense against this whole class of race).
+
+---
+
 ## [2026-07-24T15:05:00.000+01:00] — docs(analytics): T104 bucket/delta edge hardening — no change required (analyticsQuery.ts)
 
 ### Notes

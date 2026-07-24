@@ -1,6 +1,102 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T15:05:00.000+01:00] — docs(analytics): T104 bucket/delta edge hardening — no change required (analyticsQuery.ts)
+
+### Notes
+- No implementation change: T102's three Q4/Q5 boundary cases (exact 2-day-span hour bucket,
+  trailing-24h datetime hour bucket, measured-but-zero comparison window) all passed immediately
+  against the existing `resolveBucket`/`computeDeltaPercent`/`getOverview` implementation.
+  `analyticsQuery.ts` is left byte-for-byte unchanged by this task; the task's `Done when: T102
+  bucket/delta cases green` criterion is met. Mirrors the T099 finding from the previous session
+  (beacon.ts's M8 hardening was likewise already complete) — this module's Q4/Q5 boundary logic was
+  evidently already built exactly to the pinned values when `getOverview` was first implemented.
+
+---
+
+## [2026-07-24T15:00:00.000+01:00] — feat(analytics): T103 full Q1 range validation (analytics.ts)
+
+### Changed
+- `apps/api/src/routes/admin/analytics.ts` — `resolveRanges` now returns a tagged union
+  (`{ ranges } | { error }`) instead of always succeeding. Validation order: (1) form consistency —
+  exactly one of `from`/`to` matching the `YYYY-MM-DD` pattern is a "mixed forms" 400; (2)
+  `from <= to` (lexicographic string comparison for the date form, numeric instant comparison for
+  the datetime form, after a `NaN`/invalid-format guard on the datetime form); (3) the future-date
+  boundary — `to <= today` (Europe/London calendar day) for the date form, `to <= now` for the
+  datetime form; (4) the 490-day span cap. Each check short-circuits with one field-tagged error so
+  a request violating several rules still reports one clear reason.
+- Added `londonCalendarDay(instant)`: resolves an arbitrary UTC instant to its Europe/London
+  calendar-day string via a parameterized `$queryRaw` (the instant is bound as a query parameter,
+  never SQL's own `now()`), so the "to <= today" check respects a fake-timer-injected `Date` in
+  tests exactly as the pre-existing `londonMidnightUtc` respects one for day-boundary conversion.
+- The route handler's 400 branch now emits the nested `ErrorResponse` shape the contract declares
+  (`{ error: { message, details: [{ field, message }] } }`), reusing the pattern the pre-existing
+  minimal presence/type guard already established for this same endpoint.
+
+### Notes
+- **Required a same-file test fix, not just new tests (T102's Files: scope already covers this
+  file)**: T063 and T064 (both pre-existing, already-passing Pass 2 tests in this same file) query
+  the overview endpoint with dates in the future relative to the *real* wall clock (`2026-08-01`/
+  `2026-08-02`, while the real current date this session is `2026-07-24`) and, in T064's case,
+  explicitly restore real timers (`vi.useRealTimers()`) *before* the GET call. Once this task's
+  `to <= today`/`to <= now` validation landed, both began failing 400 instead of 200. This is not a
+  new bug introduced by T103 — it is a pre-existing determinism gap (constitution III explicitly
+  requires deterministic time for range math) that Q1 validation simply now exposes. Fixed both to
+  fake `Date` forward past their chosen dates before the GET call (T063 gained a
+  `vi.useFakeTimers`/`vi.useRealTimers` pair around its call; T064's premature `vi.useRealTimers()`
+  became a forward `vi.setSystemTime()`, with the real restore moved to its `finally` block).
+- **Second-order fix, same root cause**: faking the clock forward to dates far from the real
+  session (some by ~7 weeks) pushed T063/T064's shared `beforeAll`-minted JWT (15-minute TTL,
+  `ACCESS_TOKEN_TTL` in `config/adminAuth.ts`) past expiry, producing 401s. Fixed by minting a fresh
+  `createAuthenticatedSession()` *after* installing each fake clock, so the token's own iat/exp are
+  computed relative to the faked "now". Discovered the same issue pre-emptively in three of T102's
+  own new tests and fixed it there identically before they were ever committed.
+- **Third-order fix, same root cause**: `createAuthenticatedSession`'s email (`analytics-overview-
+  ${Date.now()}@example.com`) collided across repeated runs once `Date.now()` was faked to a fixed
+  literal (no `afterEach` truncates the `users` table between runs) — a unique-constraint violation
+  on the second execution of any test using that fixed fake instant. Fixed by generating the email
+  from `randomUUID()` instead, decoupling test-user uniqueness from the (fakeable) clock. Verified
+  by running `analytics-overview.test.ts` in isolation 3 times consecutively post-fix: 15/15 clean
+  every time.
+- `apps/api/tests/integration/analytics-overview.test.ts`: 15/15 passing in isolation (up from 6
+  pre-existing + this task's 10 new E-RANGE cases — see the T102 entry above for the full
+  new-case breakdown). `lint` / `tsc --noEmit` clean on both touched files.
+
+---
+
+## [2026-07-24T14:55:00.000+01:00] — test(analytics): T102 overview range validation + Q4/Q5 edge cases (analytics-overview.test.ts)
+
+### Added
+- `apps/api/tests/integration/analytics-overview.test.ts` — a new `T102 (E-RANGE)` describe block,
+  10 cases: `from > to` -> 400 (date form); `to` = tomorrow (date form) -> 400; a 490-day span
+  accepted (200); a 491-day span rejected (400); mixed date/datetime params -> 400; a datetime-form
+  `to` one hour in the future -> 400; an exact 2-day calendar span buckets by hour (the untested
+  Q4 boundary point — the pre-existing suite only exercised 1-day and 3-day spans); a trailing-24h
+  datetime span buckets by hour; and a new Q5 case distinguishing "measured but zero" (`previous: 0`,
+  `deltaPercent: null`) from the pre-existing "no prior data" (`previous: null`) case, by inserting a
+  single fresh-`randomUUID()` event on a day whose immediately preceding day is provably empty while
+  the shared `db:seed`'s first-ever event (2026-07-13) still precedes the comparison window.
+- Every time-dependent case fakes the JS `Date` global (`toFake: ['Date']` only, so real timers keep
+  async I/O and supertest working) rather than depending on the real wall clock, per constitution
+  III. Query dates are chosen clear of the shared seed range and every other describe block's
+  isolated dates in this file to avoid cross-test contamination.
+
+### Notes
+- Run in isolation before any implementation change: **5 of the 8 truly new-behaviour cases red**
+  (the from>to, to=tomorrow, span-491, mixed-forms, and future-datetime 400 cases — the route's Pass
+  2 happy-path resolver accepted all of them with 200), confirming the documented gap the module's
+  own docstring named ("full Q1 boundary validation... is Pass 3 hardening... deliberately absent
+  here"). The remaining 3 cases (span-490-accepted, both Q4 bucket-boundary cases, and the Q5
+  zero-previous case) passed immediately — see the T104 entry for why: `analyticsQuery.ts`'s
+  bucket/delta logic was already exactly correct.
+- Two of the 10 total cases are direct re-implementations of already-covered Q1/Q4 behaviour kept
+  for E-RANGE traceability (the span-490-accepted "boundary sibling" of the 491-rejected case, which
+  only becomes meaningful once compared against its neighbour) rather than genuinely new coverage.
+- See the T103 entry (next, above chronologically) for the three-layered same-file test fix this
+  task's new fake-timer usage required in T063/T064 and in three of this task's own new cases.
+
+---
+
 ## [2026-07-24T14:25:00.000+01:00] — fix(analytics): T101 exact S2 hostname matching semantics (trafficSource.ts)
 
 ### Changed

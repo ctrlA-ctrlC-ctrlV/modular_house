@@ -46,8 +46,13 @@ const MAX_INGEST_BODY_BYTES = 4096;
  * endpoint, not the shared admin-facing default the other middleware/
  * rateLimit.ts limiters use. Response shape mirrors those existing limiters'
  * flat `{ error, message, retryAfter }` body for consistency across the API
- * (the contract's nested `ErrorResponse` shape is a pre-existing, disclosed
- * doc-drift on this endpoint family — see review-log.md T069).
+ * (inherited verbatim from `generalRateLimit`'s own shape, not introduced
+ * here). This flat shape does not match `contracts/analytics.openapi.yaml`
+ * / `apps/api/openapi.yaml`'s declared `ErrorResponse` (`error` must be an
+ * object carrying `.message`, not a string) — a newly-noted doc-drift on
+ * this specific ingest/429 pairing (review-log.md T096-T097, not the
+ * different admin-401 mismatch T069 covered). Low severity: the beacon
+ * ignores every response (M8), so no client ever reads this body.
  */
 const analyticsIngestRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute (M6)

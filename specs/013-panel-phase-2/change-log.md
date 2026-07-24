@@ -1,6 +1,47 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T16:00:00.000+01:00] — fix(specs): T097/T102/VITEST-FIX review corrections (tasks.md, change-log.md)
+
+### Changed
+
+- `specs/013-panel-phase-2/tasks.md` — two `> note: review-nit fix` lines added, each below its
+  existing `> reviewed:` line, per review-log.md's 2026-07-24 "T096/T097 review-fix + T098-T104"
+  entry:
+  - **T097 (PASS-WITH-NITS)**: the task's own `> note:` disclosed only the T069-citation doc-comment
+    fix, omitting that the same round also fixed the DB-race clock-retarget in
+    `analytics-ingest.test.ts` (its rate-limit `describe` block's `beforeEach` now sets the fake
+    clock to `2099-01-01`, so its 120 real inserted rows can never fall inside another suite's
+    date-scoped query window). The higher-priority `change-log.md` T097 entry already disclosed this
+    change in full — this was a `tasks.md`-only completeness gap, not concealment. The new note
+    cross-references it.
+  - **T102 (PASS-WITH-NITS)**: corrected the case-count claim. The task's own note and this file's
+    T102/T103 change-log entries (below) all claimed "10 new E-RANGE cases" and, for T103,
+    "15/15 passing... 6 pre-existing + this task's 10 new" — both wrong on their own arithmetic
+    (5+2+1=8, not 10; 6+10=16, not 15). Directly counting `it()` blocks in
+    `analytics-overview.test.ts` confirms **9** new cases under T102's own describe block, not 10:
+    5 red-at-authoring Q1 violations (from>to, to=tomorrow, span-491, mixed-forms, future-datetime)
+    plus 4 already-green cases (span-490-accepted, the two Q4 bucket-boundary cases, and the Q5
+    zero-previous case) — 6 pre-existing + 9 new = 15 total, matching the file's actual `it()` count.
+    The tests themselves are unchanged, correctly written, and correctly TDD-sequenced; only the
+    documented count was wrong.
+- This entry itself corrects the citation in the VITEST-FIX entry below (2026-07-24T15:20): "per
+  this spec's own §9/§11" is imprecise — §9 (Pre-Handoff Verification) and §11 (Command Reference)
+  are sections of the `/speckit.implement` session prompt template (the operating instructions each
+  session receives), not numbered sections within `quickstart.md`, `tasks.md`, or `plan.md`
+  themselves. The underlying technical claim (the documented command never disabled file
+  parallelism) is unaffected — only the citation's precision.
+
+### Notes
+
+- No test behavior changed by any of these corrections — `analytics-overview.test.ts` (15/15),
+  `analytics-ingest.test.ts` (11/11), and the full API suite are all unaffected. This is a
+  documentation-accuracy pass responding directly to review-log.md's 2026-07-24 findings; per the
+  review instructions for this session, `review-log.md` itself is not modified, and every new
+  `tasks.md` note is appended strictly below its task's existing `> reviewed:` line.
+
+---
+
 ## [2026-07-24T15:20:00.000+01:00] — fix(api): disable vitest fileParallelism — root cause of the recurring cross-file DB race (vitest.config.ts)
 
 ### Corrective session

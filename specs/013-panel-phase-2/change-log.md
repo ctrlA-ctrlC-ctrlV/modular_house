@@ -1,6 +1,272 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-23T21:00:00.000+01:00] — chore(checkpoint): T090 Pass 2 exit — both suites green, diff audit clean
+
+### Verified (no files touched)
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`: 59 files, 463/463 tests
+  passing (unchanged from session start — no `apps/api` file was touched this session; T080-T089
+  were entirely `apps/web` shell/routing/footer/analytics work).
+- `pnpm --filter @modular-house/web test:run`: 53 files, 461/461 tests passing (up from the
+  session's 449-test baseline: +9 T088 dashboard-states tests, +1 T083 sidebar-navigation
+  integration test, +1 T080 net new Analytics-nav-item assertion, T082's rename is a 0 net change).
+- `git diff --name-only` + untracked-file audit: `App.tsx`, `preAuthWiring.test.tsx` (T082's
+  amendment, explicitly listed), `AppShell.test.tsx`/`a11y.test.tsx`/`keyboard.test.tsx`/
+  `mobile.test.tsx` (T080's shell-suite amendments + T081's collateral `mobile.test.tsx` fix),
+  `Sidebar.tsx`/`ui/sidebar.tsx` (T081 implementation), `Footer.tsx` (T086, an explicitly in-scope
+  public-site touch point), plus two new test files (`dashboard-states.test.tsx`,
+  `footer-cookie-link.test.tsx`) and the two spec bookkeeping files. No Phase 1 auth/OTP/reset/
+  settings suite (Login/TwoFactor/ForgotPassword/ResetPassword/Settings/auth/ThemeProvider tests)
+  and no public configurator/SEO/marketing suite was touched beyond the T080/T082 exceptions the
+  plan itself names.
+
+### Notes
+- Pass 2 exit criteria (plan §5.3, DoD-1, SC-003) satisfied: T-B1..T-B8 (backend, untouched this
+  session, still green) and T-F1..T-F11 (frontend) all pass.
+
+---
+
+## [2026-07-23T20:50:00.000+01:00] — test(analytics): T088/T089 dashboard states test, no gaps found (dashboard-states.test.tsx)
+
+### Added
+- `apps/web/src/admin/analytics/dashboard-states.test.tsx` (new) — four describe blocks covering
+  T-F10's scenarios against the mocked-hook `Analytics` page (same `vi.mock('./useAnalytics.js', ...)`
+  boundary as `Analytics.test.tsx`):
+  1. **Empty-range payload** (`overviewEmpty`/`realtimeEmpty` fixtures): KpiStrip + TrafficChart both
+     render the shared "No analytics data for this range." panel (asserted as exactly 2 matches, not
+     1); RealtimeCard renders its zero-visitor state, scoped via the "active" label's
+     `previousElementSibling` (a bare `getByText('0')` is ambiguous once TrafficSources' five
+     zero-valued session counts are also on the page); TopPages renders "No page views in this
+     range."; TrafficSources — a documented Q6 exception — renders its five zero-valued group rows
+     (Direct/Search/Social/Referral/Campaign) rather than its own "no data" panel, since Q6 always
+     returns five source groups regardless of range.
+  2. **Light and dark themes**: two smoke tests (with/without `.dark` on `document.documentElement`)
+     asserting identical core-widget output; `Analytics.tsx` has no theme-conditional logic of its
+     own (contrast values are separately, numerically verified in `shell/a11y.test.tsx`'s "Token
+     contrast (H6)" block; jsdom has no paint engine).
+  3. **Full keyboard pass**: direct-`.focus()` proof (mirrors `shell/keyboard.test.tsx`'s pattern,
+     since jsdom has no native Tab traversal) that the toolbar trigger, all four RangeDialog preset
+     buttons, both custom date inputs, and the Apply button are each reachable and carry the H4
+     focus-ring classes; a second test confirms Esc closes the pop-up without a refetch (asserted at
+     the data level — the original fixture's page-views figure is unchanged — not via
+     RangeToolbar's own uncontrolled Select label, which visually tracks "More" as its last-picked
+     item regardless of apply/dismiss; a separate, cosmetic concern outside this task's scope).
+  4. **Single-column stacking at mobile width**: both widget-row grids carry `grid-cols-1` +
+     `xl:grid-cols-12` (same class-based technique as `Analytics.test.tsx`'s own T034 assertion).
+
+### Notes
+- All 9 tests pass on first run — Pass 1/2 already built this behavior correctly. Per the task's own
+  "Done when" clause this is an explicitly valid outcome ("rendering already built in Pass 1 may
+  pass — keep the test regardless"); T089 needed no source changes as a direct consequence.
+- `lint`/`tsc --noEmit` clean. Pre-existing Recharts "width(0) height(0)" and Radix
+  `SlotClone`/forwardRef console warnings appear (same noise already present in other suites
+  exercising `TrafficChart`/`RangeDialog` in jsdom) — not new failures.
+
+---
+
+## [2026-07-23T20:35:00.000+01:00] — chore(build): T087 verify cookie-policy prerendering (no source changes)
+
+### Verified (no files touched)
+- `apps/web/src/routes-metadata.ts` already carries a `/cookie-policy` entry (its own comment cites
+  "T055/T056"), and `apps/web/scripts/prerender.ts`'s `routesToPrerender` is derived directly from
+  `routesMetadata.map(route => route.path)` — no code change was needed in either file for T087.
+- Ran the real production build (`pnpm --filter @modular-house/web build`: `build:client` ->
+  `build:server` -> `prerender`). Confirmed against the generated `dist/client/`:
+  - `cookie-policy/index.html` exists and its table has 10 `<tr>` (1 header + 9 body rows), one per
+    `COOKIE_REGISTER` entry — every register cookie name (`mh_vid`, `mh_sid`, `mh_cookie_ack`,
+    `refreshToken`, `admin_theme_mode`, `admin_sidebar_collapsed`, `sidebar_state`, `_ga`,
+    `_ga_<container-id>`) appears in the output.
+  - `grep -rl "Cookie notice"` (the `CookieBanner`'s N5 `aria-label`) across all 9 prerendered HTML
+    files returns no matches — the banner is absent from every prerendered page (N2).
+  - Every prerendered page's footer nav list gained exactly one new entry, `<a
+    class="footer__nav-link" href="/cookie-policy">Cookie Policy</a>`, appended after the six
+    existing links (spot-checked `index.html`, `about/index.html`, `gallery/index.html`) — the only
+    footer diff this session's `Footer.tsx` change (T086) could produce, confirming "every other
+    page differs from the pre-phase build only by the footer link" without needing a separate
+    baseline build: no other public-site source file changed this session (Sidebar/App.tsx/
+    ui/sidebar.tsx changes are admin-only, never reached by `TemplateLayout`).
+- `dist/` is gitignored; no build artifacts appear in `git status`.
+
+---
+
+## [2026-07-23T20:25:00.000+01:00] — feat(footer): T086 add cookie-policy link to footer (Footer.tsx)
+
+### Changed
+- `apps/web/src/components/Footer.tsx` — adds a local `NAV_LINKS_WITH_COOKIE_POLICY` array
+  (typed `NavLink[]`, imported from `@modular-house/ui`) restating the library's default six
+  marketing entries plus a trailing `{ id: 'cookie-policy', label: 'Cookie Policy', url:
+  '/cookie-policy' }`, passed to `<UIFooter navLinks={...}>`. No `@modular-house/ui` file touched.
+
+### Notes
+- `FooterProps.navLinks` replaces rather than merges the library's default list, and the default
+  array isn't exported, so the six marketing entries are restated verbatim here — a small, accepted
+  duplication versus the alternative (editing the shared library), which the plan's hard
+  constraints forbid outright.
+- `pnpm --filter @modular-house/web test:run`: 452/452 passing (T085 flips green; no regressions
+  anywhere the Footer renders — public layout, SEO/template-class suites). `lint`/`tsc --noEmit`
+  clean.
+
+---
+
+## [2026-07-23T20:15:00.000+01:00] — test(footer): T085 failing cookie-policy footer-link test (footer-cookie-link.test.tsx)
+
+### Added
+- `apps/web/src/test/components/footer-cookie-link.test.tsx` (new — no prior Footer suite existed):
+  renders `<Footer>` inside `<MemoryRouter>` (Footer wraps every internal link in react-router's
+  `Link` via its `renderLink` adapter) and asserts a `role="link"` element named "Cookie Policy"
+  with `href="/cookie-policy"`.
+
+### Notes
+- Investigated the render path before writing the test: `apps/web/src/components/Footer.tsx` is a
+  thin adapter supplying a `renderLink` prop to `@modular-house/ui`'s `Footer` — the actual link
+  markup (both the nav-links column and the hardcoded Privacy/Terms "Legal" bar) lives in the
+  library. The "Legal" bar is not prop-driven, so a Cookie Policy entry there would require editing
+  `@modular-house/ui` — explicitly out of scope. `FooterProps.navLinks` (defaults to the library's
+  private `NAV_LINKS`) is the one genuine Open-Closed extension point already exposed; T086 will use
+  it, appending a Cookie Policy entry to a locally-defined nav-links array (FR-005 only requires the
+  link be reachable from "the public site's standard page footer" — it does not pin which column).
+- Confirmed red for the right reason: `getByRole('link', {name: /cookie policy/i})` finds nothing
+  today. `lint`/`tsc --noEmit` clean.
+
+---
+
+## [2026-07-23T20:05:00.000+01:00] — feat(routing): T084 register /admin/analytics, redirect index there (App.tsx)
+
+### Changed
+- `apps/web/src/App.tsx` — the guarded `/admin` route tree gains `<Route path="analytics"
+  element={<Analytics />} />`; the index redirect and the admin catch-all both changed from
+  `<Navigate to="/admin/settings" replace />` to `<Navigate to="/admin/analytics" replace />`
+  (Q7/FR-017 — Analytics replaces Settings as the default landing view). The doc comment above the
+  index route updated to match.
+
+### Removed
+- `AnalyticsPreviewContainer` and its dev-only `/admin/_preview/analytics` route: the component's
+  own docstring (added T036) stated it "must be removed once that Pass 2 wiring task lands" — this
+  is that task. No test referenced the preview route (grepped before removing); `UserShellData`
+  stays imported (still used by `AdminShell`'s `shellUser`).
+
+### Notes
+- `pnpm --filter @modular-house/web test:run`: 451/451 passing (T083's sidebar-navigation
+  integration test and T082's amended landing-target test both flip green; no regressions).
+  `lint`/`tsc --noEmit` clean.
+- `git diff --name-only` audit: only `App.tsx`, `Sidebar.tsx`, `ui/sidebar.tsx`,
+  `preAuthWiring.test.tsx`, and the T080/T081 shell test files are touched this session — no Phase 1
+  auth/OTP/reset/settings suite or public configurator/SEO/marketing suite modified.
+
+---
+
+## [2026-07-23T19:55:00.000+01:00] — test(shell): T083 failing sidebar-navigation test (AppShell.test.tsx)
+
+### Added
+- `apps/web/src/admin/shell/AppShell.test.tsx` — new "Sidebar navigation integration (T083, T-F6)"
+  describe block. Renders the real `<App>` tree (the `persistence.test.tsx`/`preAuthWiring.test.tsx`
+  pattern, not a stubbed route table) inside `<HelmetProvider><MemoryRouter initialEntries={['/admin']}>`,
+  with a dedicated `meFetch` stub answering `/admin/auth/me` so the real `AuthProvider`/`AdminGuard`
+  chain authenticates. Asserts (1) the sidebar's "Analytics" link resolves to `/admin/analytics`
+  (T081, already green) and (2) the Analytics dashboard's `<h1>` heading renders, alongside the
+  top-bar's sidebar-toggle button (proving the page is wrapped by the Phase 1 shell, not a bare
+  route). `meFetch` is stubbed in `beforeEach`/restored to the file's existing photo-only
+  `mockFetch` in `afterEach`, so the Profile photo describe block's own stub is untouched regardless
+  of test order.
+
+### Notes
+- Confirmed red for the right reason: assertion (1) already passes (App.tsx's route tree renders
+  the shell regardless of which page it lands on); assertion (2) times out via `findByRole` because
+  `/admin`'s index route still redirects to `/admin/settings` until T084. 17 passing / 1 red.
+- `lint`/`tsc --noEmit` clean.
+
+---
+
+## [2026-07-23T19:45:00.000+01:00] — test(pages): T082 amend /admin index-redirect landing target (preAuthWiring.test.tsx)
+
+### Changed
+- `apps/web/src/admin/pages/preAuthWiring.test.tsx` — the `TwoFactor` describe block's landing-page
+  test is renamed ("...lands on /admin/analytics") and its assertion swapped from
+  `screen.getByTestId('settings-page')` to `screen.getByRole('heading', {level: 1, name:
+  'Analytics'})` — Analytics.tsx has no page-level testid (unlike Settings.tsx's
+  `data-testid="settings-page"`), so the existing `<h1>Analytics</h1>` heading is the stable,
+  no-extra-markup selector.
+
+### Notes
+- Audited every other suite referencing `settings-page`/`/admin/settings` for a redirect-target
+  assertion (`a11y.test.tsx`, `persistence.test.tsx`, `Settings.test.tsx`, `no-legacy.test.tsx`):
+  all four navigate directly to `/admin/settings` as a route fixture (or, for `no-legacy.test.tsx`,
+  assert the unauthenticated-guard redirect to `/admin/login`, unrelated to Q7) — none assert the
+  index/landing target, so none needed amending. `preAuthWiring.test.tsx`'s TwoFactor test was the
+  only one asserting the post-sign-in landing page.
+- Confirmed red for the right reason: 9 passing / 1 red (the amended test — App.tsx still redirects
+  `/admin` index to `/admin/settings` until T084). `lint`/`tsc --noEmit` clean.
+
+---
+
+## [2026-07-23T19:35:00.000+01:00] — feat(shell): T081 add Analytics nav item to sidebar (Sidebar.tsx, sidebar.tsx, mobile.test.tsx)
+
+### Changed
+- `apps/web/src/admin/shell/Sidebar.tsx` — `SidebarContent` now renders a `SidebarMenu` with one
+  `SidebarMenuItem`/`SidebarMenuButton` composing a react-router `Link` to `/admin/analytics` (via
+  the new `asChild`, see below), replacing the Phase 1 `<ComingSoon />` placeholder (H7). Adds a
+  hand-drawn `AnalyticsIcon` (bar-chart glyph) matching the header's existing `AppIcon` inline-SVG
+  convention. `ComingSoon.tsx` is left in the tree, unimported: spec.md's own assumption ("the
+  sidebar keeps signalling future sections as coming-soon placeholders") treats it as a
+  forward-compatibility placeholder for sections not yet built, not dead code to delete.
+- `apps/web/src/admin/ui/sidebar.tsx` — `SidebarMenuButton` gains an `asChild` prop, rendering via
+  `@radix-ui/react-slot`'s `Slot` when true (mirrors `button.tsx`'s existing asChild composition
+  exactly). Necessary because `SidebarMenuButton` previously hard-coded a `<button>`; nesting the
+  new `<Link>` (renders `<a>`) inside it would create a nested-interactive element, an axe
+  violation the `a11y.test.tsx` "Shell (desktop)" scan would have caught. `Slot` merges the
+  button's classes/data-attributes onto the single `<Link>` child instead, so the rendered DOM is a
+  single real anchor.
+- `apps/web/src/admin/shell/mobile.test.tsx` — deviation, not in T081's Files list: its
+  `renderShell()` rendered `<AppShell>` without a Router, which the new `Link` requires. Wrapped in
+  `<MemoryRouter>`, mirroring the same fix already applied to `AppShell.test.tsx`/
+  `keyboard.test.tsx`/`a11y.test.tsx` by T080. No assertions changed.
+
+### Notes
+- Chose a real react-router `Link` (not a callback-prop pattern like `TopBar`'s `onSettingsClick`)
+  because no task in this batch wires an `onAnalyticsClick` callback through `AdminShell` — a
+  `Link` is the only way the entry actually navigates anywhere, and `main.tsx` already mounts the
+  app under a `BrowserRouter`, so the client-side transition works in production without a full
+  page reload.
+- `pnpm --filter @modular-house/web test:run` on `src/admin/shell/` + `src/admin/ui/`: 140/140
+  passing (up from 137 passing / 3 red after T080). `lint` and `tsc --noEmit` clean on all touched
+  files.
+- `persistence.test.tsx` was re-checked, not modified: it already renders the real `<App>` inside
+  `<MemoryRouter>`, so the new Link needed no accommodation there.
+
+---
+
+## [2026-07-23T19:20:00.000+01:00] — test(shell): T080 amend Coming Soon -> Analytics nav item (AppShell.test.tsx, keyboard.test.tsx, a11y.test.tsx)
+
+### Changed
+- `apps/web/src/admin/shell/AppShell.test.tsx` — the "Coming Soon" describe block (Phase 1 H7) is
+  replaced by an "Analytics nav item" block (FR-017): asserts a `role="link"` element named
+  "Analytics" with `href="/admin/analytics"`, and that the literal "Coming Soon" text no longer
+  renders. `renderShell()` now wraps `<AppShell>` in `<MemoryRouter>` — T081's nav item will be a
+  react-router `Link`, which throws outside a Router context; every existing assertion in the file
+  keeps passing unchanged under the wrapper.
+- `apps/web/src/admin/shell/keyboard.test.tsx` — `renderShell()` wrapped in `<MemoryRouter>` for the
+  same reason. `getShellControls()` gains `analyticsLink` (`getByRole('link', {name: /analytics/i})`),
+  so the existing "focuses every shell control" loop automatically extends tab-order and H4
+  focus-ring coverage to the new nav item once T081 lands.
+- `apps/web/src/admin/shell/a11y.test.tsx` — `assertVisibleFocusOnControls` gains an
+  `includeAnchors` parameter (default `false`, preserving the pre-auth pages' existing coverage,
+  whose plain-text links are deliberately unstyled and would otherwise fail the ring-class check);
+  the "Shell (desktop)" focus-ring test passes `true`. A local `renderShell()` helper replaces the
+  five direct `render(<AppShell user={testUser} />)` call sites, wrapping in `<MemoryRouter>`.
+
+### Notes
+- Confirmed red for the right reason: `AppShell.test.tsx` 2 failing (missing link, "Coming Soon"
+  still present) + 15 passing; `keyboard.test.tsx` 1 failing (missing link in `getShellControls`) +
+  6 passing; `a11y.test.tsx` 27/27 still green (coverage extended, no anchor exists yet so the
+  broadened selector matches nothing new until T081). Combined: 48 passing / 3 red.
+- `pnpm --filter @modular-house/web lint` and `tsc --noEmit` clean on all three touched files.
+- `mobile.test.tsx` and `persistence.test.tsx` were audited (not amended by T080): the former
+  renders `<AppShell>` without a Router today — flagged as a T081 deviation, since Sidebar.tsx's
+  planned `Link` will break it too; the latter already renders the real `<App>` inside
+  `<MemoryRouter>` and needs no change.
+
+---
+
 ## [2026-07-23T19:05:00.000+01:00] — feat(analytics): T079 wire RangeDialog apply flow (Analytics.tsx, RangeDialog.tsx)
 
 ### Changed

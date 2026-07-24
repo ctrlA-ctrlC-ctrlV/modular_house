@@ -1300,7 +1300,7 @@
       Refs: M6, M1, constitution I
 > note: dedicated analyticsIngestRateLimit (120/1min) replaces generalRateLimit on this route; logger.warn on 429; tests: T094 11/11 all green; deviations: none
 > reviewed: PASS-WITH-NITS — 429 body cites inapplicable T069 precedent; DB-race now near-deterministic
-
+> note: review-nit fix — analytics.ts doc comment's T069 citation corrected (this is a newly-noted ingest-429/ErrorResponse doc-drift, not T069's admin-401 case)
 ### E-BEACON — transport resilience
 
 - [ ] T098 Write failing beacon resilience tests (E-BEACON)

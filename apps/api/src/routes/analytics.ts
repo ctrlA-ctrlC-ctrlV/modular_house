@@ -93,6 +93,11 @@ router.post(
         mh_sid: req.cookies?.mh_sid,
       };
 
+      // M4 (T095): the service evaluates `isbot` against the request's
+      // User-Agent header and drops matching traffic before any storage;
+      // `/admin`-path drops (M5) follow in T096. Both outcomes still respond
+      // 204 below (M1: callers cannot distinguish a drop from a store).
+      await ingestAnalyticsEvent(req.body, cookies, req.headers['user-agent']);
 
       // M1: a stored event responds 204 with an empty body — never an error
       // the page surfaces. The beacon ignores every response (R1).

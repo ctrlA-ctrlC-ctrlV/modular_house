@@ -53,6 +53,14 @@ const MAX_INGEST_BODY_BYTES = 4096;
  * The oversize case is forwarded to the shared `errorHandler` (via
  * `HttpError`) rather than written inline, so it flows through the same
  * error-handling path as every other operational error in the app.
+ *
+ * Known limitation (review T093 nit): `Content-Length` is a client-declared
+ * header, not a measured byte count — a request that lies about it (declares
+ * <= 4096 while actually streaming more) slips past this specific check.
+ * This is deliberately not hardened further here: the worst case is still
+ * bounded by the app-wide 10 MB `express.json` ceiling in `app.ts`, and M2's
+ * 4 KB cap is a resource/abuse-protection rule for a public, unauthenticated
+ * endpoint, not a hard security boundary that must resist a lying client.
  */
 function enforceIngestBodySizeCap(req: Request, _res: Response, next: NextFunction): void {
   const contentLength = Number(req.headers['content-length']);

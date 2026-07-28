@@ -1423,19 +1423,21 @@
 
 ### E-SESSION — client session-window boundary
 
-- [ ] T109 Write failing session-boundary beacon test (E-SESSION)
+- [x] T109 Write failing session-boundary beacon test (E-SESSION)
       Files: apps/web/src/analytics/beacon.test.ts
       Do: With fake timers: a page view at 29 m 59 s renews the same `mh_sid`; at 30 m 01 s after
       the last view the client mints a NEW `mh_sid` (cookie expired) — K3 boundary, no real time.
       Done when: red if the rolling-expiry logic is off by the boundary.
       Refs: E-SESSION, K3/V1, FR-009
+> note: E-SESSION suite — 29m59s renews same mh_sid, 30m01s mints new (store.delete models browser 30m max-age expiry); tests: 35 passing (2 new, both green at authoring); deviations: none
 
-- [ ] T110 Harden the beacon session-cookie renewal
+- [x] T110 Harden the beacon session-cookie renewal
       Files: apps/web/src/analytics/beacon.ts
       Do: Ensure `mh_sid` renewal keeps the same value with a fresh 30-minute expiry on every
       measured view, and an expired/absent cookie yields a new UUID.
       Done when: T109 green.
       Refs: K3, V1, research R2
+> note: no source change — ensureSessionId already reuses same value + fresh 30-min max-age, mints new UUID when absent (K3/V1 R2); tests: T109 green unmodified; deviations: none
 
 ### E-EMPTY — empty states end to end
 

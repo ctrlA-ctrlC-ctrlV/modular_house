@@ -1487,6 +1487,7 @@
 > note: no source change — Analytics.tsx passes empty payload through, each widget handles own empty state (isEmptyRange/timeseries.length/hasPages); tests: T113 green unmodified; deviations: none
 > reviewed: PASS-WITH-NITS — RealtimeCard condition claim inaccurate
 > note: review nit fix — change-log T114 corrected: RealtimeCard uses hasPages=topActivePages.length>0, not compound cond; tests: unchanged 10 passing; deviations: change-log.md — desc fix
+> reviewed: PASS-WITH-NITS — desc fixed exact; new heading splice nit
 
 ### E-DIALOG — custom-range validation
 

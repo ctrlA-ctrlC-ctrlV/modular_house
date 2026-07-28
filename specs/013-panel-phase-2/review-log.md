@@ -6,6 +6,38 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-28 — T114 review-nit fix (since 5ad5369)
+
+T114 — PASS-WITH-NITS — desc fixed exact; new heading splice nit
+
+Detail: Two doc-only commits (`ae5c601` tasks.md, `b4622c5` change-log.md — confirmed via
+`git diff --name-only` no `.ts`/`.tsx`/`package.json`/lockfile touched, so no test rerun was
+needed). The fix corrects exactly the nit flagged in the prior round: `change-log.md`'s T114
+entry now reads `RealtimeCard.tsx (line 66): hasPages = topActivePages.length > 0 — a single
+check, not a compound ... condition as an earlier revision of this entry stated` — re-verified
+against the live source (`RealtimeCard.tsx:66`, unchanged): `const hasPages =
+topActivePages.length > 0;`, an exact match. The correction also candidly cites this review-log's
+own prior finding by name rather than silently rewriting history, which is the right way to
+handle a post-hoc doc fix.
+
+New nit (cosmetic, change-log.md only): the added `### Correction (post-review, 2026-07-28)`
+heading was spliced into the middle of the original T114 hand-trace's bullet list, directly after
+the corrected `RealtimeCard.tsx` bullet. The correction's own explanatory bullet is followed
+immediately — with no closing heading in between — by the unrelated `TopPages.tsx` bullet,
+`TrafficSources.tsx` bullet, and the "No widget file was touched..." closing paragraph, all of
+which are leftover continuation of the *original* widget-by-widget survey, not part of the
+correction. A reader of the rendered doc would see those three items nested under "Correction,"
+which they are not about. Low severity — purely a markdown-structure readability issue in an
+index file, no factual or code impact — left as a corrective item rather than fixed by the
+reviewer (`change-log.md` is the implementer-maintained index per §0, not in the reviewer's
+permitted small-fix list of data-model/quickstart/tasks.md).
+
+No other files changed; `tasks.md`'s new `> note:` under T114 (appended after the prior
+`> reviewed:` line, per rule 7's one-line-per-task-ever cadence for `> reviewed:` — `> note:`
+lines may accrue) accurately summarizes the fix and correctly discloses "deviations:
+change-log.md — desc fix." No verification commands were rerun — no `.ts`/`.tsx` file is in the
+diff, so the prior round's green suite runs still fully apply.
+
 ## 2026-07-28 — T111-T116 (baseline: ea8998e)
 
 T111 — PASS — Q5/Q6 empty-path values hand-verified exact

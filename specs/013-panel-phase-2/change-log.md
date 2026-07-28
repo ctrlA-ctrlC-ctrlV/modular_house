@@ -1,6 +1,102 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T16:40:00.000+01:00] — docs(specs): T123 coverage floor verification (verification only)
+
+### Notes
+
+- `pnpm --filter @modular-house/api test:coverage` against the seeded port-5434 test DB:
+  515/515 tests passing. Coverage summary (`coverage/coverage-summary.json`), checked directly
+  rather than eyeballing the terminal table:
+  - **Ingest validation (`src/services/analyticsIngest.ts`)**: 15/15 branches — **100%**. Meets
+    DoD-3's first floor exactly.
+  - **Admin analytics auth gate**: the gate itself is `src/middleware/auth.ts`'s
+    `authenticateJWT`, mounted ahead of both `GET /api/admin/analytics/overview` and
+    `GET /api/admin/analytics/realtime` — 12/12 branches, **100%**. (`routes/admin/analytics.ts`'s
+    own 82.14% branch figure covers unrelated logic — Q1 range-validation edge cases and error
+    paths — not the auth gate itself, which lives in the shared middleware file.) Both admin
+    endpoints' 401 paths (no `Authorization` header; a malformed/invalid bearer token) are
+    exercised by `tests/integration/analytics-auth.test.ts`, satisfying the constitution's
+    "Both admin endpoints have a 401 security test" requirement alongside the branch figure.
+  - **Overall line coverage**: **69.53%** (`All files` row, `coverage-summary.json`'s `total.lines
+    .pct`) — 0.47 percentage points under the 70% constitution-III / DoD-3 floor.
+- **Root-caused the overall-coverage shortfall before accepting it**: ran `git diff --name-only
+  main...HEAD -- apps/api/src | grep -v analytics` (case-sensitive `Analytics`/`analytics` both
+  excluded) — the only non-analytics files this branch touches at all are `app.ts` (92.59% line,
+  already high), `middleware/logger.ts` (100% line), and `services/trafficSource.ts` (100% line,
+  itself a Phase 2 analytics file despite its non-matching filename). Every low-coverage module
+  dragging the whole-repo average down — `mailer.ts` (43.54%), `src/templates/*` (0% across all
+  five email templates), `services/content/{faqs,gallery,pages,redirects}.ts` (45-72%),
+  `routes/admin/{faqs,gallery,pages,redirects,uploads}.ts` (25-77%), `services/submissions.ts`
+  (3.04%), `middleware/rateLimit.ts` (32.35%) — is a pre-existing Phase 1-or-earlier file this
+  phase never opened. This was verified by diffing against `main`, not assumed from file names
+  alone.
+- **Resolution (user-directed, 2026-07-28)**: presented this exact breakdown to the user — the
+  two 100%-branch floors are cleanly met; the whole-repo 70% line floor is not, but the shortfall
+  is entirely attributable to code outside this phase's `Files:` scope, and backfilling coverage
+  for unrelated legacy modules (email templates, content-management routes, uploads, rate
+  limiting) would be substantial, out-of-scope work with no connection to Phase 2's own
+  deliverables. Directed to accept the pre-existing gap and check T123 off with this disclosure,
+  rather than leave it unchecked or reinterpret "overall" to mean only Phase 2's own files. No
+  filler tests were written to inflate the whole-repo number — doing so would violate the "Build
+  only what the current tasks describe" guardrail for no genuine quality benefit.
+- `eslint`/`typecheck`: unaffected — verification-only task, no source files touched.
+
+## [2026-07-28T16:20:00.000+01:00] — docs(specs): T122 full quality-gate + regression audit (verification only)
+
+### Notes
+
+- `pnpm lint` (root, all 4 linted workspaces: `apps/api`, `apps/web`, `packages/ui`, `packages/
+  config`'s no-op): clean.
+- `pnpm typecheck` (root, all typechecked workspaces): clean.
+- `pnpm --filter @modular-house/api test:run -- --no-file-parallelism` against the seeded
+  port-5434 test DB: **60/60 files, 515/515 tests passing.**
+- `pnpm --filter @modular-house/web test:run`: **53/53 files, 481/481 tests passing.**
+- **Diff audit** (`git diff --name-only main...HEAD`): the full branch diff against `main` was
+  grepped for both exclusion categories in the task's `Do:` text —
+  - Phase 1 auth/OTP/reset/settings: `grep -iE "login|two-?factor|otp|reset-?password|settings|
+    auth/"` over the diffed path list — zero matches.
+  - Public configurator/SEO/marketing: `grep -iE "ProductConfigurator|garden-room|house-
+    extension|gallery|schema-generator|sitemap|seo"` — zero matches.
+  - The diff's public-site-adjacent files (`Footer.tsx`, `TemplateLayout.tsx`, `route-config.tsx`,
+    `routes-metadata.ts`, `CookiePolicy.tsx`, `cookieRegister.ts`/`.test.tsx`,
+    `footer-cookie-link.test.tsx`, `cookie-policy.test.tsx`) are the explicitly sanctioned "banner
+    mount, footer link, and `/cookie-policy` page" carve-out (plan §1.4 guardrail) — net-new
+    Phase 2 deliverables, not modifications to a pre-existing configurator/SEO suite's own
+    assertions, so they do not trip the "no...suite changed" condition. The admin-shell files
+    (`AppShell.test.tsx`, `keyboard.test.tsx`, `a11y.test.tsx`, `Sidebar.tsx`, `ui/sidebar.tsx`,
+    `mobile.test.tsx`, `preAuthWiring.test.tsx`) are T080/T081/T082's own sanctioned amendments;
+    `template-layout.test.tsx`/`TemplateLayout.tsx`/`beacon.ts` are T051's. Diff audit: clean.
+- **CI**: not independently re-verified against a live GitHub Actions run this session (this
+  environment has no CI trigger access) — `ci.yml`'s `test-api`/`coverage-check` jobs already
+  include the `NODE_ENV=test` seed step confirmed present in earlier sessions (DoD-8), and every
+  command above passed locally against the equivalent local seeded DB, but "CI too" in the
+  Done-when is not independently confirmed by this entry, consistent with prior sessions' own
+  caveat on this same point (review-log.md's earlier "CI run reported by user, not independently
+  confirmed" note on T007).
+
+## [2026-07-28T16:00:00.000+01:00] — docs(specs): T121 review watch-item acknowledgment (tasks.md)
+
+### Notes
+
+- The 2026-07-28 T117-T121 review (`review-log.md`) returned PASS or PASS-WITH-NITS on every
+  task — no CHANGES-REQUIRED verdict anywhere in the round — with a single advisory watch-item
+  against T121: 5 consecutive live runs of the 490-day overview span showed 4 passes and one
+  1015.56 ms measurement (15.56 ms over the 1000 ms Q8/DoD-7 budget), and the review recommends
+  re-checking this "when T123 (DoD verification) revisits these budgets," explicitly noting this
+  "is not a CHANGES-REQUIRED finding against T121 itself."
+- This session is scoped to T122-T123 (regression audit + coverage floors — neither task's own
+  `Do:` text concerns M9/Q8 benchmark numbers); re-verifying the 490-day margin requires
+  destructively reseeding the shared local test DB with the T119 32-month dataset a second time
+  (the same user-approved, temporary state change T119/T121 required), which is disproportionate
+  to trigger again inside a session not asked to touch performance work. T128 ("Record the
+  performance budgets and API-down smoke") is the task whose own `Do:` text literally covers this
+  ("Record final M9 and Q8 benchmark results (T120/T121)") — the watch-item is deferred there
+  rather than answered speculatively now. Acknowledged with a `> note:` appended below the
+  reviewer's `> reviewed:` line under T121 in `tasks.md` (not a new `> reviewed:` line — those are
+  the reviewer's own, per the review-log's one-line-per-task-ever convention) — `review-log.md`
+  itself is untouched, per instruction.
+
 ## [2026-07-28T15:45:00.000+01:00] — perf(analytics): T121 overview p95 benchmark (bench-analytics.ts)
 
 ### Added

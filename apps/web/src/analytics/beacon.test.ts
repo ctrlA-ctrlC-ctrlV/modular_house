@@ -756,3 +756,94 @@ describe('useBeacon — one event per page view (M8)', () => {
     expect(sendBeaconMock).toHaveBeenCalledTimes(1); // /admin/* skipped
   });
 });
+
+// ---------------------------------------------------------------------------
+// 10. E-SESSION — client session-window boundary (T109, K3/V1, FR-009).
+// ---------------------------------------------------------------------------
+// Pins the exact 30-minute K3 inactivity boundary off a single first view:
+//   - a view 29m59s later (inside the 1800s window) renews the SAME `mh_sid`
+//     with a fresh 30-minute Max-Age — the session continues (V1);
+//   - a view 30m01s later (past the 1800s window) finds `mh_sid` expired and
+//     mints a NEW `mh_sid`, starting a new session.
+// The inactivity window is enforced by the browser honouring `mh_sid`'s
+// max-age (K3/V1 — "the cookie expiry IS the session window"; research R2);
+// beacon.ts's rolling-expiry logic is only read-cookie-then-reuse-or-mint, so
+// the boundary is modelled here by advancing fake timers past the pinned 1800s
+// max-age and simulating the browser's passive drop with `cookieStore.delete`
+// (the same device the section-2 "fresh mh_vid when absent" case uses to model
+// an absent cookie). Only `Date` is faked; no real time elapses (constitution
+// III), and the tests assert cookies only — no async dispatch checks.
+describe('sendPageView — E-SESSION session-window boundary (K3/V1, FR-009)', () => {
+  const SECOND_MS = 1000;
+  const MINUTE_MS = 60 * SECOND_MS;
+
+  it('a view 29m59s after the last view renews the SAME mh_sid with a fresh 30-minute Max-Age (inside V1 window)', () => {
+    const visitorUuid = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const sessionUuid = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb';
+    // First measured view mints both identifier cookies (K2/K3); the queued
+    // values are consumed in call order (ensureVisitorId before
+    // ensureSessionId).
+    uuidSpy.mockReturnValueOnce(visitorUuid).mockReturnValueOnce(sessionUuid);
+    sendPageView({ pathname: '/garden-rooms' });
+    const firstSid = cookieValue(cookieWritesFor(SESSION_COOKIE_NAME)[0]);
+    expect(firstSid).toBe(sessionUuid);
+
+    // Advance 29m59s (1799s) — still inside K3's 1800s inactivity window, so
+    // the browser has NOT expired `mh_sid` and the session continues (V1).
+    vi.setSystemTime(new Date(FIXED_NOW + 29 * MINUTE_MS + 59 * SECOND_MS));
+
+    // Second view inside the window renews the session cookie.
+    sendPageView({ pathname: '/garden-rooms/about' });
+    const sidWrites = cookieWritesFor(SESSION_COOKIE_NAME);
+
+    // The SAME session id is reused (renewed, not regenerated) with a fresh
+    // 30-minute Max-Age, and no new UUID was minted for the renewal — the
+    // boundary logic, were it off, would have regenerated here.
+    expect(sidWrites).toHaveLength(2);
+    expect(cookieValue(sidWrites[1])).toBe(firstSid);
+    expect(sidWrites[1]).toMatch(/max-age=1800/i);
+    expect(uuidSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('a view 30m01s after the last view finds mh_sid expired and mints a NEW mh_sid (past V1 boundary, new session)', () => {
+    const visitorUuid = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const sessionUuid = 'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb';
+    const newSessionUuid = 'cccccccc-cccc-4ccc-9ccc-cccccccccccc';
+    uuidSpy.mockReturnValueOnce(visitorUuid).mockReturnValueOnce(sessionUuid);
+
+    // First view mints the session id; `mh_sid` expires 1800s later.
+    sendPageView({ pathname: '/garden-rooms' });
+    const firstSid = cookieValue(cookieWritesFor(SESSION_COOKIE_NAME)[0]);
+    expect(firstSid).toBe(sessionUuid);
+
+    // Advance 30m01s (1801s) — past K3's 1800s inactivity window. The browser
+    // passively drops the expired `mh_sid`. This file's custom cookie store
+    // does not honour max-age on read (see the beforeAll override), so the
+    // browser's passive expiry is simulated explicitly here by deleting
+    // `mh_sid` from the live store — `cookieWritesFor` still reports the
+    // original mint write, so `firstSid` stays comparable. The visitor cookie
+    // (`mh_vid`, 365-day max-age) is left untouched.
+    vi.setSystemTime(new Date(FIXED_NOW + 30 * MINUTE_MS + 1 * SECOND_MS));
+    cookieStore.delete(SESSION_COOKIE_NAME);
+
+    // Queue a distinct session id for the new-session mint; `mh_vid` is still
+    // present so its renewal reuses the stored value (no UUID call for the
+    // visitor id).
+    uuidSpy.mockReturnValueOnce(newSessionUuid);
+    sendPageView({ pathname: '/garden-rooms/about' });
+
+    const sidWrites = cookieWritesFor(SESSION_COOKIE_NAME);
+    // A NEW session id is minted (a distinct UUID v4 value) with a fresh
+    // 30-minute Max-Age — the prior session did NOT continue past V1's
+    // boundary.
+    expect(sidWrites).toHaveLength(2);
+    expect(cookieValue(sidWrites[1])).toBe(newSessionUuid);
+    expect(newSessionUuid).not.toBe(firstSid);
+    expect(newSessionUuid).toMatch(UUID_V4);
+    expect(sidWrites[1]).toMatch(/max-age=1800/i);
+    // Exactly one additional UUID call — for the new session id only; `mh_vid`
+    // was reused from the still-present visitor cookie (3 calls total: vid,
+    // first sid, new sid).
+    expect(uuidSpy).toHaveBeenCalledTimes(3);
+  });
+});

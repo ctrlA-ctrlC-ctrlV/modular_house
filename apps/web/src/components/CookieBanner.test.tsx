@@ -341,3 +341,32 @@ describe('CookieBanner — a11y / non-blocking (T049, T-F3)', () => {
     expect(results).toHaveNoViolations();
   });
 });
+
+// ---------------------------------------------------------------------------
+// T117 — E-A11Y edge test (plan §4.2: "banner and dashboard axe checks")
+// ---------------------------------------------------------------------------
+// The T049 axe scan above targets the banner's own isolated container. This
+// extends that coverage with a scan of the banner rendered alongside other
+// page content — proving the "zero critical violations" requirement (DoD-6)
+// holds for the composed page, not just the banner subtree in isolation
+// (e.g. no id collisions, landmark conflicts, or focus-order defects that
+// only surface once the banner shares a document with the rest of the site).
+
+describe('CookieBanner — accessibility edge case (T117, E-A11Y)', () => {
+  it('has zero axe violations when rendered together with surrounding page content', async () => {
+    render(
+      <MemoryRouter>
+        <div>
+          <main>
+            <h1>Page content</h1>
+            <button>Outside content</button>
+          </main>
+          <CookieBanner />
+        </div>
+      </MemoryRouter>,
+    );
+
+    const results = await axe(document.body);
+    expect(results).toHaveNoViolations();
+  });
+});

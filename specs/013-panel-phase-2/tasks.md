@@ -1388,6 +1388,7 @@
 
 - [x] T105 Write failing timezone bucketing test (E-TZ)
 > note: 2 cases (Aug BST same-UTC-day/different-London-day V3+Q4; Oct 2026 BST->GMT 25h-bucket DST); tests: 15 (2 new, both green at authoring); deviations: none
+> reviewed: PASS — DST/UTC bucket math reverified exact
       Files: apps/api/tests/unit/analyticsQuery.test.ts
       Do: Fixed UTC timestamps for events at 23:30 and 00:30 Europe/London local time (same UTC
       day) land in different day buckets and different V3 calendar days; include a BST-transition
@@ -1397,6 +1398,7 @@
 
 - [x] T106 Verify/fix the AT TIME ZONE bucketing
 > note: no code change — every day-boundary path already runs `AT TIME ZONE 'Europe/London'` in SQL; tests: T105 2/2 green unmodified; deviations: none
+> reviewed: PASS — zero source diff, AT TIME ZONE confirmed
       Files: apps/api/src/services/analyticsQuery.ts
       Do: Ensure every bucket, day-boundary, and returning-day computation goes through
       `AT TIME ZONE 'Europe/London'` in SQL (no Node-side date math on the hot path).
@@ -1407,6 +1409,7 @@
 
 - [x] T107 Write failing concurrent-ingest test (E-CONCURRENCY)
 > note: Promise.all 2x POST same new mh_vid; asserts 1 visitor row, 2 events; tests: 12 (1 new, green at authoring, 8x rerun stable); deviations: none
+> reviewed: PASS — real race confirmed, single visitor row
       Files: apps/api/tests/integration/analytics-ingest.test.ts
       Do: Two simultaneous POSTs (`Promise.all`) for the same brand-new `mh_vid` -> exactly one
       `analytics_visitors` row survives and BOTH events are stored.
@@ -1415,6 +1418,7 @@
 
 - [x] T108 Harden the visitor upsert against the race
 > note: no code change — Prisma upsert already compiles to native `INSERT...ON CONFLICT DO UPDATE RETURNING` (verified via query log); tests: T107 green unmodified; deviations: none
+> reviewed: PASS — zero source diff, native upsert confirmed
       Files: apps/api/src/services/analyticsIngest.ts
       Do: Make the upsert race-safe (handle the concurrent-create unique violation by retrying as
       update, or use an ON CONFLICT raw query) so `firstSeenAt` is written once and never updated.
@@ -1430,6 +1434,7 @@
       Done when: red if the rolling-expiry logic is off by the boundary.
       Refs: E-SESSION, K3/V1, FR-009
 > note: E-SESSION suite — 29m59s renews same mh_sid, 30m01s mints new (store.delete models browser 30m max-age expiry); tests: 35 passing (2 new, both green at authoring); deviations: none
+> reviewed: PASS-WITH-NITS — 29m59s case duplicates existing K3 test
 
 - [x] T110 Harden the beacon session-cookie renewal
       Files: apps/web/src/analytics/beacon.ts
@@ -1438,6 +1443,7 @@
       Done when: T109 green.
       Refs: K3, V1, research R2
 > note: no source change — ensureSessionId already reuses same value + fresh 30-min max-age, mints new UUID when absent (K3/V1 R2); tests: T109 green unmodified; deviations: none
+> reviewed: PASS — zero source diff, line citations verified exact
 
 ### E-EMPTY — empty states end to end
 

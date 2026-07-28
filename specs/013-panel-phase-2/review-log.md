@@ -6,6 +6,17 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-28 — T105-T110 (baseline: 2493b2b)
+
+T105 — PASS — DST/UTC bucket math reverified exact
+T106 — PASS — AT TIME ZONE confirmed; zero diff
+T107 — PASS — real race confirmed; 1 visitor row, 2 events
+T108 — PASS — native ON CONFLICT upsert; zero diff
+T109 — PASS-WITH-NITS — 29m59s case duplicates existing test
+T110 — PASS — ensureSessionId verified; zero diff
+
+---
+
 ## 2026-07-24 — T096/T097 review-fix + T098-T104 (baseline: 9b268fa)
 
 T097 — PASS-WITH-NITS — T069 citation fixed; note omits DB-race clock-retarget fix

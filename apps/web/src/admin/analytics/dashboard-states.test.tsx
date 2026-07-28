@@ -129,6 +129,60 @@ describe('Analytics dashboard states (T088, T-F10)', () => {
     });
   });
 
+  // ── T113 (E-EMPTY): no broken visuals, no error boundary trips ────────
+  // Extends the "Empty-range payload" block (T088) with the two assertions
+  // T113 pins: (1) the chart shows no broken visuals — when the timeseries is
+  // empty TrafficChart renders its dashed empty panel, NOT a recharts
+  // `ComposedChart` SVG with zero-width/zero-height (the "width(0) height(0)"
+  // warning recharts logs when forced to render without data); and (2) no
+  // error boundary trips — the render completes without throwing and no
+  // `console.error` is emitted by React or any widget during the empty-state
+  // render. Together these prove a "range fully before the first event"
+  // payload (mocked empty overview + zero realtime, US3-9 / E-EMPTY) produces
+  // a clean, user-friendly dashboard rather than a broken one.
+
+  describe('T113 (E-EMPTY): no broken chart visuals and no error boundary trips', () => {
+    beforeEach(() => {
+      mockUseOverview.mockReturnValue({ data: overviewEmpty, loading: false, error: null });
+      mockUseRealtime.mockReturnValue({ data: realtimeEmpty, loading: false, error: null });
+    });
+
+    it('renders every widget empty state with no recharts SVG and no console errors', () => {
+      // Spy on console.error to catch any error-boundary trip, React error,
+      // or recharts zero-dimension warning emitted during the empty-state
+      // render. The spy is restored at the end so later tests are unaffected.
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      const { container } = render(<Analytics />);
+
+      // Every widget's friendly empty state is present (US3-9 / FR-023):
+      // KpiStrip + TrafficChart share the dashed panel text, RealtimeCard
+      // shows the zero-visitor message, TopPages shows its empty message, and
+      // TrafficSources shows all five zero-valued groups (Q6 exception).
+      expect(screen.getAllByText('No analytics data for this range.')).toHaveLength(2);
+      expect(screen.getByText('No active pages right now.')).toBeInTheDocument();
+      expect(screen.getByText('No page views in this range.')).toBeInTheDocument();
+      for (const label of ['Direct', 'Search', 'Social', 'Referral', 'Campaign']) {
+        expect(screen.getByText(label)).toBeInTheDocument();
+      }
+
+      // No broken chart visuals: the empty timeseries means TrafficChart
+      // renders its dashed empty panel, not a recharts ComposedChart. Assert
+      // no recharts SVG surface renders inside the page — the chart's empty
+      // state is a styled <div>, not a degenerate SVG with zero dimensions.
+      expect(container.querySelector('svg.recharts-surface')).toBeNull();
+
+      // No error boundary trips: the render reached this assertion without
+      // throwing (proven by execution reaching this line), and no
+      // console.error was emitted during the empty-state render.
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
   // ── 2. Light and dark themes (US3-10) ────────────────────────────────────
 
   describe('Light and dark themes', () => {

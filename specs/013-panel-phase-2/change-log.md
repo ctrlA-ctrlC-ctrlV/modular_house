@@ -1,6 +1,92 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T13:30:00.000+01:00] — feat(analytics): T116 Q3 dialog validation on Apply (RangeDialog.tsx)
+
+### Changed
+
+- `apps/web/src/admin/analytics/RangeDialog.tsx` — added Q3 client-side validation logic to the
+  Apply button's `onClick` handler. The dialog now validates the custom start/end pair before
+  firing `onSelect`; on any Q3 violation it sets an internal `errorMessage` (rendered in
+  `text-destructive` text) and blocks `onSelect`, so the parent never updates the dashboard range
+  ("previous dashboard range retained until a valid Apply"). Three additions:
+  - **`londonToday(now: Date): string`** — resolves the current Europe/London calendar day as a
+    `YYYY-MM-DD` string via `Intl.DateTimeFormat` with `timeZone: 'Europe/London'` and
+    `formatToParts` (locale-independent — parts extracted by type, not position). Delegates DST
+    rules to the runtime's ICU database, mirroring the server-side convention of delegating to
+    Postgres's `AT TIME ZONE 'Europe/London'` (research R6).
+  - **`validateCustomRange(start, end, now): string | null`** — checks in fixed order: presence
+    (both dates filled), `start <= end` (lexicographic for zero-padded `YYYY-MM-DD`), `end <=
+    todayLondon`, span <= 490 days (UTC-midnight diff, `diffDays < 490`). Returns a
+    human-readable message on violation, `null` when valid. The `end > today` message states the
+    Europe/London boundary: `"End date cannot be after today (Europe/London date: YYYY-MM-DD)."`
+    (Q3: "states this boundary for administrators in other timezones").
+  - **Internal `errorMessage` state** — set by the Apply handler on validation failure, cleared
+    when the user changes either date input (so the message does not persist after correction) or
+    clicks the Custom button (entering custom mode starts fresh). Rendered in the
+    `text-destructive` slot with precedence over the parent-supplied `validationMessage` prop
+    (internal Q3 rejection takes priority; the prop is the fallback for future server-side
+    feedback).
+
+### Added (test infrastructure fix during T116)
+
+- `apps/web/src/admin/analytics/RangeDialog.test.tsx` — the T115 rejection-case queries were
+  fixed during T116: `container.querySelector('p.text-destructive')` → `document.querySelector`
+  because Radix Dialog portals content to `document.body`, not the render container. The
+  `container` return from the `applyCustomRange` helper was removed (no longer needed). This is
+  a test-only fix; the T115 test logic (assertion structure, 6 cases) is unchanged.
+
+### Notes
+
+- The validation is client-side defence-in-depth (research R10: "the server re-validates (Q1) —
+  never trust the client"). The server's Q1 validation (`routes/admin/analytics.ts`, T103)
+  remains authoritative: even if a malicious client bypasses the dialog's check, the API still
+  rejects invalid ranges with 400.
+- `pnpm --filter @modular-house/web exec vitest run src/admin/analytics/RangeDialog.test.tsx
+  --reporter=verbose`: 11/11 passing (5 pre-existing T032 + 6 T115). `eslint` clean on both
+  files; `pnpm --filter @modular-house/web run typecheck` exit 0. The dashboard-states and
+  Analytics page tests (19/19) confirm no regressions — the existing tests use valid preset
+  ranges and don't exercise the custom-range Apply path.
+
+## [2026-07-28T13:00:00.000+01:00] — test(analytics): T115 E-DIALOG custom-range validation tests (RangeDialog.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/analytics/RangeDialog.test.tsx` — new `describe('RangeDialog — E-DIALOG
+  custom-range validation (T115, Q3, FR-019)')` block appended after the T032 suite, with 6 `it()`
+  cases pinning the Q3 client-side validation contract. Added `beforeEach`/`afterEach` to the
+  import list for fake-timer setup/teardown.
+  - **Fixed "now"**: `FIXED_NOW = new Date('2026-07-28T12:00:00Z')` — noon UTC during BST, so
+    Europe/London today = `2026-07-28`. Only `Date` is faked (`toFake: ['Date']`) so React
+    rendering inside `fireEvent` stays on real timers (constitution III).
+  - **`applyCustomRange(start, end)` helper**: renders the dialog with `open={true}` and spy
+    callbacks, clicks Custom to reveal the date inputs, fills both via `fireEvent.change`, clicks
+    Apply, and returns the spies + container.
+  - **4 rejection cases (red at authoring)**:
+    1. `start > end` (2026-07-30 → 2026-07-28) → asserts `onSelect` NOT called + `p.text-destructive`
+       exists with truthy text.
+    2. `end = tomorrow` (2026-07-29) → asserts `onSelect` NOT called + message exists.
+    3. span 491 days (start = 490 days before today) → asserts `onSelect` NOT called + message
+       exists.
+    4. end > today message states London boundary → asserts `p.text-destructive` text matches
+       `/London/i` (Q3: "states this boundary for administrators in other timezones").
+  - **2 boundary acceptance cases (green at authoring)**:
+    5. `end = today` (2026-07-28) → asserts `onSelect` called with `('custom', '2026-07-01',
+       '2026-07-28')`.
+    6. span 490 days (start = 489 days before today) → asserts `onSelect` called with the pair.
+  - Red reason verified: the 4 rejection cases fail because the current `RangeDialog.tsx` (T033,
+    Pass 1) has NO validation — its Apply button fires `onSelect('custom', ...)` unconditionally,
+    so `onSelect` IS called (1 time) when it should not be, and no `p.text-destructive` element
+    renders (the `validationMessage` prop is not passed). The 2 acceptance cases pass because
+    `onSelect` IS called, which is the correct behavior for valid ranges.
+
+### Notes
+
+- `pnpm --filter @modular-house/web exec vitest run src/admin/analytics/RangeDialog.test.tsx
+  --reporter=verbose`: 7 passed, 4 failed (5 pre-existing T032 + 2 new acceptance = 7 green;
+  4 new rejection = red). `eslint` clean; `pnpm --filter @modular-house/web run typecheck`
+  exit 0.
+
 ## [2026-07-28T12:45:00.000+01:00] — docs(analytics): T114 web empty-state propagation hardening — no change required (Analytics.tsx, analytics/*)
 
 ### Notes

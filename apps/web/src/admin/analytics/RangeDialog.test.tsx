@@ -28,7 +28,7 @@
  * - Esc closes (constitution V): pressing Escape on the content fires
  *   `onOpenChange(false)` — Radix Dialog's standard dismiss behaviour.
  */
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { RangeDialog } from './RangeDialog.js';
@@ -193,5 +193,190 @@ describe('RangeDialog widget — static render + keyboard contract (T032)', () =
     const content = await screen.findByRole('dialog');
     fireEvent.keyDown(content, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T115 (E-DIALOG) — custom-range validation on Apply (Q3, FR-019, US3-6)
+// ---------------------------------------------------------------------------
+// Pins the Q3 client-side validation contract: when the administrator clicks
+// Apply with a custom start/end pair, the dialog MUST validate before firing
+// `onSelect`. Three rejection paths block Apply and show a destructive-text
+// message, leaving `onSelect` unfired (so the parent never updates the
+// dashboard range — "previous dashboard range retained until a valid Apply"):
+//   - `start > end` -> blocked + message
+//   - `end > today` (Europe/London) -> blocked + message that states the
+//     Europe/London boundary for administrators in other timezones
+//   - span > 490 days -> blocked + message
+// Two boundary acceptance cases prove the exact thresholds:
+//   - `end = today` (London) -> accepted (onSelect fired)
+//   - span of exactly 490 days -> accepted (onSelect fired)
+//
+// "Today" is the current Europe/London calendar date — resolved in JavaScript
+// via `Intl.DateTimeFormat` with `timeZone: 'Europe/London'`, not UTC. Tests
+// fake only `Date` (constitution III) so `new Date()` inside the dialog
+// returns the deterministic injected instant; no real wall-clock dependency.
+//
+// Authored test-first: the current `RangeDialog.tsx` (T033, Pass 1) has NO
+// validation — its Apply button fires `onSelect('custom', ...)` unconditionally
+// — so the rejection cases below fail red for the right reason (onSelect IS
+// called, no destructive message renders). T116 adds the validation logic
+// that turns them green.
+
+describe('RangeDialog — E-DIALOG custom-range validation (T115, Q3, FR-019)', () => {
+  // Fixed "now" — noon UTC on 2026-07-28, which falls inside the same
+  // Europe/London calendar day in both BST (UTC+1) and GMT. London wall-clock
+  // = 13:00 BST = 2026-07-28. Chosen at noon (not midnight) so a UTC-slice
+  // `toISOString().slice(0,10)` is equivalent to the London day for any
+  // nearby date arithmetic in the helpers.
+  const FIXED_NOW = new Date('2026-07-28T12:00:00Z');
+  const TODAY_LONDON = '2026-07-28';
+  const TOMORROW_LONDON = '2026-07-29';
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  beforeAll(() => {
+    // Radix Dialog portal polyfills — identical to the T032 block above.
+    // Idempotent guards so re-running in the same file does not override.
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  beforeEach(() => {
+    // Fake only `Date` so `new Date()` inside the dialog returns the
+    // deterministic FIXED_NOW. setTimeout/setInterval stay real so React
+    // effect flushing inside fireEvent is unaffected (constitution III).
+    vi.useFakeTimers({ now: FIXED_NOW, toFake: ['Date'] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /**
+   * Render the dialog, click Custom, fill both date inputs, and click Apply.
+   * Returns the callback spies so assertions can check the `onSelect` call
+   * history. The destructive message element is queried from `document` (not
+   * the render container) because Radix Dialog portals content to
+   * `document.body`.
+   */
+  async function applyCustomRange(
+    start: string,
+    end: string,
+  ): Promise<{
+    onSelect: ReturnType<typeof vi.fn>;
+    onOpenChange: ReturnType<typeof vi.fn>;
+  }> {
+    const onSelect = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <RangeDialog
+        open={true}
+        onSelect={onSelect}
+        onOpenChange={onOpenChange}
+      />,
+    );
+    await screen.findByRole('dialog');
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }));
+    fireEvent.change(screen.getByLabelText(/start date/i), {
+      target: { value: start },
+    });
+    fireEvent.change(screen.getByLabelText(/end date/i), {
+      target: { value: end },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    return { onSelect, onOpenChange };
+  }
+
+  // --- Rejection paths (red at authoring: onSelect IS called, no message) ---
+
+  it('start > end -> Apply blocked, destructive message visible, onSelect not called (previous range kept)', async () => {
+    const { onSelect } = await applyCustomRange(
+      '2026-07-30',
+      '2026-07-28',
+    );
+
+    // The dialog must NOT fire onSelect — the parent never learns about the
+    // invalid range, so the dashboard keeps its previous range (Q3).
+    expect(onSelect).not.toHaveBeenCalled();
+
+    // A destructive-text message must be visible (Q3: "Apply rejected with a
+    // visible message"). The message renders in a <p class="text-destructive">
+    // per the template form conventions (ui-components.md §5).
+    // Radix Dialog portals content to document.body (not the render
+    // container), so the destructive message must be queried from `document`.
+    const message = document.querySelector('p.text-destructive');
+    expect(message).not.toBeNull();
+    expect(message?.textContent).toBeTruthy();
+  });
+
+  it('end = tomorrow (Europe/London) -> Apply blocked, onSelect not called', async () => {
+    const { onSelect } = await applyCustomRange(
+      '2026-07-01',
+      TOMORROW_LONDON,
+    );
+
+    expect(onSelect).not.toHaveBeenCalled();
+    const message = document.querySelector('p.text-destructive');
+    expect(message).not.toBeNull();
+  });
+
+  it('span of 491 days -> Apply blocked, destructive message visible, onSelect not called', async () => {
+    // 491 inclusive days: start is 490 calendar days before end (today).
+    // Computed from FIXED_NOW so the test is deterministic.
+    const start = new Date(FIXED_NOW.getTime() - 490 * MS_PER_DAY)
+      .toISOString()
+      .slice(0, 10);
+
+    const { onSelect } = await applyCustomRange(start, TODAY_LONDON);
+
+    expect(onSelect).not.toHaveBeenCalled();
+    const message = document.querySelector('p.text-destructive');
+    expect(message).not.toBeNull();
+    expect(message?.textContent).toBeTruthy();
+  });
+
+  it('the end > today rejection message states the Europe/London boundary for administrators in other timezones', async () => {
+    // Q3: "the validation message states this boundary for administrators in
+    // other timezones" — the end > today message must mention Europe/London
+    // so an admin running in e.g. UTC+10 understands the "today" boundary is
+    // London's, not their local clock's.
+    await applyCustomRange('2026-07-01', TOMORROW_LONDON);
+
+    const message = document.querySelector('p.text-destructive');
+    expect(message).not.toBeNull();
+    expect(message?.textContent).toMatch(/London/i);
+  });
+
+  // --- Boundary acceptance paths (green at authoring: onSelect IS called) ---
+
+  it('boundary end = today (Europe/London) -> Apply accepted, onSelect called with the custom pair', async () => {
+    const { onSelect } = await applyCustomRange('2026-07-01', TODAY_LONDON);
+
+    expect(onSelect).toHaveBeenCalledWith(
+      'custom',
+      '2026-07-01',
+      TODAY_LONDON,
+    );
+  });
+
+  it('boundary span of 490 days -> Apply accepted, onSelect called with the custom pair', async () => {
+    // 490 inclusive days: start is 489 calendar days before end (today).
+    const start = new Date(FIXED_NOW.getTime() - 489 * MS_PER_DAY)
+      .toISOString()
+      .slice(0, 10);
+
+    const { onSelect } = await applyCustomRange(start, TODAY_LONDON);
+
+    expect(onSelect).toHaveBeenCalledWith('custom', start, TODAY_LONDON);
   });
 });

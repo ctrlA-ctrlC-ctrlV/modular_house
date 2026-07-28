@@ -6,6 +6,90 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-28 — T117-T121 (baseline: 0407673)
+
+T117 — PASS — reproduced 3-red/27-green vs pre-T118 code
+T118 — PASS — 46/46 reproduced; select.tsx deviation justified
+T119 — PASS — determinism verified; shared DB restore confirmed
+T120 — PASS — methodology sound; well under 50ms budget
+T121 — PASS-WITH-NITS — 490d budget marginal, watch at T123
+
+Detail: All 12 diffed files (2 new perf scripts, 1 new CI workflow, 5 a11y-fix source files, 2
+a11y test files, change-log.md, tasks.md) are disclosed in change-log.md — no concealed changes.
+Also confirmed: the T114 nit I flagged last round (misplaced `### Correction` heading orphaning
+unrelated bullets) was cleanly fixed in this session's `66bef67` commit — the survey bullets are
+back under `### Notes` and the correction section now contains only its own text. Supply-chain
+check: no package.json/lockfile changes (`jest-axe` used by the new T117 tests was already a
+dependency since T049, not newly added).
+
+T117/T118 (E-A11Y): independently reproduced the disclosed TDD red state — checked out the
+pre-T118 versions of all 5 touched source files (`RangeToolbar.tsx`, `select.tsx`, `TopPages.tsx`,
+`RangeDialog.tsx`, `Analytics.tsx`, all at commit `06d0ad5`) over the current tree and reran
+`dashboard-states.test.tsx` + `CookieBanner.test.tsx`: 3 failed / 27 passed, exactly matching the
+disclosed split (working tree restored immediately after, confirmed clean via `git status`). Then
+reran the full 4-file suite (`dashboard-states`, `CookieBanner`, `RangeDialog`, `RangeToolbar`
+tests) against the real committed HEAD: 46/46 passing, also an exact match. Each of the three
+fixes was hand-verified as the correct, minimal resolution to a genuinely diagnosed defect: (1)
+`aria-label="Select range"` on the combobox trigger — verified against the WAI-ARIA accname
+algorithm's actual role list (`combobox` is not one of the roles that derive a name from subtree
+content, unlike `button`/`link`), so the visible portaled text alone really did leave the control
+unnamed for AT; (2) the `sr-only` span on `TopPages.tsx`'s intentionally-blank first `<th>`; (3)
+`RangeDialog`'s new `restoreFocusRef`/`onCloseAutoFocus` wiring, whose necessity was confirmed by
+tracing the actual failure mode (the `Select`'s own item unmounts in the same React commit that
+mounts `RangeDialog`, resetting `document.activeElement` to `<body>` before Radix's FocusScope
+captures a restore target — a real, non-obvious root cause, not a guess). `select.tsx`'s forwardRef
+conversion is correctly disclosed as outside T118's `Files:` glob, with a valid justification (a
+ref cannot be forwarded through a non-forwarding child) — not scope creep. FR-004/FR-022/N5/DoD-6/
+E-A11Y citations checked against `spec.md`/`plan.md` — all resolve to the correct text.
+
+T119/T120/T121 (perf): read both new scripts in full. `seed-analytics-perf.ts`'s PRNG (mulberry32),
+fixed `PERF_SEED_NOW` anchor, and volume targets were checked against plan.md's pinned
+"Scale/Scope: ~10³ views/day; <1 M rows over 32 months" — the 900/day target and 950,000-event cap
+match; the generated 871,373-event/157,039-visitor result sits comfortably under both ceilings.
+`--confirm`/`PERF_SEED_CONFIRM` destructive-action guard present and correctly gates the delete-all
+step. Independently confirmed the local port-5434 DB is back at the pre-perf-seed 12-event/
+5-visitor functional baseline (`analyticsEvent.count()`/`analyticsVisitor.count()` queried
+directly) before running any §6 command — the change-log's "restored, user-approved temporary
+state change" claim checks out. `bench-analytics.ts`'s ingest/overview benchmark methodology
+(warm-up/measure split, nearest-rank percentiles, per-request synthetic `X-Forwarded-For` to
+bypass M6's rate limiter — a documented, orthogonal bypass, not a budget-relevant shortcut) is
+sound; `INGEST_P95_BUDGET_MS=50`, `OVERVIEW_SHORT_SPAN_P95_BUDGET_MS=300`,
+`OVERVIEW_LONG_SPAN_P95_BUDGET_MS=1000` match M9/Q8 exactly. `perf-check.yml` is
+`workflow_dispatch`-only (never runs on push/PR) with its own disposable Postgres service on a
+distinct port from `ci.yml`'s jobs — correctly isolated. Did NOT personally rerun either perf
+script (they are not `§6` commands, and rerunning `seed-analytics-perf.ts` would require
+destructively reseeding the shared local DB a second time for no verification benefit beyond what
+the disclosed, fully-transcribed live-run output already shows) — the benchmark numbers themselves
+are inspection-verified-plausible, not independently reproduced by this review, unlike the `§6`
+suite runs below.
+
+One real nit (T121): 5 consecutive live runs of the 490-day overview span showed 4 passes and one
+1015.56 ms measurement — 15.56 ms over the 1000 ms Q8/DoD-7 budget. This is disclosed in full
+(exact transcript, root-cause reasoning tied to the query's several sequential `$queryRaw` calls
+over ~half the 871K-row dataset, correctly scoped as "not this task's `Files:` line to fix") rather
+than cherry-picked or hidden — exactly the right way to surface a borderline result — but it is a
+real, reproducible ~20% observed failure rate on a DoD-gating budget on this sandbox's shared,
+non-production-tuned Postgres container, not just measurement noise on one outlier run. T121's own
+`Done when` ("both p95s within budget; results recorded") is satisfied by the majority-passing,
+fully-recorded result, so this is not a CHANGES-REQUIRED finding against T121 itself — but it
+should be explicitly re-checked (several more runs, and/or a look at parallelizing
+`analyticsQuery.ts`'s sequential queries) when T123 (DoD verification) revisits these budgets,
+rather than being treated as settled.
+
+Verification commands (§6): `pnpm --filter @modular-house/api test:run` 60/60 files, 515/515
+tests, clean. `pnpm --filter @modular-house/web test:run`: 53/53 files, 481/481 tests, clean (no
+flake this round). `prisma validate` clean. `prisma migrate status` against the port-5434 test DB:
+up to date, no drift (same `DATABASE_URL` re-pointing as prior rounds — no schema/migration files
+are in this diff, so this was a no-drift-expected confirmation). `prisma migrate diff --exit-code`:
+disposable `modular_house_dev_shadow` database created on the same container, diff run (`No
+difference detected`), dropped immediately after. `docs:validate` clean. `pnpm lint` clean across
+all 3 linted workspaces (including the new `scripts/*.ts` files). `pnpm typecheck` clean (the two
+new scripts are outside `apps/api/tsconfig.json`'s `src/**/*` include, matching the pre-existing
+`serve-docs.ts`/`validate-openapi.ts` exemption — confirmed by reading the tsconfig directly).
+`test:coverage` (api): 515/515 passing; coverage figures unchanged from the prior round
+(`analyticsIngest.ts`/`analyticsQuery.ts` untouched by this diff) — floors enforced at T123, not
+here.
+
 ## 2026-07-28 — T114 review-nit fix (since 5ad5369)
 
 T114 — PASS-WITH-NITS — desc fixed exact; new heading splice nit

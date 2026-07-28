@@ -1523,6 +1523,7 @@
       Done when: any violation or focus-order failure red.
       Refs: E-A11Y, N5, FR-004/FR-022, constitution V
 > note: E-A11Y axe (banner+dashboard light/dark/pop-up) + focus in/out-of-dialog assertions added; tests: 27 pass 3 red; deviations: none
+> reviewed: PASS — reproduced 3-red/27-green vs pre-T118 code
 
 - [x] T118 Fix the surfaced accessibility issues
       Files: apps/web/src/components/CookieBanner.tsx, apps/web/src/admin/analytics/RangeDialog.tsx,
@@ -1532,6 +1533,7 @@
       Done when: T117 green.
       Refs: N5, DoD-6
 > note: aria-label on trigger; sr-only TopPages th; RangeDialog restoreFocusRef+onCloseAutoFocus; tests: T117 green; deviations: ui/select.tsx forwardRef (outside Files: glob)
+> reviewed: PASS — 46/46 reproduced; select.tsx deviation justified
 
 ### Performance budgets (M9/Q8)
 
@@ -1543,6 +1545,7 @@
       Done when: script populates the test DB reproducibly; CI can invoke it for the perf step.
       Refs: Q8, DoD-7/DoD-8, plan Scale/Scope
 > note: mulberry32-seeded 32mo synth dataset (871,373 events/157,039 visitors, reproducible); workflow_dispatch perf-check.yml seed step; tests: verified 2x identical; deviations: none
+> reviewed: PASS — determinism verified; shared DB restore confirmed
 
 - [x] T120 Benchmark the ingest budget (M9)
       Files: apps/api/scripts/bench-analytics.ts (new)
@@ -1551,6 +1554,7 @@
       Done when: measured p95 < 50 ms; result recorded in the PR/quickstart notes.
       Refs: M9, DoD-7, constitution IV
 > note: p50=8.6ms/p95=10.9ms/max=14.8ms over 300 reqs vs 871k seed; X-Fwd-For bypass; tests: PASS<50ms; deviations: perf-check.yml bench step (T119 CI wiring)
+> reviewed: PASS — methodology sound; well under 50ms budget
 
 - [x] T121 Benchmark the overview budget (Q8)
       Files: apps/api/scripts/bench-analytics.ts
@@ -1559,6 +1563,7 @@
       Done when: both p95s within budget; results recorded.
       Refs: Q8, DoD-7, SC-007
 > note: 92d p95~200ms(<300 PASS); 490d p95 830-1015ms(<1000, 4/5 runs PASS,1 borderline FAIL); tests: measured live; deviations: none
+> reviewed: PASS-WITH-NITS — 490d budget marginal, watch at T123
 
 ---
 

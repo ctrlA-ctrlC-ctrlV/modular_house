@@ -78,19 +78,40 @@ const FIXED_NOW = new Date('2026-07-22T12:00:00Z').getTime();
 // `document` that stores cookies in a Map for the getter (matching jsdom's
 // `name=value; name=value` join format) and records every full assigned
 // attribute string in `cookieSetCalls` so tests can assert cookie attributes
-// verbatim. The closures reference the module-scoped `let` bindings, so
-// reassigning the Maps/arrays in `beforeEach` resets the visible state without
-// redefining the property.
-let cookieStore = new Map<string, string>();
+// verbatim. The getter also honours `max-age` expiry relative to the faked
+// `Date.now()` — cookies whose elapsed time meets or exceeds their max-age are
+// omitted from the read output, modelling the browser's passive cookie expiry
+// that drives K3's session inactivity window. This lets the E-SESSION cases
+// advance fake timers to test the 30-minute boundary directly, without a manual
+// `cookieStore.delete`. The closures reference the module-scoped `let` bindings,
+// so reassigning the Maps/arrays in `beforeEach` resets the visible state
+// without redefining the property.
+
+/** Tracked cookie entry — the raw value plus the set time and max-age needed for expiry. */
+interface CookieEntry {
+  value: string;
+  /** `Date.now()` at the time the cookie was written (ms since epoch). */
+  setAt: number;
+  /** The cookie's `max-age` in seconds (Infinity when no max-age attribute is present). */
+  maxAge: number;
+}
+
+let cookieStore = new Map<string, CookieEntry>();
 let cookieSetCalls: string[] = [];
 
 beforeAll(() => {
   Object.defineProperty(document, 'cookie', {
     configurable: true,
-    get: () =>
-      Array.from(cookieStore.entries())
-        .map(([name, value]) => `${name}=${value}`)
-        .join('; '),
+    get: () => {
+      // Filter out cookies the browser has passively expired: whose elapsed
+      // time since `setAt` has met or exceeded their `max-age`. Cookies set
+      // without a max-age attribute have `maxAge = Infinity` and never expire.
+      const now = Date.now();
+      return Array.from(cookieStore.entries())
+        .filter(([, entry]) => (now - entry.setAt) / 1000 < entry.maxAge)
+        .map(([name, entry]) => `${name}=${entry.value}`)
+        .join('; ');
+    },
     set: (value: string) => {
       cookieSetCalls.push(value);
       const segments = value.split(';').map((segment) => segment.trim());
@@ -107,7 +128,8 @@ beforeAll(() => {
       if (maxAgeAttr && Number(maxAgeAttr.split('=')[1]) <= 0) {
         cookieStore.delete(name);
       } else {
-        cookieStore.set(name, rawValue);
+        const maxAge = maxAgeAttr ? Number(maxAgeAttr.split('=')[1]) : Infinity;
+        cookieStore.set(name, { value: rawValue, setAt: Date.now(), maxAge });
       }
     },
   });
@@ -768,11 +790,12 @@ describe('useBeacon — one event per page view (M8)', () => {
 // The inactivity window is enforced by the browser honouring `mh_sid`'s
 // max-age (K3/V1 — "the cookie expiry IS the session window"; research R2);
 // beacon.ts's rolling-expiry logic is only read-cookie-then-reuse-or-mint, so
-// the boundary is modelled here by advancing fake timers past the pinned 1800s
-// max-age and simulating the browser's passive drop with `cookieStore.delete`
-// (the same device the section-2 "fresh mh_vid when absent" case uses to model
-// an absent cookie). Only `Date` is faked; no real time elapses (constitution
-// III), and the tests assert cookies only — no async dispatch checks.
+// the boundary is exercised here by advancing fake timers past the pinned 1800s
+// max-age — the cookie store's getter auto-expires cookies whose elapsed time
+// meets or exceeds their max-age, so at 30m01s the getter omits `mh_sid` and
+// `ensureSessionId` mints a new UUID, with no manual `cookieStore.delete`. Only
+// `Date` is faked; no real time elapses (constitution III), and the tests
+// assert cookies only — no async dispatch checks.
 describe('sendPageView — E-SESSION session-window boundary (K3/V1, FR-009)', () => {
   const SECOND_MS = 1000;
   const MINUTE_MS = 60 * SECOND_MS;
@@ -791,6 +814,12 @@ describe('sendPageView — E-SESSION session-window boundary (K3/V1, FR-009)', (
     // Advance 29m59s (1799s) — still inside K3's 1800s inactivity window, so
     // the browser has NOT expired `mh_sid` and the session continues (V1).
     vi.setSystemTime(new Date(FIXED_NOW + 29 * MINUTE_MS + 59 * SECOND_MS));
+
+    // Assert the cookie store's auto-expiry has NOT dropped `mh_sid` at 1799s
+    // (1799 < 1800). This is what distinguishes this case from the existing
+    // section-2 K3 renewal test, which does not advance the clock and therefore
+    // cannot exercise the time-dependent survival boundary.
+    expect(document.cookie).toContain(`${SESSION_COOKIE_NAME}=${sessionUuid}`);
 
     // Second view inside the window renews the session cookie.
     sendPageView({ pathname: '/garden-rooms/about' });
@@ -816,15 +845,20 @@ describe('sendPageView — E-SESSION session-window boundary (K3/V1, FR-009)', (
     const firstSid = cookieValue(cookieWritesFor(SESSION_COOKIE_NAME)[0]);
     expect(firstSid).toBe(sessionUuid);
 
-    // Advance 30m01s (1801s) — past K3's 1800s inactivity window. The browser
-    // passively drops the expired `mh_sid`. This file's custom cookie store
-    // does not honour max-age on read (see the beforeAll override), so the
-    // browser's passive expiry is simulated explicitly here by deleting
-    // `mh_sid` from the live store — `cookieWritesFor` still reports the
+    // Advance 30m01s (1801s) — past K3's 1800s inactivity window. The cookie
+    // store's getter now auto-expires `mh_sid` (1801s >= 1800s max-age), so
+    // `ensureSessionId` will read an empty cookie and mint a new UUID — no
+    // manual `cookieStore.delete` needed. `cookieWritesFor` still reports the
     // original mint write, so `firstSid` stays comparable. The visitor cookie
-    // (`mh_vid`, 365-day max-age) is left untouched.
+    // (`mh_vid`, 365-day max-age) is left untouched by the auto-expiry (365
+    // days >> 30 minutes).
     vi.setSystemTime(new Date(FIXED_NOW + 30 * MINUTE_MS + 1 * SECOND_MS));
-    cookieStore.delete(SESSION_COOKIE_NAME);
+
+    // Assert the auto-expiry HAS dropped `mh_sid` but NOT `mh_vid` — proving
+    // the boundary is exact (1801s >= 1800s for the session cookie, 1801s <<
+    // 31536000s for the visitor cookie).
+    expect(document.cookie).not.toContain(SESSION_COOKIE_NAME);
+    expect(document.cookie).toContain(VISITOR_COOKIE_NAME);
 
     // Queue a distinct session id for the new-session mint; `mh_vid` is still
     // present so its renewal reuses the stored value (no UUID call for the

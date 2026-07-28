@@ -1,6 +1,58 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T10:30:00.000+01:00] — docs(analytics): T110 beacon session-cookie renewal hardening — no change required (beacon.ts)
+
+### Notes
+
+- No implementation change: `ensureSessionId()` in `apps/web/src/analytics/beacon.ts` already
+  implements T110's requirement exactly (plan §2.1 K3, §2.5 V1, research R2). When `mh_sid` is
+  present it reuses the SAME value and writes a fresh 1800s `max-age` (line 160); when absent it
+  mints a new UUID via `crypto.randomUUID()` with the same 1800s `max-age` (lines 163–164);
+  `SESSION_MAX_AGE_SECONDS = 30 * 60` (line 77) equals K3's pinned 30 minutes / V1's inactivity
+  window, and `setCookie` emits `path=/` + `samesite=lax` (+ `secure` in prod) per K1. It is
+  called on every measured view inside `sendPageView` (line 323), after the `isAdminPath`
+  short-circuit (M5/FR-014 intact). `beacon.ts` is left byte-for-byte unchanged by this task; the
+  task's `Done when: T109 green` criterion is met (35/35 passing). Mirrors the T104/T106/T108
+  "no code change" precedent against already-correct logic.
+
+## [2026-07-28T10:00:00.000+01:00] — test(analytics): T109 E-SESSION client session-window boundary (beacon.test.ts)
+
+### Added
+
+- `apps/web/src/analytics/beacon.test.ts` — new `describe('sendPageView — E-SESSION
+  session-window boundary (K3/V1, FR-009)')` block appended after the `useBeacon` section
+  (section 7), with 2 `it()` cases pinned to the exact K3 boundary off a single first view:
+  - **29m59s renewal (inside V1 window)**: a second `sendPageView` 29m59s (1799s) after a
+    first view that minted `mh_sid` = sessionUuid renews the SAME session id with a fresh
+    `max-age=1800` write, and `uuidSpy` is called exactly twice (vid + first sid only) — no
+    regeneration at the renewal. Asserts the beacon reuses an unexpired session cookie.
+  - **30m01s new session (past V1 boundary)**: a second `sendPageView` 30m01s (1801s) after
+    the first view — past K3's 1800s inactivity window — finds `mh_sid` expired and mints a
+    NEW session id (a distinct UUID v4 value) with a fresh `max-age=1800`. `uuidSpy` is
+    called exactly 3 times (vid, first sid, new sid); `mh_vid` is reused from the still-
+    present visitor cookie (no UUID call for the renewal).
+
+### Notes
+
+- The session inactivity window is enforced by the browser honouring `mh_sid`'s `max-age`
+  (K3/V1 — "the cookie expiry IS the session window"; research R2); `beacon.ts`'s rolling-
+  expiry logic is only read-cookie-then-reuse-or-mint, so the boundary is modelled by
+  advancing fake timers past the pinned 1800s `max-age` and simulating the browser's passive
+  drop with `cookieStore.delete('mh_sid')` — the same device the T045 "fresh `mh_vid` when
+  absent" case uses. The file's custom `document.cookie` override honours `max-age` only for
+  deletion (`<= 0`), not for reads, so an auto-expiry would require touching shared test
+  infrastructure used by all 33 pre-existing beacon cases; the explicit delete follows the
+  established convention and keeps the blast radius to the two new cases.
+- Both cases pass at authoring (T105/T107 precedent): `beacon.ts`'s `ensureSessionId`
+  already reuses the same value with a fresh 30-minute expiry when present and mints a new
+  UUID when absent (K3), so the cases assert correct behaviour rather than fail it red. They
+  are regression guards — case 1 would go red if the renewal regenerated the id; case 2 would
+  go red if an absent `mh_sid` failed to mint a new UUID.
+- `pnpm --filter @modular-house/web exec vitest run src/analytics/beacon.test.ts
+  --reporter=verbose`: 35/35 passing (2 new + 33 pre-existing). `eslint
+  src/analytics/beacon.test.ts` clean; `pnpm --filter @modular-house/web run typecheck` exit 0.
+
 ## [2026-07-24T17:00:00.000+01:00] — test(analytics): T107/T108 E-CONCURRENCY visitor-upsert race hardening (analytics-ingest.test.ts)
 
 ### Added

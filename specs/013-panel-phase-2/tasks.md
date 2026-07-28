@@ -1458,6 +1458,7 @@
       Done when: any broken empty path red.
       Refs: E-EMPTY, US3-9, FR-023, Q6
 > note: E-EMPTY realtime zero + overview before-first-event (zero KPIs prev null, 10 zero buckets, 5 zero sources, 200 not 500); tests: 18 passing (2 new green at authoring); deviations: none
+> reviewed: PASS — Q5/Q6 empty-path values hand-verified exact
 
 - [x] T112 Harden api empty-window handling
       Files: apps/api/src/services/analyticsQuery.ts
@@ -1466,6 +1467,7 @@
       Done when: T111 green.
       Refs: E-EMPTY, Q5/Q6
 > note: no source change — analyticsQuery already guards div0, returns 0/null/[] for empty, unnest keeps 5 groups; tests: T111 green unmodified; deviations: none
+> reviewed: PASS — zero-diff confirmed; every guard line hand-traced
 
 - [x] T113 Write failing web empty-state test (E-EMPTY, web)
       Files: apps/web/src/admin/analytics/dashboard-states.test.tsx
@@ -1475,6 +1477,7 @@
       Done when: red on any widget that renders misleading visuals when empty.
       Refs: E-EMPTY, US3-9, FR-023
 > note: E-EMPTY no-broken-visuals + no-error-boundary test — asserts no recharts SVG when timeseries empty, console.error not called; tests: 10 passing (1 new green at authoring); deviations: none
+> reviewed: PASS — no recharts SVG assertion verified live
 
 - [x] T114 Harden web empty-state propagation
       Files: apps/web/src/admin/pages/Analytics.tsx, apps/web/src/admin/analytics/* (as surfaced)
@@ -1482,6 +1485,7 @@
       Done when: T113 green.
       Refs: FR-023
 > note: no source change — Analytics.tsx passes empty payload through, each widget handles own empty state (isEmptyRange/timeseries.length/hasPages); tests: T113 green unmodified; deviations: none
+> reviewed: PASS-WITH-NITS — RealtimeCard condition claim inaccurate
 
 ### E-DIALOG — custom-range validation
 
@@ -1494,6 +1498,7 @@
       Done when: each rejection path red against the Pass 2 happy-path dialog.
       Refs: E-DIALOG, Q3, FR-019, US3-6
 > note: E-DIALOG 6-case suite — start>end/end>tomorrow/491-day blocked (4 red: onSelect+no msg), end=today/490-day accepted (2 green), London msg asserted; tests: 7 pass 4 red; deviations: none
+> reviewed: PASS — reproduced 4-red/7-green against pre-impl code
 
 - [x] T116 Implement the Q3 dialog validation
       Files: apps/web/src/admin/analytics/RangeDialog.tsx
@@ -1503,6 +1508,7 @@
       Done when: T115 green.
       Refs: Q3, research R10, FR-019
 > note: Q3 validation on Apply — londonToday via Intl, validateCustomRange checks start<=end/end<=today(London)/span<=490d, blocks onSelect on violation; tests: 11 passing; deviations: none
+> reviewed: PASS — Q3 span math confirmed equivalent to Q1
 
 ### E-A11Y — accessibility passes
 

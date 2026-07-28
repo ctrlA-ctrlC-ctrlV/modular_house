@@ -6,6 +6,75 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-28 — T111-T116 (baseline: ea8998e)
+
+T111 — PASS — Q5/Q6 empty-path values hand-verified exact
+T112 — PASS — analyticsQuery.ts zero-diff; guards confirmed correct
+T113 — PASS — no recharts SVG assertion verified live
+T114 — PASS-WITH-NITS — RealtimeCard condition claim inaccurate
+T115 — PASS — reproduced 4-red/7-green against pre-impl code
+T116 — PASS — Q3 span math confirmed equivalent to Q1
+
+Detail: All 7 diffed files (2 api test files, RangeDialog.tsx + its test, dashboard-states.test.tsx,
+change-log.md, tasks.md) are disclosed in change-log.md — no concealed changes. Supply-chain check:
+no package.json/lockfile changes.
+
+T111/T112 (E-EMPTY api): both new `it()` blocks read exactly as described — realtime returns
+`activeVisitors: 0, topActivePages: [], windowMinutes: 5` for a genuinely empty trailing-5-minute
+window (verified the file's `beforeEach` resets fake timers to `ANALYTICS_FIXED_NOW` and cleans up
+this file's own rows before the test runs, real timers restored by every preceding `it()`'s
+`finally`); overview for 2026-07-01..07-10 (entirely before the 2026-07-13 first seed event) asserts
+`current:0, previous:null, deltaPercent:null` on every KPI (Q5 "no prior data"), 10 zero-filled day
+buckets, empty topPages, 5 zero-valued sources — all hand-verified against `analyticsQuery.ts`,
+which is confirmed byte-for-byte unchanged (absent from the diff) and already guards every cited
+empty path (`?? 0` fallbacks, `total > 0 ? ... : 0` ternaries, `noPriorData` null branch, the
+`unnest(enum_range(...))` always-5-groups join) — the T111/T112 "no code change" claim is accurate.
+
+T113/T114 (E-EMPTY web): the new `dashboard-states.test.tsx` block mocks `overviewEmpty`/
+`realtimeEmpty` and asserts both dashed "No analytics data for this range." panels, the
+RealtimeCard/TopPages empty messages, all 5 TrafficSources group labels, no `svg.recharts-surface`,
+and no `console.error` — verified each widget's real source (`TrafficChart.tsx:139`,
+`KpiStrip.tsx:219`, `RealtimeCard.tsx:100`, `TopPages.tsx:100`, `TrafficSources.tsx:119`) implements
+exactly the branch asserted. T114's own change-log entry is the one nit this round: it describes
+RealtimeCard's empty condition as `activeVisitors === 0 && topActivePages.length === 0`, but the
+actual code (`RealtimeCard.tsx:66`) is a single check, `hasPages = topActivePages.length > 0` — no
+compound condition exists. Functionally equivalent given the query design (topActivePages can only
+be empty when activeVisitors is 0), so no behavioral defect, but the note misstates the code it
+claims to have hand-traced. Same recurring class of minor change-log inaccuracy flagged before at
+T010/T014/T094/T102.
+
+T115/T116 (E-DIALOG): independently reproduced the disclosed TDD red state rather than trusting the
+note — checked out the pre-T116 `RangeDialog.tsx` (commit `f0dceae`) over the current file and reran
+`RangeDialog.test.tsx`: 4 failed / 7 passed, matching the change-log's claimed split exactly (working
+tree restored immediately after, confirmed clean via `git status`). `RangeDialog.tsx`'s
+`validateCustomRange` was hand-traced rule-by-rule against Q3 (presence, `start<=end`, `end<=today`
+via `Intl`-resolved Europe/London date, span cap) and reconciled against the server's Q1 span check
+(`routes/admin/analytics.ts:182-186`): the client's `diffDays >= 490` (UTC-midnight day difference)
+and the server's `spanDays > 490` (inclusive day count via half-open boundaries) are algebraically
+equivalent thresholds (`diffDays = inclusiveDays - 1`), so both accept exactly a 490-inclusive-day
+span and reject 491 — the docstring's "mirrors Q1" claim is exact, not just asserted. `it()` count
+in `RangeDialog.test.tsx` hand-counted at 11 (5 pre-existing T032 + 6 new T115), matching the note.
+FR-019/US3-6/US3-9 citations checked against `spec.md` — all resolve to the correct text, no
+reference drift.
+
+Verification commands (§6): `pnpm --filter @modular-house/api test:run` 60/60 files, 515/515 tests,
+clean. `pnpm --filter @modular-house/web test:run`: first run showed 1 unrelated failure
+(`src/admin/shell/persistence.test.tsx`, a file untouched by this diff); reran the file alone (5/5
+green) and the full suite again (53/53 files, 475/475 tests, clean) — confirmed flake, not a
+regression, no source in scope touches theme/sidebar persistence. `prisma validate` clean.
+`prisma migrate status` against the port-5434 test DB: up to date, no drift (the bare command
+targets `.env`'s port-5432 dev DB, unreachable in this sandbox — same known gap as prior sessions;
+re-pointed `DATABASE_URL` at the test DB per precedent). `prisma migrate diff --exit-code`: schema
+has no `shadowDatabaseUrl` configured (pre-existing), so a disposable `modular_house_dev_shadow`
+database was created on the same port-5434 Postgres container via `docker exec psql`, the diff run
+(`No difference detected`), and the disposable database dropped immediately after — no difference
+detected, no drift. `docs:validate` clean. `pnpm lint` clean across all 3 linted workspaces.
+`pnpm typecheck` clean across all 3 typechecked workspaces. `test:coverage` (api): 515/515 passing;
+`analyticsIngest.ts` 100%/100%, `analyticsQuery.ts` 100% line / 78.04% branch — every uncovered
+branch traced to defensive `?? 0` / `Number.isFinite` fallbacks for SQL-aggregate-row-always-exists
+or empty-array-map-never-runs cases that are structurally unreachable given the query shapes, not a
+gap introduced by T111/T112. Coverage floors are enforced at T123 (DoD), not here, per rule 6.
+
 ## 2026-07-28 — T109 review-nit fix (since aa2d12f)
 
 T109 — PASS — mutation-tested; boundary now genuinely time-sensitive

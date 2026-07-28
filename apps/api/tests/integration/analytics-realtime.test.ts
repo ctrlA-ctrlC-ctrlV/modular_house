@@ -189,4 +189,30 @@ describe('GET /api/admin/analytics/realtime', () => {
       expect(liveB).toMatchObject({ path: '/live-b', activeVisitors: 1 });
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // T111 (E-EMPTY) — realtime with zero events in the trailing 5 minutes
+  // ---------------------------------------------------------------------------
+  // Pins the empty-window contract (E-EMPTY, US3-9, FR-023): when no events
+  // fall inside the trailing 5-minute window the endpoint MUST return 200
+  // (never 500) with `activeVisitors: 0`, an empty `topActivePages` array, and
+  // `windowMinutes: 5` — no error, no broken payload. The `beforeEach` has
+  // already cleaned up this file's own rows and reset the injected "now" to
+  // `ANALYTICS_FIXED_NOW` (2026-07-15T12:00:00Z); the shared `db:seed` events
+  // on 2026-07-15 do not fall inside the 11:55:00Z–12:00:00Z trailing window
+  // (proven by T062's populated case asserting exactly 3 active visitors for
+  // its own minted events with zero seed contamination), so a no-mint query at
+  // that "now" yields a genuinely empty window.
+  describe('T111 (E-EMPTY): realtime with zero events in the trailing 5 minutes', () => {
+    it('returns activeVisitors 0, empty topActivePages, windowMinutes 5, and 200 (not an error)', async () => {
+      const res = await request(app)
+        .get('/api/admin/analytics/realtime')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.activeVisitors).toBe(0);
+      expect(res.body.topActivePages).toEqual([]);
+      expect(res.body.windowMinutes).toBe(5);
+    });
+  });
 });

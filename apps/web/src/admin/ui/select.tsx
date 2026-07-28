@@ -110,17 +110,21 @@ function SelectValue({
  * Trigger button that opens the listbox. Exposes a `size` variant
  * (`sm` | `default`) via `data-size` and the H4 visible-focus ring
  * (`focus-visible:ring-3 ring-ring/50`). Appends a chevron-down icon.
+ *
+ * Forwards its ref to the underlying native `<button>` (T118, E-A11Y): callers
+ * that programmatically restore keyboard focus to this trigger — e.g. a
+ * consumer's own `Dialog`'s `onCloseAutoFocus` handler — need a stable DOM
+ * reference independent of Radix's internal focus-restore timing.
  */
-function SelectTrigger({
-  className,
-  size = 'default',
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: 'sm' | 'default';
-}) {
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentProps<typeof SelectPrimitive.Trigger> & {
+    size?: 'sm' | 'default';
+  }
+>(({ className, size = 'default', children, ...props }, ref) => {
   return (
     <SelectPrimitive.Trigger
+      ref={ref}
       data-slot="select-trigger"
       data-size={size}
       className={cn(
@@ -142,7 +146,8 @@ function SelectTrigger({
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
-}
+});
+SelectTrigger.displayName = 'SelectTrigger';
 
 /**
  * Portaled listbox content. Supports `item-aligned` (default) and `popper`

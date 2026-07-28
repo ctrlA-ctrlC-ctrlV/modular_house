@@ -1485,7 +1485,7 @@
 
 ### E-DIALOG — custom-range validation
 
-- [ ] T115 Write failing custom-range validation tests (E-DIALOG)
+- [x] T115 Write failing custom-range validation tests (E-DIALOG)
       Files: apps/web/src/admin/analytics/RangeDialog.test.tsx
       Do: `start > end` -> Apply blocked + visible message, dashboard keeps its previous range;
       `end = tomorrow` -> blocked; boundary `end = today` (Europe/London today) -> accepted; span
@@ -1493,14 +1493,16 @@
       Europe/London "today" boundary for administrators in other timezones.
       Done when: each rejection path red against the Pass 2 happy-path dialog.
       Refs: E-DIALOG, Q3, FR-019, US3-6
+> note: E-DIALOG 6-case suite — start>end/end>tomorrow/491-day blocked (4 red: onSelect+no msg), end=today/490-day accepted (2 green), London msg asserted; tests: 7 pass 4 red; deviations: none
 
-- [ ] T116 Implement the Q3 dialog validation
+- [x] T116 Implement the Q3 dialog validation
       Files: apps/web/src/admin/analytics/RangeDialog.tsx
       Do: Validate on Apply: `start <= end`, `end <= today` (London), span <= 490 days; block
       Apply with the destructive-text message on violation; previous dashboard range retained
       until a valid Apply; server re-validation (Q1) remains authoritative.
       Done when: T115 green.
       Refs: Q3, research R10, FR-019
+> note: Q3 validation on Apply — londonToday via Intl, validateCustomRange checks start<=end/end<=today(London)/span<=490d, blocks onSelect on violation; tests: 11 passing; deviations: none
 
 ### E-A11Y — accessibility passes
 

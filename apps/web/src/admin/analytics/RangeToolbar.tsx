@@ -57,6 +57,8 @@
  * trigger width `w-34` (rule 6). Rules 7–10 do not introduce new dependencies
  * or emoji; the select primitive is already ported (T011).
  */
+import * as React from 'react';
+
 import {
   Select,
   SelectContent,
@@ -127,30 +129,41 @@ export interface RangeToolbarProps {
  * `3 months`. The template's export/import/share ellipsis menu is omitted
  * (out of scope). Selection is bridged to the `onSelect` callback — the widget
  * holds no range state of its own.
+ *
+ * Forwards its ref to the trigger button (T118, E-A11Y): `Analytics.tsx` uses
+ * this to restore keyboard focus to the trigger once `RangeDialog` closes,
+ * via that dialog's `onCloseAutoFocus` handler — Radix's own default restore
+ * target is unreliable here because the `More` selection that opens the
+ * dialog also unmounts the trigger's own listbox in the same commit.
  */
-export function RangeToolbar({
-  onSelect,
-  defaultPreset = DEFAULT_RANGE_PRESET,
-}: RangeToolbarProps) {
-  return (
-    <div className="flex items-center gap-2">
-      <Select
-        defaultValue={defaultPreset}
-        onValueChange={(value) => onSelect(value as RangePresetId)}
-      >
-        <SelectTrigger className="w-34">
-          <SelectValue placeholder="Select range" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {RANGE_PRESETS.map((preset) => (
-              <SelectItem key={preset.id} value={preset.id}>
-                {preset.label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
+export const RangeToolbar = React.forwardRef<HTMLButtonElement, RangeToolbarProps>(
+  function RangeToolbar({ onSelect, defaultPreset = DEFAULT_RANGE_PRESET }, ref) {
+    return (
+      <div className="flex items-center gap-2">
+        <Select
+          defaultValue={defaultPreset}
+          onValueChange={(value) => onSelect(value as RangePresetId)}
+        >
+          {/* T117/T118 (E-A11Y): explicit aria-label — the ARIA accessible-name
+              algorithm does not derive a name from subtree content for
+              role="combobox" (unlike the native "button" role this trigger
+              renders as), so the visible selected-value text alone leaves the
+              control unnamed for assistive technology despite being visually
+              legible. */}
+          <SelectTrigger ref={ref} className="w-34" aria-label="Select range">
+            <SelectValue placeholder="Select range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {RANGE_PRESETS.map((preset) => (
+                <SelectItem key={preset.id} value={preset.id}>
+                  {preset.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  },
+);

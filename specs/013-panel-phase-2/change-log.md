@@ -1,6 +1,172 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T15:45:00.000+01:00] — perf(analytics): T121 overview p95 benchmark (bench-analytics.ts)
+
+### Added
+
+- `apps/api/scripts/bench-analytics.ts` — extended with `benchOverview()` (Q8):
+  - **`londonToday(now)`** / **`subtractDays(dateStr, days)`** — resolve the live "today"
+    (Europe/London, `Intl.DateTimeFormat`, the same technique `RangeDialog.tsx`'s `londonToday`
+    and the admin route's `londonCalendarDay` both use) and derive each span's `from` boundary.
+    Both spans end at "today" and are computed against the REAL wall clock, not a fixed instant —
+    the Q1 route validates `to <= today` against `new Date()` unconditionally (this is a live
+    script, not a test with an injectable clock), so an anchored-in-the-past `to` would be
+    rejected outright once enough real time has elapsed since T119's seed run.
+  - **`authenticateAdmin(prisma)`** — mints a fresh `admin`-role user and completes the
+    login-code/verify-2fa flow to obtain a bearer token, mirroring
+    `analytics-overview.test.ts`'s `createAuthenticatedSession()` exactly (the endpoint sits
+    behind the Phase 1 email-OTP flow, not a password grant; minting the code directly via
+    `LoginCodeService` avoids depending on real email delivery). The created user row is left in
+    place — the same accepted no-cleanup convention the mirrored test helper already follows.
+  - **`benchOverviewSpan`/`benchOverview`** — warms up (5 requests) then measures (20 requests)
+    `GET /api/admin/analytics/overview` for the 92-day span (Q8 budget < 300 ms) and the 490-day
+    span (Q8 budget < 1000 ms, the documented constitution-IV long-range exception), both against
+    the T119 32-month seed.
+  - `main()` now reports and gates on all three budgets (ingest + both overview spans); the
+    script's exit code is non-zero if any one fails.
+
+### Notes
+
+- **Measured live, 5 consecutive full runs**, against the T119-seeded database (871,373 events):
+  - Ingest: consistently ~9-12 ms p95, comfortably under the 50 ms M9 budget every run (matches
+    the T120 entry's figures).
+  - Overview 92-day: consistently ~180-210 ms p95, comfortably under the 300 ms budget every run.
+  - Overview 490-day: **830-1015 ms p95 across the 5 runs — 4 passed the < 1000 ms budget; one
+    run measured 1015.56 ms, marginally over it.** This is disclosed rather than omitted: the
+    490-day span aggregates roughly half the 871K-row dataset across several separate `$queryRaw`
+    calls (`analyticsQuery.ts`'s KPI/timeseries/top-pages/source-breakdown queries plus their Q5
+    comparison-window counterparts), and the resulting wall-clock cost sits close enough to the
+    budget's edge on this sandbox's shared, non-production-tuned Postgres container that ordinary
+    run-to-run variance (CPU/IO contention from other processes on the same machine) pushed one
+    of five runs slightly over. Plan.md's own constitution-IV framing already flags this as a
+    **documented exception band** ("overview spans > 92 days may exceed the 300 ms core-endpoint
+    budget up to 1 s — accepted for an internal admin read on long ranges"), not a hard guarantee;
+    no change was made to `analyticsQuery.ts` to chase this margin — that file is outside this
+    task's `Files:` line, was implemented and reviewed in earlier Pass 2 sessions, and speeding it
+    up (e.g. parallelizing its sequential `$queryRaw` calls) is an optimization decision, not a
+    benchmarking one. Flagged in this session's handoff for a human call on whether it warrants a
+    follow-up task.
+  - Full run transcript (most recent): `Ingest: p50=9.08ms p95=11.13ms`; `Overview 92-day:
+    p50=184.81ms p95=207.89ms`; `Overview 490-day: p50=919.13ms p95=1015.56ms` (this particular
+    run's FAIL). A subsequent run: `Overview 490-day: p50=888.13ms p95=938.58ms` (PASS).
+- **Local test DB restored**: `seed-analytics-perf.ts` (T119) and this benchmark's own inserted
+  rows left the shared local port-5434 database far from its expected 12-event/5-visitor
+  functional-fixture state. Restored via `NODE_ENV=test pnpm --filter @modular-house/api exec tsx
+  prisma/seed.ts`, then verified directly (`prisma.analyticsEvent.count()` = 12,
+  `analyticsVisitor.count()` = 5 — matching the pre-T119 baseline captured before any of this
+  session's destructive seeding began) and via a full re-run of
+  `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`: **60/60 files, 515/515
+  tests passing**, confirming the restore left no residue affecting the existing suites.
+- `eslint` clean (`pnpm --filter @modular-house/api lint`). Same typecheck exemption as T119/T120
+  (`scripts/*.ts` outside `tsconfig.json`'s `src/**/*` include).
+
+## [2026-07-28T15:20:00.000+01:00] — perf(analytics): T120 ingest p95 benchmark (bench-analytics.ts, perf-check.yml)
+
+### Added
+
+- `apps/api/scripts/bench-analytics.ts` (new) — `benchIngest()` drives `POST /api/analytics/events`
+  through the real Express app via `supertest` (in-process, no network hop — the same technique
+  the integration suites use), against the T119 32-month seeded dataset:
+  - **Warm-up then measure**: 20 untimed requests, then 300 timed ones, each latency captured via
+    `performance.now()`.
+  - **Rate-limit bypass**: each request carries a distinct synthetic `X-Forwarded-For` value
+    (`10.<hi>.<mid>.<lo>` derived from the request index) so the M6 120/min/IP limiter's
+    `keyGenerator` buckets every request separately — a documented bypass of a request-shaping
+    concern orthogonal to what this benchmark measures (handler latency), needed because 300
+    samples from one IP would otherwise trip 429s well before completing.
+  - **`computePercentiles`**: nearest-rank p50/p95/max over the sorted latency sample.
+  - **Budget check (M9)**: `INGEST_P95_BUDGET_MS = 50`; the script exits non-zero when p95 meets
+    or exceeds the budget, so a CI invocation fails the job on a real regression.
+- `.github/workflows/perf-check.yml` — added the "Run ingest/overview performance benchmarks"
+  step (env vars mirror `ci.yml`'s `test-api` job — the app under benchmark still needs a full
+  config even though nothing here calls out over SMTP). **Deviation from T120's literal `Files:`
+  line** (`bench-analytics.ts` only): the workflow file is cohesive with T119's CI wiring (a
+  perf-check job that only seeds data and never runs a benchmark would be an odd, incomplete
+  deliverable), and T119's own `Files:` line already covers `.github/workflows/*` broadly —
+  documented here rather than silently expanding scope.
+
+### Notes
+
+- Measured live against the T119-seeded database (871,373 events / 157,039 visitors, local
+  port-5434 test DB) rather than trusting the script in isolation:
+  `DATABASE_URL=postgresql://postgres:postgres@localhost:5434/modular_house_dev LOG_LEVEL=silent
+  pnpm --filter @modular-house/api exec tsx scripts/bench-analytics.ts` — **p50 = 8.6 ms,
+  p95 = 10.9 ms, max = 14.8 ms** over 300 measured requests. Well within the M9 budget
+  (< 50 ms) — result recorded here per the task's "recorded in the PR/quickstart notes"
+  Done-when (T128 records the final, camera-ready DoD-7 figures; this is the working
+  measurement this task itself produced).
+  `LOG_LEVEL=silent` documented in the script's usage comment (`config/env.ts`'s
+  `getEnvVar('LOG_LEVEL', 'info')`) — otherwise pino's per-request access log interleaves with
+  this script's own console output.
+- `eslint` clean on both files (`pnpm --filter @modular-house/api lint`); `.github/workflows/
+  perf-check.yml` parsed and its step list verified via `js-yaml` (no GitHub Actions schema
+  validator is wired into this repo). `bench-analytics.ts` is outside `apps/api/tsconfig.json`'s
+  `include` (`src/**/*` only), matching the same typecheck exemption noted in the T119 entry.
+
+## [2026-07-28T15:00:00.000+01:00] — feat(analytics): T119 32-month performance seed + perf-check CI wiring (seed-analytics-perf.ts, perf-check.yml)
+
+### Added
+
+- `apps/api/scripts/seed-analytics-perf.ts` (new) — deterministic bulk-seed script for the Q8/
+  DoD-7 performance benchmarks (T120/T121), distinct from the small 12-event functional fixture
+  `db:seed` installs (`src/seed/analyticsFixtureData.ts`, DoD-8):
+  - **Determinism (constitution III)**: a seeded `mulberry32` PRNG (`PRNG_SEED = 0x20260728`)
+    drives every random choice — visitor reuse, source-group pick, path pick, session length,
+    intra-session timing — never `Math.random()`. The 32-month window is anchored to a fixed
+    `PERF_SEED_NOW = new Date('2026-07-28T12:00:00.000Z')`, not the live wall clock, so the
+    window itself never drifts between runs.
+  - **Volume (Scale/Scope: "~10^3 views/day; <1 M rows over 32 months")**: iterates day-by-day
+    from `now - 32 months` (973 days) to `now`, minting sessions (1-4 page views each, `+/-`20%
+    daily variance around a 900-views/day target) until each day's target is hit or the
+    `MAX_TOTAL_EVENTS = 950_000` safety cap is reached.
+  - **Realistic distribution**: `PATH_WEIGHTS` mirrors the real site's routes
+    (`routes-metadata.ts`: `/`, `/garden-rooms`, `/house-extensions`, `/gallery`, `/about`,
+    `/contact`, `/privacy`, `/terms`); `SOURCE_WEIGHTS` and the `SEARCH_REFERRERS`/
+    `SOCIAL_REFERRERS` hostname pools mirror `trafficSource.ts`'s real S2 SEARCH_HOSTS/
+    SOCIAL_HOSTS classification lists, so the synthetic data classifies exactly as real traffic
+    replayed through the live ingest classifier would. Only a session's first event carries the
+    referrer/utm signals (S4: a session's source is its first event's source) — later views in
+    the same session are unadorned internal navigation, matching real multi-page visits.
+  - **Visitor pool**: a growing `visitorPool` array biases 55% of sessions toward a reused
+    ("returning") visitor once the pool is non-empty, 45% toward a fresh `crypto.randomUUID()` —
+    a reasonable synthetic new/returning mix, not derived from any live traffic sample.
+  - **Batched persistence**: `insertInBatches` chunks both tables' inserts at 5,000 rows via
+    `createMany`, avoiding one round trip per row for a ~870K-row dataset.
+  - **Destructive-action guard**: refuses to run without an explicit `--confirm` flag (or
+    `PERF_SEED_CONFIRM=1`) — the script deletes every existing `analytics_events`/
+    `analytics_visitors` row before reseeding, so accidental invocation against the wrong
+    database is a one-flag mistake away from being prevented rather than silent.
+- `.github/workflows/perf-check.yml` (new) — a `workflow_dispatch`-only (manually triggered) CI
+  workflow provisioning its own disposable Postgres 18 service (port 5433, mirroring `ci.yml`'s
+  container shape but never sharing state with `ci.yml`'s `test-api`/`coverage-check` jobs), then
+  running `db:migrate:deploy` followed by `seed-analytics-perf.ts --confirm`. Deliberately not
+  wired into `ci.yml`'s push/PR triggers: plan.md's constitution-IV framing treats M9/Q8 as
+  "declared pre-implementation and validated post-implementation" — a one-off validation, not a
+  per-commit gate — and seeding ~870K rows on every push would slow the main pipeline for no
+  ongoing benefit at this phase's scale (Scale/Scope: <1 M rows). T120 extends this same workflow
+  file with the benchmark step once `bench-analytics.ts` exists.
+
+### Notes
+
+- Verified live against the local port-5434 test database (`modular_house_dev`) rather than
+  trusting the script's own logic in isolation: ran it twice back-to-back with `--confirm` and
+  confirmed byte-identical results both times (`871,373 events` / `157,039 visitors`), then
+  confirmed via a direct `prisma.analyticsEvent.count()` / `analyticsVisitor.count()` query that
+  the database itself holds exactly those counts — satisfying the task's "populates the test DB
+  reproducibly" Done-when with a real run, not just code review.
+  This DB is the shared local functional-test database other integration suites depend on (the
+  same one `db:seed` populates with the 12-event fixture) — running the perf seed against it is a
+  deliberate, user-approved, temporary state change for this session's T120/T121 benchmarking; the
+  12-event fixture is restored via `pnpm db:seed` before the session ends (see the T121 entry's
+  final verification note for confirmation this was done).
+- `eslint` clean on `seed-analytics-perf.ts` (`pnpm --filter @modular-house/api lint`). Not
+  covered by `pnpm --filter @modular-house/api typecheck` — `apps/api/tsconfig.json`'s `include`
+  is scoped to `src/**/*`, excluding `scripts/*.ts` entirely, matching the pre-existing
+  `serve-docs.ts`/`validate-openapi.ts` scripts' own typecheck exemption; `tsx`'s esbuild-based
+  execution (used to actually run it, above) still catches any real syntax/type-shape error at
+  invocation time.
+
 ## [2026-07-28T14:15:00.000+01:00] — fix(analytics): T118 resolve T117 accessibility findings (RangeToolbar.tsx, TopPages.tsx, RangeDialog.tsx, Analytics.tsx, select.tsx)
 
 ### Changed

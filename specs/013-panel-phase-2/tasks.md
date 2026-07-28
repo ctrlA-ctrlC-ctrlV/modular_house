@@ -1449,7 +1449,7 @@
 
 ### E-EMPTY — empty states end to end
 
-- [ ] T111 Write failing api empty-window tests (E-EMPTY, api)
+- [x] T111 Write failing api empty-window tests (E-EMPTY, api)
       Files: apps/api/tests/integration/analytics-realtime.test.ts,
       apps/api/tests/integration/analytics-overview.test.ts
       Do: Realtime with zero events in the window -> `activeVisitors: 0`, empty `topActivePages`,
@@ -1457,27 +1457,31 @@
       zero-filled/empty timeseries, empty topPages, five zero-valued sources, 200 not 500.
       Done when: any broken empty path red.
       Refs: E-EMPTY, US3-9, FR-023, Q6
+> note: E-EMPTY realtime zero + overview before-first-event (zero KPIs prev null, 10 zero buckets, 5 zero sources, 200 not 500); tests: 18 passing (2 new green at authoring); deviations: none
 
-- [ ] T112 Harden api empty-window handling
+- [x] T112 Harden api empty-window handling
       Files: apps/api/src/services/analyticsQuery.ts
       Do: Fix any division-by-zero, null aggregation, or missing zero-fill surfaced by T111
       (shares are 0 when totals are 0 — never NaN).
       Done when: T111 green.
       Refs: E-EMPTY, Q5/Q6
+> note: no source change — analyticsQuery already guards div0, returns 0/null/[] for empty, unnest keeps 5 groups; tests: T111 green unmodified; deviations: none
 
-- [ ] T113 Write failing web empty-state test (E-EMPTY, web)
+- [x] T113 Write failing web empty-state test (E-EMPTY, web)
       Files: apps/web/src/admin/analytics/dashboard-states.test.tsx
       Do: A range fully before the first event (mocked empty overview + zero realtime) -> every
       widget shows its friendly empty state, the chart shows no broken visuals, and no error
       boundary trips.
       Done when: red on any widget that renders misleading visuals when empty.
       Refs: E-EMPTY, US3-9, FR-023
+> note: E-EMPTY no-broken-visuals + no-error-boundary test — asserts no recharts SVG when timeseries empty, console.error not called; tests: 10 passing (1 new green at authoring); deviations: none
 
-- [ ] T114 Harden web empty-state propagation
+- [x] T114 Harden web empty-state propagation
       Files: apps/web/src/admin/pages/Analytics.tsx, apps/web/src/admin/analytics/* (as surfaced)
       Do: Fix any widget that fails T113.
       Done when: T113 green.
       Refs: FR-023
+> note: no source change — Analytics.tsx passes empty payload through, each widget handles own empty state (isEmptyRange/timeseries.length/hasPages); tests: T113 green unmodified; deviations: none
 
 ### E-DIALOG — custom-range validation
 

@@ -121,12 +121,16 @@ export function TopPages({ topPages }: TopPagesProps) {
                   data-slot="table-row"
                   className="border-b transition-colors hover:bg-transparent"
                 >
-                  {/* First header is intentionally empty — the row order
-                      implies rank (template contract). */}
+                  {/* T117/T118 (E-A11Y): visually empty per the template
+                      contract (row order implies rank) but carries a
+                      screen-reader-only label — an empty <th> has no
+                      discernible text for assistive technology. */}
                   <th
                     data-slot="table-head"
                     className="h-8 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground"
-                  />
+                  >
+                    <span className="sr-only">Page</span>
+                  </th>
                   <th
                     data-slot="table-head"
                     className="h-8 w-24 px-2 text-right align-middle font-normal whitespace-nowrap text-foreground"

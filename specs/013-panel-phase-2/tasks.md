@@ -1435,6 +1435,7 @@
       Refs: E-SESSION, K3/V1, FR-009
 > note: E-SESSION suite — 29m59s renews same mh_sid, 30m01s mints new (store.delete models browser 30m max-age expiry); tests: 35 passing (2 new, both green at authoring); deviations: none
 > reviewed: PASS-WITH-NITS — 29m59s case duplicates existing K3 test
+> note: review-nit fix — cookie store auto-expires by max-age; 29m59s asserts time-survival (distinct from K3 test); 30m01s drops manual delete; tests: 35; deviations: beacon.test.ts — T109 nit
 
 - [x] T110 Harden the beacon session-cookie renewal
       Files: apps/web/src/analytics/beacon.ts

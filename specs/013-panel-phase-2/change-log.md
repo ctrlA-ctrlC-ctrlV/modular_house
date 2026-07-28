@@ -1,6 +1,112 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T14:15:00.000+01:00] — fix(analytics): T118 resolve T117 accessibility findings (RangeToolbar.tsx, TopPages.tsx, RangeDialog.tsx, Analytics.tsx, select.tsx)
+
+### Changed
+
+- `apps/web/src/admin/analytics/RangeToolbar.tsx`
+  - Added `aria-label="Select range"` to the `SelectTrigger` (matches the existing `SelectValue`
+    placeholder text) — gives the combobox trigger a discernible accessible name per the ARIA
+    accname algorithm, resolving the `button-name` axe violation without changing any visible text
+    or class.
+  - Converted the component to `React.forwardRef<HTMLButtonElement, RangeToolbarProps>`, forwarding
+    the ref to `SelectTrigger` — needed so `Analytics.tsx` can hold a stable DOM reference to the
+    trigger independent of Radix's own internal focus bookkeeping (see the `RangeDialog.tsx` entry
+    below for why that bookkeeping is unreliable here).
+- `apps/web/src/admin/ui/select.tsx` — `SelectTrigger` converted to `React.forwardRef` so the ref
+  above actually reaches the underlying native `<button>` (Radix's own `SelectPrimitive.Trigger`
+  already forwards refs; this primitive's own wrapper did not). No visible/class change — purely
+  enables ref forwarding. **Outside T118's `Files:` glob** (`apps/web/src/admin/analytics/*` does
+  not cover `apps/web/src/admin/ui/*`); recorded as a deviation because the fix is otherwise
+  impossible — `RangeToolbar` cannot forward a ref through a non-forwarding child.
+- `apps/web/src/admin/analytics/TopPages.tsx` — the first `<th>` (intentionally blank per the
+  template's "row order implies rank" convention) now wraps a `<span className="sr-only">Page</span>`
+  — visually unchanged (the span has no visible layout impact), but gives the header cell
+  discernible text for assistive technology, resolving the `empty-table-header` axe violation.
+- `apps/web/src/admin/analytics/RangeDialog.tsx` — added an optional `restoreFocusRef` prop
+  (`RefObject<HTMLElement | null>`) and wired `DialogContent`'s `onCloseAutoFocus`: when supplied,
+  the handler calls `event.preventDefault()` and focuses `restoreFocusRef.current` explicitly,
+  overriding Radix's own (unreliable, per the T117 root-cause analysis) default restore target.
+  No-op when the prop is omitted (existing callers unaffected — only `Analytics.tsx` supplies it).
+- `apps/web/src/admin/pages/Analytics.tsx` — added a `toolbarTriggerRef` (`useRef<HTMLButtonElement>`),
+  passed as `ref` to `RangeToolbar` and as `restoreFocusRef` to `RangeDialog`, closing the loop: the
+  toolbar trigger's own DOM node is now the explicit focus-restore target for every dialog dismissal
+  path (Esc, overlay click, Cancel, close button).
+
+### Notes
+
+- No change to `CookieBanner.tsx` — the T117 axe scan for that file passed already (both the
+  isolated scan and the new composed-page scan were clean); listed as a touched file in T118's
+  `Files:` line but needed no fix.
+- Verified via a debug script that Radix Select genuinely portals the selected item's text into
+  the trigger's `<span data-slot="select-value">` (`@radix-ui/react-select`'s
+  `SelectContentFragment`/`ItemText` portal, active even while the listbox is closed) — the fix
+  targets the missing *accessible name*, not the already-correct visible text.
+- `pnpm --filter @modular-house/web exec vitest run src/admin/analytics/dashboard-states.test.tsx
+  src/components/CookieBanner.test.tsx src/admin/analytics/RangeDialog.test.tsx
+  src/admin/analytics/RangeToolbar.test.tsx --reporter=verbose`: 46/46 passing, T117's 3 red cases
+  now green, zero regressions in RangeDialog.test.tsx (11/11) or RangeToolbar.test.tsx (5/5). Full
+  `pnpm --filter @modular-house/web test:run`: 53/53 files, 481/481 tests passing. `eslint` and
+  `pnpm --filter @modular-house/web run typecheck` both clean.
+
+## [2026-07-28T14:00:00.000+01:00] — test(analytics): T117 E-A11Y edge tests — axe scans + pop-up focus order (dashboard-states.test.tsx, CookieBanner.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/analytics/dashboard-states.test.tsx` — new `describe('Accessibility edge
+  cases (T117, E-A11Y)')` block with 5 `it()` cases:
+  - Axe scan of the full dashboard in light mode -> zero violations (red at authoring, see below).
+  - Axe scan of the full dashboard in dark mode (`.dark` class) -> zero violations (red at authoring).
+  - Axe scan with the RangeDialog pop-up open (scans `document.body` — Radix portals dialog content
+    there) -> zero violations (green at authoring — see the "pop-up open" note below for why).
+  - Focus order IN: opens the pop-up via the real toolbar `Select` interaction (ArrowDown/ArrowDown/
+    Enter, mirroring the existing "Full keyboard pass" block) and asserts Radix `FocusScope` moved
+    focus inside the dialog content (green at authoring — extends `RangeDialog.test.tsx`'s own
+    unit-level proof to the page-integration level).
+  - Focus order OUT: closes the pop-up via Escape and asserts focus returns to the toolbar trigger
+    with no range change (red at authoring, see below).
+  - A local `openRangeDialogViaToolbar()` helper factors the shared open-sequence used by the last
+    three cases (mirrors the existing "Full keyboard pass" block's inline sequence).
+- `apps/web/src/components/CookieBanner.test.tsx` — new `describe('CookieBanner — accessibility
+  edge case (T117, E-A11Y)')` block with one `it()`: an axe scan of the banner rendered alongside
+  sibling page content (a `<main>` landmark + an outside button), scanning `document.body` —
+  extends the existing T049 isolated-banner axe scan to a more realistic composed-page scenario.
+
+### Notes (2 genuine red findings at authoring, verified for the right reason)
+
+- Axe flagged the RangeToolbar's `Select` trigger (`role="combobox"`) under the `button-name` rule:
+  "Buttons must have discernible text". Hand-traced: the trigger's visible "3 months" text IS
+  present in the DOM (Radix Select portals the matching `SelectItem`'s text into the trigger's
+  `<span data-slot="select-value">` even while closed, via `@radix-ui/react-select`'s internal
+  `ReactDOM.createPortal(itemTextProps.children, context.valueNode)`), but the WAI-ARIA accessible
+  name ("accname") computation only derives a name from subtree content for a fixed set of roles
+  (button, link, menuitem, etc.) — `role="combobox"` is not one of them, so the control was
+  genuinely unnamed for assistive technology despite being visually legible. Confirmed by dumping
+  the trigger's `outerHTML` via a throwaway debug test.
+- Axe flagged `TopPages.tsx`'s first `<th>` under the `empty-table-header` rule: the header is
+  genuinely empty (`<th data-slot="table-head" .../>`, no text, no `aria-label`) — the code's own
+  comment even calls this out as "intentionally empty" (the row order implies rank), but an empty
+  `<th>` has no discernible text for screen readers.
+- The "pop-up open" axe scan passing despite these two issues still existing in the underlying DOM
+  is expected, not a false negative: Radix Dialog's `hideOthers` (the `aria-hidden` npm package)
+  marks all background siblings `aria-hidden="true"` while a modal is open, correctly excluding them
+  from the accessibility tree — axe (correctly) does not flag hidden content. The violations
+  resurface once the dialog closes, which is exactly what the light/dark scans (no dialog open)
+  caught.
+- Focus order OUT: debugged with a throwaway script logging `document.activeElement` after Escape —
+  it resolved to `document.body`, not the toolbar trigger. Root cause: `RangeToolbar`'s
+  `onSelect('more')` (which sets `dialogOpen=true`) and the `Select`'s own internal close both land
+  in the same React commit; the `Select`'s content (and its focused `SelectItem`) unmounts, and
+  browsers/jsdom reset `document.activeElement` to `<body>` when a focused node is removed — this
+  happens before the newly-mounting `RangeDialog`'s `FocusScope` captures its own "restore focus
+  here on close" reference, so Radix's default restore target is already stale (`<body>`) by the
+  time the dialog later closes.
+- `pnpm --filter @modular-house/web exec vitest run src/admin/analytics/dashboard-states.test.tsx
+  src/components/CookieBanner.test.tsx --reporter=verbose`: 27 passed, 3 failed (the two axe
+  violations + the focus-order-OUT case) — all three fail for the right, already-diagnosed reason
+  above. `eslint`/`pnpm --filter @modular-house/web run typecheck` clean on both test files.
+
 ## [2026-07-28T13:30:00.000+01:00] — feat(analytics): T116 Q3 dialog validation on Apply (RangeDialog.tsx)
 
 ### Changed
@@ -110,6 +216,14 @@ Note: keep the most latest entry on top
     count above it always renders regardless of this branch (by query design,
     `topActivePages` can only be empty when `activeVisitors` is 0, so the two states track
     together even though the code checks only one field).
+  - `TopPages.tsx`: `topPages.length === 0` → renders "No page views in this range."
+  - `TrafficSources.tsx`: always renders the five source-group rows from `sources`
+    (Q6: zero-valued groups shown); its own defensive `hasSources` check only fires for a
+    truly empty `sources` array (which the contract forbids — `minItems: 5`), not for an
+    all-zero range.
+  No widget file was touched. `Analytics.tsx` is left byte-for-byte unchanged; the task's
+  `Done when: T113 green` criterion is met (10/10 passing). Mirrors the T089/T112 "no code
+  change" precedent against already-correct logic.
 
 ### Correction (post-review, 2026-07-28)
 
@@ -120,14 +234,12 @@ Note: keep the most latest entry on top
   two states are functionally equivalent given the query design — but the note misdescribed
   the code it claimed to have hand-traced. The bullet above is corrected in place; no
   `RealtimeCard.tsx` source change was needed or made.
-  - `TopPages.tsx`: `topPages.length === 0` → renders "No page views in this range."
-  - `TrafficSources.tsx`: always renders the five source-group rows from `sources`
-    (Q6: zero-valued groups shown); its own defensive `hasSources` check only fires for a
-    truly empty `sources` array (which the contract forbids — `minItems: 5`), not for an
-    all-zero range.
-  No widget file was touched. `Analytics.tsx` is left byte-for-byte unchanged; the task's
-  `Done when: T113 green` criterion is met (10/10 passing). Mirrors the T089/T112 "no code
-  change" precedent against already-correct logic.
+- Structural follow-up (this entry): the same 2026-07-28 review also flagged that this
+  `### Correction` heading had been spliced mid-list, ahead of the `TopPages.tsx` /
+  `TrafficSources.tsx` bullets and the closing paragraph — all three are continuation of the
+  original widget-by-widget survey under `### Notes`, not part of this correction. Moved back
+  under `### Notes` so the survey reads as one contiguous list and this section contains only
+  its own correction text. No code or test file touched; doc-structure fix only.
 
 ## [2026-07-28T12:30:00.000+01:00] — test(analytics): T113 E-EMPTY web empty-state no-broken-visuals + no-error-boundary test (dashboard-states.test.tsx)
 

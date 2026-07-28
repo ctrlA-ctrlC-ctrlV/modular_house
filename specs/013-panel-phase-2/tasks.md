@@ -1514,7 +1514,7 @@
 
 ### E-A11Y — accessibility passes
 
-- [ ] T117 Write failing accessibility edge tests (E-A11Y)
+- [x] T117 Write failing accessibility edge tests (E-A11Y)
       Files: apps/web/src/components/CookieBanner.test.tsx,
       apps/web/src/admin/analytics/dashboard-states.test.tsx
       Do: axe checks on the banner and the dashboard (light and dark) -> zero critical
@@ -1522,14 +1522,16 @@
       WITHOUT applying a range change; visible focus on all interactive elements.
       Done when: any violation or focus-order failure red.
       Refs: E-A11Y, N5, FR-004/FR-022, constitution V
+> note: E-A11Y axe (banner+dashboard light/dark/pop-up) + focus in/out-of-dialog assertions added; tests: 27 pass 3 red; deviations: none
 
-- [ ] T118 Fix the surfaced accessibility issues
+- [x] T118 Fix the surfaced accessibility issues
       Files: apps/web/src/components/CookieBanner.tsx, apps/web/src/admin/analytics/RangeDialog.tsx,
       apps/web/src/admin/analytics/* (as surfaced)
       Do: Resolve every T117 failure without altering ported DOM structure beyond documented
       adaptations.
       Done when: T117 green.
       Refs: N5, DoD-6
+> note: aria-label on trigger; sr-only TopPages th; RangeDialog restoreFocusRef+onCloseAutoFocus; tests: T117 green; deviations: ui/select.tsx forwardRef (outside Files: glob)
 
 ### Performance budgets (M9/Q8)
 

@@ -589,4 +589,71 @@ describe('GET /api/admin/analytics/overview', () => {
       }
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // T111 (E-EMPTY) — overview for a range entirely before the first stored event
+  // ---------------------------------------------------------------------------
+  // Pins the empty-range contract (E-EMPTY, US3-9, FR-023, Q5/Q6): when the
+  // selected range falls entirely before the first stored event the endpoint
+  // MUST return 200 (never 500) with zero KPIs (current: 0, previous: null,
+  // deltaPercent: null — Q5 "no prior data" since the comparison window also
+  // predates the first event), a zero-filled timeseries (one day-bucket per
+  // inclusive day, each 0/0), an empty topPages array, and the five
+  // zero-valued source groups (Q6: always present, zero-valued shown). The
+  // range 2026-07-01..07-10 is entirely before the first seed event
+  // (2026-07-13T11:00:00Z); no other test in this file mints rows in that
+  // range (T063/T064 use August, T102 uses September), so the result is a
+  // genuinely empty payload. No clock faking is needed since 2026-07-10 is
+  // safely before the real wall-clock "today" when the suite runs.
+  describe('T111 (E-EMPTY): overview for a range entirely before the first stored event', () => {
+    it('returns zero KPIs (current 0, previous null), zero-filled timeseries, empty topPages, five zero-valued sources, and 200 (not 500)', async () => {
+      const res = await request(app)
+        .get('/api/admin/analytics/overview')
+        .query({ from: '2026-07-01', to: '2026-07-10' })
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.range).toMatchObject({
+        from: '2026-07-01',
+        to: '2026-07-10',
+        bucket: 'day',
+      });
+
+      // Q5: every KPI has current 0 and previous null (the comparison window
+      // also predates the first stored event, so "no prior data" — distinct
+      // from a measured-but-zero prior which would yield previous: 0).
+      expect(res.body.kpis.pageViews).toMatchObject({ current: 0, previous: null, deltaPercent: null });
+      expect(res.body.kpis.uniqueVisitors).toMatchObject({ current: 0, previous: null, deltaPercent: null });
+      expect(res.body.kpis.sessions).toMatchObject({ current: 0, previous: null, deltaPercent: null });
+      expect(res.body.kpis.returningVisitorRate).toMatchObject({ current: 0, previous: null, deltaPercent: null });
+      expect(res.body.kpis.pagesPerSession).toMatchObject({ current: 0, previous: null, deltaPercent: null });
+
+      // Zero-filled timeseries: 10 inclusive calendar days -> 10 day-buckets,
+      // each with 0 pageViews and 0 sessions (generate_series produces one
+      // row per bucket even when no events match the LEFT JOIN).
+      expect(res.body.timeseries).toHaveLength(10);
+      const pageViewsAll = res.body.timeseries.map(
+        (t: { pageViews: number }) => t.pageViews,
+      );
+      expect(pageViewsAll.every((v: number) => v === 0)).toBe(true);
+      const sessionsAll = res.body.timeseries.map(
+        (t: { sessions: number }) => t.sessions,
+      );
+      expect(sessionsAll.every((v: number) => v === 0)).toBe(true);
+
+      // Empty top pages — no events in range means no paths to rank.
+      expect(res.body.topPages).toEqual([]);
+
+      // Q6: all five source groups always present, zero-valued groups shown.
+      expect(res.body.sources).toHaveLength(5);
+      const groups = res.body.sources.map((s: { group: string }) => s.group).sort();
+      expect(groups).toEqual(['campaign', 'direct', 'referral', 'search', 'social']);
+      const sessionsByGroup = res.body.sources.map(
+        (s: { sessions: number }) => s.sessions,
+      );
+      expect(sessionsByGroup.every((v: number) => v === 0)).toBe(true);
+      const sharesByGroup = res.body.sources.map((s: { share: number }) => s.share);
+      expect(sharesByGroup.every((v: number) => v === 0)).toBe(true);
+    });
+  });
 });

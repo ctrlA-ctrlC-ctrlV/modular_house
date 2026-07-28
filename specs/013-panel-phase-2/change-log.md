@@ -1,6 +1,93 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-24T17:00:00.000+01:00] — test(analytics): T107/T108 E-CONCURRENCY visitor-upsert race hardening (analytics-ingest.test.ts)
+
+### Added
+
+- `apps/api/tests/integration/analytics-ingest.test.ts` — new `describe('concurrent ingest for a
+  brand-new visitor (T107, E-CONCURRENCY)')` block appended after the T094 path-canonicalization
+  block, with 1 `it()` case: two simultaneous `POST /api/analytics/events` requests
+  (`Promise.all`), sharing a single never-before-seen `mh_vid` but distinct `mh_sid`/paths, fired
+  against the real Express app + test database. Only `Date` is faked (the outer `beforeEach`'s
+  `toFake: ['Date']`) — Prisma I/O and the request pipeline run on the real event loop, so the two
+  requests' `AnalyticsVisitor` upserts genuinely interleave rather than serializing; the captured
+  Pino output confirms both requests' "incoming request" log lines land before either's "analytics
+  event stored" line. Asserts: both responses 204; exactly one `analytics_visitors` row for the
+  shared id; both events stored (`/race-a` and `/race-b`); `firstSeenAt`/`lastSeenAt` both equal
+  the shared injected clock value (never overwritten by the losing request's upsert).
+
+### Verified (T108)
+
+- The test passed **immediately, unmodified**, and was re-run 8 additional times standalone with no
+  flake. Root-caused rather than trusted on faith: captured `analyticsVisitor.upsert`'s actual
+  generated SQL via a throwaway Prisma query-log script — it compiles to a single statement,
+  `INSERT INTO analytics_visitors (...) VALUES (...) ON CONFLICT ("visitor_id") DO UPDATE SET
+  "last_seen_at" = $4 ... RETURNING ...` — Postgres's native atomic upsert, not a
+  check-then-write pattern. This is Prisma 5.x's native-upsert compilation for PostgreSQL (GA, no
+  preview flag), so the concurrent-create race data-model.md §3 anticipates is already closed by
+  the database engine itself. No source change was required or made in `analyticsIngest.ts` —
+  matches the precedent set by T104/T106 ("no code change" against already-correct logic).
+
+### Notes
+
+- `pnpm --filter @modular-house/api exec vitest run tests/integration/analytics-ingest.test.ts --
+  --no-file-parallelism`: 12/12 passing (11 pre-existing + 1 new). `lint`/`typecheck` clean on the
+  touched file.
+
+---
+
+## [2026-07-24T16:30:00.000+01:00] — test(analytics): T105/T106 E-TZ timezone/DST bucketing hardening (analyticsQuery.test.ts)
+
+### Added
+
+- `apps/api/tests/unit/analyticsQuery.test.ts` — new `describe('E-TZ: timezone bucketing and DST
+  safety')` block (T105) with 2 `it()` cases, inserted between the existing Q4 hour-bucket block and
+  the V2/V3/V4 block:
+  - **Same-UTC-day / different-London-day (V3+Q4)**: a visitor with `firstSeenAt` at 23:30
+    Europe/London on 2026-08-14 (BST) and their only in-range event at 00:30 Europe/London on
+    2026-08-15 (BST) — 22:30 UTC and 23:30 UTC on the SAME UTC calendar day (2026-08-14), only 1
+    hour apart in London wall-clock time. Asserts the pair lands in two different Q4 day buckets
+    (`2026-08-13T23:00:00.000Z` / `2026-08-14T23:00:00.000Z` bucket starts) and that the visitor is
+    classified V3-returning (rate 1.0), since `firstSeenAt`'s London day (Aug 14) is strictly earlier
+    than the in-range event's London day (Aug 15) — proving the module does not collapse these into
+    one bucket/one day via naive UTC-day truncation. August 2026 was deliberately chosen (not July)
+    to avoid overlapping the shared `db:seed` analytics fixtures' date range (2026-07-13..07-15,
+    `analyticsFixtureData.ts`), which this file's `beforeEach` (`resetAnalyticsTablesExceptSeed`)
+    does not clear; a July version of this same case was authored first and failed with an inflated
+    `pageViews: 4` in the empty bucket purely from seed-row leakage, not a bucketing defect — caught
+    before commit, not left as a red herring.
+  - **DST transition (25-hour day bucket)**: a 3-day range spanning the actual 2026 BST→GMT
+    transition (2026-10-25, when UK clocks fall back from 02:00 BST to 01:00 GMT at
+    `2026-10-25T01:00:00Z`), with one event each on Oct 24 (BST), Oct 25 (the transition day itself),
+    and Oct 26 (GMT). Asserts 3 day buckets with the exact expected `bucketStart` values, and that the
+    Oct24→Oct25 bucket gap is a normal 24 hours while the Oct25→Oct26 gap is exactly 25 hours — the
+    "fall back" hour correctly absorbed into a single bucket, never dropped, never spawning a phantom
+    fourth bucket.
+  - Every fixed UTC instant and bucket boundary asserted in both cases was independently verified
+    against the real Postgres test database (`SELECT ... AT TIME ZONE 'Europe/London'` /
+    `generate_series`) before being hand-transcribed into the test, rather than computed by hand
+    alone — given the DST arithmetic's error-proneness.
+
+### Verified (T106)
+
+- Both new cases passed **immediately, unmodified** against the existing `analyticsQuery.ts` —
+  confirmed by grepping the file for any Node-side day/date math (`getDate`/`getDay`/`getMonth`/
+  `setHours`/etc.): the only two `new Date()` call sites are the injectable `clock` default and the
+  V5 realtime trailing-5-minute window, neither of which is a calendar-day computation needing
+  timezone awareness. Every bucket, day-boundary, and returning-visitor computation
+  (`queryTimeseries`, `queryReturningVisitorRate`) already routes through parameterized
+  `AT TIME ZONE 'Europe/London'` SQL (research R6). No source change was required or made — matches
+  the precedent set by T104 ("no code change" against already-correct Q4/Q5 logic).
+
+### Notes
+
+- `pnpm --filter @modular-house/api exec vitest run tests/unit/analyticsQuery.test.ts --
+  --no-file-parallelism`: 15/15 passing (13 pre-existing + 2 new). `lint`/`typecheck` clean on the
+  touched file.
+
+---
+
 ## [2026-07-24T16:00:00.000+01:00] — fix(specs): T097/T102/VITEST-FIX review corrections (tasks.md, change-log.md)
 
 ### Changed

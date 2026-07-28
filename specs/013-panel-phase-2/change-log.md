@@ -103,8 +103,23 @@ Note: keep the most latest entry on top
     "No analytics data for this range." panel.
   - `TrafficChart.tsx`: `timeseries.length === 0` → renders the same dashed panel instead
     of a `ComposedChart` (no broken SVG, proven by T113's `svg.recharts-surface` null check).
-  - `RealtimeCard.tsx`: `activeVisitors === 0 && topActivePages.length === 0` → renders
-    "No active pages right now." zero-visitor state.
+  - `RealtimeCard.tsx` (line 66): `hasPages = topActivePages.length > 0` — a single check,
+    not a compound `activeVisitors === 0 && topActivePages.length === 0` condition as an
+    earlier revision of this entry stated. When `hasPages` is false, the pages list is
+    replaced with the "No active pages right now." dashed panel; the live `activeVisitors`
+    count above it always renders regardless of this branch (by query design,
+    `topActivePages` can only be empty when `activeVisitors` is 0, so the two states track
+    together even though the code checks only one field).
+
+### Correction (post-review, 2026-07-28)
+
+- review-log.md's 2026-07-28 T111-T116 review (PASS-WITH-NITS on T114) found the original
+  bullet above misstated `RealtimeCard.tsx`'s empty condition as a compound
+  `activeVisitors === 0 && topActivePages.length === 0` check. The actual source (line 66)
+  is the single-field `hasPages = topActivePages.length > 0`. No behavioral defect — the
+  two states are functionally equivalent given the query design — but the note misdescribed
+  the code it claimed to have hand-traced. The bullet above is corrected in place; no
+  `RealtimeCard.tsx` source change was needed or made.
   - `TopPages.tsx`: `topPages.length === 0` → renders "No page views in this range."
   - `TrafficSources.tsx`: always renders the five source-group rows from `sources`
     (Q6: zero-valued groups shown); its own defensive `hasSources` check only fires for a

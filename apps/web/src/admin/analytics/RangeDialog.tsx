@@ -74,7 +74,7 @@
  * (rule 5); Tailwind token classes for the destructive message
  * (`text-destructive`) and dialog spacing per template defaults (rule 6).
  */
-import { useState } from 'react';
+import { useState, type RefObject } from 'react';
 
 import {
   Dialog,
@@ -234,6 +234,18 @@ export interface RangeDialogProps {
    * exceeds 490 days"); the component renders it without interpreting it.
    */
   validationMessage?: string;
+  /**
+   * Optional ref to the element that should regain keyboard focus once the
+   * dialog closes, by any dismissal path (Esc, overlay click, Cancel, or the
+   * close button) (T118, E-A11Y). Radix's own default `onCloseAutoFocus`
+   * target is the element that was active when this dialog's `FocusScope`
+   * mounted — unreliable for a controlled dialog opened from a `Select`
+   * item's `onValueChange`, since that item's own listbox unmounts (stealing
+   * focus to `<body>`) in the same commit that mounts this dialog, before
+   * Radix captures its restore target. When supplied, this ref's current
+   * element is focused explicitly instead of Radix's default.
+   */
+  restoreFocusRef?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -252,6 +264,7 @@ export function RangeDialog({
   onOpenChange,
   onSelect,
   validationMessage,
+  restoreFocusRef,
 }: RangeDialogProps) {
   // Internal UI state — mode toggle ('presets' | 'custom'), the two date
   // input values, and the Q3 validation error message (T116). These are local
@@ -266,7 +279,19 @@ export function RangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent
+        onCloseAutoFocus={
+          restoreFocusRef
+            ? (event) => {
+                // T118 (E-A11Y): explicit restore target overrides Radix's
+                // own default (see the `restoreFocusRef` doc comment above
+                // for why the default is unreliable for this dialog).
+                event.preventDefault();
+                restoreFocusRef.current?.focus();
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
           <DialogTitle>Custom range</DialogTitle>
           <DialogDescription>

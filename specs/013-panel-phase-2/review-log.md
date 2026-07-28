@@ -6,6 +6,12 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-07-28 — T109 review-nit fix (since aa2d12f)
+
+T109 — PASS — mutation-tested; boundary now genuinely time-sensitive
+
+---
+
 ## 2026-07-28 — T105-T110 (baseline: 2493b2b)
 
 T105 — PASS — DST/UTC bucket math reverified exact

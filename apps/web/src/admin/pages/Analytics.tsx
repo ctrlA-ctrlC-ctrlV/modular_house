@@ -90,7 +90,7 @@
  * composition); `data-slot` attributes preserved via the primitives (rule 5);
  * Tailwind token class strings preserved verbatim from the template (rule 6).
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs.js';
 import { RangeToolbar, type RangePresetId } from '../analytics/RangeToolbar.js';
@@ -124,6 +124,11 @@ export function Analytics() {
   // (T077), toggled off by the dialog itself (Esc/overlay/close button, or a
   // successful Apply once T079 wires it).
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // RangeToolbar's trigger button (T118, E-A11Y): passed to RangeDialog as
+  // its focus-restore target so keyboard focus returns to the toolbar once
+  // the dialog closes, by any dismissal path.
+  const toolbarTriggerRef = useRef<HTMLButtonElement>(null);
 
   const overview = useOverview(range);
   const realtime = useRealtime();
@@ -201,7 +206,7 @@ export function Analytics() {
             <TabsTrigger value="conversions">Conversions</TabsTrigger>
           </TabsList>
 
-          <RangeToolbar onSelect={handleToolbarSelect} />
+          <RangeToolbar ref={toolbarTriggerRef} onSelect={handleToolbarSelect} />
         </div>
 
         {/* RangeDialog — the "More" pop-up (Q2: 6/12/16 months + Custom).
@@ -211,6 +216,7 @@ export function Analytics() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSelect={handleDialogSelect}
+          restoreFocusRef={toolbarTriggerRef}
         />
 
         {/* Overview tab — the six widgets fed by the live overview/realtime

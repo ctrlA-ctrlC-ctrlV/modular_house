@@ -31,10 +31,13 @@
  */
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
 
 import { Analytics } from '../pages/Analytics.js';
 import { useOverview, useRealtime } from './useAnalytics.js';
 import { overviewEmpty, realtimeEmpty, overviewPopulated, realtimePopulated } from './fixtures.js';
+
+expect.extend(toHaveNoViolations);
 
 // Mocked at the module boundary — same convention as Analytics.test.tsx
 // (T034/T074): these tests pin the page's state-rendering contract, not the
@@ -304,6 +307,107 @@ describe('Analytics dashboard states (T088, T-F10)', () => {
       // whether the dialog was applied or dismissed — a separate, cosmetic
       // Select-widget concern outside T088's empty-state/theme/keyboard/
       // stacking scope).
+      expect(screen.getByText('4,820')).toBeInTheDocument();
+    });
+  });
+
+  // ── T117 (E-A11Y): axe scans + pop-up focus order ────────────────────────
+  // Extends the dashboard-wide state coverage above with the three E-A11Y
+  // edge assertions pinned by plan.md §4.2 ("banner and dashboard axe checks;
+  // focus order into and out of the pop-up; Esc closes the pop-up without
+  // applying"): an automated axe scan of the full dashboard in both themes
+  // and with the RangeDialog pop-up open, plus the focus-order half not
+  // covered by the "Full keyboard pass" block above — that block proves every
+  // control is individually reachable via direct `.focus()` calls, but never
+  // asserts the pop-up's OWN focus-management contract: that Radix FocusScope
+  // moves focus into the content on open (focus order IN) and restores focus
+  // to the toolbar trigger that opened it once the pop-up closes (focus order
+  // OUT), without triggering a range change.
+
+  describe('Accessibility edge cases (T117, E-A11Y)', () => {
+    beforeEach(() => {
+      mockUseOverview.mockReturnValue({ data: overviewPopulated, loading: false, error: null });
+      mockUseRealtime.mockReturnValue({ data: realtimePopulated, loading: false, error: null });
+    });
+
+    /**
+     * Drives the toolbar's Select to open the RangeDialog pop-up (identical
+     * keyboard sequence to the "Full keyboard pass" block above: ArrowDown
+     * into the listbox, ArrowDown to the "More" item, Enter to select it).
+     * Returns the toolbar trigger so callers can assert focus returns to it.
+     */
+    async function openRangeDialogViaToolbar(): Promise<HTMLElement> {
+      const toolbarTrigger = screen.getByRole('combobox');
+      toolbarTrigger.focus();
+      fireEvent.keyDown(toolbarTrigger, { key: 'ArrowDown' });
+      await waitFor(() => {
+        expect(document.activeElement).toHaveAttribute('data-slot', 'select-item');
+      });
+      fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowDown' });
+      await waitFor(() => {
+        expect(document.activeElement).toHaveTextContent('More');
+      });
+      fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
+      await screen.findByRole('dialog');
+      return toolbarTrigger;
+    }
+
+    it('has zero axe violations in light mode (no .dark class)', async () => {
+      const { container } = render(<Analytics />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('has zero axe violations in dark mode (.dark on the document root)', async () => {
+      document.documentElement.classList.add('dark');
+      const { container } = render(<Analytics />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('has zero axe violations with the RangeDialog pop-up open', async () => {
+      render(<Analytics />);
+      await openRangeDialogViaToolbar();
+      // RangeDialog portals its content to document.body (Radix Portal), so
+      // the scan target must be the whole body, not just the render container
+      // — mirrors the Shell mobile off-canvas drawer pattern in a11y.test.tsx.
+      const results = await axe(document.body);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('focus order: FocusScope moves focus into the pop-up on open (focus order IN)', async () => {
+      render(<Analytics />);
+      await openRangeDialogViaToolbar();
+      const dialog = screen.getByRole('dialog');
+      // Radix FocusScope activates on mount; the shift may be deferred to a
+      // microtask, mirroring RangeDialog.test.tsx's own "keyboard reachable"
+      // assertion at the unit level — this proves the same contract holds
+      // once the dialog is opened through the real toolbar interaction.
+      await waitFor(() => {
+        expect(dialog.contains(document.activeElement)).toBe(true);
+      });
+    });
+
+    it('focus order: closing the pop-up via Esc returns focus to the toolbar trigger (focus order OUT), no range change', async () => {
+      render(<Analytics />);
+      const toolbarTrigger = await openRangeDialogViaToolbar();
+      const dialog = screen.getByRole('dialog');
+
+      fireEvent.keyDown(dialog, { key: 'Escape' });
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+
+      // Radix's default onCloseAutoFocus restores focus to the element that
+      // was active immediately before the FocusScope activated — the toolbar
+      // trigger, since RangeDialog is a controlled dialog with no
+      // <DialogTrigger> of its own.
+      await waitFor(() => {
+        expect(document.activeElement).toBe(toolbarTrigger);
+      });
+
+      // Q2/Q3: dismissing via Esc must never apply a range change — the
+      // original populated fixture's page-views figure is still shown.
       expect(screen.getByText('4,820')).toBeInTheDocument();
     });
   });

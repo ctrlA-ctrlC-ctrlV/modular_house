@@ -1,6 +1,47 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T11:30:00.000+01:00] — fix(analytics): T109 review-nit — cookie store auto-expiry makes 29m59s case distinct from existing K3 test (beacon.test.ts)
+
+### Changed
+
+- `apps/web/src/analytics/beacon.test.ts` — the custom `document.cookie` override (section:
+  "Controlled document.cookie store") now honours `max-age` expiry on **reads**, not just on
+  writes. Previously the getter returned every cookie in the store regardless of elapsed time,
+  so advancing fake timers had no effect on cookie visibility — the E-SESSION 29m59s case was
+  functionally identical to the existing section-2 K3 renewal test (both called `sendPageView`
+  twice and found `mh_sid` present; the clock advancement was cosmetic). The store now tracks
+  `setAt` (the `Date.now()` at write time) and `maxAge` (seconds) per cookie via a new
+  `CookieEntry` interface, and the getter filters out entries whose elapsed seconds meet or
+  exceed their max-age — modelling the browser's passive cookie expiry that drives K3's
+  session inactivity window. This makes the E-SESSION cases genuinely time-dependent:
+  - **29m59s case** now asserts `document.cookie` still contains `mh_sid` at 1799s (1799 <
+    1800s max-age) *before* the second `sendPageView` — directly testing the survival
+    boundary that the existing K3 renewal test (no clock advancement) cannot exercise.
+  - **30m01s case** no longer needs the manual `cookieStore.delete(SESSION_COOKIE_NAME)` —
+    the getter auto-expires `mh_sid` at 1801s (1801 >= 1800). An assertion that
+    `document.cookie` omits `mh_sid` but still contains `mh_vid` (365-day max-age >> 30m)
+    was added to prove the boundary is exact.
+
+### Verified
+
+- No existing test broke: all 33 pre-existing beacon cases call `sendPageView` at the same
+  faked `Date.now()` (0s elapsed), so the auto-expiry filter never fires for them. The
+  `cookieStore.delete('mh_vid')` call in the section-2 "fresh mh_vid when absent" case still
+  works (Map.delete is unaffected by the type change).
+- `pnpm --filter @modular-house/web exec vitest run src/analytics/beacon.test.ts
+  --reporter=verbose`: 35/35 passing. `eslint src/analytics/beacon.test.ts` clean;
+  `pnpm --filter @modular-house/web run typecheck` exit 0.
+- `pnpm --filter @modular-house/web test:coverage`: 53 files / 468 tests, exit 0 — all
+  thresholds met (global branches 47% > 15%, lines 61.84% > 20%; apiClient.ts branches
+  72.72% > 60%, functions 100% = 100%).
+- `pnpm --filter @modular-house/api test:coverage`: 60 files / 513 tests, exit 0 — all
+  thresholds met (global branches 54.73% > 30%; auth.ts 100% = 100%; validate.ts 86.11% >
+  30%; auth service 100% = 100%; env.ts 96.15% > 40%).
+- `pnpm test:coverage:enforce` (root, recursive — the exact CI `coverage-check` command):
+  exit 0. Both packages' vitest thresholds pass; `analyticsIngest.ts` is at 100% branch
+  (DoD-3 ingest validation floor met).
+
 ## [2026-07-28T10:30:00.000+01:00] — docs(analytics): T110 beacon session-cookie renewal hardening — no change required (beacon.ts)
 
 ### Notes

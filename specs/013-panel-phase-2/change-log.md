@@ -1,6 +1,145 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T12:45:00.000+01:00] — docs(analytics): T114 web empty-state propagation hardening — no change required (Analytics.tsx, analytics/*)
+
+### Notes
+
+- No implementation change: `Analytics.tsx` and the widget compositions already implement
+  T114's requirement exactly (FR-023 — "Fix any widget that fails T113"). Hand-traced the
+  empty-state propagation chain:
+  - `Analytics.tsx` (line 221): `{overview.data ? (` — once a payload lands (even an
+    empty-range one), it is passed straight through to the widgets. The page-level comment
+    (lines 56-61) documents this: "each widget's own empty-state handling (`isEmptyRange`,
+    `timeseries.length === 0`, `hasPages`/`hasSources`) already covers the 'range with no
+    data' case (US3-9), so no additional empty-state logic is needed at the page level."
+  - `KpiStrip.tsx`: `isEmptyRange` checks every KPI `current === 0` → renders the dashed
+    "No analytics data for this range." panel.
+  - `TrafficChart.tsx`: `timeseries.length === 0` → renders the same dashed panel instead
+    of a `ComposedChart` (no broken SVG, proven by T113's `svg.recharts-surface` null check).
+  - `RealtimeCard.tsx`: `activeVisitors === 0 && topActivePages.length === 0` → renders
+    "No active pages right now." zero-visitor state.
+  - `TopPages.tsx`: `topPages.length === 0` → renders "No page views in this range."
+  - `TrafficSources.tsx`: always renders the five source-group rows from `sources`
+    (Q6: zero-valued groups shown); its own defensive `hasSources` check only fires for a
+    truly empty `sources` array (which the contract forbids — `minItems: 5`), not for an
+    all-zero range.
+  No widget file was touched. `Analytics.tsx` is left byte-for-byte unchanged; the task's
+  `Done when: T113 green` criterion is met (10/10 passing). Mirrors the T089/T112 "no code
+  change" precedent against already-correct logic.
+
+## [2026-07-28T12:30:00.000+01:00] — test(analytics): T113 E-EMPTY web empty-state no-broken-visuals + no-error-boundary test (dashboard-states.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/analytics/dashboard-states.test.tsx` — new `describe('T113 (E-EMPTY):
+  no broken chart visuals and no error boundary trips')` block inserted between the T088
+  "Empty-range payload" block and the "Light and dark themes" block, with 1 `it()` case.
+  Mocks `useOverview`/`useRealtime` to return `overviewEmpty`/`realtimeEmpty` (the same
+  fixtures T088's empty-range block uses — `overviewEmpty` has all-zero KPIs, empty
+  timeseries, empty topPages, five zero-valued sources; `realtimeEmpty` has 0 active visitors
+  and empty topActivePages). Asserts:
+  - Every widget's friendly empty state is present (US3-9 / FR-023): the two dashed
+    "No analytics data for this range." panels (KpiStrip + TrafficChart), the "No active
+    pages right now." message (RealtimeCard), the "No page views in this range." message
+    (TopPages), and all five TrafficSources group labels (Q6 exception: zero-valued groups
+    shown, not a "no data" panel).
+  - **No broken chart visuals**: `container.querySelector('svg.recharts-surface')` is null —
+    the empty timeseries means TrafficChart renders its dashed empty panel (a styled `<div>`),
+    not a recharts `ComposedChart` SVG with zero-width/zero-height. This is the specific
+    assertion T113 adds over T088's existing "panels have length 2" check: it proves no
+    degenerate SVG renders alongside the empty panel.
+  - **No error boundary trips**: a `console.error` spy asserts `not.toHaveBeenCalled()` — the
+    render completed without throwing (proven by execution reaching the assertion) and no
+    React/recharts error was emitted during the empty-state render.
+
+### Notes
+
+- Passes at authoring (T088/T111 precedent): the empty-state rendering was already built
+  correctly in Pass 1 — each widget's own empty-state handling (`isEmptyRange`,
+  `timeseries.length === 0`, `hasPages`/`hasSources`) covers the "range with no data" case
+  (US3-9), and `Analytics.tsx` passes the empty payload straight through once `overview.data`
+  is non-null (line 221). The test is a regression guard — it would go red if a widget
+  started rendering a broken chart SVG or throwing during the empty-state render.
+- `pnpm --filter @modular-house/web exec vitest run src/admin/analytics/dashboard-states.test.tsx
+  --reporter=verbose`: 10/10 passing (1 new + 9 pre-existing). `eslint` clean;
+  `pnpm --filter @modular-house/web run typecheck` exit 0.
+- The "Warning: Function components cannot be given refs" message in the file's stderr output
+  is from the keyboard-pass tests' Radix Dialog rendering (a pre-existing jsdom/Radix warning
+  unrelated to the empty-state test), not from the T113 case — the T113 spy asserts
+  `console.error` was not called during its own render and passes.
+
+## [2026-07-28T12:15:00.000+01:00] — docs(analytics): T112 api empty-window hardening — no change required (analyticsQuery.ts)
+
+### Notes
+
+- No implementation change: `analyticsQuery.ts` already implements T112's requirement exactly
+  (E-EMPTY, Q5/Q6 — "shares are 0 when totals are 0 — never NaN"). Hand-traced every empty path:
+  - `queryBasicAggregates` (line 173-178): returns `{ pageViews: 0, uniqueVisitors: 0,
+    sessions: 0 }` via `?? 0` when no rows match the `WHERE occurred_at >= from AND < to` clause.
+  - `queryReturningVisitorRate` (line 206): `total > 0 ? returning / total : 0` — guards
+    division-by-zero, returns 0 (never NaN) when the range has no visitors.
+  - `computeDeltaPercent` (line 148-154): returns `null` when `previous === null || previous === 0`
+    — never NaN/Infinity (Q5).
+  - `getOverview` `noPriorData` (line 353): `firstEverEventAt === null || previous.to <=
+    firstEverEventAt` — when the comparison window predates the first stored event, `previous` is
+    `null` (rendered "no prior data"), distinct from a measured-but-zero prior (`previous: 0`,
+    `deltaPercent: null`).
+  - `queryTopPages` (line 278): `totalPageViews > 0 ? row.views / totalPageViews : 0` — share is
+    0 when totals are 0; returns `[]` when no rows match.
+  - `querySourceBreakdown` (line 292-308): uses `unnest(enum_range(NULL::"AnalyticsSourceGroup"))`
+    with a `LEFT JOIN` — always returns exactly 5 groups (Q6), zero-valued groups included; share
+    is `totalSessions > 0 ? ... : 0`.
+  - `queryTimeseries` (line 233-262): `generate_series` + `LEFT JOIN` with `COALESCE(..., 0)` —
+    produces one zero-filled bucket per London-aligned bucket boundary even when no events match.
+  - `getRealtime` (line 424): `activeVisitorRows[0]?.active_visitors ?? 0` — returns 0 when no
+    events fall in the trailing 5-minute window; `topPageRows.map(...)` returns `[]` when empty.
+  `analyticsQuery.ts` is left byte-for-byte unchanged by this task; the task's `Done when: T111
+  green` criterion is met (18/18 passing). Mirrors the T104/T106/T108/T110 "no code change"
+  precedent against already-correct logic.
+
+## [2026-07-28T12:00:00.000+01:00] — test(analytics): T111 E-EMPTY api empty-window tests (analytics-realtime.test.ts, analytics-overview.test.ts)
+
+### Added
+
+- `apps/api/tests/integration/analytics-realtime.test.ts` — new `describe('T111 (E-EMPTY):
+  realtime with zero events in the trailing 5 minutes')` block appended after the T062 block,
+  with 1 `it()` case: queries `GET /api/admin/analytics/realtime` at the injected
+  `ANALYTICS_FIXED_NOW` (2026-07-15T12:00:00Z) with no events minted by this file. The
+  `beforeEach` has already cleaned up this file's prior rows; the shared `db:seed` events on
+  2026-07-15 do not fall inside the 11:55:00Z–12:00:00Z trailing window (proven by T062's
+  populated case asserting exactly 3 active visitors with zero seed contamination). Asserts:
+  status 200, `activeVisitors: 0`, `topActivePages: []`, `windowMinutes: 5` — no error, no
+  broken payload (E-EMPTY, US3-9, FR-023).
+
+- `apps/api/tests/integration/analytics-overview.test.ts` — new `describe('T111 (E-EMPTY):
+  overview for a range entirely before the first stored event')` block appended after the T102
+  block, with 1 `it()` case: queries `GET /api/admin/analytics/overview?from=2026-07-01&to=
+  2026-07-10` — a 10-day range entirely before the first seed event (2026-07-13T11:00:00Z).
+  No clock faking is needed (2026-07-10 is safely before the real wall-clock "today"). Asserts:
+  status 200 (not 500); `range` echoes `from/to/bucket: day`; every KPI has `current: 0,
+  previous: null, deltaPercent: null` (Q5 "no prior data" — the comparison window also predates
+  the first event, distinct from a measured-but-zero prior which would yield `previous: 0`);
+  timeseries has 10 zero-filled day-buckets (each `pageViews: 0, sessions: 0` —
+  `generate_series` produces one row per bucket even with no matching events); `topPages: []`;
+  `sources` has all 5 groups (Q6: zero-valued groups always shown), each with `sessions: 0,
+  share: 0`.
+
+### Notes
+
+- Both cases pass at authoring (T105/T107/T109 precedent): `analyticsQuery.ts`'s empty-path
+  handling was already built correctly — `queryBasicAggregates` returns 0 via `?? 0`,
+  `queryReturningVisitorRate` guards div-by-zero (`total > 0 ? ... : 0`), `computeDeltaPercent`
+  returns null for null/zero previous (never NaN), `queryTopPages` returns `[]` with
+  `share: 0` when `totalPageViews === 0`, `querySourceBreakdown` uses
+  `unnest(enum_range(...))` so all 5 groups always appear, and `getRealtime` returns
+  `activeVisitors: 0, topActivePages: []` via `?? 0`. The cases are regression guards — they
+  would go red if any empty path started throwing, returning 500, or producing NaN.
+- `pnpm --filter @modular-house/api exec vitest run tests/integration/analytics-realtime.test.ts
+  tests/integration/analytics-overview.test.ts --reporter=verbose`: 18/18 passing (2 new + 16
+  pre-existing). `eslint` clean on both files; `pnpm --filter @modular-house/api run typecheck`
+  exit 0.
+
 ## [2026-07-28T11:30:00.000+01:00] — fix(analytics): T109 review-nit — cookie store auto-expiry makes 29m59s case distinct from existing K3 test (beacon.test.ts)
 
 ### Changed

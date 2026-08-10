@@ -1,6 +1,347 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-07-28T19:00:00.000+01:00] — fix(web): T127 live WCAG AA pass + 2 contrast fixes (CookiePolicy.tsx, Analytics.tsx)
+
+### Fixed
+
+- `apps/web/src/routes/CookiePolicy.tsx` — the register table's `<code>{entry.name}</code>` cells
+  now carry Bootstrap's `text-dark` class. Root cause: Bootstrap's default `code { color:
+  var(--bs-code-color) }` (`#d63384`) measured 4.46:1 against this page's `#fefefe` background —
+  just under WCAG AA's 4.5:1 floor. First attempt (`text-gray-900`, a Tailwind utility) visibly
+  had no effect: confirmed via `getComputedStyle` that the color never changed, root-caused to
+  Tailwind v4 wrapping its utilities in a CSS `@layer` — an unlayered rule (Bootstrap's plain
+  `code {}`) always beats a layered one regardless of selector specificity. Bootstrap's own
+  `text-dark` utility carries `!important` and applies within the same (Bootstrap's own,
+  unlayered) cascade origin as the rule it overrides, so it reliably wins.
+- `apps/web/src/admin/pages/Analytics.tsx` — the page's `<h1>Analytics</h1>` and its subtitle
+  `<p>` now carry inline `style={{ color: 'var(--foreground)' }}` / `var(--muted-foreground)`.
+  Root cause, live-measured: dark-mode contrast of **1.07:1** on the `<h1>` (foreground `#121414`
+  on background `#0a0a0a` — visually near-invisible) and 2.65:1 on the `<p>`. The public site's
+  global `style.css` declares unlayered `h1..h6 { color: var(--brand-title) }` / `p { color:
+  var(--brand-slate) }` rules that are not scoped away from `/admin/*` — this stylesheet loads
+  app-wide, so every bare admin heading/paragraph (not just this one) inherits the *public
+  site's* fixed brand colors instead of the admin's own theme-aware tokens, for the same
+  unlayered-beats-layered reason as the `CookiePolicy.tsx` fix above (the admin's Tailwind v4
+  utilities, including the `text-muted-foreground` this `<p>` already had, are layered and lose).
+  These leaked colors happen to still read against the admin's *light* background (why this was
+  never visually caught before) but collapse to near-black-on-black once dark mode flips the
+  background. Fixed with inline styles (which win regardless of cascade layers) referencing the
+  admin's real `--foreground`/`--muted-foreground` custom properties directly, so the fix stays
+  correctly theme-reactive rather than hardcoding a literal color.
+  **Confirmed same root cause also affects pre-existing Phase 1 admin pages** (e.g.
+  `Settings.tsx:240`'s identically-bare `<h1 className="font-medium tracking-tight">`) —
+  disclosed, explicitly not touched (Phase 1, frozen, out of this task's scope); a proper fix is
+  scoping `style.css`'s heading/paragraph rules away from `.admin-root`, recommended as a
+  dedicated follow-up rather than patched page-by-page here.
+
+### Notes — live WCAG 2.1 AA pass (banner, policy page, dashboard; DoD-6)
+
+- **Tooling**: loaded the project's own `axe-core@4.10.2` (the exact engine version `jest-axe`
+  wraps — confirmed via `jest-axe`'s own `package.json`) directly into a real Chrome tab against
+  the live dev server (`localhost:3000`), not jsdom. Getting the 553 KB minified bundle into the
+  page required two workarounds: (1) Vite's dev server treats any `.js` file under `public/` as
+  an ES module to transform (even static-passthrough candidates), silently serving the SPA
+  fallback instead — worked around by using a neutral `.txt` extension and `fetch()` + direct
+  eval of the fetched text (no CSP restriction on this dev page — confirmed via `curl -D -`, no
+  `Content-Security-Policy` header on `localhost:3000`, unlike the API's `:8080` responses).
+  (2) Vite's `public/` directory listing did not pick up a file added after the dev server had
+  already started — resolved by restarting the dev server once. The temporary file
+  (`apps/web/public/__axe-temp.txt`) was deleted at the end of this task; it was never committed
+  (confirmed via `git status`).
+- **Methodology note on timing**: the very first few `axe.run()` calls immediately after
+  `navigate()` spuriously reported an empty `document.title` (a `document-title` violation) —
+  root-caused as a race between the script's execution and `react-helmet-async`'s async
+  title-commit effect, not a real defect: re-running `axe.run()` after a `screenshot` action (or
+  a short wait) always showed the correct title and zero `document-title` violations. Disclosed
+  here so the finding isn't misread as a real gap — it was excluded from every violation count
+  below once this was understood, and re-verified at least twice per confirmation.
+- **Banner** (`/`, fresh `mh_cookie_ack`-absent state): 0 violations after the T126 fix, 30
+  passes. One unrelated, pre-existing finding on the homepage's own `.hero-bg-picture` element
+  (`aria-prohibited-attr`, an `aria-label` on a `<picture>` with no valid `role`) — confirmed
+  absent from the Phase 2 diff (`git diff main...HEAD --stat` has no hero-related file) and
+  outside the guardrail's public-page scope (banner mount / footer link / policy page only) —
+  disclosed, not touched.
+- **Policy page** (`/cookie-policy`): 0 violations after the fix above, 27 passes.
+- **Dashboard** (`/admin/analytics`, signed in): light theme 8 violations, dark theme 8 before
+  the `Analytics.tsx` fix / 6 after. Full detail (root causes, which findings are Phase-2-fixable
+  vs. pre-existing/token-level and why) recorded in `ui-components.md` §6's new "T127" entry
+  per this task's own `Files:` line, not duplicated here — summary: 2 real, in-scope defects
+  found and fixed (above); the remaining 6 (sidebar active-nav-link text, avatar-fallback
+  initials, user-email text, 4 tab-trigger labels) are pre-existing (confirmed absent from the
+  Phase 2 diff for the shell elements) or trace to a shared Phase-1 OKLCH token pair
+  (`--muted-foreground`/`--muted`) used identically by a confirmed-Phase-1 element — disclosed,
+  not touched. All measured `impact: "serious"` (axe-core's own taxonomy), none `"critical"` —
+  DoD-6's literal "zero **critical** axe violations" bar is met.
+- **Keyboard walk** (range pop-up + date inputs): live-reconfirmed on top of the existing
+  T088/T117 jsdom suites — opened the "More" pop-up, `Tab` moved focus directly onto the native
+  `Start date` input with a visible focus ring (screenshot-verified), `Esc` closed the pop-up
+  without applying (KPI values unchanged) and returned focus to the "More" trigger (visible
+  ring, screenshot-verified).
+- **SC-010 visual approval**: already recorded in `ui-components.md` §6 (2026-07-21, "APPROVED
+  ... good enough for now"). Re-confirmed still valid — this session's two contrast fixes
+  *restore* the template-matching intended color (the admin's own `--foreground` token, exactly
+  what the template itself renders) where a CSS leak had silently overridden it; no new visual
+  deviation from the approved design was introduced.
+- Regression suites: `Analytics.test.tsx` + `dashboard-states.test.tsx` — 24/24 passing (the
+  `<h1>`/`<p>` inline-style addition changes no asserted text content or className). `eslint` /
+  `tsc --noEmit`: clean on both touched files.
+
+---
+
+## [2026-07-28T18:15:00.000+01:00] — fix(web): T126 Lighthouse baseline audit + banner contrast fix (CookieBanner.tsx)
+
+### Fixed
+
+- `apps/web/src/components/CookieBanner.tsx` — the message `<p>` now carries an explicit
+  `text-light` class. Root cause: the site's global stylesheet (`src/styles/style.css:387-390`)
+  sets `p { color: var(--brand-slate) }` (`#555555`) unconditionally on every `<p>` element; an
+  element's own explicit `color` declaration always wins over an inherited value regardless of
+  selector specificity, so the banner's `<p>` — despite sitting inside a `bg-dark text-light`
+  container — rendered `#555555` text on the `#212529` background, a **2.06:1** contrast ratio,
+  failing WCAG AA's 4.5:1 floor (plan §2.2 N5) outright. This is a genuine, real defect: every
+  other `<p>` in the codebase sits on the site's normal light background where `--brand-slate`
+  reads fine, so CookieBanner.tsx is the first place a bare `<p>` landed on a dark surface.
+  **Not caught by the existing automated suite**: `CookieBanner.test.tsx`'s jest-axe scan
+  (T049/T117, "has zero axe accessibility violations") reports clean because jsdom does not
+  compute real rendered CSS color values, so jest-axe's `color-contrast` rule is structurally
+  blind in a jsdom environment — only a real-browser audit (Lighthouse/real Chrome, or
+  browser-based axe) can catch this class of bug, which is exactly what this task's own
+  methodology is. Verified fixed live post-rebuild: `color-contrast` audit score 0 -> not
+  present in the failing-audit list; `accessibility` category 0.96 -> **1.0** on every page.
+
+### Notes — Lighthouse scores vs. pre-phase baseline
+
+- **Committed baseline** (`apps/web/.lighthouseci/lhr-*.json`, dated 2026-03-09, i.e. before this
+  phase and before the unrelated route rename `garden-room`/`house-extension` ->
+  `garden-rooms`/`house-extensions` that landed in the intervening 008/010 phases): index
+  perf 0.72/a11y 1/bp 1/seo 0.66; about 0.94/1/1/0.66; contact 0.94/1/1/0.66; garden-room
+  0.36/1/1/0.66; house-extension 0.95/1/1/0.66. `lighthouserc.json`'s own URL list (singular
+  `garden-room`/`house-extension`) is now stale against the current route names in **both**
+  `main` and this branch — a pre-existing, out-of-phase-scope CI-config drift, disclosed here,
+  not fixed (not a Phase 2 file).
+- **Methodology**: `pnpm --filter @modular-house/web test:lighthouse` (`lhci autorun`) reliably
+  crashed on this machine with `EPERM` deleting chrome-launcher's auto-generated temp profile
+  dir during cleanup (`chrome-launcher@1.2.1`'s `destroyTmp()`), every run, regardless of working
+  directory — a Windows-specific chrome-launcher bug unrelated to this phase's code (confirmed:
+  the crash is inside `chrome-launcher`/`lighthouse` package internals, triggers identically
+  against both this branch's and `main`'s builds). Also: the very first `lhci autorun` attempt
+  ran from `apps/web` and its `collect` step **deleted the 10 tracked pre-phase baseline files**
+  (`.lighthouseci/lhr-1773058*.{json,html}`) before crashing — `lhci`'s default behavior clears
+  its storage directory at the start of every collect run. Immediately caught via `git status`
+  and restored with `git checkout -- apps/web/.lighthouseci/` (a revert of this session's own
+  accidental side effect, not a discard of real work); the 4 partial-run artifact files were
+  moved to session scratch, not committed. All further Lighthouse runs this session used an
+  isolated config (absolute `staticDistDir`/`outputDir` paths, run from a scratch working
+  directory) so `apps/web/.lighthouseci/` was never touched again. The recurring `EPERM` crash
+  was resolved by launching a standalone headless Chrome (`--remote-debugging-port`) once and
+  pointing `collect.settings.port` at it — `chrome-launcher` detects the already-listening port
+  and skips spawning/auto-cleaning its own instance entirely (confirmed via its own source:
+  `destroyTmp()` only fires for a tmp dir chrome-launcher itself created).
+- **Controlled same-session A/B** (the only valid comparison, given the tooling/Chrome-version
+  gap between March and now): built `main` (`dce2447`, this branch's actual merge-base — verified
+  via `git merge-base main HEAD` — so "pre-phase" and "main" are the same commit) in an isolated
+  git worktree (`E:\wt-main`, short path — the default long scratchpad path hit Windows'
+  `MAX_PATH` during `git worktree add`) and ran the identical Lighthouse/Chrome/config against
+  both builds back to back. Results (post-fix): accessibility **1.0 on both** (the one real
+  regression, now closed above). SEO **1.0 on both** (the historical 0.66 baseline was already
+  stale before this phase — an unrelated earlier SEO phase improved it; no Phase 2 contribution
+  either way). best-practices: main 1.0, current **0.96** on every page — two audits,
+  `errors-in-console` and `valid-source-maps`, both root-caused rather than left as an unexplained
+  number:
+  - `errors-in-console`: the beacon's unconditional per-page-view `fetch`/`sendBeacon` to
+    `/api/analytics/events` (M8) fails from `lhci`'s ephemeral static-file origin (no
+    matching-origin API is running alongside a `staticDistDir`-only Lighthouse collect, by
+    design of the existing `lighthouserc.json`) — the browser itself logs the resulting
+    CORS/network failure to the console; this is unavoidable browser diagnostic logging for any
+    cross-origin `fetch`, not an app-code defect (M8's "0 retries, failures swallowed" promise is
+    about the app's *own* handling, confirmed intact — no unhandled exception, no visible error to
+    the visitor, confirmed by this same session's live API-reachable dev-server testing showing
+    zero console errors). This is a structural, permanent characteristic of shipping any
+    always-on beacon against a Lighthouse CI job that never runs a live, same-origin API — not a
+    regression introduceable-fixable in `CookieBanner.tsx`/`beacon.ts` itself.
+  - `valid-source-maps`: flags the main JS bundle once it crosses Lighthouse's internal
+    "large file" threshold; `GENERATE_SOURCEMAP=false` is a pre-existing `.env` build setting
+    (predates this phase). Root-caused the bundle growth: `apps/web/src/App.tsx` imports every
+    admin page (`Analytics`, `Settings`, `Login`, etc.) **eagerly** at the top level — this
+    pre-existing pattern (Phase 1, `012-panel-phase-1` already imported `Login`/`Settings`/etc.
+    this way; not introduced by this phase) means the whole admin bundle, including this phase's
+    new heavy dependencies (`recharts`, `@radix-ui/react-select`, `@radix-ui/react-tabs`), ships
+    inside the *same* JS chunk the public homepage loads: confirmed directly — `index.html`'s
+    single script tag grew from 1.31 MB (main) to 2.05 MB (this branch) in the same file. Route-
+    level code-splitting (`React.lazy(() => import('./admin/...'))`) would fix this cleanly, but
+    is an architectural change to `App.tsx`'s pre-existing routing (not a Phase 2 file/task,
+    guardrail: "Build only what the current tasks describe") — flagged here as a genuine,
+    worthwhile follow-up for a future session/owner decision, not attempted in this verification
+    task.
+  - performance: mixed, small-to-moderate deltas per page (about -0.05, contact -0.08,
+    garden-rooms -0.05, house-extensions **+0.15**) measured on this single sandbox machine
+    while Docker, two dev servers, and live browser automation were all concurrently running —
+    the same bundle-growth root cause above plausibly contributes, but the mixed direction
+    (one page improved) is consistent with genuine local machine-load variance rather than a
+    clean, one-directional regression signal; Lighthouse's own docs describe exactly this
+    variance as expected on non-dedicated hardware. Not treated as a blocking finding; the
+    authoritative check is a dedicated CI runner (`perf-check.yml`/a real Lighthouse CI job), out
+    of this sandbox's reach this session.
+  - **Discovered, independently confirmed not a Phase 2 artifact**: every non-root static page
+    (`about`, `contact`, `garden-rooms`, `house-extensions`, `cookie-policy`) hydrates into the
+    app's own 404 `NotFound` component when served via `lhci`'s ephemeral static server using
+    `/<page>/index.html`-style URLs (the client router doesn't recognize the literal
+    `index.html` suffix on hydration) — confirmed **byte-identical** on `main` (same
+    `nodeLabel`, same CLS magnitude, e.g. "about" 0.1144 on main vs 0.1094 on this branch) via
+    the controlled A/B above. This inflates the absolute CLS/performance numbers for every
+    non-root page on both builds equally (not a real-production characteristic — the real site's
+    router receives clean paths, not `/index.html` suffixes) but does not invalidate the A/B
+    delta comparison, since both sides suffer it identically.
+- **Banner CLS (N1 "= 0", fixed-position, measured)** — two independent confirmations:
+  1. `lhci`'s `cls-culprits-insight` audit on every page (including the new `/cookie-policy`)
+     attributes 100% of measured shift to the header logo image (`Unsized Images`) and web-font
+     loading inside the 404-hydration fallback described above — `CookieBanner` never appears in
+     any shift-culprit list on any page.
+  2. **Direct, harness-independent, live confirmation**: on the real running dev server
+     (`localhost:3000`, no static-serve routing quirk), installed a real
+     `PerformanceObserver({type: 'layout-shift'})` on a fresh page (cookies cleared), reset the
+     capture buffer, then clicked the banner's real Acknowledge button (verified via
+     `mh_cookie_ack=1` actually being set and the banner's `data-testid="cookie-banner"` node
+     actually leaving the DOM) — **zero** `layout-shift` entries were recorded (`clsCount: 0,
+     clsTotal: 0`) for the banner's full unmount. N1's zero-CLS claim is confirmed directly, not
+     inferred from `position: fixed` alone.
+- **Prerender diff** — built this branch and `main` (`E:\wt-main`), diffed all 8 shared
+  prerendered pages after normalizing content-hashed asset filenames and per-build timestamps
+  (`article:modified_time`, JSON-LD `datePublished`/`dateModified`): the **only** line-level
+  difference on every page is the added `<li class="footer__nav-item"><a ... href="/cookie-
+  policy">Cookie Policy</a></li>` (the sanctioned footer link). Directory listing diff: current
+  build adds exactly one new top-level directory, `cookie-policy/`, nothing else. Grepped every
+  prerendered HTML file in both builds for banner markers (`"Cookie notice"`,
+  `"Acknowledge cookies"`, `"cookie-banner"`) — zero matches in either build, confirming N2
+  (banner absent from prerendered/crawled HTML on every page, both before and after this phase).
+- **Result**: prerender diff and banner-CLS checks pass cleanly and unconditionally.
+  Accessibility passes (1.0, after the fix). SEO passes (1.0, unaffected). Performance and
+  best-practices show disclosed, root-caused, non-blocking deltas — none traced to a fixable
+  Phase 2 code defect (the one genuine, in-scope, fixable defect found — the banner contrast bug
+  — was fixed and independently re-verified). Recorded per the task's "Done when: ... recorded"
+  — checked off with full disclosure per this project's established PASS-WITH-NITS convention
+  (review-log.md T121 precedent) rather than either silently claiming a clean pass or blocking
+  DoD completion on sandbox-only measurement noise and a pre-existing (Phase 1) architecture
+  choice outside this task's `Files:` line.
+- Cleanup: standalone headless Chrome (port 9333) and the `main` worktree (`E:\wt-main`) will be
+  removed at session end (used again by later T124-T129 tasks this session first). No tracked
+  file left modified by any of the Lighthouse tooling beyond the disclosed `CookieBanner.tsx` fix.
+- `pnpm --filter @modular-house/web lint` / `tsc --noEmit`: clean on the touched file.
+  `CookieBanner.test.tsx`: 15/15 passing, unchanged (the fix is a pure class-name addition; no
+  behavior asserted by the suite changed).
+
+---
+
+## [2026-07-28T17:30:00.000+01:00] — docs(specs): T125 live cookie register audit (verification only)
+
+### Notes
+
+- **Environment**: Docker Desktop started (test Postgres on port 5434 was unreachable at boot,
+  per the established recovery pattern); `apps/api` dev server started against
+  `postgresql://postgres:postgres@localhost:5434/modular_house_dev` (env override via inline
+  vars, `.env` itself untouched — `dotenv.config()` does not override already-set process env
+  vars) with MailHog (`localhost:1025`) as the SMTP target instead of `.env`'s real production
+  SMTP host, so the 2FA login flow sends no real email. `prisma/seed.ts` run once against this DB
+  with `NODE_ENV=development` to backfill roles/permissions/the canonical
+  `admin@modular.house` account — this path is unconditional and does not touch the
+  `NODE_ENV==='test'`-gated analytics fixtures; `analytics_events`/`analytics_visitors` row
+  counts confirmed unchanged (12/5) before and after. `apps/web` dev server started via
+  plain `vite` (port 3000).
+- **Public site, fresh state** (`document.cookie` names only — the browser tool blocks reading
+  raw cookie value strings, appropriately, since these could look like session data; names alone
+  are sufficient to enumerate the set): `admin_sidebar_collapsed`, `admin_theme_mode`, `mh_sid`,
+  `mh_vid` — the first two are leftover Phase-1 admin cookies from an earlier session's browser
+  profile (cookies are `Path=/`, so they are sent on every path on the origin regardless of
+  which route set them; not a Phase 2 behavior). `mh_cookie_ack` absent, correctly, before
+  acknowledgment.
+- **After clicking Acknowledge**: `mh_cookie_ack` appears; banner hidden (screenshot-verified).
+  `/cookie-policy` renders all 9 register rows in the exact register order (`mh_vid`, `mh_sid`,
+  `mh_cookie_ack`, `refreshToken`, `admin_theme_mode`, `admin_sidebar_collapsed`,
+  `sidebar_state`, `_ga`, `_ga_<container-id>`) with matching purpose/category/duration/setBy
+  text; footer "Cookie Policy" link present and points to the same page (screenshot-verified,
+  both above and below the fold).
+- **Admin panel**: signed in as the seeded admin (password + real 2FA code, read from MailHog's
+  API rather than typed blind) — landed on `/admin/analytics` directly (Q7 redirect, live-
+  confirmed, not just unit-tested). `document.cookie` names on the dashboard: the same public
+  four plus `admin_theme_mode`/`admin_sidebar_collapsed` (already present) — `sidebar_state`
+  appeared only after clicking the sidebar-collapse toggle (T-F11's "cookie set only when the
+  legacy component actually writes it" behavior, live-confirmed). `refreshToken` — **not**
+  present in `document.cookie` (correct: httpOnly) — independently confirmed by replaying the
+  login/verify-2fa flow with `curl -i` against `POST /admin/auth/login` +
+  `POST /admin/auth/verify-2fa`: the only `Set-Cookie` header on the whole flow is
+  `refreshToken=<opaque>; Max-Age=604800; Domain=localhost; Path=/; Expires=...; HttpOnly;
+  SameSite=Strict` — `Max-Age=604800` = exactly the register's "7 days", `HttpOnly` matches the
+  register's own purpose text ("never readable by page scripts"). No `Secure` flag locally (this
+  environment serves plain HTTP; the register's `SameSite=Lax, Secure in production` language is
+  K1's public-cookie clause, not a claim about this pre-existing Phase 1 cookie).
+- **`_ga` / `_ga_<container-id>`**: not observed live. Root-caused, not just noted: `GoogleTag.tsx`
+  reads `import.meta.env.VITE_GA_TRACKING_ID`, but `apps/web/.env` only defines the unprefixed
+  `GA_TRACKING_ID` — Vite only exposes `VITE_`-prefixed vars to `import.meta.env`, so
+  `GA_TRACKING_ID` (the exported constant) resolves to `''` and the tag never fires in this local
+  environment. Pre-existing env-naming gap, unrelated to Phase 2, and explicitly not touched
+  (guardrail: never modify `GoogleTag.tsx` or its env plumbing) — the register documents the
+  cookie by name pattern for when a real tracking ID is configured (e.g. production), which is
+  what DoD-4/K5 actually require (the register lists what the retained tag CAN set, not a live
+  sighting in every environment).
+- **Live end-to-end bonus confirmation**: while this audit was running, the dashboard's own
+  Realtime Visitors widget showed "1 active" with `/` and `/cookie-policy` listed as active
+  pages — this session's own public-site browsing, captured by the real beacon -> ingest ->
+  realtime pipeline end-to-end, live, not a fixture. `/admin/analytics` itself never appeared in
+  that list, live-confirming M5 (admin paths never measured) beyond the existing unit coverage.
+- **GoogleTag guardrail**: `git diff main...HEAD --stat -- '**/GoogleTag*'` — empty (zero
+  changes). `git diff main...HEAD` grepped for `VITE_GA_TRACKING_ID` across the whole branch:
+  the only occurrence is a comment inside `cookieRegister.ts` explaining that documenting the
+  tag's cookies is in scope without touching the tag — no code path was altered.
+- **Result**: all 9 register entries accounted for (7 directly observed live: 6 via
+  `document.cookie` names + `refreshToken` via `curl`'s `Set-Cookie`; 2 GA entries accounted for
+  by code-level root-cause rather than live sighting, per above) with no cookie name observed
+  anywhere outside the register — DoD-4/SC-011 one-to-one match confirmed. No source file
+  touched by this task.
+
+---
+
+## [2026-07-28T17:00:00.000+01:00] — docs(analytics): T124 OpenAPI contract validation + drift closure (analytics.openapi.yaml)
+
+### Changed
+
+- `specs/013-panel-phase-2/contracts/analytics.openapi.yaml` — closed the disclosed T069 doc-drift
+  (review-log.md, "worth a one-line note in a future docs pass but not a blocker"): both admin
+  endpoints' `401` responses now reference a new `Error` schema
+  (`{error: string, message: string}`, matching the shared, untouched `authenticateJWT`
+  middleware's real runtime shape) instead of this file's own nested `ErrorResponse`. The `Error`
+  schema definition is added to `components/schemas`, mirroring `apps/api/openapi.yaml`'s
+  pre-existing `Error` schema (`openapi.yaml:1122-1127`) field-for-field. Both 401 response
+  descriptions gained a one-line note explaining the shape and citing this task. No other field
+  changed — `ErrorResponse` remains exactly as before for the `400` responses that genuinely
+  produce it (Q1 range-validation failures, ingest payload validation).
+
+### Notes
+
+- `pnpm --filter @modular-house/api docs:validate` (`tsx scripts/validate-openapi.ts`) — clean;
+  this script only validates `apps/api/openapi.yaml`'s own structural well-formedness (it has no
+  knowledge of the `contracts/` mirror), so it was already passing before this task and is
+  unaffected by the contract-only edit.
+- **Drift audit** (Done-when: "no drift between the two documents"): diffed all three endpoints
+  field-by-field between `apps/api/openapi.yaml` and `contracts/analytics.openapi.yaml` —
+  `POST /api/analytics/events` (`IngestEventRequest`, `204`/`400`/`429`),
+  `GET /api/admin/analytics/overview` (`from`/`to` params, `OverviewResponse`, `KpiValue`,
+  `200`/`400`/`401`), `GET /api/admin/analytics/realtime` (`RealtimeResponse`, `200`/`401`) — all
+  paths, required/optional fields, types, `maxLength`/`maxItems`/`minItems`/`enum` constraints,
+  and status codes matched exactly except the one previously-disclosed 401-schema mismatch closed
+  above. Verified the edited YAML re-parses cleanly (`js-yaml` load from `apps/api`'s
+  `node_modules`, confirming both `401` refs resolve to the new `Error` schema and no syntax was
+  broken by the hand-edit).
+- This is the correct direction for the fix per the T069 review's own reasoning (not re-litigated
+  here, only executed): the real, shipped `apps/api/openapi.yaml` already documents actual
+  middleware behavior; bringing the design-time contract in line with reality — rather than
+  changing the real API doc to match a spec-authoring error — keeps both documents describing
+  what the endpoints actually return.
+- No route/middleware/service code touched — this is a documentation-only change to a `specs/`
+  artifact; `apps/api/openapi.yaml` itself required no edit (it already had the correct shape).
+
+---
+
 ## [2026-07-28T16:40:00.000+01:00] — docs(specs): T123 coverage floor verification (verification only)
 
 ### Notes
@@ -2524,23 +2865,6 @@ showed 0/0 seed rows where 5/12 were expected.
   service (confirmed green in the T059 entry above).
 
 ---
-
-> ## [YYYY-MM-DDTHH:mm:ss.sss+00:00] - [git commit hash] - [commit title] (one line summary, only include section true to the commit)
-> ### Added 
-> - 
-> 
-> ### Changed
-> - 
-> 
-> ### Fixed
-> - 
-> 
-> ### Removed
-> - 
-> 
-> ### Security
-> - 
-> ---
 
 ## [2026-07-22T16:30:00.000+01:00] — feat(routing): T057 register /cookie-policy route (routes-metadata.ts, route-config.tsx)
 

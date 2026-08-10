@@ -1696,7 +1696,8 @@ Radix `Portal` (no `container` prop), which mounts to `document.body` by default
 must not touch `dropdown-menu.tsx`; a token-scope fix in `tokens.css` resolves all three
 consumers without touching any of the three component files.
 
-- [ ] T130 Write failing portal-background test for the select primitive
+- [x] T130 Write failing portal-background test for the select primitive
+> note: real-cascade resolver (jsdom has no var() support) proves --popover unresolved outside .admin-root; tests: 1 red, 9 pre-existing green; deviations: none
       Files: apps/web/src/admin/ui/select.test.tsx
       Do: Render `SelectContent` open, read its computed `background-color` and `color` from the
       DOM (not from `getComputedStyle` inside a `.admin-root`-wrapped test harness — the assertion
@@ -1706,13 +1707,15 @@ consumers without touching any of the three component files.
       Done when: test fails today because the portaled content resolves a transparent background.
       Refs: FR-022, DoD-6
 
-- [ ] T131 Write failing portal-background test for the dialog primitive
+- [x] T131 Write failing portal-background test for the dialog primitive
+> note: same real-cascade resolver shape as T130 against DialogContent; tests: 1 red, 13 pre-existing green; deviations: none
       Files: apps/web/src/admin/ui/dialog.test.tsx
       Do: Same assertion shape as T130, against `DialogContent` rendered open.
       Done when: test fails today for the same reason.
       Refs: FR-022, DoD-6
 
-- [ ] T132 Write failing portal-background test for the dropdown-menu primitive
+- [x] T132 Write failing portal-background test for the dropdown-menu primitive
+> note: new file; same resolver shape, opened via controlled `open` prop (documented click limitation); tests: 1 red; deviations: none
       Files: apps/web/src/admin/ui/dropdown-menu.test.tsx (new)
       Do: Same assertion shape as T130, against `DropdownMenuContent` rendered open. This is the
       first dedicated test file for this Phase 1 primitive under Phase 2's portal regression —
@@ -1721,7 +1724,8 @@ consumers without touching any of the three component files.
       Done when: test fails today for the same reason.
       Refs: FR-022, DoD-6
 
-- [ ] T133 Broaden the admin color-token scope so portaled content resolves it
+- [x] T133 Broaden the admin color-token scope so portaled content resolves it
+> note: additive :root/.dark blocks mirror .admin-root/.dark .admin-root; T130-T132 green; tests: 3 passing; deviations: none
       Files: apps/web/src/admin/theme/tokens.css
       Do: Add the same token declarations currently scoped to `.admin-root` / `.dark .admin-root`
       to `:root` / `.dark` as well (additive — do not remove or rewrite the existing

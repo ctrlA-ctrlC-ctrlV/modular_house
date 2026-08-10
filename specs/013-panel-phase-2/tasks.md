@@ -1628,6 +1628,7 @@
       Refs: DoD-6, SC-010, FR-022, N5
 > note: live axe-core (real Chrome) on banner/policy/dashboard; fixed 2 real contrast bugs (CookiePolicy, Analytics.tsx); 6 pre-existing findings disclosed; deviations: CookiePolicy.tsx, Analytics.tsx
 > reviewed: PASS-WITH-NITS — policy fix live-verified 15.30:1; dashboard fix corroborated not reproduced
+> note: review-nit fix — dashboard fix live-reproduced via MailHog relogin; h1 18.97:1, p 7.66:1 (was 1.07/2.65); tests: live verification; deviations: none
 
 - [ ] T128 Record the performance budgets and API-down smoke
       Files: — (verification only)

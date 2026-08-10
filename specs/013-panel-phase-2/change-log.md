@@ -1,6 +1,72 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-10T13:00:00.000+01:00] — docs(specs): T128 final performance budgets + SC-009 API-down smoke (verification only)
+
+### Notes — DoD-7 final budget figures (M9, Q8)
+
+- **Environment**: `apps/api` restarted with `DATABASE_URL` re-pointed at the port-5434 dev DB,
+  `.env` untouched (same inline-override pattern as T125/T127-nit). Reseeded the T119 32-month
+  synthetic dataset via `PERF_SEED_CONFIRM=1 npx tsx scripts/seed-analytics-perf.ts` — regenerated
+  the identical **871,373 events / 157,039 visitors** T119 originally produced (deterministic
+  `mulberry32` PRNG, fixed seed), confirming the script is still exactly reproducible.
+- **`bench-analytics.ts` run 3 consecutive full times** (matching T121's own multi-run
+  methodology, since this task's specific job is to close T121's review watch-item — one
+  marginal 1015.56 ms run out of five against the 1000 ms 490-day budget):
+  | Run | Ingest p95 (M9 < 50 ms) | Overview 92-day p95 (Q8 < 300 ms) | Overview 490-day p95 (Q8 < 1000 ms) |
+  |-----|--------------------------|-------------------------------------|----------------------------------------|
+  | 1 | 9.75 ms | 151.13 ms | 795.88 ms |
+  | 2 | 9.04 ms | 166.64 ms | 881.68 ms |
+  | 3 | 10.25 ms | 181.57 ms | 891.67 ms |
+
+  **All three runs PASS all three budgets** — no marginal or failing run this time, in contrast
+  to T121's 4-of-5. Treated as ordinary run-to-run variance (same conclusion T121 itself drew),
+  not a code change (no source file touched this session) — the 490-day query path
+  (`analyticsQuery.ts`) is unmodified since T121.
+- **Restore**: `NODE_ENV=test npx tsx prisma/seed.ts` against the same DB, verified directly
+  (`analytics_events` = 12, `analytics_visitors` = 5 — byte-exact match to the pre-seed baseline)
+  and via a full suite run: `pnpm --filter @modular-house/api test:run -- --no-file-parallelism`
+  — **60/60 files, 515/515 tests passing**, confirming no residue, matching T121's own restore
+  verification exactly.
+- **V6 (realtime freshness <= 60 s / SC-006)**: not independently re-measured live this session —
+  cites existing evidence per this task's own `Do:` text ("V6 30-second poll evidence from
+  T072"). `useAnalytics.test.tsx` (T072, reviewed PASS) asserts the realtime hook polls via
+  `setInterval` every exactly 30 s under fake timers; `useAnalytics.ts` (T073, reviewed PASS)
+  implements this without websockets. 30 s polling is half SC-006's 60 s ceiling by construction,
+  so no separate live timing measurement is needed to satisfy the Done-when.
+
+### Notes — SC-009 / FR-012 API-down smoke (live browser)
+
+- Stopped `apps/api` for real: the backgrounded `tsx watch` process left an orphaned child node
+  process still listening on `:8080` after the parent task was stopped — killed it directly
+  (`Stop-Process`) and confirmed via `Get-NetTCPConnection` that the port was genuinely free
+  before browsing, not just assumed from the parent task's exit.
+- With `apps/web` (Vite, `:3000`) up and `apps/api` fully down, live-browsed 5 pages with
+  DevTools network/console capture active: `/` (initial load), `/garden-rooms`, `/house-
+  extensions`, `/contact` (full form, all fields render), `/cookie-policy` (full 9-row register
+  table renders). Every page rendered completely and was fully interactive — nav, hero content,
+  forms, and the cookie-policy table all present with no missing content, no blank/broken
+  sections, no visible error banner or toast.
+  - Confirmed the beacon fires and fails as designed: `POST http://localhost:8080/api/analytics/
+    events` observed for the `/garden-rooms` route change, browser-reported status **503**
+    (the underlying condition is a genuine connection refusal — independently confirmed no
+    process was listening on `:8080` at the time; the extension's network-capture tooling
+    reports a synthetic HTTP status for a failed connection rather than a raw network-error
+    code — a tooling/display detail, not an application behavior).
+  - Console: zero errors attributable to the beacon, the API being down, or any Phase 2 code
+    across all 5 page loads/navigations. The only console entries present (2 occurrences, both
+    on `/`) are a pre-existing, unrelated React DOM prop-casing warning (`fetchPriority` on
+    `<img>`) inside `OptimizedImage`/`HeroWithSideText` — both `@modular-house/ui` components,
+    out of this phase's guardrail-protected scope, present identically regardless of API state
+    (confirmed by the same warning appearing before the API was stopped, in the T127-nit
+    session's earlier browsing on this same machine).
+  - This directly and independently reproduces M8/R1's "0 retries, failures swallowed" promise
+    and T098/T099's unit-level assertions (mocked transport) under a real network failure this
+    time, not a mock — closing the live half of SC-009/FR-012 that jsdom-based tests structurally
+    cannot cover (constitution testing rule: unit tests mock `sendBeacon`/`fetch` at the module
+    boundary and assert no real network call leaves the test process).
+- No source file was touched this session; verification-only, per T128's own `Files:` line.
+
 ## [2026-08-10T12:40:00.000+01:00] — docs(specs): T127-nit dashboard dark-mode fix independently live-reproduced (verification only)
 
 ### Notes

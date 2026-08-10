@@ -199,6 +199,32 @@ For each item in §3 and §4, before any data wiring:
       token, exactly what the template itself renders) where a CSS leak had been silently
       overriding it; no new deviation from the approved look was introduced.
 
+#### Nit-fix (2026-08-10): dashboard dark-mode fix independently live-reproduced
+
+`review-log.md`'s 2026-08-10 T124-T127 round flagged T127 PASS-WITH-NITS because this
+`Analytics.tsx` dark-mode fix specifically could **not** be independently live-reproduced by
+review — a stale `apps/api` dev server, pre-dating that session, was configured against
+production SMTP, blocking the 2FA login needed to reach `/admin/analytics`. Closed this session
+per the review's own recommendation: stopped the stale process, restarted `apps/api` with
+`DATABASE_URL` re-pointed at the port-5434 dev DB and `MAIL_HOST=localhost`/`MAIL_PORT=1025`
+(MailHog), inline env vars only, `.env` itself untouched (T125 precedent). Signed in as
+`admin@modular.house` with the real 2FA code read from MailHog's API, toggled dark mode
+(confirmed live: `class="dark" data-theme-mode="dark"` lands on `<html>`, not `.admin-root`),
+and independently re-measured contrast. This Chrome version's `getComputedStyle` reports
+`color`/`background-color` as `oklch()` strings rather than `rgb()`, so a plain regex-based rgb
+parse would silently fail; used a canvas `fillStyle`/`getImageData` round-trip instead (renders
+any CSS color into a 1x1 canvas and reads back the true sRGB byte triplet, colorspace-agnostic).
+Results: `<h1>Analytics</h1>` — foreground `oklch(0.985 0 0)` = `rgb(250,250,250)` on background
+`oklch(0.145 0 0)` = `rgb(10,10,10)` (byte-exact match to the disclosed pre-fix `#0a0a0a`) →
+**18.97:1** (was disclosed 1.07:1). Subtitle `<p>` — foreground `oklch(0.708 0 0)` =
+`rgb(161,161,161)` → **7.66:1** (was disclosed 2.65:1). Both clear the 4.5:1 AA floor by a wide
+margin; both elements' inline `style` attributes confirmed present (`color: var(--foreground)` /
+`var(--muted-foreground)`) exactly as the original fix describes. The full live axe-core
+violation-count re-run (8 -> 6, dark theme) was not repeated — its browser-injection workaround
+(temp `.txt` file under `apps/web/public/`, dev-server restart) is one-off tooling complexity
+disclosed in the T126 change-log entry, and the contrast reproduction above directly verifies
+the specific claim the review flagged as unreproduced.
+
 ### Recorded deviations (documented adaptations)
 
 1. **Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036;

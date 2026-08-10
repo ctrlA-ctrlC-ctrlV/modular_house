@@ -1595,6 +1595,7 @@
       Done when: validation passes; no drift between the two documents.
       Refs: DoD-8, plan §1.1
 > note: docs:validate clean; 3 endpoints diffed field-by-field; closed T069's 401 Error-schema drift in the contract; tests: n/a verification; deviations: none
+> reviewed: PASS — schema diff independently exact; docs:validate reran clean
 
 - [x] T125 Audit cookies against the register (and confirm GoogleTag untouched)
       Files: — (verification only; register at apps/web/src/content/cookieRegister.ts)
@@ -1605,6 +1606,7 @@
       Done when: one-to-one match confirmed; GoogleTag diff empty.
       Refs: DoD-4, K5, SC-011, FR-025, plan §1.4
 > note: live browser audit (public+admin, real login+curl 401/Set-Cookie): 9/9 register entries accounted; GoogleTag diff empty; tests: n/a verification; deviations: none
+> reviewed: PASS — 9/9 rows + GoogleTag guardrail independently confirmed
 
 - [x] T126 Verify Lighthouse baseline, zero-CLS banner, and prerender diff
       Files: — (verification only; baseline in apps/web/.lighthouseci/)
@@ -1615,6 +1617,7 @@
       Done when: all three checks pass and are recorded.
       Refs: DoD-5, N1/N2, FR-006, SC-003
 > note: live Lighthouse+PerformanceObserver audit; fixed real banner contrast bug (jsdom-blind); CLS=0 confirmed live; prerender clean; deviations: CookieBanner.tsx contrast fix
+> reviewed: PASS-WITH-NITS — banner fix live-verified 14.63:1; perf delta vs baseline unresolved
 
 - [x] T127 Complete the WCAG 2.1 AA pass and light/dark visual approval
       Files: specs/013-panel-phase-2/ui-components.md (§6 record)
@@ -1624,6 +1627,7 @@
       Done when: axe + keyboard pass documented; SC-010 approval recorded.
       Refs: DoD-6, SC-010, FR-022, N5
 > note: live axe-core (real Chrome) on banner/policy/dashboard; fixed 2 real contrast bugs (CookiePolicy, Analytics.tsx); 6 pre-existing findings disclosed; deviations: CookiePolicy.tsx, Analytics.tsx
+> reviewed: PASS-WITH-NITS — policy fix live-verified 15.30:1; dashboard fix corroborated not reproduced
 
 - [ ] T128 Record the performance budgets and API-down smoke
       Files: — (verification only)

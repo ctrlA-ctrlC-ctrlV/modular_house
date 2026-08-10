@@ -6,6 +6,106 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-10 — T124-T127 (baseline: 2193570)
+
+T124 — PASS — schema diff exact; docs:validate clean
+T125 — PASS — 9/9 rows confirmed live; GA gap verified
+T126 — PASS-WITH-NITS — banner fix live-exact; perf delta unresolved
+T127 — PASS-WITH-NITS — policy fix live-exact; dashboard fix not reproduced
+
+Detail: All 7 diffed files vs. baseline `2193570` (3 source: `Analytics.tsx`, `CookieBanner.tsx`,
+`CookiePolicy.tsx`; 4 docs: `change-log.md`, `contracts/analytics.openapi.yaml`, `tasks.md`,
+`ui-components.md`) are disclosed in change-log.md across 7 dated entries (T121-ack, T122, T123,
+T124, T125, T126, T127) — no concealed changes. T122/T123 land in this same diff window (marked
+`[x]` with notes) but carry no `> reviewed:` line yet and are outside this session's stated
+REVIEW SCOPE (T124-T127) — not evaluated against the full §5 checklist here; flagged in the chat
+report only as a gap for a future session. Supply-chain check: zero package.json/lockfile changes.
+
+T124 (OpenAPI drift closure): independently diffed all three endpoints
+(`POST /api/analytics/events`, `GET /api/admin/analytics/{overview,realtime}`) and all five
+referenced schemas (`IngestEventRequest`, `KpiValue`, `OverviewResponse`, `RealtimeResponse`,
+`ErrorResponse`, new `Error`) field-by-field between `apps/api/openapi.yaml` and
+`contracts/analytics.openapi.yaml` — identical except prose, exactly as claimed. The new `Error`
+schema matches `apps/api/openapi.yaml:1122-1127`'s pre-existing shape verbatim. Reran
+`docs:validate` myself — clean. Correctly closes the T069-flagged 401 ErrorResponse/Error drift
+in the design-time contract (the real, shipped `apps/api/openapi.yaml` already had it right).
+
+T125 (cookie register live audit): independently confirmed the load-bearing claims at the source
+level rather than trusting the narrative alone — `cookieRegister.ts`'s 9 entries, order, and
+durations match exactly as described; `git diff --stat main...HEAD -- '**/GoogleTag*'` empty and
+every `VITE_GA_TRACKING_ID` hit across the whole branch diff is a comment, confirming the
+guardrail; the claimed root cause for `_ga`/`_ga_<container-id>` not firing locally
+(`GoogleTag.tsx:8` reads `VITE_GA_TRACKING_ID`, `.env` only defines the unprefixed
+`GA_TRACKING_ID`) is verified byte-exact against both files. Live-reproduced the browser half
+directly: navigated to `/cookie-policy` and confirmed exactly 9 rendered register rows. Did not
+independently repeat the admin-panel cookie enumeration or the `curl`/`Set-Cookie` refreshToken
+check (would require the same live login covered under T127 below) — `refreshToken`'s
+httpOnly/SameSite=Strict/domain claims were instead corroborated by reading
+`routes/admin/auth.ts:220-224` directly, which matches.
+
+T126 (Lighthouse + banner contrast): the `CookieBanner.tsx` fix was independently live-reproduced
+end-to-end, not just read — navigated the running dev server to `/`, computed the real rendered
+contrast ratio via `getComputedStyle` + the WCAG relative-luminance formula: `text-light` on the
+message `<p>` yields `rgb(248,249,250)` on `rgb(33,37,41)`, a **14.63:1** ratio, closing the
+disclosed 2.06:1 defect. Root cause (unconditional `p { color: var(--brand-slate) }` in
+`style.css:387-390` beating an inherited `bg-dark`/`text-light` pair) verified directly against
+the stylesheet. Did not independently rebuild `main` in a worktree to reproduce the Lighthouse
+A/B — treated as inspection-passed on the strength of the methodology and its candor.
+One real nit: DoD-5's literal bar is "performance ... scores >= pre-phase baseline" — the
+session's own same-machine A/B shows performance regressed on 3 of 4 pages (about -0.05, contact
+-0.08, garden-rooms -0.05) against only one improving (house-extensions +0.15), attributed to
+sandbox load variance plus a real, correctly-root-caused, pre-existing (not-Phase-2) contributor
+(`App.tsx` eagerly imports every admin page including the new heavy `recharts`/Radix
+dependencies into the public site's own main bundle — confirmed directly at `App.tsx:44-54`, no
+`React.lazy` anywhere). Honestly disclosed and correctly scoped as an architecture issue outside
+this task's `Files:` line, not swept under the rug — but "mixed, consistent with variance" is a
+generous read of a 3-of-4 one-directional result, so DoD-5's performance clause is not cleanly,
+unambiguously met. Not a CHANGES-REQUIRED (best-practices, the audit actually most affected, is
+outside DoD-5's three named categories entirely) but worth watching, same class of disclosed
+marginal-metric nit as T121's 490-day budget.
+
+T127 (final WCAG pass): the `CookiePolicy.tsx` fix was independently live-reproduced —
+`<code class="text-dark">` renders `rgb(33,37,41)` on `rgb(254,254,254)`, a **15.30:1** ratio
+(hand-computed the pre-fix 4.46:1 defect via the WCAG formula against `#d63384` on `#fefefe` and
+got an exact match, confirming the implementer's own live-tool measurement was not fabricated).
+The `Analytics.tsx` dark-mode `<h1>`/`<p>` fix was **not** independently live-reproduced by this
+review: reaching `/admin/analytics` requires a real login, and the already-running `apps/api` dev
+server (found already listening on :8080, pre-dating this session) is configured against its
+`.env`'s real `MAIL_HOST=mail.modularhouse.ie` rather than MailHog (confirmed: the 2FA code for
+this reviewer's own login attempt as `admin@modular.house` never reached MailHog's API, unlike
+T125's own session, which explicitly restarted the server against MailHog first) — completing
+the login would have routed a real one-time-code email through production SMTP rather than a
+disposable local one. Reviewer stopped at the 2FA prompt rather than proceed, per this project's
+own caution around actions with external, hard-to-reverse side effects. The claim is nonetheless
+strongly corroborated at the source level: the leaked dark-mode foreground `#121414` is an exact,
+character-for-character match to `style.css:201`'s `--brand-title` token (proving the leak, not
+just asserting it); the unlayered-vs-layered mechanism is independently confirmed
+(`admin.css:18-19` wraps Tailwind in `layer(theme)`/`layer(utilities)`; `style.css`'s `h1..h6`/`p`
+rules carry no layer); `--foreground`/`--muted-foreground` exist in `tokens.css:83,93,123,133`
+exactly as the fix references. Recommend: a future live re-check first restart `apps/api` with
+`MAIL_HOST=localhost MAIL_PORT=1025` (MailHog) per T125's own precedent, or query
+`analyticsEvent`/session state directly, before attempting another live admin login.
+One nit shared by T126/T127: none of the three new contrast-fix class/style additions
+(`CookieBanner.tsx`'s `text-light`, `CookiePolicy.tsx`'s `text-dark`, `Analytics.tsx`'s two inline
+`style` props) gained a dedicated regression assertion (e.g. a className/style presence check) —
+jsdom cannot assert real contrast, but nothing guards against a future refactor silently dropping
+the fix either. Low severity, same gap pattern as the rest of the codebase's existing tests.
+
+Verification commands (§6): `pnpm lint` clean (4 workspaces). `pnpm typecheck` clean (3
+workspaces). `pnpm --filter @modular-house/api test:run`: 60/60 files, 515/515 tests, clean —
+matches T122's own claimed count exactly. `pnpm --filter @modular-house/web test:run`: 53/53
+files, 481/481 tests, clean — matches T122's claim; isolated rerun of
+`Analytics.test.tsx`+`dashboard-states.test.tsx` alone: 24/24, matching T127's own claimed count
+exactly. `prisma validate` clean. `prisma migrate status` (re-pointed at the port-5434 test DB,
+same known `.env` port-5432-unreachable gap as prior sessions): up to date, no drift. `prisma
+migrate diff --exit-code`: disposable `modular_house_dev_shadow2` database created via local
+`psql` (docker-exec was blocked by this session's own auto-mode classifier; a direct `psql -h
+localhost -p 5434` connection was not), diff run (`No difference detected`), dropped immediately
+after. `docs:validate` clean. `test:coverage`: 515/515 passing; `All files` line coverage
+**69.53%**, `analyticsIngest.ts` 100% branch, `middleware/auth.ts` (the admin auth gate) 100%
+branch — independently reproduces T123's own claimed figures exactly (T123 itself not otherwise
+in this session's checklist scope).
+
 ## 2026-07-28 — T117-T121 (baseline: 0407673)
 
 T117 — PASS — reproduced 3-red/27-green vs pre-T118 code

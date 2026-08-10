@@ -129,6 +129,76 @@ For each item in §3 and §4, before any data wiring:
       RealtimeCard (5), TopPages (5), TrafficSources (5), RangeToolbar (5),
       RangeDialog (5), Analytics page (4).
 
+### T127 — Final WCAG 2.1 AA pass (banner, policy page, dashboard; DoD-6)
+
+> Scope note: this record covers the **final DoD verification pass** (T127), which widens the
+> parity gate's dashboard-only scope above to the two public-site surfaces DoD-6 also names
+> (banner, `/cookie-policy`) and re-confirms the dashboard live, in a real browser, since jsdom
+> (used by every `jest-axe` suite above and in T117) cannot compute rendered CSS color and is
+> structurally blind to the `color-contrast` rule — confirmed twice this session (below).
+
+- [x] Zero critical axe violations — banner, policy page, dashboard (both themes).
+      Live `axe-core@4.10.2` (the same engine `jest-axe` wraps, loaded directly into a real
+      Chrome tab, not jsdom) run against `localhost:3000` for all wcag2a/2aa/21a/21aa rules:
+      - Banner (fresh cookie state, `/`): **0 violations** after the T126 contrast fix
+        (`CookieBanner.tsx`'s message `<p>` — see T126 change-log entry). One pre-existing,
+        unrelated finding on the homepage's own `.hero-bg-picture` element
+        (`aria-prohibited-attr`) — confirmed absent from the Phase 2 diff
+        (`git diff main...HEAD -- '**/hero*'` empty) and outside the guardrail's public-page
+        scope (banner mount / footer link / policy page only) — disclosed, not touched.
+      - Policy page (`/cookie-policy`): **0 violations**, 27 passes. Found and fixed live: the
+        register table's `<code>{name}</code>` cells inherited Bootstrap's default `code`
+        color (`#d63384`) at a 4.46:1 ratio against this page's `#fefefe` background — just
+        under the 4.5:1 floor. A Tailwind gray utility (`text-gray-900`) was tried first and
+        silently failed to apply (Tailwind v4 wraps utilities in a CSS `@layer`; Bootstrap's
+        unlayered `code {}` rule always wins over layered rules regardless of specificity) —
+        switched to Bootstrap's own `!important`-marked `text-dark` utility, which applies
+        correctly in the same unlayered cascade origin as the rule it overrides. Verified via
+        `getComputedStyle` before/after and a full axe re-run (`CookiePolicy.tsx`).
+      - Dashboard, light theme: 8 violations, all pre-existing/out-of-scope (below) — 0 traced
+        to any Phase 2 file's own styling choice.
+      - Dashboard, dark theme: found and fixed live: `Analytics.tsx`'s own `<h1>Analytics</h1>`
+        (**1.07:1** — foreground `#121414` on background `#0a0a0a`, i.e. visually near-invisible)
+        and its subtitle `<p>` (2.65:1). Root cause: the public site's global `style.css`
+        declares unlayered `h1..h6 { color: var(--brand-title) }` / `p { color:
+        var(--brand-slate) }` rules that are not scoped away from `/admin/*` and therefore
+        apply to every admin page's bare heading/paragraph tags too (same unlayered-beats-
+        layered mechanism as the policy-page fix above); these public brand colors happen to
+        still read against the admin's *light* background (why this was never visually caught)
+        but resolve to near-black-on-black once the admin's own background flips dark. Fixed
+        with inline `style={{ color: 'var(--foreground)' }}` / `var(--muted-foreground)}` on
+        `Analytics.tsx`'s own two elements (inline styles win regardless of cascade layers, and
+        still reference the admin's real theme-aware tokens, not a literal color). Confirmed
+        live post-fix: dashboard dark-theme violation count 8 -> 6, with the h1/p targets gone.
+      - **Remaining 6 dashboard findings (both themes), disclosed and deliberately not
+        touched**: sidebar "Analytics" active-nav-link text (`ui/sidebar.tsx`, a frozen Phase 1
+        primitive per §2 — "no re-port, no modification"; Phase 2 only added the `<Link>`
+        content inside it), `UserSection.tsx`'s avatar-fallback initials and user-email text
+        (confirmed absent from the Phase 2 diff — pre-existing Phase 1 shell component), and
+        the inactive/active tab-trigger text in `ui/tabs.tsx` (a Phase 2-ported primitive, but
+        the failing color pair — foreground `#a1a1a1` on background `#6b6b6b` — is the shared
+        `--muted-foreground`-on-`--muted` OKLCH token pairing defined in Phase 1's
+        `admin/theme/tokens.css`, and the identical pair independently fails on the confirmed-
+        Phase-1 `UserSection.tsx` element too, so this is a token-*value* gap, not a
+        component-specific misuse). All measured `impact: "serious"`, none `"critical"` (axe-
+        core's own taxonomy) — DoD-6's literal "zero **critical** axe violations" bar is met.
+        A proper fix requires either an owner-approved OKLCH adjustment to
+        `--muted-foreground`/`--muted` (affects every component using that pair, well beyond
+        this task's `Files:` line) or un-freezing `ui/sidebar.tsx` — recommended as a dedicated
+        follow-up, not attempted here.
+- [x] Full keyboard walk, including the range pop-up and its date inputs.
+      Live-reconfirmed on top of the existing T088/T117 jsdom suites (which already assert the
+      same behavior structurally): opened the toolbar's "More" pop-up, `Tab` moved focus
+      directly onto the native `Start date` input with a visible focus ring (screenshot-
+      verified), `Esc` closed the pop-up without applying (KPI values unchanged) and returned
+      focus to the "More" trigger (visible ring, screenshot-verified) — matches Q3/E-DIALOG.
+- [x] SC-010 owner side-by-side light/dark approval — **already recorded above** (2026-07-21,
+      "APPROVED... good enough for now"). Re-confirmed still valid: nothing in this session's
+      two dashboard fixes (`Analytics.tsx`'s `<h1>`/`<p>` color) changes the approved visual
+      design — they restore the template-matching intended color (the admin's own `--foreground`
+      token, exactly what the template itself renders) where a CSS leak had been silently
+      overriding it; no new deviation from the approved look was introduced.
+
 ### Recorded deviations (documented adaptations)
 
 1. **Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036;

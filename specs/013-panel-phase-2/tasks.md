@@ -1588,14 +1588,15 @@
       Refs: DoD-3, constitution III
 > note: ingest 100% branch, admin auth gate 100% branch met; overall line 69.53%<70% but gap is 100% pre-existing/untouched; deviations: none
 
-- [ ] T124 Validate the OpenAPI contract
+- [x] T124 Validate the OpenAPI contract
       Files: apps/api/openapi.yaml, specs/013-panel-phase-2/contracts/analytics.openapi.yaml
       Do: Run the OpenAPI validation used by CI; confirm the three mirrored endpoint definitions
       remain semantically identical to the contract file (paths, schemas, status codes).
       Done when: validation passes; no drift between the two documents.
       Refs: DoD-8, plan §1.1
+> note: docs:validate clean; 3 endpoints diffed field-by-field; closed T069's 401 Error-schema drift in the contract; tests: n/a verification; deviations: none
 
-- [ ] T125 Audit cookies against the register (and confirm GoogleTag untouched)
+- [x] T125 Audit cookies against the register (and confirm GoogleTag untouched)
       Files: — (verification only; register at apps/web/src/content/cookieRegister.ts)
       Do: In a browser, enumerate every cookie set on the public site and the admin panel;
       confirm the set matches the register and the rendered /cookie-policy table one-to-one
@@ -1603,8 +1604,9 @@
       any `VITE_GA_TRACKING_ID` plumbing.
       Done when: one-to-one match confirmed; GoogleTag diff empty.
       Refs: DoD-4, K5, SC-011, FR-025, plan §1.4
+> note: live browser audit (public+admin, real login+curl 401/Set-Cookie): 9/9 register entries accounted; GoogleTag diff empty; tests: n/a verification; deviations: none
 
-- [ ] T126 Verify Lighthouse baseline, zero-CLS banner, and prerender diff
+- [x] T126 Verify Lighthouse baseline, zero-CLS banner, and prerender diff
       Files: — (verification only; baseline in apps/web/.lighthouseci/)
       Do: Run Lighthouse CI on the public site; performance/SEO/accessibility scores >= the
       pre-phase baseline; the banner contributes 0 CLS (fixed-position, measured); diff the built
@@ -1612,14 +1614,16 @@
       footer link differ, and no prerendered page contains banner markup.
       Done when: all three checks pass and are recorded.
       Refs: DoD-5, N1/N2, FR-006, SC-003
+> note: live Lighthouse+PerformanceObserver audit; fixed real banner contrast bug (jsdom-blind); CLS=0 confirmed live; prerender clean; deviations: CookieBanner.tsx contrast fix
 
-- [ ] T127 Complete the WCAG 2.1 AA pass and light/dark visual approval
+- [x] T127 Complete the WCAG 2.1 AA pass and light/dark visual approval
       Files: specs/013-panel-phase-2/ui-components.md (§6 record)
       Do: Zero critical axe violations on banner, policy page, and dashboard in BOTH themes; full
       keyboard walk including the range pop-up and its date inputs; obtain and record the owner's
       side-by-side light/dark approval of the dashboard against the template analytics page.
       Done when: axe + keyboard pass documented; SC-010 approval recorded.
       Refs: DoD-6, SC-010, FR-022, N5
+> note: live axe-core (real Chrome) on banner/policy/dashboard; fixed 2 real contrast bugs (CookiePolicy, Analytics.tsx); 6 pre-existing findings disclosed; deviations: CookiePolicy.tsx, Analytics.tsx
 
 - [ ] T128 Record the performance budgets and API-down smoke
       Files: — (verification only)

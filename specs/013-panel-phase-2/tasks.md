@@ -1669,3 +1669,322 @@ R1–R2 is enforced by at least one task above; every §4.1 test id (T-B1…T-B8
 §4.2 edge family (E-INGEST, E-BEACON, E-SOURCE, E-RANGE, E-TZ, E-EMPTY, E-CONCURRENCY, E-SESSION,
 E-DIALOG, E-A11Y), and all three §4.3 AMEND items (T051, T080, T082) have dedicated tasks; each
 contract endpoint has its own route task (T043, T066, T067) plus the openapi.yaml mirror (T069).
+
+---
+
+## Post-hoc review follow-ups (T130–T156)
+
+Filed after independent hands-on review of the shipped Phase 2 build (running dev app + template
+side-by-side + a second reviewer pass), post-dating the T122–T129 DoD sign-off. `tasks.md` marked
+all 135 tasks PASS; the issues below were reproduced live and were not caught by that process —
+mostly a class of bug jsdom cannot see (computed background/text color, real scroll behavior,
+CSS-layer cascade order) or that fell outside the file each self-review diff touched. Two reviewer
+findings are folded into a single root-cause group below rather than given independent fixes —
+see the note on Group D.
+
+Same execution rules as the rest of this document apply: **TDD, no exceptions** (each
+implementation task is preceded by its failing-test task, red for the right reason); **green
+checkpoints** — a test task and the implementation task(s) that turn it green are one atomic unit,
+never handed off mid-unit; **determinism** — no real `Date.now()`/wall-clock waits in new tests.
+
+### Group A — Portal-rendered overlays resolve a transparent background and unstyled text
+
+Root cause: `select.tsx`, `dialog.tsx`, and `dropdown-menu.tsx` all render their content via a bare
+Radix `Portal` (no `container` prop), which mounts to `document.body` by default — outside
+`.admin-root`, the element every color token in `tokens.css` is scoped to. `dropdown-menu` is a
+**frozen Phase 1 primitive** (ui-components.md §2 — "no re-port, no modification"), so the fix
+must not touch `dropdown-menu.tsx`; a token-scope fix in `tokens.css` resolves all three
+consumers without touching any of the three component files.
+
+- [ ] T130 Write failing portal-background test for the select primitive
+      Files: apps/web/src/admin/ui/select.test.tsx
+      Do: Render `SelectContent` open, read its computed `background-color` and `color` from the
+      DOM (not from `getComputedStyle` inside a `.admin-root`-wrapped test harness — the assertion
+      must exercise the same default-Portal-to-`document.body` path the app uses), and assert the
+      background is not `transparent`/`rgba(0,0,0,0)` and the text color is not the light-mode
+      foreground value while `.dark` is set on `document.documentElement`.
+      Done when: test fails today because the portaled content resolves a transparent background.
+      Refs: FR-022, DoD-6
+
+- [ ] T131 Write failing portal-background test for the dialog primitive
+      Files: apps/web/src/admin/ui/dialog.test.tsx
+      Do: Same assertion shape as T130, against `DialogContent` rendered open.
+      Done when: test fails today for the same reason.
+      Refs: FR-022, DoD-6
+
+- [ ] T132 Write failing portal-background test for the dropdown-menu primitive
+      Files: apps/web/src/admin/ui/dropdown-menu.test.tsx (new)
+      Do: Same assertion shape as T130, against `DropdownMenuContent` rendered open. This is the
+      first dedicated test file for this Phase 1 primitive under Phase 2's portal regression —
+      creating it does not violate the "no re-port, no modification" freeze (no source file
+      changes).
+      Done when: test fails today for the same reason.
+      Refs: FR-022, DoD-6
+
+- [ ] T133 Broaden the admin color-token scope so portaled content resolves it
+      Files: apps/web/src/admin/theme/tokens.css
+      Do: Add the same token declarations currently scoped to `.admin-root` / `.dark .admin-root`
+      to `:root` / `.dark` as well (additive — do not remove or rewrite the existing
+      `.admin-root`-scoped blocks; leave T036a/T036b's fixes untouched). `.dark` already lands on
+      `document.documentElement` (T036b), an ancestor of both `.admin-root` and any
+      `document.body`-portaled node, so the broader rule resolves tokens for portaled content while
+      the more specific `.admin-root` rule continues to win for everything already inside it — zero
+      behavior change for non-portaled surfaces.
+      Done when: T130, T131, T132 all green; a human confirms in a real browser that the range
+      selector, the custom-range dialog, and the account menu each render a solid, legible
+      background and text in both themes; spot-check that no public-site page's computed
+      background/text color changed (the public site does not use these token names, but verify).
+      Refs: FR-022, DoD-6, SC-010
+
+### Group B — Admin shell has no scroll container; content taller than the viewport is unreachable
+
+- [ ] T134 Write failing scroll-reachability test for AppShell
+      Files: apps/web/src/admin/shell/AppShell.test.tsx
+      Do: Render AppShell with a child tall enough to exceed a constrained test-container height,
+      and assert some ancestor between the content and `<body>` has `overflow-y: auto` (or
+      `scroll`) and a `scrollHeight` greater than its `clientHeight` — i.e., a real scroll
+      container exists, not just that content is present in the DOM.
+      Done when: test fails today (no such container exists; `<main>` and every ancestor up to
+      `<body>` compute `overflow-y: visible`, and `<body>`/`<html>` are `overflow: hidden` via the
+      public site's global `index.css` reset).
+      Refs: FR-022, US3-13
+
+- [ ] T135 Add a scroll container to AppShell's content region
+      Files: apps/web/src/admin/shell/AppShell.tsx
+      Do: Give the `<main className="flex flex-1 flex-col">` region (or a wrapping element) its
+      own `overflow-y-auto` and a bounded height so it becomes the scroll container for admin page
+      content, independent of the public site's `html, body { overflow: hidden }` reset.
+      Done when: T134 green; a human confirms in a real browser, at a typical laptop viewport
+      (e.g. 1568×744), that the Analytics page's Top Pages / Traffic Sources rows below the fold
+      are reachable by mouse wheel, keyboard (Page Down / End), and touch.
+      Refs: FR-022, US3-13
+
+### Group C — Traffic Over Time chart x-axis is an unreadable label smear at wide ranges
+
+- [ ] T136 Write failing tick-density test for TrafficChart
+      Files: apps/web/src/admin/analytics/TrafficChart.test.tsx
+      Do: Render TrafficChart against a day-bucket fixture spanning the default 3-month range
+      (~90 buckets) and assert the rendered x-axis shows a bounded number of tick labels (e.g. at
+      most ~12–15), not one per bucket.
+      Done when: test fails today (every bucket currently gets its own tick label).
+      Refs: FR-022, FR-029
+
+- [ ] T137 Add tick-interval control to TrafficChart's x-axis
+      Files: apps/web/src/admin/analytics/TrafficChart.tsx
+      Do: Configure the x-axis (recharts `interval`/`tickFormatter`, via the ported `chart.tsx`
+      wrapper only — rule 9) to render a legible, evenly-spaced subset of ticks for day-bucket
+      series, matching the template's chart styling.
+      Done when: T136 green; a human confirms the default 3-month view's x-axis is legible in both
+      themes, and that the 2-day hour-bucket view (already few enough buckets) is unchanged.
+      Refs: FR-022, FR-029, SC-010
+
+### Group D — style.css's unscoped bare-tag color rules leak into the admin panel
+
+Root cause, one fix, multiple symptoms. `apps/web/src/styles/style.css:397-405` declares an
+unlayered `a { color: var(--brand-link) } a:hover { color: var(--brand-link-hover) }`, alongside
+the already-partially-diagnosed `h1..h6 { color: var(--brand-title) }` / `p { color:
+var(--brand-slate) }` (style.css:365-391, called out in `Analytics.tsx`'s own T126/T127 review
+comments, lines 190-213). None of these selectors are scoped away from `.admin-root`. This is a
+single root cause behind **two** separately-reported findings:
+- The reviewer-reported "sidebar active-nav-link text" finding (`#b55329` on `#171717`,
+  3.61:1): `#b55329` is exactly `--brand-link`. The Sidebar's `<Link to="/admin/analytics">`
+  renders a bare `<a>` with no explicit color class, so it inherits the public site's link color,
+  not any `--sidebar-*` token — this is not a `--sidebar-accent-foreground` OKLCH gap, and
+  `data-active`/`isActive` is not even wired on that link today. Fixing this token-scope leak is
+  the fix; no `sidebar.tsx` change is needed (also frozen — ui-components.md §2).
+- My own "login heading/subtitle illegible in dark mode" finding: `Login.tsx`'s bare `<h1>Login</h1>`
+  has no color class at all, so it inherits `--brand-title` the same way; its `<p>` carries
+  `text-muted-foreground` but still renders `--brand-slate` (`rgb(85,85,85)`, confirmed live) —
+  the unlayered element-selector rule beats the layered Tailwind utility class regardless of
+  specificity, per normal CSS cascade-layer rules. `Analytics.tsx` patched only itself, via an
+  inline `style={{ color: 'var(--foreground)' }}` override, explicitly leaving Settings.tsx (and,
+  as this review found, Login.tsx and Sidebar.tsx) unfixed (see Analytics.tsx:206).
+
+- [ ] T138 Write failing test: style.css brand colors must not apply inside `.admin-root`
+      Files: apps/web/src/admin/theme/admin.css (test file, new: admin.css.test.ts, following the
+      existing tokens.css-text-parsing pattern used by a11y.test.tsx — or extend
+      apps/web/src/admin/shell/a11y.test.tsx directly if a dedicated CSS-source test file does not
+      already exist for admin.css)
+      Do: Assert (via jsdom style injection + computed style, mirroring T036f's approach) that a
+      bare `<h1>`, `<p>`, and `<a>` rendered inside a `.admin-root`-classed container do not
+      resolve `--brand-title` / `--brand-slate` / `--brand-link`.
+      Done when: test fails today for all three tags.
+      Refs: DoD-6, constitution V
+
+- [ ] T139 Scope style.css's bare-tag brand-color rules away from the admin panel
+      Files: apps/web/src/styles/style.css
+      Do: Restrict the `h1, h2, h3, h4, h5, h6`, `p`, `a`, and `a:hover` selectors (and any other
+      unscoped brand-color element selectors in this block) with a `:not(.admin-root,
+      .admin-root *)` exclusion (or equivalent), so they never match inside the admin panel. Do
+      not change the rule bodies or affect the public site.
+      Done when: T138's "no longer resolves brand colors" half is green; every existing
+      public-site test suite (SEO/marketing/configurator) stays green — no public page's heading,
+      paragraph, or link color changes.
+      Refs: DoD-6, SC-003, constitution V
+
+- [ ] T140 Write failing test: bare admin tags must resolve admin tokens by default
+      Files: same test file as T138
+      Do: Extend the T138 suite to assert that, once excluded from style.css, the same bare
+      `<h1>`/`<p>`/`<a>` inside `.admin-root` instead resolve the admin `--foreground` (h1/p) and
+      `--primary` (a) tokens — i.e. admin.css must supply its own base-layer default, not just
+      remove the old one.
+      Done when: test fails today (no such default exists yet in admin.css).
+      Refs: DoD-6, constitution V
+
+- [ ] T141 Add admin-scoped base-layer defaults for bare heading/paragraph/link tags
+      Files: apps/web/src/admin/theme/admin.css
+      Do: Add `.admin-root h1, .admin-root h2, ... h6, .admin-root p { color: var(--foreground); }`
+      and `.admin-root a { color: var(--primary); }` (adjust selector list to match whatever T139
+      excluded) so unclassed admin tags are correctly themed without per-element overrides.
+      Done when: T140 green.
+      Refs: DoD-6, constitution V
+
+- [ ] T142 Remove the now-redundant inline color override on the Analytics heading
+      Files: apps/web/src/admin/pages/Analytics.tsx
+      Do: Now that T139+T141 fix the cascade at its source, remove the
+      `style={{ color: 'var(--foreground)' }}` / `style={{ color: 'var(--muted-foreground)' }}`
+      inline overrides on the page heading and subtitle (and the now-stale explanatory comment
+      block describing the workaround), letting them inherit the new admin.css base-layer default
+      like every other page.
+      Done when: Analytics.test.tsx stays green with the inline styles removed; visual output is
+      unchanged (same computed color, now via cascade instead of inline style).
+      Refs: DoD-6
+
+- [ ] T143 Add a contrast-regression assertion for the Login page heading and subtitle
+      Files: apps/web/src/admin/pages/Login.test.tsx (new)
+      Do: Assert the "Login" `<h1>` and the "Welcome back..." `<p>` resolve the admin
+      `--foreground`/`--muted-foreground` tokens (not `--brand-title`/`--brand-slate`) when
+      `.dark` is set.
+      Done when: test is green against the post-T141 codebase (was failing/would have failed
+      before T139/T141 landed).
+      Refs: DoD-6, constitution V
+
+- [ ] T144 Add a contrast-regression assertion for the Settings page heading
+      Files: apps/web/src/admin/pages/Settings.test.tsx
+      Do: Assert the "Settings" `<h1>` and its subtitle `<p>` (Settings.tsx:240-241) resolve the
+      admin `--foreground`/`--muted-foreground` tokens when `.dark` is set.
+      Done when: test is green against the post-T141 codebase.
+      Refs: DoD-6, constitution V
+
+- [ ] T145 Add a contrast-regression assertion for the Sidebar Analytics nav-link
+      Files: apps/web/src/admin/shell/Sidebar.test.tsx (new)
+      Do: Assert the "Analytics" `<Link>` (Sidebar.tsx) resolves `--primary` (not
+      `--brand-link`/`#b55329`) when `.dark` is set. Closes the reviewer-reported "sidebar
+      active-nav-link text" finding as this same root cause — record in this task's note that it
+      is not a `--sidebar-accent-foreground`/`--sidebar-accent` OKLCH gap and no `sidebar.tsx`
+      change (frozen primitive) was needed.
+      Done when: test is green against the post-T141 codebase; a human confirms live in dark mode
+      that the sidebar link text meets 4.5:1 against the sidebar background.
+      Refs: DoD-6, constitution V
+
+### Group E — `--muted-foreground` on `--muted` fails contrast (reviewer-reported)
+
+- [ ] T146 Write failing contrast test for the muted token pair
+      Files: apps/web/src/admin/shell/a11y.test.tsx
+      Do: Extend the existing tokens.css-parsing pattern (used by T036a/b/e/f) to compute the
+      contrast ratio of `--muted-foreground` over `--muted` for both the light and dark blocks,
+      and assert each is >= 4.5:1.
+      Done when: test fails today (reviewer-measured 2.06:1).
+      Refs: DoD-6, constitution V
+
+- [ ] T147 Adjust the muted OKLCH pair to meet 4.5:1 in both themes
+      Files: apps/web/src/admin/theme/tokens.css
+      Do: Adjust `--muted`/`--muted-foreground` lightness in the `.admin-root` (light) and
+      `.dark .admin-root` (dark) blocks until both meet 4.5:1, keeping the pair visually "muted"
+      relative to `--foreground`/`--background`.
+      Done when: T146 green.
+      Refs: DoD-6, constitution V
+
+- [ ] T148 Add a contrast-regression assertion for tab-trigger label text
+      Files: apps/web/src/admin/ui/tabs.test.tsx
+      Do: Assert an inactive TabsTrigger's rendered text meets 4.5:1 against its background in
+      both themes (computed-style based, not just class-presence).
+      Done when: test is green against the post-T147 tokens.
+      Refs: DoD-6, constitution V
+
+- [ ] T149 Add a contrast-regression assertion for UserSection email text
+      Files: apps/web/src/admin/shell/UserSection.test.tsx (new)
+      Do: Assert the `data-slot="user-email"` text meets 4.5:1 against its background in both
+      themes.
+      Done when: test is green against the post-T147 tokens.
+      Refs: DoD-6, constitution V
+
+### Group F — HeroWithSideText's `<picture>` has an invalid accessible-name pattern
+
+Pre-existing, absent from the Phase 2 diff, but flagged by a reviewer. `packages/ui` is
+guardrail-protected (shared by every marketing page) — keep this change minimal and additive.
+
+- [ ] T150 Write failing accessibility test for HeroWithSideText's picture markup
+      Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.test.tsx (new)
+      Do: Assert the rendered `<picture>` element does not carry an `aria-label` without a
+      supporting `role` (an `aria-label` on an element with no implicit or explicit ARIA role is
+      not exposed to assistive tech).
+      Done when: test fails today against the current markup.
+      Refs: DoD-6, constitution V
+
+- [ ] T151 Fix HeroWithSideText's picture accessibility markup
+      Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx
+      Do: Either move the accessible name to the `<img>` (via `alt`) and drop `aria-label` from
+      `<picture>`, or add `role="img"` to `<picture>` if the label must live there — whichever
+      matches how the rest of `@modular-house/ui` names images.
+      Done when: T150 green; every public page importing HeroWithSideText keeps its existing
+      visual output (snapshot/visual diff unchanged).
+      Refs: DoD-6, constitution V
+
+### Group G — Admin bundle is not code-split from the public site
+
+- [ ] T152 Write failing test asserting the admin route tree loads lazily
+      Files: apps/web/src/App.test.tsx (new)
+      Do: Assert `App.tsx`'s admin page imports (`Login`, `TwoFactor`, `ForgotPassword`,
+      `ResetPassword`, `Settings`, `Analytics`) are not present as static top-level imports in the
+      module source (e.g. source-text assertion against `App.tsx`, mirroring how other tasks in
+      this doc assert absence of a pattern) — or, if a build-time check is more reliable than a
+      source-text assertion, assert the built public entry chunk contains no admin-only
+      identifiers.
+      Done when: test fails today (all six admin pages are static imports at App.tsx:49-54).
+      Refs: DoD-5, SC-003
+
+- [ ] T153 Convert admin route imports to React.lazy with a Suspense boundary
+      Files: apps/web/src/App.tsx
+      Do: Replace the static imports of `Login`, `TwoFactor`, `ForgotPassword`, `ResetPassword`,
+      `Settings`, `Analytics` with `React.lazy(() => import(...))`, and wrap the `/admin/*` route
+      subtree in a `Suspense` boundary.
+      Done when: T152 green; `pnpm --filter @modular-house/web build` produces the admin pages
+      (and their `recharts`/`@radix-ui/react-select`/`@radix-ui/react-tabs` dependencies) in a
+      separate chunk from the public entry; the public `index.html` entry chunk size returns
+      toward its pre-Phase-2 baseline (~1.31 MB, from today's ~2.05 MB).
+      Refs: DoD-5, SC-003
+
+- [ ] T154 Add a Suspense fallback for the lazily-loaded admin route tree
+      Files: apps/web/src/admin/shell/AdminRouteFallback.tsx (new — only if no existing loading
+      component is suitable to reuse)
+      Do: A minimal, theme-neutral loading indicator shown while the admin chunk downloads (must
+      render correctly before the admin theme/tokens have loaded, since it may render before
+      `.admin-root` exists).
+      Done when: T153's Suspense boundary uses this fallback; a human confirms on a throttled
+      connection that a brief, non-jarring loading state appears before the admin login page
+      renders.
+      Refs: DoD-5
+
+### Group H — `lighthouserc.json` targets stale, now-404 URLs
+
+- [ ] T155 Fix the stale route slugs in the Lighthouse CI config
+      Files: apps/web/lighthouserc.json
+      Do: Update `garden-room/index.html` → `garden-rooms/index.html` and
+      `house-extension/index.html` → `house-extensions/index.html` in `ci.collect.url`, matching
+      the plural routes introduced in features 008/010.
+      Done when: every URL in `ci.collect.url` resolves (200, not 404) against a real
+      `pnpm --filter @modular-house/web build` output.
+      Refs: DoD-5
+
+### Group I — `lhci autorun` crashes on Windows dev machines
+
+- [ ] T156 Investigate and document the chrome-launcher EPERM crash
+      Files: specs/013-panel-phase-2/quickstart.md
+      Do: Confirm whether `chrome-launcher@1.2.1`'s `destroyTmp()` `EPERM` crash (on its own temp
+      profile dir cleanup) reproduces on the CI Linux runner or is Windows-dev-only; record the
+      finding and the standalone-Chrome `--remote-debugging-port` + `collect.settings.port`
+      workaround used this session as a repeatable local dev step.
+      Done when: the CI-reproduction question is answered (not just assumed); quickstart.md lets a
+      teammate run `lhci autorun` locally on Windows without hitting the crash.
+      Refs: DoD-5, quickstart §5 CI note

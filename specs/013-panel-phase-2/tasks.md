@@ -1639,7 +1639,7 @@
       Refs: DoD-7, M9/Q8, V6, SC-006/SC-009, FR-012
 > note: 3/3 runs pass M9/Q8 (ingest~10ms,92d~150-180ms,490d~795-892ms); live API-down smoke 5 pages clean; tests: n/a verification; deviations: none
 
-- [ ] T129 Sweep FR traceability and retention review
+- [x] T129 Sweep FR traceability and retention review
       Files: specs/013-panel-phase-2/quickstart.md (§6 table)
       Do: Walk the quickstart §6 table: every FR-001…FR-029 points at passing tests (update test
       names if they changed during implementation); review that no code path deletes or expires
@@ -1648,6 +1648,7 @@
       addition, FR-028 acknowledgment seam) hold in the final diff.
       Done when: table verified current; DoD-2 satisfied; retention review noted.
       Refs: DoD-2, §2.7 R1/R2, FR-016/FR-024/FR-027/FR-028
+> note: table zero-drift (135/135 tasks checked, all IDs match plan §4); R1/R2 hold; 3 seams hold; tests: n/a verification; deviations: none
 
 ---
 

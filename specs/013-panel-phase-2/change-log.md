@@ -1,6 +1,63 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-10T14:10:00.000+01:00] — fix(admin): T130-T133 portal-background token-scope regression (Group A)
+
+### Notes
+
+- **Root cause (review-log-driven, Group A)**: `select.tsx`, `dialog.tsx`, and `dropdown-menu.tsx`
+  all render their content via a bare Radix `Portal` (no `container` prop), which mounts to
+  `document.body` by default — outside `.admin-root`, the only element `tokens.css` scoped any
+  color token to. A portaled node therefore never resolved `--popover`/`--popover-foreground`
+  (or any other token) and fell back to the browser's transparent/unset default for the
+  unresolved `var()`. `dropdown-menu.tsx` is a frozen Phase 1 primitive (ui-components.md §2), so
+  the fix is entirely in `tokens.css` — no component file touched.
+- **T130/T131/T132 (failing tests)**: added one regression test per primitive
+  (`select.test.tsx`, `dialog.test.tsx`, and a new `dropdown-menu.test.tsx` — the first dedicated
+  test file for this Phase 1 primitive, additive-only so it does not violate the "no re-port, no
+  modification" freeze) asserting the portaled content (a) is a real `document.body` descendant
+  that is NOT inside `.admin-root`, and (b) the dark-mode `--popover`/`--popover-foreground`
+  tokens resolve for it and differ from the light-mode values. `dropdown-menu.test.tsx` opens the
+  menu via the controlled `open` prop rather than a trigger click, per `AppShell.test.tsx`'s own
+  prior documented finding that Radix DropdownMenu's open-via-click is not reliable in jsdom.
+- **jsdom limitation, verified directly (not assumed)**: this project's pinned jsdom (25.0.1)
+  implements no CSS custom-property (`var()`) resolution at all. Confirmed with a standalone
+  repro: a rule `.a { background-color: var(--x) }` computes via `getComputedStyle` to the
+  literal, unresolved string `"var(--x)"` regardless of whether `--x` is declared anywhere in
+  scope, and `getComputedStyle(descendant).getPropertyValue('--x')` never inherits a value set on
+  an ancestor. A literal `getComputedStyle().backgroundColor` read can therefore never distinguish
+  "the token resolves" from "it doesn't" here — it returns the same unresolved string either way.
+  All three new tests instead perform the same real-selector cascade a browser would (`:root`
+  always matches `document.documentElement`, an ancestor of every node including portaled ones;
+  `.admin-root`/`.dark .admin-root` never match a portaled node), driven by the actual
+  `tokens.css` source text read from disk so it can't silently drift from the shipped fix —
+  mirroring `a11y.test.tsx`'s existing H6 contrast workaround for the same class of jsdom gap.
+  This is a deliberate, documented deviation from T130's literal "read its computed
+  background-color" wording, inline-commented in all three test files.
+- **T133 (fix)**: added a `:root { ... }` block (mirroring `.admin-root`'s full contents) and a
+  bare `.dark { ... }` block (mirroring `.dark .admin-root`'s contents) to `tokens.css`, placed
+  before the existing blocks. `:root`/`.dark` both match `document.documentElement`, an ancestor
+  of every node in the document including portaled ones, so tokens now resolve there; the
+  existing, unchanged, more specific `.admin-root`/`.dark .admin-root` rules continue to win the
+  cascade for everything already inside them (equal specificity, later declaration order), so
+  behavior for non-portaled surfaces is unchanged. Additive only — T036a/T036b's fixes and every
+  existing declaration are untouched. The public site does not reference any of these token
+  names, so `:root`/`.dark` now also existing there is a no-op for it.
+- **Verification**: `pnpm --filter @modular-house/web test:run` — 54/54 files, 484/484 tests,
+  clean (T010/T014 suites' 9/13 pre-existing tests unaffected; `a11y.test.tsx`'s 27 tests,
+  including its own `.admin-root`/`.dark .admin-root` regex reads, unaffected by the new
+  `:root`/`.dark` blocks). `pnpm --filter @modular-house/web lint` clean (one `no-useless-escape`
+  nit in the new resolver regex, self-caught and fixed before this entry).
+  `pnpm --filter @modular-house/web typecheck` clean.
+- **Outstanding (T133's own Done-when, not yet satisfied)**: T133 also requires "a human confirms
+  in a real browser that the range selector, the custom-range dialog, and the account menu each
+  render a solid, legible background and text in both themes" and a spot-check that no
+  public-site page's computed color changed. This was **not** performed this session (reaching
+  the admin analytics page requires a live authenticated login; the automated portion of T133's
+  Done-when — T130/T131/T132 green — is independently verified above). Flagged in the session
+  handoff as an open item for the human reviewer, same disposition as T087's original
+  "UNVERIFIED — build rerun needed" entry before its later human sign-off.
+
 ## [2026-08-10T13:20:00.000+01:00] — docs(specs): T129 FR traceability sweep + retention review (verification only)
 
 ### Notes

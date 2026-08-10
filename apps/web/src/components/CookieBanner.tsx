@@ -135,7 +135,18 @@ export function CookieBanner() {
       data-testid="cookie-banner"
     >
       <div className="container d-flex align-items-center justify-content-between gap-3 py-2">
-        <p className="mb-0 small">
+        {/*
+          text-light is required explicitly, not inherited from the parent's
+          bg-dark/text-light pair: the site's global stylesheet sets
+          `p { color: var(--brand-slate) }` (style.css), and an element's own
+          explicit color declaration always wins over an inherited value
+          regardless of selector specificity. Without this class the paragraph
+          renders --brand-slate (#555555) on bg-dark (#212529), a 2.06:1
+          contrast ratio that fails WCAG AA's 4.5:1 floor (N5) — caught live
+          via Lighthouse/real-Chrome color-contrast audit, not jest-axe/jsdom,
+          which does not compute rendered CSS color values (T126/T127).
+        */}
+        <p className="mb-0 small text-light">
           We use performance cookies and strictly necessary cookies to
           understand how visitors use our site.{' '}
           <Link

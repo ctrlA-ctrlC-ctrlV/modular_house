@@ -1,6 +1,51 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-10T12:40:00.000+01:00] — docs(specs): T127-nit dashboard dark-mode fix independently live-reproduced (verification only)
+
+### Notes
+
+- **Carry-forward closed**: `review-log.md`'s 2026-08-10 T124-T127 round flagged T127
+  PASS-WITH-NITS because the `Analytics.tsx` dark-mode `<h1>`/`<p>` fix could not be
+  independently live-reproduced — the running `apps/api` dev server (pre-dating that review
+  session) was pointed at production SMTP, blocking the 2FA login needed to reach
+  `/admin/analytics`. This session closes that gap; no source file was touched.
+- **Environment**: found a stale `apps/api` dev-server process already listening on `:8080`
+  (the same one the prior review encountered, per its own disclosure) — stopped it and
+  restarted with `DATABASE_URL` re-pointed at the port-5434 dev DB and
+  `MAIL_HOST=localhost`/`MAIL_PORT=1025` (MailHog), inline env vars only, `.env` itself
+  untouched (`dotenv.config()` does not override already-set process env vars — same pattern as
+  T125). `apps/web` dev server started via plain `vite`. Confirmed via server log: `SMTP
+  connection verified successfully — host: localhost, port: 1025`. Docker (Postgres :5434,
+  MailHog :1025) was already running; `admin@modular.house` already existed in the dev DB from
+  a prior seeded session — no reseed needed.
+- **Live login**: signed in as the seeded `admin@modular.house` with the real 2FA code read
+  from MailHog's API (`GET :8025/api/v2/messages`), landed on `/admin/analytics`.
+- **Dark-mode toggle mechanism, confirmed live**: clicking "Toggle Theme" sets `class="dark"
+  data-theme-mode="dark"` on `<html>` (not on `.admin-root` as first assumed — corrected
+  mid-session by walking the live DOM parent chain).
+- **Contrast re-measurement**: this Chrome version's `getComputedStyle` reports
+  `color`/`background-color` as `oklch()` strings, not `rgb()` — a plain regex-based rgb parse
+  would silently fail here. Used a canvas `fillStyle`/`getImageData` round-trip instead (renders
+  any CSS color into a 1x1 canvas and reads back the true sRGB byte triplet, colorspace-agnostic).
+  Results: `<h1>Analytics</h1>` — foreground `oklch(0.985 0 0)` = `rgb(250,250,250)` on
+  background `oklch(0.145 0 0)` = `rgb(10,10,10)` (byte-exact match to the disclosed pre-fix
+  `#0a0a0a`) → **18.97:1** (was disclosed 1.07:1). Subtitle `<p>` — foreground
+  `oklch(0.708 0 0)` = `rgb(161,161,161)` → **7.66:1** (was disclosed 2.65:1). Both clear the
+  4.5:1 AA floor by a wide margin; both elements' inline `style` attributes confirmed present
+  (`color: var(--foreground)` / `var(--muted-foreground)`) exactly as the original T127 fix
+  describes.
+- **Not repeated**: the full live axe-core violation-count re-run (8 -> 6, dark theme) — the
+  original methodology's browser-injection workaround (temp `.txt` file under
+  `apps/web/public/`, dev-server restart) is disclosed as one-off tooling complexity in the T126
+  change-log entry; the contrast-ratio reproduction above directly verifies the specific claim
+  the review flagged as unreproduced, so redoing the full harness was judged out of scope for
+  this nit-fix.
+- Full verification suite (lint/typecheck/tests) not re-run — no source file touched this
+  session; T122/T123's own claimed counts stand unchanged.
+
+---
+
 ## [2026-07-28T19:00:00.000+01:00] — fix(web): T127 live WCAG AA pass + 2 contrast fixes (CookiePolicy.tsx, Analytics.tsx)
 
 ### Fixed

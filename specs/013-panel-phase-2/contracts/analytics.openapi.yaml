@@ -80,11 +80,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "401":
-          description: Missing or invalid session (T-B7 security gate).
+          description: >-
+            Missing or invalid session (T-B7 security gate). Emitted by the shared,
+            pre-existing authenticateJWT middleware (untouched by Phase 2), which returns the
+            flat legacy Error shape ({error: string, message: string}), not this file's own
+            nested ErrorResponse used by the 400 above (review-log.md T069/T124).
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/Error"
 
   /api/admin/analytics/realtime:
     get:
@@ -101,11 +105,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/RealtimeResponse"
         "401":
-          description: Missing or invalid session.
+          description: >-
+            Missing or invalid session. Same shared authenticateJWT middleware and flat Error
+            shape as the overview endpoint's 401 above.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/Error"
 
 components:
   securitySchemes:
@@ -266,3 +272,15 @@ components:
               type: array
               items: { type: object }
               description: Field-level validation issues where applicable.
+
+    Error:
+      type: object
+      description: >-
+        Legacy flat error shape emitted by the shared, pre-existing authenticateJWT middleware
+        (apps/api/src/middleware/auth.ts) on both admin endpoints' 401 response - distinct from
+        this file's own nested ErrorResponse, which only this phase's 400 validation paths use
+        (review-log.md T069/T124).
+      required: [error, message]
+      properties:
+        error: { type: string }
+        message: { type: string }

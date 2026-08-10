@@ -1,6 +1,64 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-10T13:20:00.000+01:00] — docs(specs): T129 FR traceability sweep + retention review (verification only)
+
+### Notes
+
+- **This closes the last task of the 135-task plan.** Before this session, `T129` was the sole
+  remaining `- [ ]` in `tasks.md` (`grep -n "^- \[ \]" tasks.md` — one hit); after this entry,
+  zero remain.
+- **ID-level traceability cross-check (DoD-2)**: extracted every `T-B*`/`T-F*`/`E-*` identifier
+  actually cited across `tasks.md`'s `Refs:` lines and compared it, set-for-set, against
+  `plan.md` §4.1/§4.2's full inventory (`T-B1`…`T-B8`, `T-F1`…`T-F11`, `E-INGEST`, `E-BEACON`,
+  `E-SOURCE`, `E-RANGE`, `E-DIALOG`, `E-SESSION`, `E-EMPTY`, `E-CONCURRENCY`, `E-TZ`, `E-A11Y`) —
+  **exact match, no additions, no renames**. Since `quickstart.md` §6's traceability table cites
+  these same abstract IDs (not raw file names), and every citing task is checked `[x]`, the table
+  needed **no edit** this session — it was already current. (The task's own `Files:` line names
+  `quickstart.md` in anticipation of corrections; finding none is a valid, verification-only
+  outcome, same pattern as T124/T125's own clean audits.)
+  - Spot-verified the "Coverage cross-check" paragraph at the bottom of `tasks.md` (pre-existing
+    text asserting contract-endpoint and §4.3-AMEND task coverage, itself flagged
+    "re-verified by T129"): `T043`/`T066`/`T067` (route handlers) + `T069` (OpenAPI mirror) +
+    `T051`/`T080`/`T082` (the three AMEND items) — all seven confirmed `[x]` and correctly
+    labeled.
+- **Retention review (§2.7 R1 — no delete/expire code path)**: `grep -rniE
+  "\.delete\(|deleteMany|\.expire\(" apps/api/src/routes/ apps/api/src/services/` returns zero
+  hits against `analyticsEvent`/`analyticsVisitor` — every `.delete`/`deleteMany` call in those
+  directories targets unrelated entities (FAQs, gallery, pages, redirects, login codes, password
+  reset tokens). The only `analyticsEvent.deleteMany()`/`analyticsVisitor.deleteMany()` calls in
+  the whole `apps/api/src` tree live in `src/seed/analyticsFixtureData.ts`, confirmed reachable
+  only from `prisma/seed.ts` (`grep -rln "analyticsFixtureData" src/ prisma/` — one hit, the seed
+  script) — a dev/test fixture-reset utility, never a route or service reachable by the running
+  API. R1 holds.
+- **Retention review (§2.7 R2 — columns match data-model.md)**: diffed `prisma/schema.prisma`'s
+  `AnalyticsEvent`/`AnalyticsVisitor` models against `data-model.md` §2/§3 field-by-field —
+  byte-identical (same fields, types, `@map` names, indexes, doc comments). No IP, User-Agent,
+  geo, device, or user/customer foreign-key column exists on either table; `AnalyticsEvent` has
+  no `adClick` column, consistent with M2's own scope (only the click-ID *value* is excluded from
+  storage — the boolean's only effect is the already-stored `sourceGroup` classification, so no
+  separate column was ever specified). R2 holds.
+- **FR-024 (extensible dashboard) re-confirmed in the final diff**: `Analytics.tsx` renders five
+  `TabsTrigger`/`TabsContent` pairs (`overview`, `audience`, `acquisition`, `engagement`,
+  `conversions`) — the four non-Overview tabs are structurally isolated placeholder panels, so
+  a future metric/panel/tab is additive, not a rework of the wired Overview widgets.
+- **FR-027 (register-only cookie addition) re-confirmed**: `cookieRegister.ts`'s own header
+  comment states the "Extend-by-append" contract explicitly — "a future cookie is documented by
+  appending an entry here; the banner and policy page never need redesign (FR-027)" — and
+  `CookiePolicy.tsx` renders the table directly from this array with no per-cookie hardcoding.
+- **FR-028 (opt-in-extensible acknowledgment) re-confirmed**: `CookieBanner.tsx` routes both the
+  "Acknowledge" button and the close ("x") control through one `acknowledge` callback, explicitly
+  commented "the FR-028 extension-point seam" — a future opt-in accept/decline model can branch
+  from this single seam without replacing the banner.
+- No source file was touched this session; verification-only, per T129's own `Files:` line
+  (which named `quickstart.md` but required no edit, as noted above).
+
+### Milestone
+
+135/135 tasks in `specs/013-panel-phase-2/tasks.md` are now checked. All eight Definition-of-Done
+items (DoD-1 through DoD-8, `plan.md` §6) have a completed, reviewed or independently-verified
+task backing them across the T001–T129 session history.
+
 ## [2026-08-10T13:00:00.000+01:00] — docs(specs): T128 final performance budgets + SC-009 API-down smoke (verification only)
 
 ### Notes — DoD-7 final budget figures (M9, Q8)

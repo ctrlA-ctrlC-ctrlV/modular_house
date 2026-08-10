@@ -185,8 +185,32 @@ export function Analytics() {
           greeting (documented adaptation, ui-components.md §4). The subtitle
           is retained from the template. */}
       <div className="space-y-1">
-        <h1 className="text-3xl tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground text-sm">
+        {/*
+          Inline `color` styles are required here, not Tailwind's
+          `text-foreground`/`text-muted-foreground` utilities alone: the
+          public site's global stylesheet (style.css) declares unlayered
+          `h1, h2, ... { color: var(--brand-title) }` and `p { color:
+          var(--brand-slate) }` rules that load app-wide (not scoped away
+          from `/admin/*`), while Tailwind v4 wraps its own utilities in a
+          CSS @layer — unlayered rules always win over layered ones
+          regardless of selector specificity, so the plain utility classes
+          are silently inert here. In light mode the leaked brand colors
+          happen to still read against the admin's light background, which
+          is why this was never visually caught; in dark mode they resolve
+          to near-black-on-black (measured live via axe-core, T127:
+          h1 foreground #121414 on background #0a0a0a, a 1.07:1 ratio,
+          nowhere near WCAG AA's 3:1 floor for large text). The inline
+          styles reference the admin's own theme-aware tokens directly, so
+          they still respond correctly to the light/dark toggle. The same
+          global-leak root cause also affects other, pre-existing admin
+          pages' bare <h1>/<p> tags (e.g. Settings.tsx) — out of scope here
+          (Phase 1, frozen); flagged for a future dedicated CSS-isolation
+          fix rather than patched page-by-page.
+        */}
+        <h1 className="text-3xl tracking-tight" style={{ color: 'var(--foreground)' }}>
+          Analytics
+        </h1>
+        <p className="text-muted-foreground text-sm" style={{ color: 'var(--muted-foreground)' }}>
           Monitor traffic, engagement, and conversion performance in one view.
         </p>
       </div>

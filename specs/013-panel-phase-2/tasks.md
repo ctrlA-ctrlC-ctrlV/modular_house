@@ -1630,13 +1630,14 @@
 > reviewed: PASS-WITH-NITS — policy fix live-verified 15.30:1; dashboard fix corroborated not reproduced
 > note: review-nit fix — dashboard fix live-reproduced via MailHog relogin; h1 18.97:1, p 7.66:1 (was 1.07/2.65); tests: live verification; deviations: none
 
-- [ ] T128 Record the performance budgets and API-down smoke
+- [x] T128 Record the performance budgets and API-down smoke
       Files: — (verification only)
       Do: Record final M9 and Q8 benchmark results (T120/T121); confirm realtime freshness <= 60 s
       (V6 30-second poll evidence from T072); run the quickstart US2 smoke: stop the API, browse
       the public site — every page fully functional with no user-visible error.
       Done when: budgets documented; SC-009 smoke passes.
       Refs: DoD-7, M9/Q8, V6, SC-006/SC-009, FR-012
+> note: 3/3 runs pass M9/Q8 (ingest~10ms,92d~150-180ms,490d~795-892ms); live API-down smoke 5 pages clean; tests: n/a verification; deviations: none
 
 - [ ] T129 Sweep FR traceability and retention review
       Files: specs/013-panel-phase-2/quickstart.md (§6 table)

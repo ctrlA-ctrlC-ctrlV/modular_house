@@ -16,7 +16,11 @@
  * programmatically, which jsdom honours, so ArrowDown/Enter resolve
  * deterministically without real pointer events.
  */
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+/// <reference types="node" />
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import type React from 'react';
 import {
@@ -229,5 +233,133 @@ describe('Select primitive — render + data-slot contract (T010)', () => {
     fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+});
+
+// ── Portal-background token regression (T130, Group A) ─────────────────────
+//
+// Root cause: SelectContent renders via a bare Radix `Portal` (no `container`
+// prop), which mounts to `document.body` by default — a sibling subtree of
+// the React root the app's `.admin-root` div lives in, not a descendant of
+// it. Every color token in tokens.css is (pre-T133) scoped to `.admin-root` /
+// `.dark .admin-root`, so a portaled node never resolves `--popover` /
+// `--popover-foreground` and falls back to the browser's transparent/inherited
+// default for the unset custom property.
+//
+// Why this suite does not use `getComputedStyle` directly: this project's
+// pinned jsdom (25.0.1) implements no CSS custom-property (`var()`)
+// resolution at all. Verified directly against this exact jsdom version: a
+// rule `{ background-color: var(--x) }` computes via `getComputedStyle` to
+// the literal, unresolved string `"var(--x)"` regardless of whether `--x` is
+// declared anywhere in scope, and `getComputedStyle(descendant)
+// .getPropertyValue('--x')` never inherits a value set on an ancestor. A
+// `getComputedStyle` read can therefore never distinguish "the token
+// resolves" from "the token doesn't resolve" here — it would return the same
+// unresolved string either way. This suite instead performs the same
+// real-selector cascade a browser would, driven by the actual tokens.css
+// source text (read from disk so it can't silently drift from the shipped
+// fix), against the real DOM position a default Radix Portal renders into —
+// proving whether the *shipped* CSS would resolve the token for that node,
+// not merely that some rule matched. This mirrors a11y.test.tsx's existing
+// H6 contrast workaround for the same class of jsdom gap.
+describe('Select primitive — portal background-token regression (T130, Group A)', () => {
+  const TOKENS_CSS_PATH = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '..',
+    'theme',
+    'tokens.css',
+  );
+  const tokensCss = readFileSync(TOKENS_CSS_PATH, 'utf8');
+
+  /** Extracts a single `--name: value;` declaration from a CSS block body. */
+  function extractDeclaration(block: string | undefined, name: string): string | undefined {
+    if (!block) return undefined;
+    const match = block.match(new RegExp(`--${name}:\\s*([^;]+);`));
+    return match ? match[1].trim() : undefined;
+  }
+
+  /**
+   * Resolves what a real browser's cascade would compute for `--name` on an
+   * element portaled to `document.body` (outside `.admin-root`), given the
+   * declarations that actually exist in tokens.css today. `:root` always
+   * matches `document.documentElement`, an ancestor of every node including
+   * portaled ones; a bare `.dark` block matches it once `.dark` is toggled on
+   * (T036b). `.admin-root` / `.dark .admin-root` never match a portaled node,
+   * since that div is not an ancestor of the portal target. Later-declared,
+   * equal-specificity selectors win, so `.dark` overrides `:root` when both
+   * apply — mirroring the existing light/dark block order.
+   */
+  function resolvePortaledToken(name: string, opts: { dark: boolean }): string | undefined {
+    // Bare `:root { ... }` block — the negative lookbehind excludes any
+    // future `.dark :root { ... }` variant from colliding with this scan.
+    const rootBlock = tokensCss.match(/(?<!\.dark ):root\s*\{([^}]+)\}/);
+    // Bare `.dark { ... }` block — requires `{` immediately (mod whitespace)
+    // after `.dark`, so it cannot match the pre-existing, more specific
+    // `.dark .admin-root { ... }` descendant-selector block.
+    const darkBlock = tokensCss.match(/\.dark\s*\{([^}]+)\}/);
+
+    const rootValue = extractDeclaration(rootBlock?.[1], name);
+    const darkValue = opts.dark ? extractDeclaration(darkBlock?.[1], name) : undefined;
+    return darkValue ?? rootValue;
+  }
+
+  beforeAll(() => {
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  afterEach(() => {
+    document.documentElement.classList.remove('dark');
+  });
+
+  it('portals SelectContent outside .admin-root, and the dark popover background/foreground tokens resolve for it', () => {
+    document.documentElement.classList.add('dark');
+    render(
+      <div className="admin-root">
+        <Select defaultValue="apple">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="apple">Apple</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>,
+    );
+    openViaKeyboard();
+    const content = document.querySelector('[data-slot="select-content"]');
+    expect(content).toBeInTheDocument();
+
+    // Structural precondition: the portaled content is a real descendant of
+    // document.body but NOT of the .admin-root wrapper — the actual root
+    // cause under test, verified via real DOM structure (no CSS involved).
+    expect((content as HTMLElement).closest('.admin-root')).toBeNull();
+    expect(document.body.contains(content)).toBe(true);
+
+    // Background must resolve to a real declared value, not fall back to the
+    // browser's transparent default for an unresolved var() (Done when).
+    expect(resolvePortaledToken('popover', { dark: true })).toBeDefined();
+
+    // Foreground must resolve to the dark-mode popover-foreground value, not
+    // the light-mode one, while .dark is set on document.documentElement.
+    const adminLightBlock = tokensCss.match(/(?<!\.dark )\.admin-root\s*\{([^}]+)\}/);
+    const adminDarkBlock = tokensCss.match(/\.dark\s+\.admin-root\s*\{([^}]+)\}/);
+    const lightPopoverForeground = extractDeclaration(adminLightBlock?.[1], 'popover-foreground');
+    const darkPopoverForeground = extractDeclaration(adminDarkBlock?.[1], 'popover-foreground');
+    expect(darkPopoverForeground).toBeDefined();
+
+    const resolvedForeground = resolvePortaledToken('popover-foreground', { dark: true });
+    expect(resolvedForeground).toBe(darkPopoverForeground);
+    expect(resolvedForeground).not.toBe(lightPopoverForeground);
   });
 });

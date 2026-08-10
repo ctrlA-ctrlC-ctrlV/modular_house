@@ -101,7 +101,21 @@ function CookiePolicy(): React.ReactElement {
                 {COOKIE_REGISTER.map((entry) => (
                   <tr key={entry.name}>
                     <td>
-                      <code>{entry.name}</code>
+                      {/*
+                        Bootstrap's own text-dark utility (!important) is
+                        required here, not a Tailwind gray utility: Tailwind
+                        v4 wraps its utilities in a CSS @layer, and unlayered
+                        rules (Bootstrap's own `code { color: ... }`) always
+                        win over layered ones regardless of selector
+                        specificity, so a plain Tailwind class is silently a
+                        no-op against Bootstrap's default <code> color
+                        (#d63384). That default measures 4.46:1 against this
+                        table's background — just under WCAG AA's 4.5:1 floor
+                        (N4/DoD-6). Caught via a live axe-core scan (T127);
+                        jsdom-based test suites cannot compute rendered CSS
+                        color and never exercised this rule.
+                      */}
+                      <code className="text-dark">{entry.name}</code>
                     </td>
                     <td>{entry.purpose}</td>
                     {/* Raw category value (e.g. "strictly-necessary") — the

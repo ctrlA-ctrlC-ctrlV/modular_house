@@ -1821,7 +1821,8 @@ single root cause behind **two** separately-reported findings:
   inline `style={{ color: 'var(--foreground)' }}` override, explicitly leaving Settings.tsx (and,
   as this review found, Login.tsx and Sidebar.tsx) unfixed (see Analytics.tsx:206).
 
-- [ ] T138 Write failing test: style.css brand colors must not apply inside `.admin-root`
+- [x] T138 Write failing test: style.css brand colors must not apply inside `.admin-root`
+> note: extended a11y.test.tsx; injects real style.css into jsdom, checks h1/p/a computed color; tests: 1 red, 27 pre-existing green; deviations: none
       Files: apps/web/src/admin/theme/admin.css (test file, new: admin.css.test.ts, following the
       existing tokens.css-text-parsing pattern used by a11y.test.tsx — or extend
       apps/web/src/admin/shell/a11y.test.tsx directly if a dedicated CSS-source test file does not

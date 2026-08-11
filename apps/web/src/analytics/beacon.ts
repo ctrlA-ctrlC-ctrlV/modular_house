@@ -85,9 +85,13 @@ const SESSION_MAX_AGE_SECONDS = 30 * 60;
  * variable the rest of the app uses (see `lib/apiClient.ts`); a trailing slash
  * is stripped so the path joins cleanly. Same-origin in production, so the
  * first-party `mh_vid`/`mh_sid` cookies flow with the request automatically
- * (research R3).
+ * (research R3). Exported so the transport-selection unit tests can assert
+ * dispatch calls against the value this module actually resolves, rather than
+ * a literal copy that silently depends on whether the developer's untracked
+ * `.env` sets `VITE_API_BASE_URL` (present locally, absent in CI's web test
+ * job — a duplicated literal would pass on one and fail on the other).
  */
-const INGEST_URL = `${(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')}/api/analytics/events`;
+export const INGEST_URL = `${(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')}/api/analytics/events`;
 
 // ---------------------------------------------------------------------------
 // Cookie read/write helpers.

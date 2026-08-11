@@ -670,4 +670,103 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       expect(getComputedStyle(a).color).not.toBe('var(--brand-link)');
     });
   });
+
+  // ── Bare-tag admin token defaults (T140, Group D) ───────────────────────
+  // T138/T139 only prove style.css's brand-color rules no longer match
+  // inside `.admin-root` — removing a competing rule is not the same as
+  // supplying a correct one. This suite proves the other half: once
+  // style.css's rules are excluded, a bare `<h1>`/`<p>`/`<a>` inside
+  // `.admin-root` must still resolve a real, theme-aware admin color
+  // (`--foreground` for headings/paragraphs, `--primary` for links) rather
+  // than silently falling through to no color rule at all (the browser's
+  // unstyled default). That default is supplied by admin.css's own
+  // hand-written base layer (T141) — injected here alongside style.css, in
+  // the same real-cascade style as the T138 suite above, so this test
+  // exercises both files' actual shipped rule text together.
+  //
+  // Cascade-layer unwrapping: this project's pinned jsdom (25.0.1) cannot
+  // parse the CSS Cascade Layers `@layer` at-rule at all — verified
+  // directly, isolated from `@import`/`@custom-variant` (both parse fine
+  // alone): a `<style>` element containing an `@layer` block causes jsdom
+  // to silently discard the ENTIRE stylesheet, not merely the unparseable
+  // block, so none of its rules would ever surface via `getComputedStyle`
+  // regardless of validity. admin.css's hand-written rules all live inside
+  // one `@layer base { ... }` block, so `stripLayerWrapper` below extracts
+  // and injects only its inner rule text, unwrapped. This is equivalent for
+  // cascade-order purposes here: a real browser gives any unlayered rule
+  // higher priority than a layered one regardless of layer order, so
+  // unwrapping can only ever make a rule apply in a case where the
+  // original, correctly-layered version would also have applied — and no
+  // other unlayered rule from admin.css itself competes with it in the
+  // same injected stylesheet.
+
+  /** Extracts the inner rule text of a `@layer <layerName> { ... }` block, unwrapped (see comment above). */
+  function stripLayerWrapper(css: string, layerName: string): string {
+    const marker = `@layer ${layerName}`;
+    const markerIndex = css.indexOf(marker);
+    if (markerIndex === -1) {
+      throw new Error(`Could not locate "@layer ${layerName}" in the provided CSS source`);
+    }
+    const openBraceIndex = css.indexOf('{', markerIndex);
+    if (openBraceIndex === -1) {
+      throw new Error(`Malformed "@layer ${layerName}" block: no opening brace found`);
+    }
+    let depth = 1;
+    let i = openBraceIndex + 1;
+    for (; i < css.length && depth > 0; i += 1) {
+      if (css[i] === '{') depth += 1;
+      else if (css[i] === '}') depth -= 1;
+    }
+    if (depth !== 0) {
+      throw new Error(`Malformed "@layer ${layerName}" block: unbalanced braces`);
+    }
+    return css.slice(openBraceIndex + 1, i - 1);
+  }
+
+  describe('Bare-tag admin token defaults (T140, Group D)', () => {
+    let injectedStyleCss: HTMLStyleElement | null = null;
+    let injectedAdminCss: HTMLStyleElement | null = null;
+    let container: HTMLDivElement | null = null;
+
+    beforeEach(() => {
+      injectedStyleCss = document.createElement('style');
+      injectedStyleCss.textContent = styleCss;
+      document.head.appendChild(injectedStyleCss);
+
+      injectedAdminCss = document.createElement('style');
+      injectedAdminCss.textContent = stripLayerWrapper(adminCss, 'base');
+      document.head.appendChild(injectedAdminCss);
+    });
+
+    afterEach(() => {
+      injectedStyleCss?.remove();
+      injectedAdminCss?.remove();
+      container?.remove();
+      injectedStyleCss = null;
+      injectedAdminCss = null;
+      container = null;
+    });
+
+    it('resolves --foreground for bare h1/p and --primary for bare a inside .admin-root', () => {
+      container = document.createElement('div');
+      container.className = 'admin-root';
+      container.innerHTML =
+        '<h1 data-testid="bare-h1">Heading</h1>' +
+        '<p data-testid="bare-p">Paragraph</p>' +
+        '<a data-testid="bare-a" href="#">Link</a>';
+      document.body.appendChild(container);
+
+      const h1 = container.querySelector('[data-testid="bare-h1"]') as HTMLElement;
+      const p = container.querySelector('[data-testid="bare-p"]') as HTMLElement;
+      const a = container.querySelector('[data-testid="bare-a"]') as HTMLElement;
+
+      // Fails today: admin.css has no base-layer default for bare h1/p/a
+      // yet, so none of these rules match and the computed value falls
+      // back to jsdom's UA default instead of the literal admin token
+      // string below (T141 adds the missing rule).
+      expect(getComputedStyle(h1).color).toBe('var(--foreground)');
+      expect(getComputedStyle(p).color).toBe('var(--foreground)');
+      expect(getComputedStyle(a).color).toBe('var(--primary)');
+    });
+  });
 });

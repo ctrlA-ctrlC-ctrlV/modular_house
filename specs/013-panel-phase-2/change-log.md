@@ -1,6 +1,62 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T17:15:00.000+01:00] — fix(web): T139 correction — zero-specificity :where() exclusion, fixes invisible CTA text on production-bound public pages (style.css)
+
+### Changed
+
+- `apps/web/src/styles/style.css` — T139's `h1..h6`/`p`/`a`/`a:hover` selectors changed from
+  `:not(.admin-root, .admin-root *)` to `:not(:where(.admin-root, .admin-root *))`. No rule bodies
+  changed, no other selector changed — only the exclusion wrapper.
+
+### Notes
+
+- **User-reported regression, root-caused via direct production comparison**: the user reported
+  public (non-admin) pages "loading weirdly" after this branch's Group D work and pointed at
+  `modularhouse.ie` (the deployed `main` branch) as the reference for correct rendering. Loaded both
+  side by side (`localhost:3000` vs `modularhouse.ie`) in real Chrome tabs and diffed computed
+  styles directly — homepage hero's "Get a Free Quote" CTA button rendered with `color:
+  rgb(181, 83, 41)` (`--brand-link`, orange) on a `background-color` of the exact same orange, i.e.
+  invisible text. Production showed white text on the identical button. The "Explore ↓" link in the
+  hero footer showed the same symptom (orange instead of white).
+- **Root cause**: `:not()`'s specificity equals that of its most specific argument. T139's original
+  fix, `:not(.admin-root, .admin-root *)`, has argument specificity of one class (from
+  `.admin-root`) — so `h1:not(...)`/`p:not(...)`/`a:not(...)` jumped from one-type-selector
+  specificity (0,0,1, identical to the original bare `h1`/`p`/`a` rules) to one-class-plus-one-type
+  (0,1,1). `packages/ui`'s `HeroWithSideText.css` styles `.hero-button`/`.hero-explore-link` with a
+  plain single-class selector (0,1,0) — previously this correctly beat the old bare `a { color:
+  var(--brand-link) }` (0,0,1: class beats type). After T139's fix, the *scoped* selector's
+  specificity (0,1,1) now beat the button's own (0,1,0), inverting the outcome and making the
+  button/link's intended white text lose to the brand-link orange for any public-site element using
+  a single class to override `a`/`h1..h6`/`p` color — a class of collision T139's own review (and
+  this agent's own verification) checked only within `style.css` itself, never against
+  `packages/ui`'s ~40 component stylesheets, where the actual collision lived.
+- **Fix**: wrapped the exclusion in `:where(...)`, which the CSS spec defines as always contributing
+  zero specificity regardless of its argument. `h1:not(:where(.admin-root, .admin-root *))`
+  therefore has exactly the same specificity as bare `h1` (0,0,1) — identical to the selector's
+  specificity before T139 ever existed. This is specificity-neutral by construction, so it closes
+  the entire class of regression (not just the two elements found) without needing to audit every
+  `packages/ui` component individually.
+- **Verification**: `pnpm --filter @modular-house/web exec vitest run` — 493/493 passing (one
+  unrelated `persistence.test.tsx` flake observed on a single run, reproduced clean in isolation and
+  on a full-suite rerun — pre-existing test-isolation flakiness, not caused by this change). Live
+  browser re-check via Chrome automation after the fix: `.hero-button` now resolves `color:
+  rgb(254, 254, 254)` (matches production exactly), `.hero-explore-link` likewise. Full visual
+  diff of the homepage hero and the "Product Range"/"Included as Standard" section against
+  `modularhouse.ie` shows identical layout, text, and colors (only image lazy-load progress differed,
+  an expected caching artifact, not a bug). No stylelint config exists in this repo, so there is
+  nothing further to lint; no TypeScript file touched.
+- **Why this wasn't caught by any automated test in this branch's whole Group D effort**: every
+  jsdom-based cascade test this branch added (T138/T140/T143/T144/T145) only ever injects `h1`/`p`/
+  `a`/`admin.css`'s own rules in isolation, with no third-party single-class competitor present in
+  the same injected stylesheet — so a specificity regression relative to `packages/ui` components
+  was structurally invisible to all of them. This was only found by a human noticing a real visual
+  difference and asking for it to be traced against the production deployment; no test added by
+  this correction, since the fix is specificity-neutral by construction (verifiable by inspection —
+  `:where()`'s zero-specificity contribution is a fixed CSS spec guarantee, not a project-specific
+  behavior needing its own regression test) and the existing T138/T139 suite already re-confirms
+  the exclusion still works correctly post-fix.
+
 ## [2026-08-11T16:50:00.000+01:00] — test(admin): T145 contrast-regression assertion for Sidebar Analytics nav-link (Sidebar.test.tsx)
 
 ### Added

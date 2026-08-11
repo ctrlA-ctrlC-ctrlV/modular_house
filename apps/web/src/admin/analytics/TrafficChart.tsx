@@ -113,6 +113,51 @@ function formatBucketLabel(bucketStart: string, granularity: BucketGranularity):
 }
 
 // ---------------------------------------------------------------------------
+// X-axis tick-density control — day buckets only (T137, Group C / FR-029)
+// ---------------------------------------------------------------------------
+
+/**
+ * Maximum number of x-axis tick labels to render for a day-bucket series.
+ * Kept within the task's ~12-15 legibility allowance. Hour-bucket series are
+ * already few enough (at most 48 buckets for the 2-day cap, Q4) and are left
+ * on the chart's original one-tick-per-bucket behaviour untouched — this cap
+ * applies to day buckets only.
+ */
+const MAX_DAY_TICKS = 12;
+
+/**
+ * Computes an evenly-spaced subset of a day-bucket series' `bucketStart`
+ * values to pass as the XAxis's explicit `ticks` prop, capping the number of
+ * rendered labels regardless of total bucket count (e.g. ~91 buckets for the
+ * default 3-month range). Mirrors the reference template's own tick-pinning
+ * technique (`traffic-quality.tsx`'s `weeklyTicks`), adapted for this chart's
+ * category axis: the template's `dataKey` is a synthetic numeric index it can
+ * invent arbitrary tick positions for, whereas this chart's `dataKey` is the
+ * raw `bucketStart` ISO string, so the explicit `ticks` array must reference
+ * values that actually exist in the series. Returns every bucket unchanged
+ * when the series already fits within the cap, so short day-bucket fixtures
+ * (and short real ranges) are unaffected.
+ */
+function computeDayTickSubset(timeseries: readonly TimeseriesBucket[]): string[] {
+  if (timeseries.length <= MAX_DAY_TICKS) {
+    return timeseries.map((bucket) => bucket.bucketStart);
+  }
+
+  // Evenly-spaced index positions across the full series, including both
+  // endpoints, so the axis always shows the range's first and last bucket.
+  const lastIndex = timeseries.length - 1;
+  const step = lastIndex / (MAX_DAY_TICKS - 1);
+  const indices = new Set<number>();
+  for (let i = 0; i < MAX_DAY_TICKS; i++) {
+    indices.add(Math.round(i * step));
+  }
+
+  return Array.from(indices)
+    .sort((a, b) => a - b)
+    .map((index) => timeseries[index].bucketStart);
+}
+
+// ---------------------------------------------------------------------------
 // TrafficChart component
 // ---------------------------------------------------------------------------
 
@@ -155,6 +200,13 @@ export function TrafficChart({ range, timeseries }: TrafficChartProps) {
   // each tick value (the bucketStart ISO string) into a human-readable label.
   const tickFormatter = (value: string) => formatBucketLabel(value, range.bucket);
 
+  // Explicit tick subset — day buckets only (T137, Group C). Hour-bucket
+  // series pass `undefined`, which leaves XAxis's default category-axis tick
+  // derivation (every data point, per `interval={0}` below) untouched — the
+  // 2-day hour view is already few enough buckets and must stay unchanged.
+  const dayTicks =
+    range.bucket === 'day' ? computeDayTickSubset(timeseries) : undefined;
+
   // Tooltip label formatter — shows the bucket start formatted by granularity,
   // so the tooltip header reads "15 Apr" or "12:00" instead of a raw ISO string.
   // The recharts labelFormatter signature passes ReactNode (the axis value may
@@ -182,6 +234,7 @@ export function TrafficChart({ range, timeseries }: TrafficChartProps) {
               tickLine={false}
               tickMargin={8}
               interval={0}
+              ticks={dayTicks}
               tickFormatter={tickFormatter}
             />
             <YAxis axisLine={false} tickLine={false} tickMargin={10} width={34} />

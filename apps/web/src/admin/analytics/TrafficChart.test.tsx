@@ -172,3 +172,48 @@ describe('TrafficChart widget — static render contract (T022)', () => {
     expect(dashed?.className).toContain('text-muted-foreground');
   });
 });
+
+// ── X-axis tick-density regression (T136, Group C) ──────────────────────────
+//
+// Root cause: the XAxis is configured with `interval={0}` (T023), which tells
+// recharts to render a tick for every data point, no skipping. For the
+// default 3-month range (day buckets, ~91 entries for a 15 Apr - 15 Jul
+// span), every bucket gets its own tick label — the labels overlap into an
+// unreadable smear at typical card widths. `overviewPopulated` above ships
+// only 7 representative day buckets for its own formatting assertions'
+// brevity (its `range` metadata still declares the full 3-month span), so it
+// never exercises this density bug. This suite builds its own full-density
+// fixture instead, scoped to this test file only (Files: this file) so
+// `fixtures.ts` and its other consumers stay untouched.
+describe('TrafficChart widget — x-axis tick density (T136, Group C)', () => {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const RANGE_START = Date.parse('2026-04-15T00:00:00.000Z');
+  const BUCKET_COUNT = 91;
+
+  // 91 consecutive UTC day buckets, 15 Apr 2026 through 14 Jul 2026 — the same
+  // span `overviewPopulated.range` declares (a 3-month default range), built
+  // here at full density rather than the abbreviated 7-entry sample. The
+  // page-views/sessions values are a simple deterministic wave, not real
+  // measurements — only the bucket COUNT matters for this regression.
+  const denseDayTimeseries = Array.from({ length: BUCKET_COUNT }, (_, i) => ({
+    bucketStart: new Date(RANGE_START + i * DAY_MS).toISOString(),
+    pageViews: 40 + (i % 20),
+    sessions: 18 + (i % 10),
+  }));
+  const denseDayRange: typeof overviewPopulated.range = {
+    from: '2026-04-15',
+    to: '2026-07-15',
+    bucket: 'day',
+  };
+
+  it('renders a bounded number of x-axis tick labels for a ~90-bucket day series, not one per bucket', () => {
+    const { container } = renderChart(denseDayRange, denseDayTimeseries);
+
+    const ticks = xAxisTickTexts(container);
+    // A legible axis shows a small, fixed subset of labels regardless of
+    // bucket count — bounded well within the task's ~12-15 allowance, and far
+    // below "one per bucket" (91).
+    expect(ticks.length).toBeLessThanOrEqual(15);
+    expect(ticks.length).toBeLessThan(denseDayTimeseries.length);
+  });
+});

@@ -3,7 +3,7 @@
 // UI-preference, dark-mode, account), an "Analytics" sidebar nav entry
 // (T080, supersedes the Phase 1 H7 "Coming Soon" content-area assertion),
 // bottom user section, and NO GitHub button.  Pins US2-1..4,7 + H7/FR-017.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -309,6 +309,120 @@ describe('Admin shell (AppShell)', () => {
         await screen.findByRole('heading', { level: 1, name: 'Analytics' }),
       ).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /toggle sidebar/i })).toBeInTheDocument();
+    });
+  });
+
+  // ── Scroll-container reachability (T134, Group B) ───────────────────
+  //
+  // Root cause: the content region (`<main className="flex flex-1 flex-col">`
+  // and every ancestor up to `.admin-root`) carries no `overflow-y` rule and
+  // no bounded height, while `index.css`'s global public-site reset pins
+  // `html, body { overflow: hidden }` (research R8/N1, inherited unmodified
+  // by the admin route — the admin shell mounts inside the same document).
+  // Page content taller than the viewport is therefore clipped by the
+  // hidden body overflow with no ancestor offering a scrollbar: unreachable
+  // by mouse wheel, keyboard, or touch.
+  //
+  // jsdom performs no layout, so `clientHeight`/`scrollHeight` are always 0
+  // on every element by default — this project's Vite test config aliases
+  // every stylesheet (including the compiled Tailwind utilities) to an
+  // empty stub for unit tests (`vitest.config.ts`'s `@modular-house/ui/
+  // style.css` alias), the same class of jsdom gap the T130-T132 suites
+  // document for CSS custom-property resolution. A literal `scrollHeight >
+  // clientHeight` read can therefore never distinguish "this box clips its
+  // overflow" from "this box does not exist" here. This suite instead
+  // models the two things a real `overflow-y-auto` + bounded-height scroll
+  // container needs, keyed off the rendered `className` string (the actual
+  // utility classes React put in the DOM, not a live stylesheet): any
+  // ancestor carrying an `overflow-y-auto`/`overflow-y-scroll`/
+  // `overflow-auto`/`overflow-scroll` utility class is treated as
+  // height-bounded (`clientHeight` pinned to a fixed constant); every other
+  // ancestor is treated as unbounded and grows to fit its content
+  // (`clientHeight === scrollHeight`, i.e. no overflow — matching real
+  // `overflow: visible` box behaviour). `scrollHeight` is pinned to a value
+  // larger than the bounded constant for every ancestor of a deliberately
+  // oversized marker element, modelling content genuinely taller than the
+  // container. The model does not assume which ancestor the eventual fix
+  // touches — it holds for `<main>`, its flex wrapper, or `.admin-root`
+  // alike, whichever one T135 gives the overflow rule to.
+  describe('Scroll-container reachability (T134, Group B)', () => {
+    /** Fixed viewport-like height a bounded (overflow-y-auto) box is pinned to. */
+    const BOUNDED_CLIENT_HEIGHT = 400;
+    /** Content extent for the oversized marker — deliberately taller than the bound above. */
+    const OVERSIZED_CONTENT_HEIGHT = 5000;
+    /** Matches Tailwind's overflow-y (and shorthand overflow) auto/scroll utilities. */
+    const OVERFLOW_Y_CLASS = /(?:^|\s)overflow(?:-y)?-(?:auto|scroll)(?:\s|$)/;
+
+    let originalClientHeight: PropertyDescriptor | undefined;
+    let originalScrollHeight: PropertyDescriptor | undefined;
+    // Set by the test below once the oversized marker is rendered; read by
+    // the stubbed getters installed in beforeAll so every ancestor query
+    // resolves against the same element without threading it through props.
+    let tallContentEl: HTMLElement | null = null;
+
+    beforeAll(() => {
+      originalClientHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientHeight');
+      originalScrollHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollHeight');
+
+      Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+        configurable: true,
+        get(this: HTMLElement) {
+          return tallContentEl && this.contains(tallContentEl) ? OVERSIZED_CONTENT_HEIGHT : 0;
+        },
+      });
+
+      Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
+        configurable: true,
+        get(this: HTMLElement) {
+          if (OVERFLOW_Y_CLASS.test(this.className)) {
+            return BOUNDED_CLIENT_HEIGHT;
+          }
+          // Unbounded box: grows to fit its content, so it never overflows.
+          return tallContentEl && this.contains(tallContentEl) ? OVERSIZED_CONTENT_HEIGHT : 0;
+        },
+      });
+    });
+
+    afterAll(() => {
+      if (originalClientHeight) {
+        Object.defineProperty(HTMLElement.prototype, 'clientHeight', originalClientHeight);
+      }
+      if (originalScrollHeight) {
+        Object.defineProperty(HTMLElement.prototype, 'scrollHeight', originalScrollHeight);
+      }
+    });
+
+    afterEach(() => {
+      tallContentEl = null;
+    });
+
+    it('has a real overflow-y ancestor between the content and <body> whose bounded box clips oversized content', () => {
+      renderShell({
+        children: (
+          <div data-testid="tall-content" style={{ height: `${OVERSIZED_CONTENT_HEIGHT}px` }}>
+            tall page content
+          </div>
+        ),
+      });
+
+      tallContentEl = screen.getByTestId('tall-content');
+
+      // Walk every ancestor from the tall content up to (excluding) <body>,
+      // looking for one that is BOTH overflow-y:auto/scroll AND genuinely
+      // clips its content (scrollHeight > clientHeight) — a real scroll
+      // container, not merely an element the content happens to sit inside.
+      let scrollContainer: HTMLElement | null = null;
+      let ancestor: HTMLElement | null = tallContentEl.parentElement;
+      while (ancestor && ancestor !== document.body) {
+        const isOverflowY = OVERFLOW_Y_CLASS.test(ancestor.className);
+        if (isOverflowY && ancestor.scrollHeight > ancestor.clientHeight) {
+          scrollContainer = ancestor;
+          break;
+        }
+        ancestor = ancestor.parentElement;
+      }
+
+      expect(scrollContainer).not.toBeNull();
     });
   });
 });

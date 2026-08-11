@@ -1698,6 +1698,7 @@ consumers without touching any of the three component files.
 
 - [x] T130 Write failing portal-background test for the select primitive
 > note: real-cascade resolver (jsdom has no var() support) proves --popover unresolved outside .admin-root; tests: 1 red, 9 pre-existing green; deviations: none
+> reviewed: PASS-WITH-NITS — "deviations: none" contradicts own change-log
       Files: apps/web/src/admin/ui/select.test.tsx
       Do: Render `SelectContent` open, read its computed `background-color` and `color` from the
       DOM (not from `getComputedStyle` inside a `.admin-root`-wrapped test harness — the assertion
@@ -1709,6 +1710,7 @@ consumers without touching any of the three component files.
 
 - [x] T131 Write failing portal-background test for the dialog primitive
 > note: same real-cascade resolver shape as T130 against DialogContent; tests: 1 red, 13 pre-existing green; deviations: none
+> reviewed: PASS-WITH-NITS — same "deviations: none" contradiction
       Files: apps/web/src/admin/ui/dialog.test.tsx
       Do: Same assertion shape as T130, against `DialogContent` rendered open.
       Done when: test fails today for the same reason.
@@ -1716,6 +1718,7 @@ consumers without touching any of the three component files.
 
 - [x] T132 Write failing portal-background test for the dropdown-menu primitive
 > note: new file; same resolver shape, opened via controlled `open` prop (documented click limitation); tests: 1 red; deviations: none
+> reviewed: PASS-WITH-NITS — same "deviations: none" contradiction
       Files: apps/web/src/admin/ui/dropdown-menu.test.tsx (new)
       Do: Same assertion shape as T130, against `DropdownMenuContent` rendered open. This is the
       first dedicated test file for this Phase 1 primitive under Phase 2's portal regression —
@@ -1726,6 +1729,7 @@ consumers without touching any of the three component files.
 
 - [x] T133 Broaden the admin color-token scope so portaled content resolves it
 > note: additive :root/.dark blocks mirror .admin-root/.dark .admin-root; T130-T132 green; tests: 3 passing; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/theme/tokens.css
       Do: Add the same token declarations currently scoped to `.admin-root` / `.dark .admin-root`
       to `:root` / `.dark` as well (additive — do not remove or rewrite the existing

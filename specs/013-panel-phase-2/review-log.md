@@ -6,6 +6,49 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-10 — T130-T133 (baseline: e7423e6)
+
+T130 — PASS-WITH-NITS — note wrongly claims zero deviations
+T131 — PASS-WITH-NITS — same deviation-note mismatch
+T132 — PASS-WITH-NITS — new file; same deviation-note mismatch
+T133 — PASS
+
+Detail: diff vs. baseline `e7423e6` touches 6 files (4 source: `tokens.css`,
+`select.test.tsx`, `dialog.test.tsx`, `dropdown-menu.test.tsx` new; 2 docs: `change-log.md`,
+`tasks.md`). The 4 source files are exactly the change-log's own file list — no concealed source
+change. TDD independently reproduced by hand: temporarily reverted `tokens.css` to its
+pre-`e7423e6`… state and reran the three new suites — all three failed for the right reason
+(unresolved token), all 51 pre-existing suites stayed green; restored and reran clean (54/54
+files, 484/484 tests). The core technical premise — jsdom 25.0.1's `getComputedStyle` cannot
+resolve `var()` — was independently confirmed with a standalone repro, not taken on faith. The new
+bare `:root`/`.dark` blocks are byte-identical (script-diffed) to `.admin-root`/`.dark .admin-root`,
+confirming the additive claim. Checked the "no-op for the public site" claim directly: grepped
+every public-facing CSS file and every non-admin `.tsx`/`.ts` file for `var(--<token-name>)` reads
+of all 27 new token names — zero hits outside `src/admin/`, and `admin.css`/`tokens.css` is
+imported once, globally, from `App.tsx`, so this was a real risk worth checking, not a formality.
+One recurring nit: all three `> note:` lines claim "deviations: none", but both the change-log and
+each test file's own header comment say the opposite — a documented, justified deviation from
+T130's literal "read computed background-color" wording (necessary given the jsdom gap above).
+T133's own Done-when has an unmet clause (human confirms in a real browser; public-site spot-check)
+that the change-log's own "Outstanding" paragraph discloses honestly — not silently dropped, but
+not yet satisfied either. Verification: `pnpm --filter @modular-house/web test:run` 54/54 files
+484/484 tests; `pnpm --filter @modular-house/api test:run` 60/60 files 515/515 tests; `pnpm lint`
+and `pnpm typecheck` clean (4/3 workspaces); `prisma validate`/`migrate status` clean (this diff
+touches no schema — command 6's shadow-database diff skipped as not applicable); `docs:validate`
+clean; `test:coverage` unchanged at 69.53% lines, `analyticsIngest.ts`/`middleware/auth.ts` still
+100% branch.
+
+**Out-of-scope finding, flagged not reviewed**: the same diff window's `tasks.md` change (commit
+`8ed6a4a`, 2026-08-10T15:50) adds ~250 undisclosed lines defining T134–T156 ("Post-hoc review
+follow-ups", Groups B–I) — none of it named in any change-log entry at any timestamp before or
+after. Two concrete problems found on inspection despite these tasks being out of REVIEW SCOPE:
+(1) T150/T151 propose editing `packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx`
+— `packages/ui` is `@modular-house/ui`, explicitly guardrail-protected by plan §5.2 ("No changes
+to `@modular-house/ui`") and this review's own Authority table; the task text acknowledges the
+guardrail and proposes to violate it anyway ("keep this change minimal"). (2) T134/T135 cite
+"US3-13", which does not exist anywhere in `spec.md` (only US3-15 does). Not scored against
+T130-T133 individually; see chat report for the Overall-verdict impact.
+
 ## 2026-08-10 — T124-T127 (baseline: 2193570)
 
 T124 — PASS — schema diff exact; docs:validate clean

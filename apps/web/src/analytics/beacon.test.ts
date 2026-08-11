@@ -62,6 +62,7 @@ import {
   AD_CLICK_PARAMS,
   VISITOR_COOKIE_NAME,
   SESSION_COOKIE_NAME,
+  INGEST_URL,
 } from './beacon';
 
 // ---------------------------------------------------------------------------
@@ -437,7 +438,7 @@ describe('sendPageView — transport selection (M8, R1)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
 
     const [url, blob] = sendBeaconMock.mock.calls[0];
-    expect(url).toBe('http://localhost:8080/api/analytics/events');
+    expect(url).toBe(INGEST_URL);
     expect(blob.type).toBe('application/json');
     expect(await lastPayload()).toEqual({ path: '/garden-rooms' });
   });
@@ -452,7 +453,7 @@ describe('sendPageView — transport selection (M8, R1)', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('http://localhost:8080/api/analytics/events');
+    expect(url).toBe(INGEST_URL);
     expect(init?.method).toBe('POST');
     expect(init?.keepalive).toBe(true);
     expect(init?.body).toBe(JSON.stringify({ path: '/garden-rooms' }));

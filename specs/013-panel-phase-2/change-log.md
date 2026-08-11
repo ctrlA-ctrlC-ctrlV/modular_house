@@ -1,6 +1,63 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T14:10:00.000+01:00] — test(admin): T138 failing test — style.css brand colors leak into .admin-root (a11y.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/shell/a11y.test.tsx` — new `describe('Bare-tag brand-color scoping (T138,
+  Group D)', ...)` block (Group D root cause: `style.css:365-405`'s unlayered `h1..h6`/`p`/`a`/
+  `a:hover` element selectors carry no exclusion for the admin panel). Reads `style.css` from disk
+  (new `STYLE_CSS_PATH` constant + module-scope `styleCss` read, alongside the existing
+  `tokensCss`/`adminCss` reads) and injects its literal content into a `<style>` element appended
+  to `document.head` in `beforeEach`, removed in `afterEach` alongside the test's own rendered
+  container — Vitest's default `css: false` behaviour (`vitest.config.ts`) replaces CSS module
+  imports with an empty string during tests, so a normal `import` of `style.css` would exercise
+  nothing; injection is the only way to drive jsdom's real selector cascade against it. Renders a
+  bare `<h1>`/`<p>`/`<a>` (plain `document.createElement`, not React — nothing under test is a
+  component) inside a `div.admin-root` appended to `document.body`, and asserts
+  `getComputedStyle(...).color` is not the literal string `'var(--brand-title)'` /
+  `'var(--brand-slate)'` / `'var(--brand-link)'` for the three elements respectively.
+
+### Notes
+
+- **Technique verified empirically before writing the suite** (scratch probe, deleted before this
+  commit — not part of the diff): this project's pinned jsdom (`25.0.1`, confirmed via
+  `select.test.tsx`'s T130 suite header and `dialog.test.tsx`'s T131 suite header) never resolves
+  `var()` — `getComputedStyle` on a matching rule surfaces the literal unresolved string
+  (`"var(--brand-title)"`), and on a non-matching element falls back to jsdom's own UA-default
+  `color` value (`"canvastext"`), confirmed directly for both the current unscoped selectors and a
+  simulated `:not(.admin-root, .admin-root *)`-scoped variant (jsdom/nwsapi does support the CSS
+  Selectors Level 4 `:not()`-with-a-selector-list form). That match/no-match distinction is exactly
+  what a selector-scoping regression needs — unlike T130/T131's `--popover` case, this suite never
+  needs to resolve what colour a token maps to, only whether a rule matches at all, so
+  `getComputedStyle` is viable here where it deliberately was not for T130/T131 (see those files'
+  own header comments for why).
+- **Whole-file injection, not a hand-extracted excerpt**: also verified empirically that injecting
+  the entire real `style.css` (815 lines) into jsdom produces exactly the expected literal
+  `var(--brand-title|--brand-slate|--brand-link)` values for bare `h1`/`p`/`a` with no interference
+  from unrelated rules elsewhere in the file. Injecting the whole file (vs. a substring extracted
+  by line range or selector text) was chosen deliberately: T139's selector rewrite is unpinned
+  ("`:not(...)` exclusion (or equivalent)"), so any extraction anchored on the current selector
+  text would silently stop matching after T139 lands, while whole-file injection stays correct
+  automatically — the same suite must go from red today to green once T139 ships, unmodified (T139
+  and T140's own Done-when clauses depend on this).
+- **Files: line resolution**: the task's `Files:` line offered two options — a new dedicated
+  `admin.css.test.ts`, or extending `a11y.test.tsx` directly "if a dedicated CSS-source test file
+  does not already exist for admin.css." No such dedicated file exists yet (confirmed via
+  `apps/web/src/admin/theme/*` listing: only `ThemeProvider.test.tsx`), so `a11y.test.tsx` was
+  extended in place, consistent with the file's own T036a-T036f precedent of appending
+  task-specific `describe` blocks for CSS-source-text checks rather than fragmenting them across
+  files.
+- **Confirmed red for the right reason**: `pnpm --filter @modular-house/web exec vitest run
+  src/admin/shell/a11y.test.tsx` — 27 pre-existing tests pass unchanged, the new test fails with
+  `AssertionError: expected 'var(--brand-title)' not to be 'var(--brand-title)'` at the `h1`
+  assertion (first of the three) — the unscoped `h1, h2, h3, h4, h5, h6 { color: var(--brand-title)
+  }` rule matches the bare `<h1>` inside `.admin-root` today, exactly the defect T139 fixes.
+- Lint (`eslint src/admin/shell/a11y.test.tsx`) and typecheck (`tsc --noEmit -p apps/web`) both
+  exit clean on the touched file.
+- No other file touched; `git status --porcelain` shows only `a11y.test.tsx` modified.
+
 ## [2026-08-11T13:55:00.000+01:00] — docs(specs): T134/T135 review corrections (tasks.md)
 
 ### Changed

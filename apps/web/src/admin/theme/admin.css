@@ -9,11 +9,32 @@
  */
 
 /*
+ * Cascade-layer priority order (Group D / T141). The CSS Cascade Layers
+ * spec ranks layers by the order in which each name is FIRST introduced
+ * anywhere in the stylesheet — not by where a layer's rule bodies are later
+ * declared. Tailwind's own bundled `tailwindcss/index.css` (unused here,
+ * since preflight is deliberately excluded — see below) pre-declares this
+ * exact statement for that reason. Without it, this file's own hand-written
+ * base-layer rule block further down — the first place the "base" layer
+ * name is used, textually AFTER the `theme`/`utilities` imports — would
+ * silently become the HIGHEST-priority layer of the three, letting any base-layer
+ * rule (e.g. the `.admin-root h1/p/a` color defaults, T141) beat a
+ * same-element-type Tailwind utility class (e.g. `text-muted-foreground`)
+ * regardless of the utility's own specificity, inverting Tailwind's normal
+ * "utilities always win" guarantee for every page in the admin panel. This
+ * statement pins the intended order up front, matching Tailwind's own
+ * bundled convention. A bare `@layer <names>;` statement (no braces) is the
+ * one at-rule the CSS spec permits before `@import` rules.
+ */
+@layer theme, base, utilities;
+
+/*
  * Tailwind v4: design-token bridge (CSS vars) + utility classes; no
  * preflight; OKLCH tokens (T003). All `@import` rules must stay contiguous
  * at the top of the file (CSS spec: any other statement between imports
- * invalidates the ones that follow) — the `@custom-variant` registration
- * below therefore comes after every import, not between them.
+ * invalidates the ones that follow, with the sole exception of the bare
+ * `@layer` statement above) — the `@custom-variant` registration below
+ * therefore comes after every import, not between them.
  */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
@@ -75,6 +96,30 @@
   .admin-root h6 {
     font-size: inherit;
     font-weight: inherit;
+  }
+
+  /*
+   * Bare-tag color defaults (Group D — T139/T141). Once style.css's own
+   * unlayered `h1..h6`/`p`/`a` rules are excluded from `.admin-root` (T139),
+   * unclassed admin tags would otherwise fall through to whatever ambient
+   * value they inherit (e.g. the public site's own `body { color:
+   * var(--brand-ink) }`), not a theme-aware admin color. These rules supply
+   * the missing default directly, matching plan.md's admin token
+   * convention (`--foreground` for body copy, `--primary` for links) so
+   * pages never need a per-element inline-style workaround (see T142).
+   */
+  .admin-root h1,
+  .admin-root h2,
+  .admin-root h3,
+  .admin-root h4,
+  .admin-root h5,
+  .admin-root h6,
+  .admin-root p {
+    color: var(--foreground);
+  }
+
+  .admin-root a {
+    color: var(--primary);
   }
 
   /* Default focus ring: plan H4 — 3 px at ring/50 */

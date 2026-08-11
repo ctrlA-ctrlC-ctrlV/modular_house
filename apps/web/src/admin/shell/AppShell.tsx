@@ -94,14 +94,33 @@ function ShellLayout({
         {/* Sidebar — collapsible rail/expanded with user section. */}
         <SidebarShell user={user} />
 
-        {/* Main content area — top bar + page content. */}
-        <div className="flex flex-1 flex-col">
+        {/* Main content area — top bar + page content.
+            `h-svh` bounds this column to exactly the viewport height (the
+            cross-axis of `.admin-root`'s row layout, so it does not compete
+            with this element's own `flex-1`, which governs its width there).
+            Without an explicit bound here, the column grows to fit its
+            content's natural height instead of respecting the viewport,
+            which defeats `<main>`'s own scroll container below: the public
+            site's global `html, body { overflow: hidden }` reset
+            (`index.css`, R8/N1) then has nowhere to clip, and content past
+            the fold becomes unreachable by wheel, keyboard, or touch
+            (Group B, FR-022, US3-13). */}
+        <div className="flex h-svh flex-1 flex-col">
           <TopBar
             user={user}
             onSettingsClick={onSettingsClick}
             onLogoutClick={onLogoutClick}
           />
-          <main className="flex flex-1 flex-col">
+          {/* `overflow-y-auto` makes `<main>` the scroll container for all
+              admin page content, independent of the public-site reset above.
+              Per the CSS Flexbox automatic-minimum-size algorithm, a flex
+              item whose relevant-axis overflow is not `visible` has its
+              automatic minimum size floored at 0 rather than its content's
+              natural size — so this `flex-1` column item shrinks to the
+              exact remaining height inside the now-bounded wrapper above
+              (viewport height minus the 48px/`h-12` top bar) and scrolls its
+              own overflow, rather than forcing the wrapper to grow past it. */}
+          <main className="flex flex-1 flex-col overflow-y-auto">
             {children}
           </main>
         </div>

@@ -1,6 +1,45 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T13:55:00.000+01:00] — docs(specs): T134/T135 review corrections (tasks.md)
+
+### Changed
+
+- `specs/013-panel-phase-2/tasks.md` — two `> note: review-nit fix` lines added, each below its
+  existing `> reviewed:` line, per review-log.md's 2026-08-11 "T134-T137" entry:
+  - **T134 (PASS-WITH-NITS, nit 1 of 2)**: the task's own `> note:` claimed `deviations: none`,
+    but its `Done when:` clause literally asks for a real computed-style read ("ancestors...
+    compute `overflow-y: visible`"), while the suite actually infers "bounded" from the rendered
+    `className` string and stubs `clientHeight`/`scrollHeight` via `Object.defineProperty` —
+    necessary because jsdom has no live cascade for this project's aliased-to-empty-stub
+    stylesheets (`vitest.config.ts`'s `@modular-house/ui/style.css` alias), the same class of gap
+    T130-T132 hit. This deviation was already disclosed in full in the T134 change-log entry
+    (2026-08-11T10:35) and the test file's own header comment — a `tasks.md`-only completeness
+    gap, the exact same shape of inaccuracy the 2026-08-10 review flagged for T130-T132 and this
+    branch's own 09:30 commit had just finished correcting an hour before T134 was authored. The
+    new note names the deviating file and reason instead of "none".
+  - **T134/T135 (PASS-WITH-NITS, shared nit)**: both tasks cite `Refs: FR-022, US3-13`. The
+    review confirmed `US3-13` (Acceptance Scenario 13 of User Story 3, spec.md line 103) genuinely
+    exists — correcting the 2026-08-10 review's blanket claim it "does not exist anywhere in
+    spec.md" — but its actual text is about small-viewport stacking and *horizontal*
+    non-scrolling, not the *vertical* scroll-reachability-at-a-typical-laptop-viewport defect
+    T134/T135 actually fix. Re-checked this session against every Acceptance Scenario in User
+    Story 3 (spec.md lines 89-105): none of the 15 scenarios describes "content taller than the
+    viewport must be reachable by scroll" — there is no closer citation to substitute. The review
+    itself frames a corrected citation as "a future docs pass" item (low severity, does not affect
+    the fix's correctness), so the `Refs:` line is left as-authored rather than rewritten
+    speculatively; both new notes instead disclose the mismatch explicitly, so it is recorded
+    against the task rather than left implicit.
+
+### Notes
+
+- No test or source behavior changed by this correction — `AppShell.test.tsx` (19/19, unchanged)
+  was not touched; only `tasks.md`'s notes were amended. This is a documentation-accuracy pass
+  responding directly to review-log.md's 2026-08-11 findings; per the session's review
+  instructions, `review-log.md` itself is not modified, and every new `tasks.md` note is appended
+  strictly below its task's existing `> reviewed:` line, never replacing it. T136/T137 (plain
+  PASS, no nits) are untouched.
+
 ## [2026-08-11T12:05:00.000+01:00] — fix(admin): T137 tick-interval control for TrafficChart's x-axis (TrafficChart.tsx)
 
 ### Notes

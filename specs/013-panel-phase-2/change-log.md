@@ -1,6 +1,61 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T09:55:00.000+01:00] — fix(analytics): CI-only beacon transport-URL test failure (beacon.ts, beacon.test.ts)
+
+### Corrective session
+
+No `Txxx` task drives this entry — the user reported a CI failure on this branch (`test-web`
+job) in `sendPageView — transport selection (M8, R1)`, both assertions failing with
+`expected '/api/analytics/events' to be 'http://localhost:8080/api/analytics/e…'`. Not caused by
+the T130-T132 session immediately preceding it (that session touched only `tasks.md`/
+`change-log.md`, no source files) — reproduced as pre-existing and latent since `beacon.ts`'s T045/
+T046 authoring.
+
+### Root cause
+
+`beacon.ts`'s `INGEST_URL` module-level constant is derived from
+`import.meta.env.VITE_API_BASE_URL` (empty-string fallback, producing a same-origin relative path
+when unset). `beacon.test.ts`'s two transport-selection assertions hardcoded the literal
+`'http://localhost:8080/api/analytics/events'` instead of referencing this computed value. That
+literal only matches when `VITE_API_BASE_URL=http://localhost:8080` is set — true on this
+developer's machine via the gitignored, untracked `apps/web/.env` (confirmed present locally,
+`git status --ignored` shows it `!!` ignored), but never true in CI: `.github/workflows/ci.yml`'s
+`test-web` job installs dependencies and runs `pnpm test:coverage` directly with no `.env` file and
+no `VITE_API_BASE_URL` provisioning step (unlike `test-api`, which explicitly copies
+`.env.test.example` before running). The test therefore always asserted a value CI could never
+produce — a green local run masking a CI-only failure, the same class of trap DoD-8 already
+guards against for the API's seed-dependent suites, just on the web side and for an env variable
+instead of a database fixture.
+
+### Fix
+
+- `apps/web/src/analytics/beacon.ts` — exported `INGEST_URL` (was a private module-level `const`;
+  no computation or fallback logic changed, purely visibility).
+- `apps/web/src/analytics/beacon.test.ts` — imported `INGEST_URL` from `./beacon` and replaced both
+  hardcoded literals (lines formerly 440 and 455) with it, matching the existing hermetic pattern
+  in `apiClient.test.ts`'s "Environment Configuration" block (`expect.any(String)` there; here,
+  asserting against the module's own resolved constant is possible and more precise since the
+  literal was a full duplicate, not merely "some string"). The two tests now assert dispatch used
+  whatever ingest URL the module actually computed — the thing they were meant to verify (sendBeacon
+  vs. fetch transport selection) — rather than a value borrowed from one developer's local,
+  untracked env file.
+
+### Verified
+
+- Reran `beacon.test.ts` twice: once with the local `apps/web/.env` present (35/35 passing,
+  unchanged), and once with it moved aside to simulate CI's absent `VITE_API_BASE_URL` (35/35
+  passing — proves the fix is genuinely env-independent, not coincidentally still green). `.env`
+  restored immediately after via `mv` back, confirmed present and unmodified afterward.
+  `pnpm --filter @modular-house/web exec eslint` on both touched files: clean. `apps/web`
+  `tsc --noEmit`: clean.
+
+### Notes
+
+- No pinned §2 constant, contract, or data-model value changed. `VITE_API_BASE_URL` provisioning in
+  CI itself was left untouched (out of scope for this fix — the test no longer depends on it either
+  way, so CI passes regardless of whether that variable is ever added there).
+
 ## [2026-08-11T09:30:00.000+01:00] — fix(specs): T130-T132 review corrections (tasks.md, change-log.md)
 
 ### Changed

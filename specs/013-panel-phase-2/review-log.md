@@ -6,6 +6,100 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-11 — T134-T137 (baseline: 5b3a98c)
+
+T134 — PASS-WITH-NITS — deviations:none omits stub method; US3-13 citation mismatch
+T135 — PASS-WITH-NITS — US3-13 citation mismatch
+T136 — PASS
+T137 — PASS
+
+Detail: `git diff --name-only 5b3a98c HEAD` touches 8 files: 4 source (`AppShell.tsx`/`.test.tsx`,
+`TrafficChart.tsx`/`.test.tsx`), 2 unrelated-but-disclosed source (`beacon.ts`/`.test.ts`, a
+corrective session fixing a CI-only test failure), and 2 docs (`change-log.md`, `tasks.md`). Every
+source file has a matching change-log entry (T134 10:35, T135 11:10, T136 11:35, T137 12:05, plus
+the CI beacon-URL fix at 09:55 and a T130-T132 nit-fix at 09:30) — no concealed changes. The
+beacon.ts/CI-fix and T130-T132 nit-fix commits land in this diff window but are outside this
+session's REVIEW SCOPE (T134-T137); read in full as a sanity check only: the beacon change is a
+literal zero-logic-change export-visibility fix (`INGEST_URL` const → exported const) with both
+test assertions swapped from a hardcoded literal to the module's own resolved value — confirmed via
+diff, not a source of concern. Supply-chain check: zero `package.json`/lockfile changes.
+
+TDD reproduction, independently done by hand rather than trusting the change-log's claimed
+red/green splits: checked out `AppShell.tsx` at `5b3a98c` (pre-T135) over the current tree and
+reran `AppShell.test.tsx` — 18 passed / 1 failed, `AssertionError: expected null not to be null`,
+matching T134's own claimed split and reason exactly; restored, confirmed clean via `git status`.
+Same exercise for `TrafficChart.tsx` at `e364e5b` (pre-T137) — 5 passed / 1 failed,
+`AssertionError: expected 92 to be less than or equal to 15`, matching T136's claimed split and
+reason exactly; restored, confirmed clean. Commit-timestamp order independently confirms atomic
+TDD pairs: T134 test (10:45:40) precedes T135 impl (11:10:34); T136 test (11:47:16) precedes T137
+impl (13:10:11) — no rule-3 violation.
+
+T134/T135 (Group B, scroll-reachability): `AppShell.tsx`'s fix is two class additions —
+`h-svh` on the content-region wrapper (bounds the flex row's cross-axis without competing with the
+wrapper's own `flex-1`, which governs the row's main axis/width) and `overflow-y-auto` on `<main>`
+(a flex item, so per the CSS Flexbox automatic-minimum-size algorithm its automatic min-size floors
+at 0 instead of its content's natural height, letting `flex-1` shrink it to the exact remaining
+space and scroll its own overflow). The reasoning is internally consistent and matches the
+reference template's own `SidebarProvider` precedent for why `.admin-root` itself stays
+`min-h-svh`; jsdom performs no real layout so this could not be independently re-measured in this
+environment — inspection-passed, consistent with the change-log's own disclosed "outstanding:
+human real-browser confirm" caveat (same disposition as T133's own unmet human-confirm clause,
+which the 2026-08-10 review scored plain PASS, not a nit — applied the same way here for T135/T137
+alone). The `AppShell.test.tsx` stub (className-regex-matched `overflow-y-auto`/`scroll` treated as
+height-bounded, `scrollHeight`/`clientHeight` pinned via `Object.defineProperty` on the prototype)
+was hand-traced against both the pre-fix and post-fix source and correctly flips from null to
+non-null exactly when the real fix is present — not a tautology.
+
+**Nit (T134, the one real finding this round)**: `tasks.md`'s T134 `> note:` claims
+`deviations: none`, but the task's literal Done-when talks about ancestors that "compute
+overflow-y: visible" — a real computed-style read — while the actual test (and the change-log's
+own T134 entry, and the test file's own header comment) documents a necessary substitute: jsdom
+has no live cascade for this project's aliased-to-empty-stub stylesheets, so the suite instead
+infers "bounded" from the rendered `className` string and stubs `clientHeight`/`scrollHeight` via
+`Object.defineProperty`, never touching real computed style. This is the exact same shape of
+deviation — a justified, disclosed-in-the-change-log-but-not-in-the-task-note substitution forced
+by the same jsdom gap — that the 2026-08-10 review flagged for T130/T131/T132 and that this
+session's own 09:30 commit (`a079766`/`22cef1b`) had just finished correcting, an hour before T134
+was authored. Not concealment (the change-log entry discloses the method in full), but the same
+avoidable inaccuracy recurring in the very next task after being fixed. T135/T136/T137's own
+`deviations:` fields are accurate (T135/T137 honestly name the outstanding human-confirm clause;
+T136 genuinely has none — its local-fixture approach is within `Files:` scope, not a workaround).
+
+T136/T137 (Group C, tick density): `computeDayTickSubset` was hand-traced for correctness, not just
+read: for a 91-bucket series it selects indices `{0,8,16,25,33,41,49,57,65,74,82,90}` — 12 distinct,
+evenly spaced, and the endpoint-inclusion claim ("always including both endpoints") is exact by
+construction (`i=0` always rounds to index 0; `i=MAX_DAY_TICKS-1` always rounds to exactly
+`lastIndex` since `step * (MAX_DAY_TICKS-1) = lastIndex` algebraically), not merely typical-case.
+Hour-bucket series correctly bypass the cap entirely (`dayTicks` is `undefined` unless
+`range.bucket === 'day'`), leaving `XAxis`'s original `interval={0}` behaviour untouched, matching
+Done-when's explicit "2-day hour-bucket view... unchanged" requirement. Both `TrafficChart.tsx` and
+`AppShell.tsx` reach recharts only through the ported `chart.tsx` wrapper (rule 9) — confirmed no
+bare `recharts` import in either file.
+
+**Citation check (FR/US references, §5-I)**: FR-022, FR-029, and SC-010 (T137) all resolve to real,
+content-matching spec.md text. `US3-13` (T134/T135's second `Refs:` entry) does resolve to real
+content — Acceptance Scenario 13 of User Story 3 exists (line 103) — correcting the 2026-08-10
+review's blanket claim it "does not exist anywhere in spec.md." But that scenario's actual text is
+about small-viewport stacking and no *horizontal* scrolling ("a small-viewport device... no
+horizontal scrolling"), not the *vertical* scroll-reachability-at-a-typical-laptop-viewport
+(1568×744) defect T134/T135 actually fix — no Acceptance Scenario in User Story 3 covers "content
+taller than viewport must be reachable by scroll." Likely picked for the word "reachable"/
+viewport-adjacent phrasing rather than matching content — a citation-content mismatch, not a
+missing reference. Low severity (doesn't affect the fix's correctness), but worth a corrected
+citation (or a spec gap noted) in a future docs pass.
+
+Verification commands (§6), all run against Docker's already-running port-5434 test DB:
+`pnpm --filter @modular-house/api test:run` 60/60 files, 515/515 tests, clean (no API file in this
+diff, as expected). `pnpm --filter @modular-house/web test:run` 54/54 files, 486/486 tests, clean —
+matches change-log's own claimed count exactly. `prisma validate` clean. `prisma migrate status`
+(re-pointed at the test DB per established precedent): up to date, no drift — no migration files in
+this diff, no drift expected. `prisma migrate diff --exit-code`: disposable
+`modular_house_review_shadow` database created via direct `psql -h localhost -p 5434`, diff run
+(`No difference detected`), dropped immediately after. `docs:validate` clean. `pnpm lint`/
+`pnpm typecheck` clean across all 4/3 workspaces. `test:coverage` (api): 515/515 passing; `All
+files` line coverage **69.53%** (unchanged from the 2026-08-10 review — no API file touched),
+`analyticsIngest.ts`/`middleware/auth.ts` still 100% branch.
+
 ## 2026-08-10 — T130-T133 (baseline: e7423e6)
 
 T130 — PASS-WITH-NITS — note wrongly claims zero deviations

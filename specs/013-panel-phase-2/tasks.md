@@ -1751,6 +1751,7 @@ consumers without touching any of the three component files.
 
 - [x] T134 Write failing scroll-reachability test for AppShell
 > note: stubs clientHeight/scrollHeight via rendered className (jsdom has no layout); ancestor walk finds none today; tests: 1 red, 18 pre-existing green; deviations: none
+> reviewed: PASS-WITH-NITS — "deviations: none" omits stub method
       Files: apps/web/src/admin/shell/AppShell.test.tsx
       Do: Render AppShell with a child tall enough to exceed a constrained test-container height,
       and assert some ancestor between the content and `<body>` has `overflow-y: auto` (or
@@ -1763,6 +1764,7 @@ consumers without touching any of the three component files.
 
 - [x] T135 Add a scroll container to AppShell's content region
 > note: h-svh bounds shell column, main gets overflow-y-auto (flex auto-min-size=0); tests: T134 green, 19 total; deviations: AppShell.tsx — human real-browser confirm outstanding
+> reviewed: PASS-WITH-NITS — US3-13 citation mismatch
       Files: apps/web/src/admin/shell/AppShell.tsx
       Do: Give the `<main className="flex flex-1 flex-col">` region (or a wrapping element) its
       own `overflow-y-auto` and a bounded height so it becomes the scroll container for admin page
@@ -1776,6 +1778,7 @@ consumers without touching any of the three component files.
 
 - [x] T136 Write failing tick-density test for TrafficChart
 > note: local 91-bucket day fixture (interval={0} renders 92 ticks, wants <=15); tests: 1 red, 5 pre-existing green; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/TrafficChart.test.tsx
       Do: Render TrafficChart against a day-bucket fixture spanning the default 3-month range
       (~90 buckets) and assert the rendered x-axis shows a bounded number of tick labels (e.g. at
@@ -1785,6 +1788,7 @@ consumers without touching any of the three component files.
 
 - [x] T137 Add tick-interval control to TrafficChart's x-axis
 > note: explicit ticks subset (max 12, mirrors template weeklyTicks); hour buckets unchanged; tests: T136 green, 6 total; deviations: human real-browser confirm outstanding
+> reviewed: PASS
       Files: apps/web/src/admin/analytics/TrafficChart.tsx
       Do: Configure the x-axis (recharts `interval`/`tickFormatter`, via the ported `chart.tsx`
       wrapper only — rule 9) to render a legible, evenly-spaced subset of ticks for day-bucket

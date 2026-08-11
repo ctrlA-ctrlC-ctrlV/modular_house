@@ -1837,6 +1837,7 @@ single root cause behind **two** separately-reported findings:
 - [x] T139 Scope style.css's bare-tag brand-color rules away from the admin panel
 > note: :not(.admin-root, .admin-root *) exclusion on h1-h6/p/a/a:hover selectors; tests: a11y 28/28, full web 487/487; deviations: none
 > reviewed: PASS
+> note: prod-regression fix - :not() raised specificity, broke hero-button/explore-link text color; switched to :not(:where(...)); tests: 493/493
       Files: apps/web/src/styles/style.css
       Do: Restrict the `h1, h2, h3, h4, h5, h6`, `p`, `a`, and `a:hover` selectors (and any other
       unscoped brand-color element selectors in this block) with a `:not(.admin-root,

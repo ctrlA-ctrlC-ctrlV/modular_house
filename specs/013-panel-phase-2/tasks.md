@@ -1749,7 +1749,8 @@ consumers without touching any of the three component files.
 
 ### Group B — Admin shell has no scroll container; content taller than the viewport is unreachable
 
-- [ ] T134 Write failing scroll-reachability test for AppShell
+- [x] T134 Write failing scroll-reachability test for AppShell
+> note: stubs clientHeight/scrollHeight via rendered className (jsdom has no layout); ancestor walk finds none today; tests: 1 red, 18 pre-existing green; deviations: none
       Files: apps/web/src/admin/shell/AppShell.test.tsx
       Do: Render AppShell with a child tall enough to exceed a constrained test-container height,
       and assert some ancestor between the content and `<body>` has `overflow-y: auto` (or

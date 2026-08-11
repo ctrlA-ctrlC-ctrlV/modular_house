@@ -1752,6 +1752,7 @@ consumers without touching any of the three component files.
 - [x] T134 Write failing scroll-reachability test for AppShell
 > note: stubs clientHeight/scrollHeight via rendered className (jsdom has no layout); ancestor walk finds none today; tests: 1 red, 18 pre-existing green; deviations: none
 > reviewed: PASS-WITH-NITS — "deviations: none" omits stub method
+> note: review-nit fix — US3-13 no closer match; tests: 19 total; deviations: AppShell.test.tsx — className/stub, not real computed overflow-y (jsdom, no live cascade)
       Files: apps/web/src/admin/shell/AppShell.test.tsx
       Do: Render AppShell with a child tall enough to exceed a constrained test-container height,
       and assert some ancestor between the content and `<body>` has `overflow-y: auto` (or
@@ -1765,6 +1766,7 @@ consumers without touching any of the three component files.
 - [x] T135 Add a scroll container to AppShell's content region
 > note: h-svh bounds shell column, main gets overflow-y-auto (flex auto-min-size=0); tests: T134 green, 19 total; deviations: AppShell.tsx — human real-browser confirm outstanding
 > reviewed: PASS-WITH-NITS — US3-13 citation mismatch
+> note: review-nit fix — US3-13 checked: describes horizontal-scroll stacking, not vertical reachability; no closer US3-N match; tests: 19 total; deviations: none
       Files: apps/web/src/admin/shell/AppShell.tsx
       Do: Give the `<main className="flex flex-1 flex-col">` region (or a wrapping element) its
       own `overflow-y-auto` and a bounded height so it becomes the scroll container for admin page

@@ -27,7 +27,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -167,6 +167,19 @@ const ADMIN_CSS_PATH = path.join(
   'admin.css',
 );
 
+// Public-site style.css source path (T138, Group D) — read directly, same
+// disk-read rationale as tokens.css/admin.css above, so the injected
+// stylesheet below (see the "Bare-tag brand-color scoping" describe block)
+// exercises the real shipped rule text rather than a hand-copied excerpt
+// that could silently drift from it.
+const STYLE_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'styles',
+  'style.css',
+);
+
 interface Oklch {
   l: number;
   c: number;
@@ -223,6 +236,7 @@ function parseThemeTokens(cssBlock: string): Record<string, Oklch> {
 
 const tokensCss = readFileSync(TOKENS_CSS_PATH, 'utf8');
 const adminCss = readFileSync(ADMIN_CSS_PATH, 'utf8');
+const styleCss = readFileSync(STYLE_CSS_PATH, 'utf8');
 
 // Isolate the unconditional `.admin-root { ... }` (light) block from the
 // `.dark .admin-root { ... }` (dark) descendant-selector block (T036b — the
@@ -586,6 +600,74 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       expect(adminCss).toMatch(/border-color:\s*var\(--border,/);
       expect(adminCss).toMatch(/color-mix\(in oklch, var\(--ring\)/);
       expect(adminCss).not.toMatch(/var\(--color-(background|foreground|border|ring)/);
+    });
+  });
+
+  // ── Bare-tag brand-color scoping (T138, Group D) ────────────────────────
+  // style.css declares unlayered element-selector rules (`h1..h6`, `p`, `a`,
+  // `a:hover`, style.css:365-405) that set brand colours (`--brand-title` /
+  // `--brand-slate` / `--brand-link` / `--brand-link-hover`) with no
+  // exclusion for the admin panel — the root cause behind both the
+  // reviewer-reported sidebar nav-link contrast finding and the
+  // login-heading/subtitle dark-mode finding (see tasks.md Group D header).
+  //
+  // Vitest's default `css: false` behaviour (vitest.config.ts) replaces CSS
+  // module imports with an empty string during tests, so importing style.css
+  // normally would exercise nothing. This suite instead injects the actual
+  // file content into jsdom's live stylesheet cascade directly — reading it
+  // from disk (same rationale as the tokens.css/admin.css reads above) so it
+  // can never silently drift from the real shipped rules.
+  //
+  // Why `getComputedStyle` is viable here, unlike T130/T131's `--popover`
+  // case (see select.test.tsx/dialog.test.tsx): this suite never resolves
+  // what colour a token maps to — only whether an element-selector rule
+  // matches a given element at all. This project's pinned jsdom (25.0.1)
+  // never resolves `var()`, so a *matching* rule's computed value surfaces
+  // as the literal unresolved string (e.g. `"var(--brand-title)"`); an
+  // element no rule matches instead falls back to jsdom's own UA-default
+  // `color` value (`"canvastext"`). That match/no-match distinction is
+  // exactly what a selector-scoping regression needs, independent of
+  // `var()` resolution — verified directly against this exact jsdom version
+  // before writing this suite.
+
+  describe('Bare-tag brand-color scoping (T138, Group D)', () => {
+    let injectedStyle: HTMLStyleElement | null = null;
+    let container: HTMLDivElement | null = null;
+
+    beforeEach(() => {
+      injectedStyle = document.createElement('style');
+      injectedStyle.textContent = styleCss;
+      document.head.appendChild(injectedStyle);
+    });
+
+    afterEach(() => {
+      injectedStyle?.remove();
+      container?.remove();
+      injectedStyle = null;
+      container = null;
+    });
+
+    it('does not resolve --brand-title/--brand-slate/--brand-link for bare h1/p/a rendered inside .admin-root', () => {
+      container = document.createElement('div');
+      container.className = 'admin-root';
+      container.innerHTML =
+        '<h1 data-testid="bare-h1">Heading</h1>' +
+        '<p data-testid="bare-p">Paragraph</p>' +
+        '<a data-testid="bare-a" href="#">Link</a>';
+      document.body.appendChild(container);
+
+      const h1 = container.querySelector('[data-testid="bare-h1"]') as HTMLElement;
+      const p = container.querySelector('[data-testid="bare-p"]') as HTMLElement;
+      const a = container.querySelector('[data-testid="bare-a"]') as HTMLElement;
+
+      // Pre-T139, style.css's unscoped selectors match every h1/p/a in the
+      // document including these, so `getComputedStyle` surfaces the
+      // literal unresolved `var(...)` string (see file header) — these
+      // assertions are expected to fail until T139 scopes the rules away
+      // from `.admin-root`.
+      expect(getComputedStyle(h1).color).not.toBe('var(--brand-title)');
+      expect(getComputedStyle(p).color).not.toBe('var(--brand-slate)');
+      expect(getComputedStyle(a).color).not.toBe('var(--brand-link)');
     });
   });
 });

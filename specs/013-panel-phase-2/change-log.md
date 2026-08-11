@@ -1,6 +1,54 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T11:10:00.000+01:00] — fix(admin): T135 scroll container for AppShell's content region (AppShell.tsx)
+
+### Notes
+
+- **Fix**: two class-string additions in `ShellLayout` (`apps/web/src/admin/shell/AppShell.tsx`),
+  no restructuring, no new elements, `.admin-root`'s own `min-h-svh` left untouched:
+  - The content-region wrapper (`<div className="flex flex-1 flex-col">`, holding `TopBar` +
+    `<main>`) gains `h-svh`. This wrapper is a row-item of `.admin-root` (`flex`, default row
+    direction); `h-svh` bounds its height (`.admin-root`'s cross-axis there), which does not
+    compete with the wrapper's own `flex-1` (governs its width, the row's main axis) — no
+    conflicting constraint on the same axis.
+  - `<main>` gains `overflow-y-auto` (kept `flex flex-1 flex-col` as-is). `<main>` is a column-item
+    of the now-bounded wrapper; per the CSS Flexbox specification's automatic-minimum-size
+    algorithm, a flex item whose relevant-axis `overflow` is not `visible` has its automatic
+    minimum size floored at 0 rather than its content's natural size, so `<main>`'s `flex-1`
+    correctly shrinks it to the exact remaining height inside the wrapper (viewport height minus
+    the 48px/`h-12` top bar, H3) instead of growing past it — and `<main>` scrolls its own
+    overflowing content there.
+- **Why `.admin-root` itself was left on `min-h-svh`**: confirmed against the reference template's
+  own `SidebarProvider` wrapper (`next_shadcn_admin_dashboard/src/components/ui/sidebar.tsx:140`,
+  `"group/sidebar-wrapper flex min-h-svh w-full ..."`) — `min-h-svh` (a minimum, not a bound) is
+  the template's own deliberate choice, correct for a normal document where the *body* scrolls
+  (the template's own `dashboard/layout.tsx` has no explicit vertical-scroll handling on its
+  content div — only `overflow-x-hidden` — because Next.js pages do not carry this project's
+  `html, body { overflow: hidden }` reset). The admin route inherits that reset unmodified because
+  it is global (`index.css`, built for the public site's own scroll-position-restoration
+  architecture, R8/N1) — the bug is this project-specific interaction, not a template deviation,
+  so the fix is scoped to the admin content region alone rather than touching `.admin-root` or the
+  public-site reset.
+- **T134 verified green**: `pnpm --filter @modular-house/web exec vitest run
+  src/admin/shell/AppShell.test.tsx` — 19/19 passing (18 pre-existing + T134, previously 1 red).
+  Full web suite: `pnpm --filter @modular-house/web test:run` — 54/54 files, 485/485 tests, no
+  regressions. `eslint` on the touched file and `apps/web` `tsc --noEmit`: both clean.
+- **Outstanding (T135's own Done-when, not yet satisfied)**: "a human confirms in a real browser,
+  at a typical laptop viewport (e.g. 1568×744), that the Analytics page's Top Pages / Traffic
+  Sources rows below the fold are reachable by mouse wheel, keyboard (Page Down / End), and touch."
+  Attempted this session via Chrome automation against the already-running local dev server
+  (`localhost:3000`, viewport already 1568×744) — login failed ("Invalid credentials") using the
+  `ADMIN_LOGIN_EMAIL`/`ADMIN_LOGIN_PASSWORD` pair recorded in the local, gitignored `apps/web/.env`,
+  which does not match whatever admin account is actually seeded against this dev server's
+  database. No other credentials were available, so the attempt was not pushed further (no
+  credential guessing). Same disposition as T133's own outstanding human-verification clause
+  (change-log 2026-08-11T09:30) and T087's original "UNVERIFIED — build rerun needed" entry before
+  its later human sign-off — flagged honestly in the session handoff, not silently dropped. The
+  automated portion of the Done-when (T134 green) is independently verified above; the CSS
+  reasoning behind the fix (flexbox automatic-minimum-size mechanics) was verified against the
+  written specification, not assumed.
+
 ## [2026-08-11T10:35:00.000+01:00] — test(admin): T134 failing scroll-reachability test for AppShell (AppShell.test.tsx)
 
 ### Notes

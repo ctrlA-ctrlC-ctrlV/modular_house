@@ -6,6 +6,124 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-11 — T138-T145 (baseline: cdc81fd)
+
+T138 — PASS
+T139 — PASS
+T140 — PASS
+T141 — PASS-WITH-NITS — stripLayerWrapper fix misattributed to own commit
+T142 — PASS
+T143 — PASS
+T144 — PASS
+T145 — PASS
+
+Detail: `git diff --name-only cdc81fd HEAD` touches 9 files: 3 source (`style.css`, `admin.css`,
+`Analytics.tsx`), 4 test (`a11y.test.tsx`, `Login.test.tsx` new, `Settings.test.tsx`,
+`Sidebar.test.tsx` new), 2 docs (`change-log.md`, `tasks.md`). Every source/test file has a
+matching, dated change-log entry (T138 14:10 through T145 16:50, plus a disclosed T134/T135
+review-nit-fix entry at 13:55 that only touches `tasks.md` — outside this session's scope but
+sanity-checked: it correctly appends `> note:` lines below the existing `> reviewed:` line per
+§7.2, doesn't rewrite history) — no concealed changes. Supply-chain check: zero
+`package.json`/lockfile changes.
+
+Group D root cause (tasks.md:1802-1822): `style.css`'s unlayered `h1..h6`/`p`/`a`/`a:hover`
+element selectors carry brand colors with no `.admin-root` exclusion, beating the admin panel's
+own layered Tailwind utilities/CSS-var defaults regardless of specificity (normal CSS
+cascade-layer behavior) — one root cause behind both the reviewer-reported sidebar
+active-nav-link finding and the implementer's own login-heading dark-mode finding.
+
+T138/T139 (test + fix): independently reproduced the disclosed red state — checked out
+`style.css` at `ab8af72` (pre-T139) over the current tree and reran `a11y.test.tsx`: 1 failed / 28
+passed, `AssertionError: expected 'var(--brand-title)' not to be 'var(--brand-title)'`, matching
+T138's own disclosed failure exactly; restored, confirmed clean via `git status`. T139's fix
+(`:not(.admin-root, .admin-root *)` appended to each selector, rule bodies untouched) is minimal
+and correctly scoped — confirmed via diff that only selector lists changed. No stylelint config
+exists in this repo (checked directly), so T139's "nothing to lint" claim is accurate.
+
+T140/T141 (test + fix): this pair's disclosed deviation was independently verified, not taken on
+faith — wrote a throwaway scratch probe injecting `admin.css`'s real, current (post-T141) content
+**raw** (i.e. still wrapped in its `@layer base { ... }` block, bypassing the shipped
+`stripLayerWrapper` helper) into jsdom and asserted computed color on a bare `.admin-root > h1`:
+result was `var(--brand-ink)`, not `var(--foreground)` — confirming this pinned jsdom (25.0.1)
+really does silently discard the *entire* injected stylesheet on encountering `@layer`, including
+the pre-existing, unrelated `.admin-root { color: var(--foreground); }` base rule (not just the
+new T141-added h1/p/a rules) — exactly the mechanism the change-log's T141 entry claims. Also
+independently confirmed exactly one `@layer base` substring remains in `admin.css` (the real code
+block), verifying the disclosed self-inflicted `stripLayerWrapper`-collision-with-a-comment bug
+was actually fixed by rewording, not by patching the test helper.
+
+**Nit (T141, the one real finding this round)**: the T141 change-log entry states "Changed:
+`a11y.test.tsx` — added a `stripLayerWrapper` helper... and switched the T140 suite's admin.css
+injection to use it," and T141's own `tasks.md` note lists `a11y.test.tsx` under `deviations:`.
+But `git show 47709ac` (T141's actual commit) touches only `admin.css` — zero lines of
+`a11y.test.tsx` are in it. The `stripLayerWrapper` helper and its use in the T140 suite are
+already present, complete, in `7cb3fb2` (the commit labeled/committed as T140, one second
+earlier). So the fix genuinely happened and is genuinely disclosed in substance (the reasoning,
+the jsdom gap, and the "T140's own note stays accurate" framing all independently check out) —
+but the specific claim "T141 changed a11y.test.tsx" doesn't match which commit the diff is
+actually in, the same class of commit-boundary/attribution artifact previously flagged and
+accepted as a nit at T092. Low severity: no behavior is misrepresented, only which commit did it.
+
+T142 (Analytics.tsx cleanup + admin.css layer-order fix): the inline-style removal is a clean,
+minimal diff (confirmed via `git diff`) with no other change to the component. The disclosed
+`@layer theme, base, utilities;` pre-declaration bug was independently verified at the compiled-CSS
+level, not just read: ran `npx vite build` (output dir deleted after, gitignored regardless) and
+confirmed in the bundled CSS exactly one occurrence each of the pre-declaration, the `@layer
+base{` block, and the `@layer utilities{` block; confirmed the pre-declaration's byte offset
+precedes both blocks regardless of their own relative order (utilities block physically before
+base block in this build, which is exactly why the fix matters); confirmed `.admin-root
+h1...p{color:var(--foreground)}` sits inside the base block's range and
+`.text-muted-foreground{color:var(--muted-foreground)}` sits inside the utilities block's range,
+as claimed. The tasks.md note's "deviations: admin.css - @layer pre-declare fixes base>utilities
+priority bug" is accurate, and — unlike the T140/T141 nit above — this entry additionally names
+the exact commit mechanics ("captured entirely by T141's own still-pending commit block"), so no
+attribution gap here.
+
+T143/T144/T145 (contrast-regression assertions): hand-verified each suite's claims against the
+real source rather than trusting the description. `Login.tsx`: two `<h1>` elements exist (branded
+panel's "Hello again" and the form's "Login"); the test's `getByRole('heading', {level:1,
+name:'Login'})` correctly disambiguates by accessible name, and the targeted `<h1>` genuinely
+carries no Tailwind color utility (`font-medium tracking-tight` only) — confirmed line-for-line.
+`Settings.tsx:240-241` heading/subtitle classes match the test's assumptions exactly (including
+the self-caught "subtitle actually has `text-muted-foreground`" correction disclosed in T144's own
+notes — verified true). `Sidebar.tsx`: `<SidebarMenuButton asChild><Link to="/admin/analytics">`
+is a bare `<a>` with no `isActive`/`data-active` wiring; `ui/sidebar.tsx:406-411` confirms
+`isActive` defaults to `false` and only conditional `hover:`/`data-[active=true]:` variants exist
+on `SidebarMenuButton` — no unconditional color default — so the root-cause claim ("not a
+`--sidebar-accent-foreground` gap, no `sidebar.tsx` change needed") is exactly right, and
+`sidebar.tsx` is indeed untouched by this diff (frozen ui-components.md §2 primitive respected).
+Test-count arithmetic across the whole T139-T145 chain was independently reconciled and holds
+exactly: 487 (T139 baseline) → 488 (T140, +1) → 488 (T141/T142, unchanged) → 490 (T143, +2, new
+file, 55 suites) → 492 (T144, +2, 55 suites) → 493 (T145, +1, new file, 56 suites) — matching this
+review's own final full-suite run exactly (below).
+
+TDD/commit-order check: `git log --format="%h %ad %s" --date=format:"%H:%M:%S"` confirms every
+test-before-impl pair is correctly ordered (T138 test 14:10:56 before T139 impl 15:13:24; T140
+test 15:13:26 before T141 impl 15:13:27) despite the whole T139-T145 batch landing inside a
+9-second commit window (15:13:24-15:13:33) — consistent with this branch's established
+batch-commit convention (previously observed and accepted, e.g. review-log's 2026-07-24 T091-T095
+entries), not a rule-3 violation. T142-T145 are correctly not TDD pairs (no red state required —
+T142 is a same-behavior refactor, T143-T145 are regression guards authored directly against
+already-green code, matching their own `Done when: test is green against the post-T141 codebase`
+phrasing).
+
+Scope/guardrail check: no file in this diff touches `packages/ui`, the configurator,
+`GoogleTag.tsx`/`VITE_GA_TRACKING_ID`, or marketing content. No emoji found in the diff; no
+`lucide-react`/`next/*` imports introduced. FR-022, FR-029, SC-003, SC-010, DoD-6, and
+"constitution V" (Accessibility & Inclusive UX, plan.md:541) all resolve to real, content-matching
+text — no citation drift this round.
+
+Verification commands (§6), all run against Docker's already-running port-5434 test DB:
+`pnpm --filter @modular-house/api test:run` 60/60 files, 515/515 tests, clean (no API file in this
+diff, as expected). `pnpm --filter @modular-house/web test:run` 56/56 files, 493/493 tests, clean —
+matches the reconciled count above exactly. `prisma validate` clean. `prisma migrate status`
+(re-pointed at the test DB per established precedent): up to date, no drift. `prisma migrate
+diff --exit-code`: disposable `modular_house_review_shadow_2` database created via direct
+`psql -h 127.0.0.1 -p 5434`, diff run (`No difference detected`), dropped immediately after.
+`docs:validate` clean. `pnpm lint`/`pnpm typecheck` clean across all 4/3 workspaces. `test:coverage`
+(api): 515/515 passing; `All files` line coverage **69.53%** (unchanged — no API file touched),
+`analyticsIngest.ts`/`middleware/auth.ts` still 100% branch.
+
 ## 2026-08-11 — T134-T137 (baseline: 5b3a98c)
 
 T134 — PASS-WITH-NITS — deviations:none omits stub method; US3-13 citation mismatch

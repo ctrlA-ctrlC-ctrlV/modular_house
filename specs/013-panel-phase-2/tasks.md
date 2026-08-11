@@ -1823,6 +1823,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T138 Write failing test: style.css brand colors must not apply inside `.admin-root`
 > note: extended a11y.test.tsx; injects real style.css into jsdom, checks h1/p/a computed color; tests: 1 red, 27 pre-existing green; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/theme/admin.css (test file, new: admin.css.test.ts, following the
       existing tokens.css-text-parsing pattern used by a11y.test.tsx — or extend
       apps/web/src/admin/shell/a11y.test.tsx directly if a dedicated CSS-source test file does not
@@ -1835,6 +1836,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T139 Scope style.css's bare-tag brand-color rules away from the admin panel
 > note: :not(.admin-root, .admin-root *) exclusion on h1-h6/p/a/a:hover selectors; tests: a11y 28/28, full web 487/487; deviations: none
+> reviewed: PASS
       Files: apps/web/src/styles/style.css
       Do: Restrict the `h1, h2, h3, h4, h5, h6`, `p`, `a`, and `a:hover` selectors (and any other
       unscoped brand-color element selectors in this block) with a `:not(.admin-root,
@@ -1847,6 +1849,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T140 Write failing test: bare admin tags must resolve admin tokens by default
 > note: extended a11y.test.tsx; injects style.css+admin.css, checks h1/p/a resolve --foreground/--primary; tests: 1 red, 28 pre-existing green; deviations: none
+> reviewed: PASS
       Files: same test file as T138
       Do: Extend the T138 suite to assert that, once excluded from style.css, the same bare
       `<h1>`/`<p>`/`<a>` inside `.admin-root` instead resolve the admin `--foreground` (h1/p) and
@@ -1857,6 +1860,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T141 Add admin-scoped base-layer defaults for bare heading/paragraph/link tags
 > note: .admin-root h1-h6/p->--foreground, a->--primary base defaults; tests: 29/29 a11y, 488/488 web; deviations: a11y.test.tsx - jsdom cant parse @layer, added stripLayerWrapper
+> reviewed: PASS-WITH-NITS — fix misattributed to wrong commit
       Files: apps/web/src/admin/theme/admin.css
       Do: Add `.admin-root h1, .admin-root h2, ... h6, .admin-root p { color: var(--foreground); }`
       and `.admin-root a { color: var(--primary); }` (adjust selector list to match whatever T139
@@ -1866,6 +1870,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T142 Remove the now-redundant inline color override on the Analytics heading
 > note: removed inline color overrides on h1/p; tests: Analytics 9/9, web 488/488; deviations: admin.css - @layer pre-declare fixes base>utilities priority bug
+> reviewed: PASS
       Files: apps/web/src/admin/pages/Analytics.tsx
       Do: Now that T139+T141 fix the cascade at its source, remove the
       `style={{ color: 'var(--foreground)' }}` / `style={{ color: 'var(--muted-foreground)' }}`
@@ -1878,6 +1883,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T143 Add a contrast-regression assertion for the Login page heading and subtitle
 > note: new Login.test.tsx; h1->--foreground positive, p->text-muted-foreground class + not --brand-slate; tests: 2/2 green; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/pages/Login.test.tsx (new)
       Do: Assert the "Login" `<h1>` and the "Welcome back..." `<p>` resolve the admin
       `--foreground`/`--muted-foreground` tokens (not `--brand-title`/`--brand-slate`) when
@@ -1888,6 +1894,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T144 Add a contrast-regression assertion for the Settings page heading
 > note: extended Settings.test.tsx; h1->--foreground positive, p->text-muted-foreground class + not --brand-slate; tests: 19/19 green; deviations: none
+> reviewed: PASS
       Files: apps/web/src/admin/pages/Settings.test.tsx
       Do: Assert the "Settings" `<h1>` and its subtitle `<p>` (Settings.tsx:240-241) resolve the
       admin `--foreground`/`--muted-foreground` tokens when `.dark` is set.
@@ -1896,6 +1903,7 @@ single root cause behind **two** separately-reported findings:
 
 - [x] T145 Add a contrast-regression assertion for the Sidebar Analytics nav-link
 > note: new Sidebar.test.tsx; Analytics link a->--primary positive; not sidebar-accent gap, sidebar.tsx untouched; tests: 1/1; deviations: none; human dark-mode confirm outstanding
+> reviewed: PASS
       Files: apps/web/src/admin/shell/Sidebar.test.tsx (new)
       Do: Assert the "Analytics" `<Link>` (Sidebar.tsx) resolves `--primary` (not
       `--brand-link`/`#b55329`) when `.dark` is set. Closes the reviewer-reported "sidebar

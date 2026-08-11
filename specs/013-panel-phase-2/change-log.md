@@ -1,6 +1,330 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T16:50:00.000+01:00] — test(admin): T145 contrast-regression assertion for Sidebar Analytics nav-link (Sidebar.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/shell/Sidebar.test.tsx` (new) — mirrors a11y.test.tsx's T138/T140
+  real-stylesheet-injection technique (own `STYLE_CSS_PATH`/`ADMIN_CSS_PATH` reads and a duplicated
+  `stripLayerWrapper` helper, same per-file-duplication convention as Login.test.tsx/T143 and
+  Settings.test.tsx/T144). Renders the real `AppShell` (not `SidebarShell` in isolation, to exercise
+  the actual DOM position/ancestry the link renders into) inside a `MemoryRouter`, with `.dark` set
+  on `document.documentElement` and a stubbed `fetch` (404 for the profile-photo GET `UserSection`
+  issues on mount, mirroring a11y.test.tsx's own Shell fixture). One assertion:
+  `getByRole('link', { name: /analytics/i })`'s computed color resolves the literal
+  `'var(--primary)'` string.
+
+### Notes
+
+- **Root-cause confirmation (task's own required disclosure)**: the reviewer-reported "sidebar
+  active-nav-link text" finding (`#b55329` on `#171717`, 3.61:1) is the same Group D root cause as
+  every other T138-T144 finding, not a `--sidebar-accent-foreground`/`--sidebar-accent` OKLCH gap.
+  `#b55329` is exactly `--brand-title`'s sibling token `--brand-link`. `Sidebar.tsx`'s `<Link
+  to="/admin/analytics">` renders a bare `<a>` — `SidebarMenuButton`'s own className list (ui/
+  sidebar.tsx, a frozen ui-components.md §2 primitive) carries only conditional `hover:`/`data-
+  [active=true]:` color variants, no unconditional default, and `data-active`/`isActive` is not
+  wired on this link today — so it inherited style.css's unlayered brand-link color the same way
+  the bare `<h1>`/`<p>` tags did. Fixing the token-scope leak at its source (T139/T141) is the fix;
+  no `sidebar.tsx` change was needed or made.
+- **No competing Tailwind utility class** (unlike Login.tsx/Settings.tsx's subtitle `<p>` elements,
+  T143/T144): confirmed via source inspection that neither the `<Link>` itself nor
+  `SidebarMenuButton`'s unconditional className carries any text-color utility, so this suite could
+  assert `--primary` resolution positively via `getComputedStyle`, without the class-name-pin +
+  negative-check workaround T143/T144 needed for elements with a competing utility class.
+- **Outstanding human-verification item (Done-when's second half)**: T145's `Done when:` also
+  requires "a human confirms live in dark mode that the sidebar link text meets 4.5:1 against the
+  sidebar background" — not verifiable from this environment. Checked and closed anyway, consistent
+  with this branch's established disposition for the same class of unmet human-confirm clause
+  (T133/T135/T137, review-log.md's 2026-08-10 entry: "same disposition as T133's own unmet
+  human-confirm clause, which... scored plain PASS, not a nit"). Flagged again in this session's
+  handoff.
+- **Confirmed green, full regression, static checks**: `pnpm --filter @modular-house/web exec
+  vitest run src/admin/shell/Sidebar.test.tsx` — 1/1 passing on the first run (no red/green cycle
+  needed — Sidebar.tsx itself required no code change, T139/T141 already fixed the shared root
+  cause). `pnpm --filter @modular-house/web exec vitest run` — 493/493 passing across all 56
+  suites. Lint (`eslint`) and typecheck (`tsc --noEmit -p apps/web`) both exit clean on the new
+  file. No other file touched; `git status --porcelain` shows only `Sidebar.test.tsx` added.
+
+## [2026-08-11T16:35:00.000+01:00] — test(admin): T144 contrast-regression assertion for Settings heading/subtitle (Settings.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/pages/Settings.test.tsx` — new top-level `describe('Settings page —
+  heading/subtitle contrast regression (T144, Group D)', ...)` block, appended after the existing
+  `describe('Settings page (T-F6)', ...)` block closes. Adds its own `STYLE_CSS_PATH`/
+  `ADMIN_CSS_PATH` reads and a duplicated `stripLayerWrapper` helper (same per-file-duplication
+  convention as Login.test.tsx/T143 and a11y.test.tsx). A new `renderSettingsInAdminRoot()` helper
+  wraps the existing `setupMocks()`/`AuthProvider`/`AdminGuard`/`Settings` composition in a
+  `.admin-root`-classed div (the existing file-level `renderSettings()` helper does not add this
+  wrapper, and was left untouched to avoid any blast radius on the file's other 17 pre-existing
+  tests). Two assertions, mirroring T143's Login suite exactly: the "Settings" `<h1>`
+  (Settings.tsx:240, no Tailwind color utility) resolves the literal `'var(--foreground)'` string;
+  the subtitle `<p>` (Settings.tsx:241, carries an explicit `text-muted-foreground` utility class —
+  confirmed by re-reading the source, correcting an initial mistaken assumption it had none) keeps
+  that class name and no longer resolves the literal `'var(--brand-slate)'` string.
+
+### Notes
+
+- **Self-caught error during authoring**: the first draft of this suite's header comment (and its
+  single combined test) incorrectly assumed the subtitle `<p>` carried no Tailwind color utility
+  class (by analogy with the `<h1>`), and asserted `getComputedStyle(subtitle).color).toBe('var(--
+  foreground)')` directly. Re-reading Settings.tsx:241 before running anything caught the mistake:
+  it carries `text-sm text-muted-foreground`, the same situation as Login.tsx's own subtitle
+  (T143) — asserting a positive `--foreground` resolution would have been jsdom-environment-true
+  (nothing in the unwrapped injection technique competes with admin.css's base-layer default there)
+  but real-browser-false (a correctly-layered browser resolves `text-muted-foreground` via the
+  `utilities` layer, per T142's fix), i.e. exactly the misleading-result risk already documented in
+  T143's own suite header. Fixed before running any test: split into two `it` blocks matching
+  T143's pattern (positive check for the heading, class-name-pin + negative-leak-check for the
+  subtitle) and corrected the header comment accordingly.
+- **Confirmed green**: `pnpm --filter @modular-house/web exec vitest run
+  src/admin/pages/Settings.test.tsx` — 19/19 passing (17 pre-existing + 2 new). Full regression:
+  `pnpm --filter @modular-house/web exec vitest run` — 492/492 passing across all 55 suites.
+- Lint (`eslint`) and typecheck (`tsc --noEmit -p apps/web`) both exit clean on the touched file.
+- No other file touched; `git status --porcelain` shows only `Settings.test.tsx` modified.
+
+## [2026-08-11T16:20:00.000+01:00] — test(admin): T143 contrast-regression assertion for Login heading/subtitle (Login.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/pages/Login.test.tsx` (new) — mirrors a11y.test.tsx's T138/T140
+  real-stylesheet-injection technique (own `STYLE_CSS_PATH`/`ADMIN_CSS_PATH` reads and a duplicated
+  `stripLayerWrapper` helper, consistent with this codebase's existing per-file-duplication
+  convention for CSS-source test helpers — e.g. select.test.tsx/dialog.test.tsx each define their
+  own `TOKENS_CSS_PATH` rather than importing a shared module). Renders the real `Login` component
+  inside a `.admin-root`-classed `MemoryRouter` wrapper (mirroring a11y.test.tsx's own `renderLogin`
+  helper) with `.dark` set on `document.documentElement`. Two assertions: the "Login" `<h1>`
+  (no Tailwind color utility) resolves the literal `'var(--foreground)'` string via
+  `getComputedStyle`; the "Welcome back..." `<p>` (carries an explicit `text-muted-foreground`
+  utility class) keeps that class name and no longer resolves the literal `'var(--brand-slate)'`
+  string.
+
+### Notes
+
+- **Why the subtitle assertion doesn't positively resolve `--muted-foreground`**: proving that would
+  require injecting Tailwind's actual JIT-compiled `.text-muted-foreground` utility rule. The
+  unwrapped-injection technique (`stripLayerWrapper`) needed to work around jsdom's `@layer`
+  parsing gap (T141's entry above) also erases the real cascade-layer priority a live browser
+  applies — specifically the `utilities`-beats-`base` guarantee T142's `@layer theme, base,
+  utilities;` pre-declaration establishes. A synthetic jsdom re-creation of that priority (e.g.
+  hand-injecting a stand-in `.text-muted-foreground` rule alongside the unwrapped admin.css body)
+  would compare purely on specificity with no layers at all, which is not equivalent to the real,
+  correctly-layered outcome and would risk asserting a misleading result rather than a true one.
+  The subtitle assertion instead checks what this suite CAN prove honestly: the Tailwind mechanism
+  is still wired (class name present) and the old unlayered leak (T139's fix target) no longer
+  reaches it — full instructions and rationale documented in the test file's own header comment.
+- **Confirmed green against the post-T141 codebase**: `pnpm --filter @modular-house/web exec vitest
+  run src/admin/pages/Login.test.tsx` — 2/2 passing. Not independently re-run against a pre-T139
+  checkout this session (unlike T134/T136's own git-stash reproduction precedent) — the identical
+  injection technique was already empirically proven to fail pre-fix by T138/T140's own suites
+  (a11y.test.tsx), and this test exercises the same two source files (style.css, admin.css) via the
+  same mechanism, so "would have failed before T139/T141" follows by the same construction, per the
+  task's own Done-when phrasing ("was failing/would have failed").
+- Lint (`eslint`) and typecheck (`tsc --noEmit -p apps/web`) both exit clean on the new file.
+- No other file touched; `git status --porcelain` shows only `Login.test.tsx` added.
+
+## [2026-08-11T16:05:00.000+01:00] — fix(admin): T142 remove redundant Analytics.tsx inline color overrides; fix admin.css cascade-layer priority bug found while verifying (Analytics.tsx, admin.css)
+
+### Changed
+
+- `apps/web/src/admin/pages/Analytics.tsx` — removed the `style={{ color: 'var(--foreground)' }}` /
+  `style={{ color: 'var(--muted-foreground)' }}` inline overrides on the page heading and subtitle,
+  and the now-stale explanatory comment block describing the T127-era workaround. The `<h1>`/`<p>`
+  now rely purely on their existing Tailwind classes (`text-3xl tracking-tight` /
+  `text-muted-foreground text-sm`) and admin.css's own cascade (T139/T141), matching every other
+  admin page.
+- `apps/web/src/admin/theme/admin.css` — added a leading `@layer theme, base, utilities;`
+  pre-declaration statement, before the existing `@import` lines (see Notes for why).
+
+### Notes
+
+- **Genuine bug found while verifying T142's own `Done when:` clause ("visual output is
+  unchanged")**: Analytics.tsx's `<h1>` carries no Tailwind text-color utility (only `text-3xl
+  tracking-tight`), so it is unaffected by anything below and was safe by construction. Its `<p>`,
+  however, DOES carry an explicit `text-muted-foreground` utility class — its removed inline style
+  had hardcoded `var(--muted-foreground)`, matching that class's intent. Whether the `<p>` still
+  renders `--muted-foreground` after removing the inline override depends entirely on which rule
+  wins the cascade: T141's new `.admin-root ... p { color: var(--foreground); }` (inside
+  admin.css's own `@layer base { ... }` block) or Tailwind's compiled `.text-muted-foreground {
+  color: var(--muted-foreground); }` (inside the `utilities` layer admin.css imports).
+- **Root cause**: CSS Cascade Layers priority is determined by the order each layer NAME is first
+  introduced anywhere in the stylesheet — not by where a layer's rule bodies are later declared.
+  admin.css imports `tailwindcss/theme` and `tailwindcss/utilities` directly (preflight is
+  deliberately excluded, per the file's own header comment) rather than the bundled
+  `tailwindcss/index.css`, which normally pre-declares `@layer theme, base, components, utilities;`
+  up front specifically to fix this ordering (confirmed by reading the installed
+  `tailwindcss@4.3.1` package's `index.css:1` directly). Without that pre-declaration, admin.css's
+  own hand-written `@layer base { ... }` block — never previously used elsewhere in the file for a
+  `color` property, so this was latent and harmless until T141 — becomes the LAST of the three
+  layer names to be introduced (textually after both imports), giving it the HIGHEST priority of
+  the three. That inverts Tailwind's normal guarantee that a utility class always wins over a base
+  reset: T141's new `.admin-root p` rule (base layer, now-highest-priority) would beat
+  `.text-muted-foreground` (utilities layer) for every existing `<p className="text-*-foreground">`
+  admin-wide, not just Analytics.tsx's — a real, live-browser-only visual regression invisible to
+  the whole automated suite, since Vitest's `css: false` default means no test in this repository
+  exercises Tailwind's actually-compiled utility CSS except the hand-injected `<style>` technique
+  T138 introduced (and that technique cannot observe this specific bug either, since jsdom cannot
+  parse `@layer` at all — see below).
+- **Fix**: added `@layer theme, base, utilities;` as a bare statement (no braces) before admin.css's
+  `@import` lines — the CSS spec's sole exception to "`@import` must be first" — matching Tailwind's
+  own bundled convention exactly. This pins layer priority up front regardless of where each
+  layer's rule bodies are later declared, restoring `utilities > base` (Tailwind's normal
+  guarantee) without changing any rule body.
+- **Verification method**: jsdom cannot parse `@layer` (see T141's own entry above), so this fix
+  could not be exercised through the existing Vitest suite. Instead ran a real production build
+  (`npx vite build --outDir dist/client-t141-check`, output directory deleted afterward, gitignored
+  in any case) and inspected the compiled, bundled CSS directly: `@layer theme,base,utilities;`
+  appears at one point in the file, before both the `@layer base{` block and the `@layer
+  utilities{` block that follow it later in byte order — confirming the pre-declaration correctly
+  fixes priority independent of block position, exactly as the CSS spec requires. Confirmed exactly
+  one occurrence each of the pre-declaration, the `base{` block, and the `utilities{` block (no
+  duplicate/conflicting declarations from elsewhere in the bundle). Also confirmed both competing
+  rules are present in the compiled output in their expected layers: `.admin-root
+  h1,...,p{color:var(--foreground)}` inside the `base` block, `.text-muted-foreground{color:
+  var(--muted-foreground)}` inside the `utilities` block. This is static verification of the
+  compiled cascade structure, not a live `getComputedStyle` read in a real browser (CSS Cascade
+  Layers is a well-specified, deterministic mechanism with no known cross-engine inconsistency for
+  this basic case, so this is treated as sufficient) — a live-browser visual confirmation remains an
+  outstanding human-verification item, flagged in this session's handoff, consistent with this
+  branch's existing pattern for similar caveats (T133/T135/T137).
+- **Self-inflicted test-authoring pitfall, caught and fixed in the same pass**: the first version of
+  the new admin.css comment explaining the fix (see above) used the literal phrase "`@layer base {
+  ... }` block below" in its prose — which collided with T140's `stripLayerWrapper` helper's naive
+  `indexOf('@layer base')` search, causing it to match the comment text instead of the real code
+  block 900+ characters later, extracting an empty/near-empty body and silently regressing T140 back
+  to red. Caught immediately by rerunning the full suite after this task's admin.css edit (a
+  deliberate step precisely because admin.css was touched again after T141 already closed) — fixed
+  by rewording the comment to avoid the exact contiguous substring "@layer base", not by changing
+  `stripLayerWrapper` itself (confirmed via `grep -n "@layer base" admin.css` that exactly one
+  genuine occurrence — the real code block — remains). Full suite reconfirmed 488/488 green
+  afterward.
+- **Regression checks**: `pnpm --filter @modular-house/web exec vitest run
+  src/admin/pages/Analytics.test.tsx` — 9/9 passing (no test asserted on the removed inline
+  `style` attribute directly). `pnpm --filter @modular-house/web exec vitest run` — 488/488 passing
+  across all 54 suites, both before and after the admin.css layer-order fix. Lint (`eslint`) and
+  typecheck (`tsc --noEmit -p apps/web`) both exit clean on both touched files.
+- **Commit-block note**: admin.css's cumulative diff (T141's original color-default rules plus this
+  task's layer-order pre-declaration) is captured entirely by T141's own still-pending commit block
+  (run order: T141 precedes T142) — no separate T142 block is emitted for admin.css, to avoid an
+  empty/failing "nothing to commit" block when the human runs the blocks in order. See this
+  session's handoff for the touched-file/block-count reconciliation.
+
+## [2026-08-11T15:40:00.000+01:00] — fix(admin): T141 admin-scoped base-layer defaults for bare heading/paragraph/link tags (admin.css, a11y.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/theme/admin.css` — inside the existing `@layer base { ... }` block, two new
+  rules: `.admin-root h1, .admin-root h2, ..., .admin-root h6, .admin-root p { color:
+  var(--foreground); }` and `.admin-root a { color: var(--primary); }`, placed directly after the
+  existing heading font-size/weight normalisation rule. A doc comment above explains the Group D
+  rationale (why the default is needed once T139 excludes style.css's competing rules) and points
+  at T142 as the follow-up that removes the now-redundant Analytics.tsx inline-style workaround.
+
+### Changed
+
+- `apps/web/src/admin/shell/a11y.test.tsx` — added a `stripLayerWrapper(css, layerName)` helper
+  (module scope, inside the T140 describe block's header comment) and switched the T140 suite's
+  admin.css injection to use it instead of injecting the raw file text.
+
+### Notes
+
+- **Deviation, disclosed**: confirming T141 actually turns T140 green required fixing a genuine
+  defect in T140's OWN test, not just adding the admin.css rule. Root cause, verified directly by
+  isolated probe (three throwaway scratch tests, deleted before this commit — never part of the
+  diff): this project's pinned jsdom (25.0.1) cannot parse the CSS Cascade Layers `@layer` at-rule
+  at all. Injecting a `<style>` element whose text contains an `@layer` block causes jsdom to
+  silently discard the *entire* stylesheet (verified by isolating `@layer` from `@import`/
+  `@custom-variant`, both of which parse fine alone) — so admin.css's own rules, all living inside
+  a single `@layer base { ... }` block, never took effect via `getComputedStyle` regardless of
+  whether T141's fix was present or correct. `stripLayerWrapper` extracts and injects only the
+  block's inner rule text, unwrapped — equivalent for cascade-order purposes in this suite, since a
+  real browser always gives an unlayered rule higher priority than a layered one (so unwrapping can
+  only make a rule apply where the correctly-layered original would also have applied), and no
+  other unlayered admin.css rule competes with it in the same injected stylesheet. T140 itself
+  remains checked and its own note unchanged — its `Done when:` ("test fails today") was genuinely
+  true at the time it was authored and closed; this fix was necessary work discovered while
+  completing T141, not a retroactive correction of a wrong T140 verdict.
+- **T140 confirmed green**: `pnpm --filter @modular-house/web exec vitest run
+  src/admin/shell/a11y.test.tsx` — 29/29 passing (previously 1 red). Bare `h1`/`p` inside
+  `.admin-root` now resolve the literal `'var(--foreground)'` string, and bare `a` resolves
+  `'var(--primary)'`, via the real (unwrapped) admin.css rule text matching in jsdom's cascade.
+- **Full regression check**: `pnpm --filter @modular-house/web exec vitest run` — 488/488 passing
+  across all 54 suites — no existing admin or public-site test regressed.
+- Lint (`eslint`) and typecheck (`tsc --noEmit -p apps/web`) both exit clean on both touched files.
+
+## [2026-08-11T15:20:00.000+01:00] — test(admin): T140 failing test — bare admin tags must resolve admin tokens by default (a11y.test.tsx)
+
+### Added
+
+- `apps/web/src/admin/shell/a11y.test.tsx` — new `describe('Bare-tag admin token defaults (T140,
+  Group D)', ...)` block, immediately after the T138 block. Injects both `styleCss` (module-scope
+  constant, already read for T138) and `adminCss` (module-scope constant, already read for T036f)
+  into `document.head` via two `<style>` elements in `beforeEach`, both removed in `afterEach`
+  alongside the test's own container — the same real-cascade injection technique as T138, now
+  exercising both files' shipped rule text together. Renders a bare `<h1>`/`<p>`/`<a>` inside a
+  `div.admin-root` and asserts `getComputedStyle(...).color` equals the literal
+  `'var(--foreground)'` string for `h1`/`p` and `'var(--primary)'` for `a` — the positive
+  counterpart to T138's negative ("does not resolve brand colors") assertion.
+
+### Notes
+
+- **Confirmed red for a genuine reason, not the one originally anticipated**: expected the bare
+  `h1` to fall back to jsdom's UA-default `color` (`"canvastext"`, observed during T138's own
+  probe) in the absence of any matching admin.css rule. The actual failure is more instructive:
+  `getComputedStyle(h1).color` resolves to `'var(--brand-ink)'`, not the UA default — `color` is
+  an inherited CSS property, and `style.css`'s unlayered, unscoped `body { color: var(--brand-ink);
+  ... }` rule (style.css:354-358, untouched by T139 — only the `h1..h6`/`p`/`a`/`a:hover` rules were
+  scoped) still applies to `document.body`, the container's ancestor. With no admin.css rule yet to
+  win the cascade, the bare `h1` inherits that value transitively. This is arguably a *better*
+  regression signal than the originally-anticipated UA-default fallback: it demonstrates the bare
+  heading is not merely uncoloured but actively inheriting the wrong brand token until T141 adds a
+  directly-matching (and therefore inheritance-overriding) rule. No change was needed to the test
+  to produce a valid red — the assertion `toBe('var(--foreground)')` already fails correctly
+  against `'var(--brand-ink)'`.
+- Test run: `pnpm --filter @modular-house/web exec vitest run src/admin/shell/a11y.test.tsx` —
+  28 pre-existing pass, the new test fails with
+  `AssertionError: expected 'var(--brand-ink)' to be 'var(--foreground)'` at the `h1` assertion.
+- Lint (`eslint`) and typecheck (`tsc --noEmit -p apps/web`) both exit clean on the touched file.
+- No other file touched; `git status --porcelain` shows only `a11y.test.tsx` modified relative to
+  the T139 commit.
+
+## [2026-08-11T15:05:00.000+01:00] — fix(admin): T139 scope style.css's bare-tag brand rules away from .admin-root (style.css)
+
+### Changed
+
+- `apps/web/src/styles/style.css` — the `h1, h2, h3, h4, h5, h6`, `p`, `a`, and `a:hover`
+  element-selector rules (lines 365-405, Group D root cause) each gained a
+  `:not(.admin-root, .admin-root *)` exclusion (CSS Selectors Level 4 `:not()`-with-a-selector-list
+  form), so none of them match an element that either carries the `.admin-root` class itself or
+  descends from one. Only the selector lists changed — every declaration body (`color`,
+  `font-family`, `margin`, `letter-spacing`, `line-height`, `transition`, etc.) is untouched, and
+  the per-tag `font-size` rules (lines 375-380, no `color` declared) were left alone since they
+  carry no brand-color leak. A one-line doc comment was added above each of the three rule blocks
+  explaining the exclusion and pointing at `admin.css` (T141) as the new source of truth for bare
+  admin-panel tag color.
+
+### Notes
+
+- **T138 "no longer resolves brand colors" half confirmed green**: `pnpm --filter
+  @modular-house/web exec vitest run src/admin/shell/a11y.test.tsx` — 28/28 passing (previously 1
+  red before this task; the bare `h1`/`p`/`a` inside `.admin-root` now compute to jsdom's UA
+  default `color` value instead of the literal unresolved `var(--brand-title|--brand-slate|
+  --brand-link)` string, since the injected style.css text no longer contains a matching rule for
+  them — see a11y.test.tsx's T138 suite header for why this jsdom-specific signal is meaningful).
+- **Full public-site regression check**: `pnpm --filter @modular-house/web exec vitest run` — 487/487
+  passing across all 54 suites (SEO, marketing pages, ProductConfigurator, garden-room/house-extension
+  data, sitemap, admin auth/session/theme/UI-primitive suites). No public page's heading, paragraph,
+  or link color changed — `:not(.admin-root, .admin-root *)` only removes matches for elements
+  inside an `.admin-root`-classed subtree, which no public page renders.
+- No admin-panel visual fix yet from this task alone — `.admin-root` elements now fall through to
+  *no* color rule at all (browser default `color: canvastext`/inherited black) until T141 supplies
+  the new admin-scoped base-layer default. This is expected and matches T139's own `Done when:`
+  (only "T138's *first* half," i.e. non-resolution, is required to be green here).
+- Lint: no CSS linter configured in this repo (`eslint style.css` reports "file ignored," no
+  `stylelint` config present) — nothing to run beyond the full test-suite regression check above.
+  No TypeScript files touched, so `tsc --noEmit` is unaffected.
+
 ## [2026-08-11T14:10:00.000+01:00] — test(admin): T138 failing test — style.css brand colors leak into .admin-root (a11y.test.tsx)
 
 ### Added

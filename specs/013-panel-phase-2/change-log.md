@@ -1,6 +1,32 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T09:30:00.000+01:00] — fix(specs): T130-T132 review corrections (tasks.md, change-log.md)
+
+### Changed
+
+- `specs/013-panel-phase-2/tasks.md` — three `> note: review-nit fix` lines added, each below its
+  existing `> reviewed:` line, per review-log.md's 2026-08-10 "T130-T133" entry: T130, T131, and
+  T132 were each flagged PASS-WITH-NITS because their own `> note:` line claimed
+  `deviations: none` while both this file's 2026-08-10T14:10 entry (below) and each test file's own
+  header comment already document a real, justified deviation from T130's literal "read its
+  computed background-color" wording — the three suites instead resolve `tokens.css`'s cascade via
+  a hand-rolled real-selector resolver, because this project's pinned jsdom (25.0.1) implements no
+  CSS custom-property (`var()`) resolution at all and so cannot distinguish a resolved token from
+  an unresolved one via a literal `getComputedStyle` read (verified directly; see the
+  2026-08-10T14:10 entry below). The new notes correct each `deviations:` field to name the
+  deviating test file and reason, matching what was already disclosed in this file and in the test
+  files themselves — a documentation-completeness gap in `tasks.md` only, not concealment.
+
+### Notes
+
+- No test or source behavior changed by this correction — `select.test.tsx` (10/10 passing),
+  `dialog.test.tsx` (14/14 passing), and `dropdown-menu.test.tsx` (1/1 passing) reran unmodified
+  and green (`pnpm --filter @modular-house/web exec vitest run` on the three files). This is a
+  documentation-accuracy pass responding directly to review-log.md's 2026-08-10 findings; per the
+  session's review instructions, `review-log.md` itself is not modified, and every new `tasks.md`
+  note is appended strictly below its task's existing `> reviewed:` line, never replacing it.
+
 ## [2026-08-10T14:10:00.000+01:00] — fix(admin): T130-T133 portal-background token-scope regression (Group A)
 
 ### Notes

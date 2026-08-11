@@ -1,6 +1,35 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T11:35:00.000+01:00] — test(admin): T136 failing tick-density test for TrafficChart (TrafficChart.test.tsx)
+
+### Notes
+
+- **Root cause (review-log-driven, Group C)**: `TrafficChart.tsx`'s `XAxis` (T023) is configured
+  with `interval={0}`, which tells recharts to render a tick for every data point with no
+  skipping. For the default 3-month range (day buckets, ~91 entries for the spec's 15 Apr - 15 Jul
+  span), every bucket gets its own tick label — the labels overlap into an unreadable smear at
+  typical card widths.
+- **Why a new fixture, not `overviewPopulated`**: the existing `overviewPopulated` fixture's
+  `range` metadata declares the same 3-month span, but its `timeseries` array ships only 7
+  representative day buckets (kept short for the pre-existing suite's own formatting assertions),
+  so it never actually exercises the density bug. T136's `Files:` scopes this task to
+  `TrafficChart.test.tsx` only, so a full-density ~91-bucket fixture was built locally inside the
+  test file (a deterministic day-by-day array from a fixed UTC start, synthetic wave values — only
+  the bucket COUNT matters for this regression) rather than editing the shared `fixtures.ts` module
+  and risking its other consumers (KpiStrip/TopPages/TrafficSources/dashboard-composition suites).
+- **T136 (failing test)**: added a new `describe` block asserting the rendered x-axis shows at
+  most 15 tick labels (the task's own "~12-15" allowance) and fewer labels than there are buckets,
+  reusing the suite's existing `renderChart`/`xAxisTickTexts` helpers (T022) unchanged.
+- **Verified red for the right reason**: today the chart renders 92 tick-value elements (recharts
+  emits one tick per data point under `interval={0}`, plus an extra boundary tick — 92, not
+  exactly 91, is expected and immaterial; the assertion only requires a small bound, not an exact
+  count) against the ≤15 assertion: `AssertionError: expected 92 to be less than or equal to 15`,
+  matching the task's literal claim ("every bucket currently gets its own tick label"). All 5
+  pre-existing `TrafficChart.test.tsx` tests remain green (`pnpm --filter @modular-house/web exec
+  vitest run src/admin/analytics/TrafficChart.test.tsx`: 5 passed, 1 failed as expected, 6 total).
+  `eslint` on the touched file and `apps/web` `tsc --noEmit`: both clean.
+
 ## [2026-08-11T11:10:00.000+01:00] — fix(admin): T135 scroll container for AppShell's content region (AppShell.tsx)
 
 ### Notes

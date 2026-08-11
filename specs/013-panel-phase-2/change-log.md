@@ -1,6 +1,47 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T10:35:00.000+01:00] — test(admin): T134 failing scroll-reachability test for AppShell (AppShell.test.tsx)
+
+### Notes
+
+- **Root cause (review-log-driven, Group B)**: `AppShell`'s content region (`<main
+  className="flex flex-1 flex-col">` and every ancestor up to `.admin-root`) carries no
+  `overflow-y` rule and no bounded height. `index.css`'s global public-site reset pins
+  `html, body { overflow: hidden }` (research R8/N1) — the admin route mounts inside the same
+  document and inherits this reset unmodified. Page content taller than the viewport is therefore
+  clipped by the hidden body overflow with no ancestor offering a scrollbar: unreachable by mouse
+  wheel, keyboard (Page Down/End), or touch.
+- **T134 (failing test)**: added a new `describe` block to `AppShell.test.tsx` that renders the
+  shell with a deliberately oversized marker child (`data-testid="tall-content"`, inline
+  `height: 5000px` for human-readable intent) and walks every ancestor between it and `<body>`
+  looking for one that is both `overflow-y: auto`/`scroll` (via rendered `className`, Tailwind's
+  `overflow-y-auto`/`overflow-y-scroll`/`overflow-auto`/`overflow-scroll` utilities) and genuinely
+  clips its content (`scrollHeight > clientHeight`).
+- **jsdom limitation handled the same way as T130-T132**: jsdom performs no real layout —
+  `clientHeight`/`scrollHeight` are 0 on every element by default, and this project's Vite test
+  config aliases every stylesheet (including compiled Tailwind utilities) to an empty stub for
+  unit tests (`vitest.config.ts`'s `@modular-house/ui/style.css` alias), so no live cascade is
+  available to resolve `overflow-y` either. The suite stubs `HTMLElement.prototype.clientHeight`/
+  `scrollHeight` (installed in the new describe block's own `beforeAll`, restored in its
+  `afterAll` so the stub cannot leak into the file's 18 pre-existing tests) to model the two
+  things a real bounded scroll container needs: any ancestor whose rendered `className` matches
+  the overflow-y utility regex is treated as height-bounded (`clientHeight` pinned to a fixed
+  constant, 400); every other ancestor is treated as unbounded and grows to fit its content
+  (`clientHeight === scrollHeight`, i.e. no overflow — matching real `overflow: visible` box
+  behaviour). `scrollHeight` is pinned to 5000 for every ancestor that structurally contains the
+  oversized marker, modelling content genuinely taller than the container. The model does not
+  assume which ancestor T135's fix touches — it holds for `<main>`, its flex wrapper, or
+  `.admin-root` alike.
+- **Verified red for the right reason**: today no ancestor's `className` matches the overflow-y
+  regex, so every ancestor falls into the "unbounded, grows to fit" branch and reports
+  `clientHeight === scrollHeight` (5000 === 5000) — the walk finds no container and the new test's
+  `expect(scrollContainer).not.toBeNull()` fails with `expected null not to be null`, matching the
+  task's literal claim ("every ancestor... compute overflow-y: visible"). All 18 pre-existing
+  `AppShell.test.tsx` tests remain green (`pnpm --filter @modular-house/web exec vitest run
+  src/admin/shell/AppShell.test.tsx`: 18 passed, 1 failed as expected, 19 total). `eslint` on the
+  touched file and `apps/web` `tsc --noEmit`: both clean.
+
 ## [2026-08-11T09:55:00.000+01:00] — fix(analytics): CI-only beacon transport-URL test failure (beacon.ts, beacon.test.ts)
 
 ### Corrective session

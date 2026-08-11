@@ -1783,7 +1783,8 @@ consumers without touching any of the three component files.
       Done when: test fails today (every bucket currently gets its own tick label).
       Refs: FR-022, FR-029
 
-- [ ] T137 Add tick-interval control to TrafficChart's x-axis
+- [x] T137 Add tick-interval control to TrafficChart's x-axis
+> note: explicit ticks subset (max 12, mirrors template weeklyTicks); hour buckets unchanged; tests: T136 green, 6 total; deviations: human real-browser confirm outstanding
       Files: apps/web/src/admin/analytics/TrafficChart.tsx
       Do: Configure the x-axis (recharts `interval`/`tickFormatter`, via the ported `chart.tsx`
       wrapper only — rule 9) to render a legible, evenly-spaced subset of ticks for day-bucket

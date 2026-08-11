@@ -1,6 +1,50 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-11T12:05:00.000+01:00] — fix(admin): T137 tick-interval control for TrafficChart's x-axis (TrafficChart.tsx)
+
+### Notes
+
+- **Template research**: read the reference template's own `traffic-quality.tsx`
+  (`next_shadcn_admin_dashboard/src/app/(main)/dashboard/analytics/_components/traffic-quality.tsx`,
+  the file `TrafficChart.tsx`'s own docstring names as its T023 source). Its `XAxis` keeps
+  `interval={0}` but ALSO passes an explicit `ticks={weeklyTicks}` array (`[4, 11, 18, 25]`, only
+  4 of its ~93 data points) plus a `tickFormatter` that maps each pinned value back to a "Week N"
+  label — the explicit `ticks` array, not a computed skip-interval, is what actually caps the
+  rendered label count; `interval={0}` there means "show every one of the explicitly pinned
+  ticks," not "show every data point."
+- **Adaptation for a category axis**: the template's chart uses `type="number"` with a synthetic
+  `dayIndex` field and an arbitrary `domain`, so it can invent tick positions (`4`, `11`, ...) that
+  never correspond to a real data point. This project's chart keeps `dataKey="bucketStart"` (the
+  real ISO bucket-start string, `type` defaults to `category`), so the explicit `ticks` array must
+  reference values that actually exist in the series — added `computeDayTickSubset(timeseries)`,
+  which picks `MAX_DAY_TICKS` (12) evenly-spaced indices across the series (always including both
+  endpoints) and returns their real `bucketStart` values, falling through to "every bucket" when
+  the series already fits within the cap (so short day-bucket fixtures/ranges are unaffected).
+- **Hour buckets untouched (Done-when's explicit requirement)**: `dayTicks` is computed only when
+  `range.bucket === 'day'`; for hour-bucket series it is `undefined`, which leaves XAxis's default
+  category-axis tick derivation exactly as before (`interval={0}`, no explicit `ticks` override) —
+  the 2-day hour view's "already few enough buckets" behaviour is unchanged, not merely visually
+  similar.
+- **T136 verified green**: `pnpm --filter @modular-house/web exec vitest run
+  src/admin/analytics/TrafficChart.test.tsx` — 6/6 passing (5 pre-existing + T136, previously 1
+  red: the ~91-bucket day fixture now resolves 12 ticks via `computeDayTickSubset`, well within
+  the ≤15 bound). Full web suite: `pnpm --filter @modular-house/web test:run` — 54/54 files,
+  486/486 tests, no regressions (the pre-existing day/hour label-format assertions against
+  `overviewPopulated`'s 7-bucket fixture and `overviewHourly` both still pass unmodified, since 7
+  buckets sits under the 12-bucket cap and hour buckets bypass the cap entirely). `eslint` on the
+  touched file and `apps/web` `tsc --noEmit`: both clean.
+- **Outstanding (T137's own Done-when, not yet satisfied)**: "a human confirms the default
+  3-month view's x-axis is legible in both themes, and that the 2-day hour-bucket view... is
+  unchanged." Not performed this session — reaching the live Analytics dashboard requires
+  authenticated admin login, and the local dev server's seeded admin account still does not match
+  the credentials recorded in `apps/web/.env` (same blocker first hit and disclosed at T135,
+  change-log 2026-08-11T11:10). No new credentials were available, so no further attempt was made.
+  The automated portion of the Done-when (T136 green) is independently verified above; the
+  tick-subset logic was cross-checked by hand against the ~91-bucket case (see the template
+  research note above and the 12-index walkthrough in this session), not merely assumed correct
+  because the assertion passed.
+
 ## [2026-08-11T11:35:00.000+01:00] — test(admin): T136 failing tick-density test for TrafficChart (TrafficChart.test.tsx)
 
 ### Notes

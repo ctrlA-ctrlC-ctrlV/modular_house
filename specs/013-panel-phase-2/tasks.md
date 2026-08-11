@@ -1774,7 +1774,8 @@ consumers without touching any of the three component files.
 
 ### Group C — Traffic Over Time chart x-axis is an unreadable label smear at wide ranges
 
-- [ ] T136 Write failing tick-density test for TrafficChart
+- [x] T136 Write failing tick-density test for TrafficChart
+> note: local 91-bucket day fixture (interval={0} renders 92 ticks, wants <=15); tests: 1 red, 5 pre-existing green; deviations: none
       Files: apps/web/src/admin/analytics/TrafficChart.test.tsx
       Do: Render TrafficChart against a day-bucket fixture spanning the default 3-month range
       (~90 buckets) and assert the rendered x-axis shows a bounded number of tick labels (e.g. at

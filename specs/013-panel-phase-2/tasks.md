@@ -1761,7 +1761,8 @@ consumers without touching any of the three component files.
       public site's global `index.css` reset).
       Refs: FR-022, US3-13
 
-- [ ] T135 Add a scroll container to AppShell's content region
+- [x] T135 Add a scroll container to AppShell's content region
+> note: h-svh bounds shell column, main gets overflow-y-auto (flex auto-min-size=0); tests: T134 green, 19 total; deviations: AppShell.tsx — human real-browser confirm outstanding
       Files: apps/web/src/admin/shell/AppShell.tsx
       Do: Give the `<main className="flex flex-1 flex-col">` region (or a wrapping element) its
       own `overflow-y-auto` and a bounded height so it becomes the scroll container for admin page

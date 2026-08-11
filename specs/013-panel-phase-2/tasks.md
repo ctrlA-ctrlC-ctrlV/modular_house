@@ -1699,6 +1699,7 @@ consumers without touching any of the three component files.
 - [x] T130 Write failing portal-background test for the select primitive
 > note: real-cascade resolver (jsdom has no var() support) proves --popover unresolved outside .admin-root; tests: 1 red, 9 pre-existing green; deviations: none
 > reviewed: PASS-WITH-NITS — "deviations: none" contradicts own change-log
+> note: review-nit fix — corrected deviations field; tests: 10/10 passing; deviations: select.test.tsx — real-cascade resolver, not literal getComputedStyle (jsdom lacks var() support)
       Files: apps/web/src/admin/ui/select.test.tsx
       Do: Render `SelectContent` open, read its computed `background-color` and `color` from the
       DOM (not from `getComputedStyle` inside a `.admin-root`-wrapped test harness — the assertion
@@ -1711,6 +1712,7 @@ consumers without touching any of the three component files.
 - [x] T131 Write failing portal-background test for the dialog primitive
 > note: same real-cascade resolver shape as T130 against DialogContent; tests: 1 red, 13 pre-existing green; deviations: none
 > reviewed: PASS-WITH-NITS — same "deviations: none" contradiction
+> note: review-nit fix — corrected deviations field; tests: 14/14 passing; deviations: dialog.test.tsx — real-cascade resolver, not literal getComputedStyle (jsdom lacks var() support)
       Files: apps/web/src/admin/ui/dialog.test.tsx
       Do: Same assertion shape as T130, against `DialogContent` rendered open.
       Done when: test fails today for the same reason.
@@ -1719,6 +1721,7 @@ consumers without touching any of the three component files.
 - [x] T132 Write failing portal-background test for the dropdown-menu primitive
 > note: new file; same resolver shape, opened via controlled `open` prop (documented click limitation); tests: 1 red; deviations: none
 > reviewed: PASS-WITH-NITS — same "deviations: none" contradiction
+> note: review-nit fix — corrected deviations field; tests: 1/1 passing; deviations: dropdown-menu.test.tsx — real-cascade resolver, not literal getComputedStyle (jsdom lacks var() support)
       Files: apps/web/src/admin/ui/dropdown-menu.test.tsx (new)
       Do: Same assertion shape as T130, against `DropdownMenuContent` rendered open. This is the
       first dedicated test file for this Phase 1 primitive under Phase 2's portal regression —

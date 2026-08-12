@@ -6,8 +6,8 @@
         "http://localhost/index.html",
         "http://localhost/about/index.html",
         "http://localhost/contact/index.html",
-        "http://localhost/garden-room/index.html",
-        "http://localhost/house-extension/index.html"
+        "http://localhost/garden-rooms/index.html",
+        "http://localhost/house-extensions/index.html"
       ],
       "numberOfRuns": 1
     },

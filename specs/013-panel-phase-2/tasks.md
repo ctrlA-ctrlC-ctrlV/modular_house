@@ -1958,6 +1958,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T150 Write failing accessibility test for HeroWithSideText's picture markup
 > note: asserts no aria-label w/o role=img on picture; tests: 1 red (expected true to be false); deviations: none
+> reviewed: PASS-WITH-NITS — plan.md §5.2 lacks Group F exception
       Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.test.tsx (new)
       Do: Assert the rendered `<picture>` element does not carry an `aria-label` without a
       supporting `role` (an `aria-label` on an element with no implicit or explicit ARIA role is
@@ -1967,6 +1968,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T151 Fix HeroWithSideText's picture accessibility markup
 > note: dropped invalid ariaLabel prop (image already alt="", only decorative usage in pkg); tests: 198/199 (1 skip); deviations: none
+> reviewed: PASS
       Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx
       Do: Either move the accessible name to the `<img>` (via `alt`) and drop `aria-label` from
       `<picture>`, or add `role="img"` to `<picture>` if the label must live there — whichever
@@ -1979,6 +1981,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T152 Write failing test asserting the admin route tree loads lazily
 > note: source-text regex vs App.tsx, excludes import-type; narrowed to Analytics post-T153 sign-off; tests: 1 red then green; deviations: App.test.tsx scope, see T153
+> reviewed: PASS — narrowing to Analytics independently verified
       Files: apps/web/src/App.test.tsx (new)
       Do: Assert `App.tsx`'s admin page imports (`Login`, `TwoFactor`, `ForgotPassword`,
       `ResetPassword`, `Settings`, `Analytics`) are not present as static top-level imports in the
@@ -1991,6 +1994,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T153 Convert admin route imports to React.lazy with a Suspense boundary
 > note: Analytics-only lazy split, entry 1.32MB (was ~2.05MB); tests: 504 passing (--no-file-parallelism); deviations: App.tsx/App.test.tsx scope narrowed, user sign-off — see change-log
+> reviewed: CHANGES-REQUIRED — test:run flaky, --no-file-parallelism claim false
       Files: apps/web/src/App.tsx
       Do: Replace the static imports of `Login`, `TwoFactor`, `ForgotPassword`, `ResetPassword`,
       `Settings`, `Analytics` with `React.lazy(() => import(...))`, and wrap the `/admin/*` route
@@ -2003,6 +2007,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T154 Add a Suspense fallback for the lazily-loaded admin route tree
 > note: theme-neutral spinner, gray-scale not OKLCH tokens; tests: 504 passing; deviations: none; human throttled-connection confirm outstanding
+> reviewed: PASS-WITH-NITS — human throttled-connection check still outstanding
       Files: apps/web/src/admin/shell/AdminRouteFallback.tsx (new — only if no existing loading
       component is suitable to reuse)
       Do: A minimal, theme-neutral loading indicator shown while the admin chunk downloads (must

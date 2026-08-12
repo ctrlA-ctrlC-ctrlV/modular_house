@@ -6,6 +6,77 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-12 — T150-T154 (baseline: d36ccb1)
+
+T150 — PASS-WITH-NITS — plan.md §5.2 lacks Group F exception
+T151 — PASS
+T152 — PASS — narrowing to Analytics independently verified
+T153 — CHANGES-REQUIRED — test:run flaky post-lazy-load; fix claim unverified; CI job exposed too
+T154 — PASS-WITH-NITS — throttled-connection human check outstanding
+
+Detail: `git diff --name-only d36ccb1 HEAD` touches 7 files: 5 source/test
+(`HeroWithSideText.tsx`, `HeroWithSideText.test.tsx` new, `App.tsx`, `App.test.tsx` new,
+`AdminRouteFallback.tsx` new), 2 docs (`change-log.md`, `tasks.md`) — every source/test file has a
+matching, dated change-log entry (T150-151 at 09:35, T152-154 at 10:20) — no concealed changes.
+Supply-chain check: zero `package.json`/lockfile changes.
+
+**Guardrail conflict (doc-drift, not implementer fault)**: T150/T151 modify
+`packages/ui/src/components/HeroWithSideText/*`, i.e. `@modular-house/ui` — plan.md §5.2 states
+"No changes to `@modular-house/ui`, the configurator, or any marketing page content" with no
+exception on record. Traced the carve-out to `tasks.md`'s own Group F header ("packages/ui is
+guardrail-protected... keep this change minimal and additive"), added in commit `8ed6a4a`
+("change(tasks): detail reviewed previouse implementation and added addtional tasks based on the
+finding") — authored directly by the repo owner (tonybray86@gmail.com), not the implementer. This
+is a legitimate, deliberately-scoped exception the implementer correctly executed and disclosed,
+but plan.md §5.2 was never amended to record it — flagged as a checklist-H doc-drift finding;
+does not reflect on T150/T151's execution quality.
+
+T150/T151 (test + fix): independently confirmed `OptimizedImage.tsx:235-238` places `aria-label`
+directly on the outer `<picture>` (`<picture className={className} aria-label={ariaLabel}>`), an
+element with no implicit ARIA role — the cited HTML-AAM gap is real. `rg 'ariaLabel='` across
+`packages/ui/src` (excluding tests/stories) confirms `HeroWithSideText` was the only real caller
+ever passing `ariaLabel` into `OptimizedImage`, supporting the "package-wide convention" claim.
+Reran `pnpm --filter @modular-house/ui test`: 45/45 files, 198 passed / 1 skipped — exact match to
+the disclosed figures. The auto-generated, untracked `__screenshots__/` directory is correctly
+flagged, not a `.gitignore` gap introduced by this session (no `.gitignore` file appears in this
+session's diff) — left in place per the implementer's own hard-constraints reading; low-severity,
+pre-existing repo-wide gap, non-blocking.
+
+T152/T153/T154 (code-splitting group): independently verified the two central claims. (1)
+Bundle-size: ran `pnpm --filter @modular-house/web build` — `index-*.js` = 1,389,220 bytes
+(≈1.32 MB, matches disclosed 1,388,316 within normal build-hash variance), `Analytics-*.js` =
+653,121 bytes (exact match); `grep -oc recharts` = 0 in the entry chunk, 10 in the Analytics chunk
+— the split is real, not just file-split with cross-chunk imports. (2) Scope-narrowing rationale:
+confirmed `admin/pages/preAuthWiring.test.tsx` drives `Login`/`TwoFactor`/`ForgotPassword`/
+`ResetPassword` via synchronous `fireEvent` immediately after `render()`, and this suite is on
+plan.md §4.3's explicit "must stay green" list — narrowing T153 to `Analytics`-only, the sole page
+pulling in `recharts`/`@radix-ui/react-select`/`@radix-ui/react-tabs`, is technically sound
+independent of whether the disclosed `AskUserQuestion` sign-off can be confirmed this session (it
+cannot be, from the artifacts alone).
+
+**CHANGES-REQUIRED (T153)**: ran `pnpm --filter @modular-house/web test:run` (the literal §6
+command and the exact command CI's `test-web` job invokes via `pnpm test:coverage` in
+`apps/web` — confirmed via `.github/workflows/ci.yml:204-206`, no parallelism flag) — reproduced
+2 failed / 56 passed twice, both times inside `await waitFor(() => screen.getByRole('heading',
+{ name: 'Analytics' }))` in `preAuthWiring.test.tsx` and the equivalent in `AppShell.test.tsx`,
+i.e. the exact new async boundary T153's `React.lazy` introduces. The change-log's disclosed
+mitigation — "uses `--no-file-parallelism`... mirrors the existing `@modular-house/api` command,
+which already carries this flag" — is not accurate: `apps/api/package.json`'s `test:run` script is
+plain `vitest run`, no flag; `apps/api/vitest.config.ts` instead sets `fileParallelism: false` at
+the config level, specifically because (per that file's own committed comment) `pnpm ... --
+--no-file-parallelism` is silently swallowed — pnpm's `--` forwards literally into vitest's argv,
+which then treats it as a positional file-filter, not a flag. Reproduced this exact failure mode
+on the web side: `pnpm --filter @modular-house/web test:run -- --no-file-parallelism` still fails
+2/58 (confirmed via `vitest run "--" "--no-file-parallelism"` in the error output — the flag never
+applied). Only `pnpm --filter @modular-house/web exec vitest run --no-file-parallelism` (bypassing
+the package.json script entirely) actually passes 58/58 — not the form CI or §6 invoke. 
+lint/typecheck clean; `apps/api` suite unaffected (60/60 files, 515/515 tests, unrelated to this
+diff); prisma validate/status/diff clean (needs `--shadow-database-url`, not passed by the literal
+§6 command — ran with the flag from `apps/api/.env`'s `SHADOW_DATABASE_URL`, no drift);
+`docs:validate` clean.
+
+---
+
 ## 2026-08-11 — T138-T145 (baseline: cdc81fd)
 
 T138 — PASS

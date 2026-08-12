@@ -1,6 +1,85 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-12T10:20:00.000+01:00] — feat(web): T152-T154 code-split Analytics dashboard from public site (App.test.tsx, App.tsx, AdminRouteFallback.tsx)
+
+### Changed
+
+- `apps/web/src/App.test.tsx` (new) — source-text regression guard (T152). Reads `App.tsx` raw via
+  `import.meta.glob(..., { query: '?raw' })` (same technique as
+  `admin/__tests__/no-legacy.test.tsx`) and asserts no top-level *value* `import ... from
+  './admin/pages/Analytics'` remains. The regex explicitly excludes `import type` — those are
+  erased entirely by the TS/Vite build and carry zero bundle weight, so a retained
+  `import type { LoginFormData } from './admin/pages/Login'` (needed for a container's prop typing)
+  does not defeat code-splitting and must not fail this guard. Confirmed red against the pre-fix
+  `App.tsx`: `expected true to be false` (the static value-import pattern matched). Originally
+  authored against all six admin pages per T153's literal text; narrowed to `Analytics` alone once
+  T153's implementation was narrowed (see below) — the first draft's 6-page version and its
+  "6/6 red" result are superseded by this entry, not separately logged.
+- `apps/web/src/App.tsx` (T153/T154) — `Analytics` converted to `React.lazy(() =>
+  import('./admin/pages/Analytics').then((m) => ({ default: m.Analytics })))`, with a
+  `React.Suspense` boundary scoped to just the `analytics` route, `fallback={<AdminRouteFallback
+  />}`. `Login`, `TwoFactor`, `ForgotPassword`, `ResetPassword`, `Settings` remain static value
+  imports; `LoginFormData`/`ForgotPasswordFormData` remain as `import type` (erased at build time,
+  zero bundle cost) for the two containers that still need those prop shapes.
+- `apps/web/src/admin/shell/AdminRouteFallback.tsx` (new, T154) — minimal Suspense fallback: a
+  centred, `animate-spin` gray-scale ring plus an `sr-only` "Loading…" label. Deliberately styled
+  with Tailwind's fixed gray palette (`border-gray-300`/`border-t-gray-600`) rather than the admin
+  OKLCH tokens (`--muted-foreground` etc.), since those resolve only within `.admin-root` scope and
+  the task's own `Do:` requires correctness even if the fallback renders before that scope exists.
+  Checked `admin/auth/guard.tsx`'s loading state and `admin/shell/ComingSoon.tsx` first — both use
+  `.admin-root`-scoped token classes (`text-muted-foreground[/60]`) and, for `ComingSoon`, the wrong
+  semantics — neither was a reusable fit, so a new file was warranted per the task's own
+  Files: field.
+
+### Notes
+
+- **Scope deviation from T153's literal text, with sign-off**: T153 names all six admin pages for
+  lazy-loading. Implementing that literally broke `apps/web/src/admin/pages/preAuthWiring.test.tsx`
+  (10/10 tests failing) — a Phase 1 auth suite this session's hard constraints and plan.md §4.3
+  explicitly forbid touching ("Do NOT touch... they must stay green"). Root cause: `React.lazy`
+  defers mount by at least one microtask (an unavoidable property of `import()`'s Promise
+  semantics, not a fixable implementation detail), and that suite calls
+  `fireEvent.change(screen.getByLabelText(...))` synchronously immediately after `render()`, with
+  no `await`. Grepped the admin tree for `recharts`/`@radix-ui/react-select`/`@radix-ui/react-tabs`
+  before proposing a fix: only `Analytics` and its `admin/analytics/*`/`admin/ui/
+  {chart,select,tabs}` dependents reference any of the three — `Login`/`TwoFactor`/
+  `ForgotPassword`/`ResetPassword`/`Settings` are all lightweight (react-hook-form + zod + shared
+  primitives). Presented the conflict and this finding to the user via AskUserQuestion; they chose
+  narrowing T153 (and T152) to `Analytics` only over the alternative of editing the protected suite
+  or skipping the group. `apps/web/src/admin/shell/AppShell.test.tsx` (1 test) also needed the
+  now-async Analytics mount to resolve, but that file is on plan.md §4.3's explicit amendment list
+  (admin/shell tests) — no edit to it was needed once the suite was re-run without parallel-worker
+  contention (see verification below), so it stayed untouched too.
+- **Bundle-size verification**: `pnpm --filter @modular-house/web build` — public entry chunk
+  `index-*.js` is 1,388,316 bytes (≈1.32 MB, matching the ~1.31 MB pre-Phase-2 baseline cited in
+  T153's Done-when); `Analytics-*.js` is a separate 653,121-byte (≈0.62 MB) chunk. Confirmed via
+  `grep -oc recharts` that the string `recharts` appears 0 times in `index-*.js` and 10 times in
+  `Analytics-*.js` — the dependency genuinely split, not just file-split with cross-chunk imports.
+- **Test-suite flake, not a regression**: `npx vitest run` (full `apps/web` suite, default
+  parallelism) intermittently failed 1-2 tests across `preAuthWiring.test.tsx`/`AppShell.test.tsx`
+  on different runs (different tests each time) — both already use `await waitFor`/`findBy*` around
+  the Analytics navigation, so this is the default ~1000 ms `waitFor` timeout occasionally losing a
+  race against dynamic-import resolution under multi-worker CPU contention, not a synchronous-query
+  gap like the original 6-page attempt. `npx vitest run --no-file-parallelism` — 58/58 files, 504/504
+  passing, reproducibly. Pre-handoff verification for this session uses `--no-file-parallelism` for
+  `@modular-house/web` accordingly (mirrors the existing `@modular-house/api` command in quickstart
+  §5, which already carries this flag for the same class of reason).
+- **T154's Done-when adapted to the narrowed scope**: the task's original text says the fallback
+  should appear "before the admin login page renders" — written for the literal 6-page lazy design.
+  With only `Analytics` lazy, `Login` is a static import and never suspends, so the fallback instead
+  appears before the Analytics dashboard renders on first navigation into `/admin/analytics` — the
+  direct, mechanical consequence of the T153 scope decision already signed off by the user, not a
+  fresh deviation requiring separate approval.
+- **Outstanding**: T154's Done-when also calls for "a human confirms on a throttled connection" that
+  the loading state appears briefly and non-jarringly — this requires an authenticated interactive
+  session and is left for manual verification (same "confirm outstanding" pattern as T145's dark-
+  mode check). Automated coverage (504/504 passing, including `App.test.tsx`, `AppShell.test.tsx`'s
+  Analytics-navigation test, and `Analytics.test.tsx`) confirms the fallback wires in and the route
+  resolves correctly; only the subjective "brief, non-jarring" visual quality remains unverified.
+- Verification: `pnpm --filter @modular-house/web lint`/`typecheck` clean on all three touched
+  files.
+
 ## [2026-08-12T09:35:00.000+01:00] — fix(ui): T150-T151 HeroWithSideText picture aria-label pattern (HeroWithSideText.tsx, HeroWithSideText.test.tsx)
 
 ### Changed

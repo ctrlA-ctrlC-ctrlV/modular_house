@@ -1959,6 +1959,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 - [x] T150 Write failing accessibility test for HeroWithSideText's picture markup
 > note: asserts no aria-label w/o role=img on picture; tests: 1 red (expected true to be false); deviations: none
 > reviewed: PASS-WITH-NITS — plan.md §5.2 lacks Group F exception
+> note: added Group F exception to plan.md §5.2 per review nit; tests: n/a (doc-only); deviations: none
       Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.test.tsx (new)
       Do: Assert the rendered `<picture>` element does not carry an `aria-label` without a
       supporting `role` (an `aria-label` on an element with no implicit or explicit ARIA role is
@@ -1995,6 +1996,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 - [x] T153 Convert admin route imports to React.lazy with a Suspense boundary
 > note: Analytics-only lazy split, entry 1.32MB (was ~2.05MB); tests: 504 passing (--no-file-parallelism); deviations: App.tsx/App.test.tsx scope narrowed, user sign-off — see change-log
 > reviewed: CHANGES-REQUIRED — test:run flaky, --no-file-parallelism claim false
+> note: fileParallelism:false in vitest.config.ts + asyncUtilTimeout 5000 in setup.ts, mirrors apps/api; tests: pnpm test:coverage 504/504 x2 runs; deviations: vitest.config.ts, setup.ts
       Files: apps/web/src/App.tsx
       Do: Replace the static imports of `Login`, `TwoFactor`, `ForgotPassword`, `ResetPassword`,
       `Settings`, `Analytics` with `React.lazy(() => import(...))`, and wrap the `/admin/*` route

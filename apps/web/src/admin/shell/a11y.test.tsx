@@ -265,10 +265,20 @@ const darkTokens = parseThemeTokens(darkBlockMatch[1]);
  * the reference template's Default preset (Template Parity Gate, plan.md
  * §5A) rather than a Phase 1 implementation choice, so it is out of scope
  * for this test to police.
+ *
+ * `['muted-foreground', 'muted']` (T146, Group E) — reviewer-reported (live
+ * dashboard measurement, dark theme): 2.06:1, well under the 4.5:1 floor.
+ * This is a distinct pair from the already-covered `muted-foreground` on
+ * `background` above: several surfaces (the tabs-list default variant's
+ * `bg-muted` container, T148; any future `bg-muted` panel) render
+ * `--muted-foreground` text directly on `--muted`, not on the page
+ * background, so the two pairs can diverge even though they share a
+ * foreground token.
  */
 const NORMAL_TEXT_PAIRS: Array<[fg: string, bg: string]> = [
   ['foreground', 'background'],
   ['muted-foreground', 'background'],
+  ['muted-foreground', 'muted'],
   ['primary-foreground', 'primary'],
   ['secondary-foreground', 'secondary'],
   ['sidebar-foreground', 'sidebar'],

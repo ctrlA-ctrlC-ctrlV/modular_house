@@ -1977,7 +1977,8 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 ### Group G — Admin bundle is not code-split from the public site
 
-- [ ] T152 Write failing test asserting the admin route tree loads lazily
+- [x] T152 Write failing test asserting the admin route tree loads lazily
+> note: source-text regex vs App.tsx, excludes import-type; narrowed to Analytics post-T153 sign-off; tests: 1 red then green; deviations: App.test.tsx scope, see T153
       Files: apps/web/src/App.test.tsx (new)
       Do: Assert `App.tsx`'s admin page imports (`Login`, `TwoFactor`, `ForgotPassword`,
       `ResetPassword`, `Settings`, `Analytics`) are not present as static top-level imports in the
@@ -1988,7 +1989,8 @@ guardrail-protected (shared by every marketing page) — keep this change minima
       Done when: test fails today (all six admin pages are static imports at App.tsx:49-54).
       Refs: DoD-5, SC-003
 
-- [ ] T153 Convert admin route imports to React.lazy with a Suspense boundary
+- [x] T153 Convert admin route imports to React.lazy with a Suspense boundary
+> note: Analytics-only lazy split, entry 1.32MB (was ~2.05MB); tests: 504 passing (--no-file-parallelism); deviations: App.tsx/App.test.tsx scope narrowed, user sign-off — see change-log
       Files: apps/web/src/App.tsx
       Do: Replace the static imports of `Login`, `TwoFactor`, `ForgotPassword`, `ResetPassword`,
       `Settings`, `Analytics` with `React.lazy(() => import(...))`, and wrap the `/admin/*` route
@@ -1999,7 +2001,8 @@ guardrail-protected (shared by every marketing page) — keep this change minima
       toward its pre-Phase-2 baseline (~1.31 MB, from today's ~2.05 MB).
       Refs: DoD-5, SC-003
 
-- [ ] T154 Add a Suspense fallback for the lazily-loaded admin route tree
+- [x] T154 Add a Suspense fallback for the lazily-loaded admin route tree
+> note: theme-neutral spinner, gray-scale not OKLCH tokens; tests: 504 passing; deviations: none; human throttled-connection confirm outstanding
       Files: apps/web/src/admin/shell/AdminRouteFallback.tsx (new — only if no existing loading
       component is suitable to reuse)
       Do: A minimal, theme-neutral loading indicator shown while the admin chunk downloads (must

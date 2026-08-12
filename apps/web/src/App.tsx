@@ -45,13 +45,41 @@ import { apiClient } from './admin/auth/apiClient'
 import { AuthProvider, useAuth } from './admin/auth/AuthProvider'
 import { AdminGuard } from './admin/auth/guard'
 import { AppShell } from './admin/shell/AppShell'
+import { AdminRouteFallback } from './admin/shell/AdminRouteFallback'
 import type { UserShellData } from './admin/shell/UserSection'
 import { Login, type LoginFormData } from './admin/pages/Login'
 import { TwoFactor } from './admin/pages/TwoFactor'
 import { ForgotPassword, type ForgotPasswordFormData } from './admin/pages/ForgotPassword'
 import { ResetPassword } from './admin/pages/ResetPassword'
 import { Settings } from './admin/pages/Settings'
-import { Analytics } from './admin/pages/Analytics'
+
+/**
+ * Analytics dashboard, loaded lazily.
+ *
+ * Of the six admin page components, `Analytics` alone pulls in `recharts`,
+ * `@radix-ui/react-select`, and `@radix-ui/react-tabs` (via its `admin/ui/
+ * {chart,select,tabs}` and `admin/analytics/*` dependents) — confirmed by
+ * grepping the admin tree for those three package names, which resolves to
+ * exactly those files. That dependency chain is the entire source of the
+ * Phase 2 growth in the public entry chunk (T152/T153, DoD-5/SC-003):
+ * `Login`, `TwoFactor`, `ForgotPassword`, `ResetPassword`, and `Settings`
+ * stay static imports because they are lightweight (react-hook-form + zod +
+ * shared UI primitives already present pre-Phase-2) and, more importantly,
+ * because `Login`/`TwoFactor`/`ForgotPassword`/`ResetPassword` are exercised
+ * by the Phase 1 `admin/pages/preAuthWiring.test.tsx` suite, which asserts
+ * on rendered form content synchronously, immediately after `render()`.
+ * Lazy-loading those pages would defer their mount by at least one
+ * microtask — an unavoidable consequence of `import()`'s Promise semantics,
+ * not an implementation choice — breaking that suite; Phase 1 auth suites
+ * are explicitly out of scope to modify. Splitting `Analytics` alone
+ * captures the bundle-size win without that tradeoff.
+ *
+ * `Analytics` has no default export, so the factory's `.then()` remaps its
+ * named export to the `{ default }` shape `React.lazy` requires.
+ */
+const Analytics = React.lazy(() =>
+  import('./admin/pages/Analytics').then((module) => ({ default: module.Analytics })),
+)
 
 /** Redirect helper: forwards /garden-room/configure/:slug to /garden-rooms/configure/:slug */
 function GardenRoomConfigureRedirect() {
@@ -445,7 +473,26 @@ function App() {
               dashboard, replacing the Phase 1 Settings landing view. */}
           <Route index element={<Navigate to="/admin/analytics" replace />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="analytics" element={<Analytics />} />
+          {/*
+            `Analytics` alone is lazily loaded (T153, DoD-5/SC-003) — see the
+            component definition above for why the other five admin pages
+            stay static. Its Suspense boundary is scoped to this single
+            route rather than the whole /admin/* subtree, since it is the
+            only destination that can actually suspend. `AdminRouteFallback`
+            (T154) renders while the chunk downloads; by the time this route
+            matches, AdminRoot/AppShell above it are already mounted, so the
+            fallback sits inside an active `.admin-root` scope here — it
+            stays theme-neutral regardless, since a future lazy route could
+            suspend before that scope exists.
+          */}
+          <Route
+            path="analytics"
+            element={
+              <React.Suspense fallback={<AdminRouteFallback />}>
+                <Analytics />
+              </React.Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/admin/analytics" replace />} />
         </Route>
       </Route>

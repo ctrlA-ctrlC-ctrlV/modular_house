@@ -89,6 +89,68 @@ pnpm lint; pnpm typecheck                      # workspace-wide
 CI note: analytics suites need the CI seed (green against the local 5434 DB alone is not proof —
 update the CI seed with the analytics fixtures, per DoD-8).
 
+### Troubleshooting — `lhci autorun` (Lighthouse CI) on Windows dev machines
+
+`pnpm --filter @modular-house/web test:lighthouse` (`lhci autorun`, per DoD-5) reliably crashes on
+Windows dev machines with `EPERM` while `chrome-launcher@1.2.1` deletes its own auto-generated
+Chrome profile temp directory during cleanup (`destroyTmp()`), on every run.
+
+**Root cause** (read from `chrome-launcher@1.2.1`'s own source, not assumed): `destroyTmp()` calls
+`fs.rmSync(userDataDir, {recursive: true, force: true, maxRetries: 10})` against a directory
+`chrome-launcher` created under `%TEMP%`. Windows file-locking (a handle briefly held by Chrome's
+own crashpad/logging, antivirus real-time scanning, etc.) can keep the directory locked past all 10
+retries, surfacing as `EPERM`. The library already special-cases Windows process teardown timing
+immediately before this call (`taskkill /F /T`, citing `GoogleChrome/chrome-launcher#266`) —
+acknowledging Windows differs from POSIX `SIGKILL` here, but the temp-dir cleanup itself has no
+equivalent Windows-specific retry/ownership handling.
+
+**CI-reproduction question, answered empirically, not assumed**: this does **not** reproduce on a
+genuine Linux runner.
+- `chrome-launcher`'s `getPlatform()`/`makeTmpDir()` (`utils.js`) branch by platform: `darwin`/
+  `linux` (no WSL detected) call `makeUnixTmpDir()` — a plain `mktemp -d -t lighthouse.XXXXXXX` on
+  the real filesystem, no Windows path, no NTFS locking semantics involved. This is the exact
+  branch a `ubuntu-latest` GitHub Actions runner takes (`is-wsl` returns `false` outside WSL and
+  inside Docker containers, even on a WSL2 host kernel).
+- Verified directly: ran 30 consecutive `chrome-launcher@1.2.1` `launch()` -> `kill()` cycles
+  (`kill()` internally calls `destroyTmp()`) against a real headless Chrome build inside a plain
+  `node:22-bookworm-slim` Docker container (`is-wsl` confirmed `false` there, i.e. the same code
+  path `ubuntu-latest` takes) — **30/30 succeeded, zero `EPERM`**.
+- Secondary finding: running the same harness under WSL2 directly (not a container) is *not* a
+  clean proxy for "genuine Linux" — `chrome-launcher` special-cases WSL: `case 'wsl':` in
+  `makeTmpDir()` deliberately points `process.env.TEMP` at the Windows `AppData\Local` path (via
+  `wslpath`) and falls through into the `win32` branch, so profile dirs land on the Windows-backed
+  `drvfs` mount even from a Linux process (confirmed: a WSL2 run of the same harness wrote its temp
+  dirs to `/mnt/c/Users/<user>/AppData/Local/lighthouse.*`, not `/tmp`). That run also succeeded
+  10/10 with no crash, but it is not evidence about real Linux CI — the Docker-container run above
+  is.
+- Also true today: no `.github/workflows/*.yml` invokes `lhci`/`test:lighthouse` at all —
+  `perf-check.yml` is a separate, opt-in ingest/overview-latency benchmark (M9/Q8), unrelated to
+  Lighthouse. There is no live CI job at risk from this bug today; this finding is forward-looking
+  for whenever Lighthouse CI is wired into a workflow.
+
+**Local dev workaround (Windows), repeatable**: launch a standalone headless Chrome once, holding a
+fixed remote-debugging port, and point `lhci`'s collect step at it instead of letting
+`chrome-launcher` spawn (and later auto-clean) its own instance — `destroyTmp()` only fires for a
+temp dir `chrome-launcher` itself created, so an already-listening port skips it entirely.
+
+```powershell
+# 1. Launch a standalone Chrome once, on a fixed debugging port and a dedicated
+#    (never auto-cleaned) profile directory.
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+  --remote-debugging-port=9222 `
+  --user-data-dir="$env:TEMP\lhci-manual-profile" `
+  --headless=new --disable-gpu
+
+# 2. In a second terminal, point the collect step at the already-listening port —
+#    add `"port": 9222` under `ci.collect.settings` in lighthouserc.json (or pass
+#    --collect.settings.port=9222 on the CLI) — then run as normal:
+pnpm --filter @modular-house/web test:lighthouse
+```
+
+Run from an isolated working directory (absolute `staticDistDir`/`outputDir` paths) when testing
+against a scratch build — `lhci`'s default `collect` step clears its storage directory at the start
+of every run, which would otherwise wipe any committed `.lighthouseci/` baseline files.
+
 ## 6. FR -> test traceability (DoD-2)
 
 Test IDs reference [plan.md §4](plan.md). "Review" = verified in code review against the named

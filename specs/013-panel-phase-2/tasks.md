@@ -1956,7 +1956,8 @@ single root cause behind **two** separately-reported findings:
 Pre-existing, absent from the Phase 2 diff, but flagged by a reviewer. `packages/ui` is
 guardrail-protected (shared by every marketing page) — keep this change minimal and additive.
 
-- [ ] T150 Write failing accessibility test for HeroWithSideText's picture markup
+- [x] T150 Write failing accessibility test for HeroWithSideText's picture markup
+> note: asserts no aria-label w/o role=img on picture; tests: 1 red (expected true to be false); deviations: none
       Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.test.tsx (new)
       Do: Assert the rendered `<picture>` element does not carry an `aria-label` without a
       supporting `role` (an `aria-label` on an element with no implicit or explicit ARIA role is
@@ -1964,7 +1965,8 @@ guardrail-protected (shared by every marketing page) — keep this change minima
       Done when: test fails today against the current markup.
       Refs: DoD-6, constitution V
 
-- [ ] T151 Fix HeroWithSideText's picture accessibility markup
+- [x] T151 Fix HeroWithSideText's picture accessibility markup
+> note: dropped invalid ariaLabel prop (image already alt="", only decorative usage in pkg); tests: 198/199 (1 skip); deviations: none
       Files: packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx
       Do: Either move the accessible name to the `<img>` (via `alt`) and drop `aria-label` from
       `<picture>`, or add `role="img"` to `<picture>` if the label must live there — whichever

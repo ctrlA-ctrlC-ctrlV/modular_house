@@ -1,6 +1,82 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-12T12:53:00.000+01:00] — docs(specs): T156 chrome-launcher EPERM crash investigation (quickstart.md)
+
+### Changed
+
+- `specs/013-panel-phase-2/quickstart.md` — added a "Troubleshooting" subsection under §5 (kept
+  the FR-traceability table at §6 unchanged — a sibling subsection rather than a new top-level
+  section, to avoid invalidating `tasks.md`'s existing "quickstart §6" citations) documenting the
+  `chrome-launcher@1.2.1` `destroyTmp()` `EPERM` crash reported by the prior 2026-07-14 T122-T129
+  DoD-verification session (see this file's Lighthouse-methodology note below, dated then), its
+  root cause, whether it reproduces on CI Linux, and the local Windows workaround.
+
+### Notes — investigation methodology (T156, "not just assumed")
+
+- **Root cause, read from source, not inferred**: `node_modules/.../chrome-launcher@1.2.1/dist/
+  chrome-launcher.js`'s `destroyTmp()` calls `fs.rmSync(this.userDataDir, {recursive: true, force:
+  true, maxRetries: 10})`. `utils.js`'s `getPlatform()`/`makeTmpDir()` branch by platform:
+  `darwin`/`linux` call `makeUnixTmpDir()` (plain `mktemp -d -t lighthouse.XXXXXXX`, no
+  Windows-specific handling at all); `win32` (and `wsl`, see below) call `makeWin32TmpDir()`
+  (`%TEMP%\lighthouse.<rand>`). Only the win32 path is `EPERM`-prone — Windows file-locking
+  (crashpad/logging handles, AV real-time scanning) can outlast all 10 `rmSync` retries; the POSIX
+  `mktemp -d` + `rmSync` pair on Linux has no equivalent locking semantics.
+- **CI-Linux-reproduction question, answered empirically**: does not reproduce. Built a minimal
+  harness (`chrome-launcher@1.2.1` + a `@puppeteer/browsers`-fetched Chrome 151.0.7922.138 Linux
+  build) and ran 30 consecutive `launch()` -> `kill()` cycles (`kill()` internally calls
+  `destroyTmp()`, the exact reported codepath) inside a fresh `node:22-bookworm-slim` Docker
+  container — **30/30 succeeded, 0 `EPERM`**. Confirmed the container took the genuine `linux`
+  branch (not the `wsl` one) by checking `require('is-wsl')` returns `false` inside it, which
+  matches how a real `ubuntu-latest` GitHub Actions runner would resolve the same check.
+- **Discovered along the way, and worth recording**: the same harness run directly under WSL2
+  (not a container) is *not* a valid proxy for "genuine Linux CI" — `chrome-launcher`'s
+  `getPlatform()` special-cases WSL (`is-wsl` returns `true` there), and `makeTmpDir()`'s `case
+  'wsl':` deliberately repoints `process.env.TEMP` at the Windows `AppData\Local` path (via
+  `wslpath -u`) before falling through into the `win32` branch — so a WSL-run harness still creates
+  its Chrome profile dir on the Windows-backed `drvfs` mount, not native `/tmp`. Confirmed directly:
+  a 10-iteration run under WSL2 wrote its temp dirs to `/mnt/c/Users/<user>/AppData/Local/
+  lighthouse.*`. That run also succeeded 10/10 with no `EPERM`, but is evidence about "Linux
+  process operating on an NTFS-backed mount," not about a genuine CI runner — the Docker-container
+  run above is the one that answers the task's actual question.
+- **Also confirmed, scoping the finding**: no `.github/workflows/*.yml` in this repo invokes
+  `lhci`/`test:lighthouse` today — `perf-check.yml` is a separate, unrelated, opt-in M9/Q8
+  ingest/overview-latency benchmark. There is no live CI job at risk from this bug currently; the
+  finding and workaround are recorded for whenever Lighthouse CI is wired into a workflow, and for
+  any teammate running `pnpm --filter @modular-house/web test:lighthouse` locally on Windows today.
+- **Local Windows workaround** (documented in quickstart.md, previously used ad hoc by the
+  2026-07-14 DoD-verification session per this file's own Lighthouse-methodology note below):
+  launch a standalone headless Chrome once on a fixed `--remote-debugging-port`, then point `lhci`'s
+  `collect.settings.port` at it — `chrome-launcher` detects the already-listening port and never
+  spawns/auto-cleans its own profile directory, so `destroyTmp()` never fires (confirmed via its
+  own source: cleanup is unconditionally skipped whenever `opts.userDataDir` was supplied, and an
+  externally-supplied debugging port takes the same "don't manage this instance" path).
+- Verification: doc-only change; `pnpm --filter @modular-house/web lint`/`typecheck` unaffected
+  (no source files touched). Scratch WSL/Docker investigation artifacts (a throwaway `chrome-repro`/
+  `lhci-repro` WSL project, downloaded Chrome builds, a `node:22-bookworm-slim` image pull) were
+  cleaned up from the WSL filesystem; none were written inside this repository.
+
+## [2026-08-12T12:07:00.000+01:00] — fix(web): T155 stale Lighthouse CI route slugs (lighthouserc.json)
+
+### Changed
+
+- `apps/web/lighthouserc.json` — `ci.collect.url` targeted `garden-room/index.html` and
+  `house-extension/index.html`, both singular routes that 008-garden-room-redesign and
+  010-house-extensions-redesign replaced with the plural `garden-rooms`/`house-extensions` (see
+  `apps/web/src/route-config.tsx:21-23`, which redirects the old singular `/house-extension` path
+  to the canonical plural one in `App.tsx`). The two entries never 404'd loudly because `lhci
+  autorun` never ran in CI (confirmed: no `.github/workflows/*.yml` invokes `lhci`/`test:lighthouse`
+  — `perf-check.yml` is an unrelated, opt-in ingest/overview latency benchmark), so the stale URLs
+  went unnoticed until this review pass. Updated both entries to the plural slugs.
+
+### Notes
+
+- Verified against a real build rather than by inspection alone: ran `pnpm --filter
+  @modular-house/web build` (client build + SSR prerender) and confirmed all five
+  `ci.collect.url` targets — `index.html`, `about/index.html`, `contact/index.html`,
+  `garden-rooms/index.html`, `house-extensions/index.html` — exist under `dist/client/`, matching
+  `scripts/prerender.ts`'s `route/index.html` output convention for pretty URLs.
+
 ## [2026-08-12T11:15:00.000+01:00] — fix(web): T153 review correction — deterministic test-runner config (vitest.config.ts, setup.ts); docs(specs): T150 doc-drift fix (plan.md)
 
 ### Changed

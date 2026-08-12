@@ -1,6 +1,7 @@
 // Sidebar primitive — collapsible rail/expanded with context, keyboard toggle, mobile Sheet drawer.
 // Width tokens (H3): expanded 17rem, icon rail 3rem, mobile 18rem.
 import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 import { cn } from '../lib/cn.js';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from './sheet.js';
 
@@ -396,14 +397,21 @@ function SidebarMenuItem({
   );
 }
 
-// Clickable menu button; supports active state, collapses to icon-only on rail.
+// Clickable menu button; supports active state, collapses to icon-only on
+// rail, and composes onto a single child element (e.g. a react-router Link)
+// via Radix Slot when `asChild` is set (T081 — mirrors the `button.tsx`
+// primitive's own asChild composition, needed for a real navigable link
+// without nesting an <a> inside a <button>, which axe flags as a
+// nested-interactive violation).
 function SidebarMenuButton({
   isActive = false,
+  asChild = false,
   className,
   ...props
-}: React.ComponentProps<'button'> & { isActive?: boolean }) {
+}: React.ComponentProps<'button'> & { isActive?: boolean; asChild?: boolean }) {
+  const Comp = asChild ? Slot : 'button';
   return (
-    <button
+    <Comp
       data-slot="sidebar-menu-button"
       data-active={isActive}
       className={cn(

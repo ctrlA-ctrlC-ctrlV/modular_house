@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -43,6 +43,49 @@ const renderRoute = (route: string): void => {
     </HelmetProvider>
   );
 };
+
+// ---------------------------------------------------------------------------
+// T051 — page-view beacon transport mocks (beacon.ts `useBeacon` hook).
+// ---------------------------------------------------------------------------
+// Once T052 mounts the `useBeacon` hook in TemplateLayout, every public route
+// render dispatches a page-view event via `navigator.sendBeacon` (with a
+// keepalive `fetch` fallback, research R1). No real network call may leave the
+// test process (constitution I/III), so both transports are mocked at the
+// module boundary. The mocks are installed once for the whole file so the
+// pre-existing `it.each` route tests are also protected after T052 lands —
+// without them, mounting the hook would cause real fetch calls against the
+// ingest URL inside every existing route test.
+const sendBeaconMock = vi.fn<(url: string, data: Blob) => boolean>();
+
+beforeAll(() => {
+  // jsdom does not implement `navigator.sendBeacon`; define it as a mock that
+  // reports success so the keepalive-fetch fallback branch never executes.
+  Object.defineProperty(navigator, 'sendBeacon', {
+    value: sendBeaconMock,
+    configurable: true,
+    writable: true,
+  });
+  // Stub `fetch` so the fallback path (taken only when sendBeacon is absent or
+  // returns false) also stays in-process and never reaches the network.
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => Promise.resolve({ ok: true, status: 204 } as Response)),
+  );
+});
+
+beforeEach(() => {
+  // Re-arm the sendBeacon mock with a success return before every test; tests
+  // that need the fallback branch reassign `navigator.sendBeacon` themselves.
+  sendBeaconMock.mockReset();
+  sendBeaconMock.mockReturnValue(true);
+  // Clear any cookies set by the beacon (`mh_vid`/`mh_sid`) or CookieBanner
+  // (`mh_cookie_ack`) in a prior test so each route render starts from a clean
+  // cookie jar — the banner renders only while `mh_cookie_ack` is absent.
+  document.cookie.split(';').forEach((part) => {
+    const name = part.trim().split('=')[0];
+    if (name) document.cookie = `${name}=; max-age=0; path=/`;
+  });
+});
 
 describe('TemplateLayout Integration', () => {
   afterEach(() => {
@@ -148,6 +191,60 @@ describe('TemplateLayout — Open Graph meta tag injection (T015a)', () => {
       // crawlers to display incorrect or empty titles for legal pages.
       const ogTitleTag = document.querySelector('meta[property="og:title"]');
       expect(ogTitleTag).toBeNull();
+    });
+  });
+});
+
+/**
+ * T051 — CookieBanner + beacon mount assertions (plan §4.3 AMEND #1).
+ *
+ * TemplateLayout is the enforced single mount point for the cookie notice and
+ * the page-view beacon (FR-001, SC-001, plan §1.1). These assertions extend
+ * — and do not replace — the existing render coverage above: the banner must
+ * appear in the DOM and the beacon hook must dispatch exactly once per route
+ * render. No other TemplateLayout behavior changes; the pre-existing `it.each`
+ * suite above remains the regression guard for header/footer/main/SEO behavior.
+ *
+ * The suite is red until T052 mounts both `CookieBanner` and the `useBeacon`
+ * hook inside TemplateLayout.
+ */
+describe('TemplateLayout — CookieBanner + beacon mount (T051)', () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it('mounts CookieBanner inside the public layout', async () => {
+    renderRoute('/');
+
+    // CookieBanner mounts client-side only (N2): the `mounted` flag flips
+    // inside useEffect, so the testid appears only after the effect flushes.
+    // `findByTestId` waits for that flush; before T052 the banner is never
+    // mounted and this assertion times out — the expected red state.
+    expect(await screen.findByTestId('cookie-banner')).toBeInTheDocument();
+  });
+
+  it('fires the page-view beacon exactly once per route render', async () => {
+    renderRoute('/');
+
+    // The `useBeacon` hook (beacon.ts) calls `sendPageView` in a useEffect
+    // keyed on `location.pathname`; one mount at a single pathname dispatches
+    // exactly one event (M8). `navigator.sendBeacon` is mocked at the module
+    // boundary (see file-level setup) so no real network call leaves the test
+    // process (research R1). Before T052 the hook is never mounted and the
+    // call count stays at zero — the expected red state.
+    await waitFor(() => {
+      expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('fires the beacon once for a different public route too', async () => {
+    // A second route confirms the beacon is not specific to `/` — every
+    // public page render dispatches exactly one event (FR-001, SC-001).
+    renderRoute('/about');
+
+    await waitFor(() => {
+      expect(sendBeaconMock).toHaveBeenCalledTimes(1);
     });
   });
 });

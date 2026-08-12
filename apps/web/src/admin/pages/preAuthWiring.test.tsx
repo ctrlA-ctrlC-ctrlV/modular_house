@@ -214,7 +214,9 @@ describe('Pre-auth page wiring (T097a)', () => {
     });
   });
 
-  // ── Two-factor → session → /admin/settings (B7, E1-E3) ───────────────
+  // ── Two-factor → session → /admin/analytics (B7, E1-E3, Q7) ──────────
+  // T082: the post-sign-in landing target moved from /admin/settings to
+  // /admin/analytics (Q7, FR-017) — the index route's redirect target.
 
   describe('TwoFactor', () => {
     async function loginToTwoFactor(challengeId = 'chal-1') {
@@ -230,7 +232,7 @@ describe('Pre-auth page wiring (T097a)', () => {
       });
     }
 
-    it('verifies the code, stores the access token, and lands on /admin/settings', async () => {
+    it('verifies the code, stores the access token, and lands on /admin/analytics', async () => {
       await loginToTwoFactor('chal-1');
 
       setupMocks({
@@ -246,7 +248,7 @@ describe('Pre-auth page wiring (T097a)', () => {
       fireEvent.click(screen.getByRole('button', { name: /verify/i }));
 
       await waitFor(() => {
-        expect(screen.getByTestId('settings-page')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: 'Analytics' })).toBeInTheDocument();
       });
       expect(getAccessToken()).toBe('session-access-token');
     });

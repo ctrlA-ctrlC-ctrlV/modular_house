@@ -26,6 +26,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
+  /* T036e — without these two keys, rounded-3xl/rounded-4xl (badge.tsx's
+     pill shape) silently fall back to Tailwind v4's static built-in
+     defaults (1.5rem / 2rem) instead of scaling with the pinned base. */
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 
   /* Colour aliases: Tailwind --color-* → CSS custom property refs */
   --color-background: var(--background);
@@ -62,6 +67,97 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Portal fallback scope (T130-T133, Group A)                          */
+/* Radix `Portal` primitives (select/dialog/dropdown-menu) mount to    */
+/* `document.body` by default -- outside `.admin-root` -- so a rule    */
+/* scoped only to `.admin-root` never resolves for that portaled       */
+/* content, which falls back to the browser's transparent/unset       */
+/* default for the unresolved `var()`. `:root`/`.dark` (bare, matching */
+/* `document.documentElement`) are ancestors of every node in the      */
+/* document, portaled or not, so duplicating the same declarations     */
+/* here resolves tokens for portaled content while the unchanged,      */
+/* more specific `.admin-root`/`.dark .admin-root` rules below         */
+/* continue to win the cascade for everything already inside them --   */
+/* zero behaviour change for non-portaled surfaces. The public site    */
+/* never references these token names, so this is a no-op there.      */
+/* ------------------------------------------------------------------ */
+:root {
+  --radius: 0.625rem;
+  --sidebar-width: 17rem;
+  --sidebar-width-icon: 3rem;
+  --sidebar-width-mobile: 18rem;
+  --topbar-height: 48px;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  /* T147 (Group E, reviewer-reported): darkened from oklch(0.556 0 0) — the
+     template's default preset value failed WCAG 2.1 AA (4.339:1, this
+     suite's own OKLab model; 2.06:1 live-measured against the tabs-list
+     bg-muted container) against --muted. 0.47 clears 4.5:1 against every
+     background this token pairs with in this codebase (muted, background,
+     sidebar) with a comfortable margin — see a11y.test.tsx's Token contrast
+     (H6) block. */
+  --muted-foreground: oklch(0.47 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  /* T147 (Group E, reviewer-reported): lightened from oklch(0.708 0 0) for
+     a wider real-world margin against --muted, matching the light-theme
+     rationale above. */
+  --muted-foreground: oklch(0.75 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ------------------------------------------------------------------ */
 /* Light theme (Default preset)                                        */
 /* Applied under .admin-root; values from template globals.css :root.  */
 /* ------------------------------------------------------------------ */
@@ -85,7 +181,8 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* T147 — see the :root block above for the full rationale. */
+  --muted-foreground: oklch(0.47 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -106,10 +203,14 @@
 
 /* ------------------------------------------------------------------ */
 /* Dark theme                                                          */
-/* Applied under .admin-root.dark; values from template globals.css    */
-/* .dark block.                                                        */
+/* Applied wherever `.admin-root` renders under an ancestor carrying   */
+/* `.dark` (T036b). `ThemeProvider.applyThemeToDOM` toggles `.dark` on */
+/* `document.documentElement`, several levels above the nested         */
+/* `.admin-root` div (AppShell.tsx) — a compound `.admin-root.dark`    */
+/* selector never matches a real element there; the descendant form   */
+/* below does. Values from template globals.css .dark block.          */
 /* ------------------------------------------------------------------ */
-.admin-root.dark {
+.dark .admin-root {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -121,7 +222,8 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  /* T147 — see the .dark block above for the full rationale. */
+  --muted-foreground: oklch(0.75 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);

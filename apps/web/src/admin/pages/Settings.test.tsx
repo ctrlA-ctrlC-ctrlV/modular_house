@@ -3,7 +3,15 @@
 // with initials fallback, read-only name + email, super_admin read-only, and
 // that the page is unreachable without an authenticated session.
 // Pins US4-1..8 + FR-032/FR-033/FR-034/FR-035.
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+//
+// T144 (Group D) adds a heading/subtitle contrast-regression assertion at
+// the bottom of this file — see that describe block's own header comment
+// for the real-stylesheet-injection technique it uses, shared with
+// a11y.test.tsx's T138/T140 suites and Login.test.tsx's T143 suite.
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
@@ -443,5 +451,151 @@ describe('Settings page (T-F6)', () => {
       });
       expect(screen.queryByTestId('settings-page')).toBeNull();
     });
+  });
+});
+
+// ── Heading/subtitle contrast regression (T144, Group D) ───────────────────
+//
+// Guards Settings.tsx:240-241's "Settings" heading and its subtitle against
+// the same class of leak T138/T139/T141 fixed. Technique mirrors
+// a11y.test.tsx's T138/T140 suites and Login.test.tsx's T143 suite: reads
+// style.css/admin.css directly from disk and injects their actual rule text
+// into jsdom's live cascade (Vitest's default `css: false` behaviour
+// otherwise replaces CSS imports with an empty string during tests).
+// admin.css's rules are unwrapped from their `@layer base { ... }` block
+// before injection — this project's pinned jsdom (25.0.1) cannot parse the
+// CSS Cascade Layers `@layer` at-rule at all, silently discarding the
+// entire stylesheet on encountering one (verified directly while building
+// the a11y.test.tsx sibling suite).
+//
+// The "Settings" `<h1>` (Settings.tsx:240) carries no Tailwind text-color
+// utility class, so it resolves purely via admin.css's base-layer default
+// (T141) with no competing rule to consider, and is asserted positively via
+// `getComputedStyle`, exactly as a11y.test.tsx's T140 suite does for a bare
+// `<h1>`. The subtitle `<p>` (Settings.tsx:241), however, carries an
+// explicit `text-muted-foreground` Tailwind utility class — the same
+// situation as Login.tsx's subtitle (T143) — so it is checked the same way
+// Login.test.tsx checks its own subtitle: proving `text-muted-foreground`
+// actually wins the real cascade would require injecting Tailwind's own
+// JIT-compiled utility CSS, which the unwrapped-injection technique above
+// cannot faithfully reproduce (unwrapping the `@layer` structure to work
+// around jsdom's parser gap also erases the real cascade-layer priority a
+// live browser applies, per the `@layer theme, base, utilities;`
+// pre-declaration T142 added to admin.css). This suite instead checks what
+// it can prove honestly: the class name is present, and the element no
+// longer resolves the old unlayered style.css leak.
+
+const STYLE_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'styles',
+  'style.css',
+);
+const ADMIN_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'theme',
+  'admin.css',
+);
+const settingsStyleCss = readFileSync(STYLE_CSS_PATH, 'utf8');
+const settingsAdminCss = readFileSync(ADMIN_CSS_PATH, 'utf8');
+
+/** Extracts the inner rule text of a `@layer <layerName> { ... }` block, unwrapped (see comment above). */
+function stripLayerWrapper(css: string, layerName: string): string {
+  const marker = `@layer ${layerName}`;
+  const markerIndex = css.indexOf(marker);
+  if (markerIndex === -1) {
+    throw new Error(`Could not locate "@layer ${layerName}" in the provided CSS source`);
+  }
+  const openBraceIndex = css.indexOf('{', markerIndex);
+  if (openBraceIndex === -1) {
+    throw new Error(`Malformed "@layer ${layerName}" block: no opening brace found`);
+  }
+  let depth = 1;
+  let i = openBraceIndex + 1;
+  for (; i < css.length && depth > 0; i += 1) {
+    if (css[i] === '{') depth += 1;
+    else if (css[i] === '}') depth -= 1;
+  }
+  if (depth !== 0) {
+    throw new Error(`Malformed "@layer ${layerName}" block: unbalanced braces`);
+  }
+  return css.slice(openBraceIndex + 1, i - 1);
+}
+
+describe('Settings page — heading/subtitle contrast regression (T144, Group D)', () => {
+  let injectedStyleCss: HTMLStyleElement | null = null;
+  let injectedAdminCss: HTMLStyleElement | null = null;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clearAccessToken();
+    document.documentElement.classList.add('dark');
+
+    injectedStyleCss = document.createElement('style');
+    injectedStyleCss.textContent = settingsStyleCss;
+    document.head.appendChild(injectedStyleCss);
+
+    injectedAdminCss = document.createElement('style');
+    injectedAdminCss.textContent = stripLayerWrapper(settingsAdminCss, 'base');
+    document.head.appendChild(injectedAdminCss);
+  });
+
+  afterEach(() => {
+    document.documentElement.classList.remove('dark');
+    injectedStyleCss?.remove();
+    injectedAdminCss?.remove();
+    injectedStyleCss = null;
+    injectedAdminCss = null;
+  });
+
+  function renderSettingsInAdminRoot() {
+    return render(
+      <MemoryRouter initialEntries={['/admin/settings']}>
+        <div data-admin className="admin-root">
+          <Routes>
+            <Route path="/admin/login" element={<div data-testid="login-page">Login Page</div>} />
+            <Route
+              path="/admin/settings"
+              element={
+                <AuthProvider>
+                  <AdminGuard>
+                    <Settings />
+                  </AdminGuard>
+                </AuthProvider>
+              }
+            />
+          </Routes>
+        </div>
+      </MemoryRouter>,
+    );
+  }
+
+  it('resolves --foreground for the "Settings" heading, not --brand-title, when .dark is set', async () => {
+    setupMocks();
+    renderSettingsInAdminRoot();
+    await waitForSettingsPage();
+
+    const heading = screen.getByRole('heading', { level: 1, name: 'Settings' });
+
+    expect(getComputedStyle(heading).color).toBe('var(--foreground)');
+  });
+
+  it('keeps the subtitle wired to --muted-foreground via Tailwind and clear of the style.css brand leak', async () => {
+    setupMocks();
+    renderSettingsInAdminRoot();
+    await waitForSettingsPage();
+
+    const subtitle = screen.getByText(/manage your password and profile photo/i);
+
+    // Pins the intended styling mechanism (Tailwind's `text-muted-foreground`
+    // utility, which compiles to `color: var(--muted-foreground)`
+    // deterministically — see describe-block header for why this suite does
+    // not also attempt to prove that resolution via a live cascade read).
+    expect(subtitle.className).toMatch(/text-muted-foreground/);
+    // Proves the concrete regression T139 fixes: this element no longer
+    // resolves style.css's unlayered brand-color leak.
+    expect(getComputedStyle(subtitle).color).not.toBe('var(--brand-slate)');
   });
 });

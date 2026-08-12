@@ -1,0 +1,325 @@
+# UI Component Inventory: Admin Panel — Phase 2
+
+**Branch**: `013-panel-phase-2` | **Date**: 2026-07-14 | **Plan**: [plan.md](plan.md) | **Research**: R12
+
+This is the **design-pass artifact** that separates UI design from implementation. Every admin UI
+piece this phase ships is listed here with its source in the Studio Admin template
+(`E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard`, design docs under `.doc\design`).
+Implementation Pass 1 (plan §5.3) ports exactly this inventory against fixture data and must pass
+the parity gate (§6) before any data wiring starts. **A component not in this inventory is not
+built** — extend the inventory first, then port (Open-Closed).
+
+---
+
+## 1. Compatibility rules (template Next.js 16 → project Vite/React 18.3)
+
+Apply to every port, in this order; each rule is checkable in review:
+
+1. Remove `"use client"` directives (meaningless under Vite; the whole admin is client-rendered).
+2. Rewrite imports: `@/components/ui/*` → relative `apps/web/src/admin/ui/*`; `@/lib/utils` (`cn`)
+   → `apps/web/src/admin/lib/cn`.
+3. No `next/*` module may survive: `next/link` → `react-router-dom` `Link`; `next/image` → `img`;
+   `next/font` → nothing (fonts are Phase 1 tokens).
+4. Replace `lucide-react` imports with local inline-SVG icon components
+   (`function XxxIcon(props: React.SVGProps<SVGSVGElement>)`), the Phase 1 convention — do NOT add
+   a `lucide-react` dependency.
+5. Preserve `data-slot` / `data-variant` / `data-size` attributes exactly — tests and styling
+   contract (template DESIGN.md §4).
+6. Preserve Tailwind class strings verbatim where possible; they resolve against the Phase 1
+   Tailwind v4 + OKLCH token layer (`admin/theme/tokens.css`). A class that cannot resolve is a
+   token-layer gap to fix, not a class to improvise.
+7. New Radix packages are pinned in `apps/web/package.json`; reuse already-present Radix packages
+   before adding one.
+8. Admin components never import into the public site; public-site UI (CookieBanner, CookiePolicy)
+   never imports from `apps/web/src/admin` (Phase 1 isolation rule).
+9. Recharts usage goes through the ported `chart.tsx` wrapper only — widgets never import
+   `recharts` directly; series colors map to `var(--chart-N)` tokens, never literals
+   (template DESIGN.md §2).
+10. No emoji in code; conventional naming (`PascalCase` components, `camelCase` functions,
+    `kebab-case` primitive filenames matching the template).
+
+## 2. Phase 1 primitives reused as-is (no re-port, no modification)
+
+`button`, `card`, `dropdown-menu`, `input`, `label`, `sidebar`, `sheet`, `sonner`, `avatar`,
+`form`, `input-otp` — already ported in `apps/web/src/admin/ui/`. Phase 2 may add variants only
+additively; changing existing variant behavior is out of scope.
+
+## 3. New primitives to port (template `src/components/ui/` → `apps/web/src/admin/ui/`)
+
+| Target | Template source | New dependency | Used by | Port notes |
+|--------|-----------------|----------------|---------|------------|
+| `select.tsx` | `src/components/ui/select.tsx` | `@radix-ui/react-select` (pin) | RangeToolbar | Full port: trigger sizes, content, group, item, separator |
+| `tabs.tsx` | `src/components/ui/tabs.tsx` | `@radix-ui/react-tabs` (pin) | Analytics page tab row | Full port: list, trigger, content |
+| `dialog.tsx` | `src/components/ui/dialog.tsx` | none (`@radix-ui/react-dialog` present via `sheet`) | RangeDialog | Full port: overlay, content, header, footer, title, description, close |
+| `chart.tsx` | `src/components/ui/chart.tsx` | none (`recharts` present) | TrafficChart | Port `ChartContainer`, `ChartTooltip`, `ChartTooltipContent`, `ChartConfig`; keep CSS-variable color plumbing |
+| `badge.tsx` | `src/components/ui/badge.tsx` | none | KpiStrip deltas | Full port: pill shape (`rounded-4xl`), tinted variants |
+
+## 4. Page composites to adapt (template `src/app/(main)/dashboard/analytics/` → `apps/web/src/admin/analytics/`)
+
+Each adaptation is a spec-driven decision documented in research R11 — nothing is taste.
+
+| Target widget | Template source | Follows template | Documented adaptations |
+|---------------|-----------------|------------------|------------------------|
+| `Analytics.tsx` (page) | `analytics/page.tsx` | Heading block, tab row, grid layout (`xl:grid-cols-12`, `gap-4` rhythm) | Tab set kept with non-Overview tabs rendering the template's own dashed "coming soon" panels; greeting text replaced by page title |
+| `KpiStrip.tsx` | `_components/analytics-kpi-strip.tsx` | Divided card strip, `text-2xl tracking-tight` values, tinted delta badges, "from X - last period" caption | Five KPI cells per spec (page views, unique visitors, sessions, returning-visitor rate, pages per session); ellipsis card action omitted (no per-card menu shipped) |
+| `RangeToolbar.tsx` | `_components/analytics-toolbar.tsx` | Select styling and placement | Options = 24 hours / 7 days / 28 days / 3 months / More (spec Q2, supersedes template values); export/import/share ellipsis menu omitted (out of scope) |
+| `TrafficChart.tsx` | `_components/traffic-quality.tsx` | Card frame, ComposedChart, `ChartContainer` config, axis/tooltip styling, `var(--chart-N)` series | Series = page views + sessions per bucket (real data), replacing the fixture "quality" series |
+| `RealtimeCard.tsx` | `_components/realtime-visitors.tsx` | Card frame, live-count emphasis, list rhythm | Country flag rows removed (geo out of scope); shows active-visitor count + top-5 active pages; no `flags.css` import |
+| `TopPages.tsx` | `_components/top-pages.tsx` | Card frame, ranked rows, share presentation | Data = top-10 paths with share of views; table rendered with native `<table>` elements carrying template `data-slot` attributes (`table.tsx` not in §3 port inventory — inlined, not ported as a new primitive) |
+| `TrafficSources.tsx` | `_components/top-traffic-sources.tsx` | Card frame, ranked/share presentation | Rows = the five source groups, zero-valued groups shown |
+
+## 5. New compositions with no direct template source
+
+| Component | Location | Design basis |
+|-----------|----------|--------------|
+| `RangeDialog.tsx` | `apps/web/src/admin/analytics/` | Composed from ported `dialog` + `button` + `label` + `input` (two native `type="date"` fields styled by the admin `input` primitive — research R10); spacing/typography per dialog defaults; validation message in `destructive` text per template form conventions |
+| Widget empty states | inside each widget | Template empty-panel pattern: dashed `border-border` frame, `text-muted-foreground` (as used by the template's placeholder tabs) |
+| `CookieBanner.tsx` / `CookiePolicy.tsx` | `apps/web/src/components/` / `apps/web/src/routes/` | Deliberately NOT from the template: public-site surfaces use the site's existing Bootstrap styling (rule 8; research R8) |
+
+## 6. Parity gate (blocks dashboard data wiring)
+
+> Scope amended 2026-07-15: the gate blocks Pass 2's widget-consuming work (dashboard wiring and
+> navigation) only; the measurement pipeline, banner/register, and analytics endpoints are
+> gate-independent (plan §5.3).
+
+For each item in §3 and §4, before any data wiring:
+
+- [x] Renders with the template's DOM structure and `data-slot` attributes.
+      Verified T010–T035: every ported primitive and composition preserves the
+      template's `data-slot` attributes (100+ data-slot occurrences across
+      `select`, `tabs`, `dialog`, `chart`, `badge`, and the Phase 1 `card`/
+      `input`/`label` primitives reused by the widgets). DOM structure mirrors
+      the template's Radix primitive wrappers and card frames.
+- [x] Token usage matches (no literal colors; `var(--chart-N)` for series;
+      radius/spacing per template DESIGN.md quick-reference).
+      Verified: no literal hex/rgb/hsl colors in the analytics widget code.
+      TrafficChart series use `var(--chart-1)` / `var(--chart-2)` (asserted by
+      T022). The `#ccc` / `#fff` occurrences in `chart.tsx` are CSS attribute
+      selectors targeting recharts' internal inline styles for override
+      (`stroke-border/50`, `stroke-transparent`) — the template's own pattern,
+      preserved verbatim per rule 6. Tailwind token class strings resolve
+      against the Phase 1 token layer.
+- [x] Side-by-side visual check against the template page in **light and dark** — approved
+      (feeds SC-010 / DoD-6). **APPROVED (2026-07-21, human review) — "good enough for now."**
+      Initial review FAILED: the ported UI read as visibly off-template and the theme toggle
+      only recolored isolated surfaces. Root-caused and fixed as T036a–T036f (missing
+      `@custom-variant dark` registration, dead `.admin-root.dark` selector, TabsTrigger
+      `data-active:` vs Radix's `data-state=active`, Analytics page's missing outer padding,
+      unscaled `--radius-3xl`/`--radius-4xl` tokens, and admin.css referencing the dead
+      `--color-*` @theme-inline aliases instead of raw tokens — the last found live via browser
+      automation after the first five landed). Agent-verified live (claude-in-chrome:
+      screenshots + `getComputedStyle` before/after) and human-approved. **Known residual
+      issue accepted, not blocking**: a TopBar button's `:focus-visible` outline renders a 2px
+      solid indigo colour that doesn't match the pinned `--ring` token or an obvious browser
+      default (change-log 2026-07-21T13:30, "Noted but explicitly NOT chased down") — deferred
+      to a future session/owner per the human's explicit call. T037+ (Pass 2 widget-consuming
+      tasks) are now unblocked.
+- [x] Keyboard operability and visible focus verified (constitution V).
+      Verified by the Pass 1 keyboard suites: select (T010 — ArrowDown/Enter/
+      Esc, H4 focus ring), tabs (T012 — ArrowRight/ArrowLeft roving focus,
+      H4 focus ring), dialog (T014 — Enter open, Esc close, focus management),
+      RangeToolbar (T030 — keyboard select), RangeDialog (T032 — focus moves
+      into dialog, Esc closes), Analytics page (T034 — ArrowRight tab
+      activation).
+- [x] Render + keyboard tests green against fixture data (plan §4.3 "new
+      tests", authored in Pass 1).
+      Verified: `pnpm --filter @modular-house/web test:run` — 45 files, 365
+      tests passing (2026-07-20). All Pass 1 suites green: select (9), tabs
+      (9), dialog (13), chart (4), badge (13), KpiStrip (9), TrafficChart (5),
+      RealtimeCard (5), TopPages (5), TrafficSources (5), RangeToolbar (5),
+      RangeDialog (5), Analytics page (4).
+
+### T127 — Final WCAG 2.1 AA pass (banner, policy page, dashboard; DoD-6)
+
+> Scope note: this record covers the **final DoD verification pass** (T127), which widens the
+> parity gate's dashboard-only scope above to the two public-site surfaces DoD-6 also names
+> (banner, `/cookie-policy`) and re-confirms the dashboard live, in a real browser, since jsdom
+> (used by every `jest-axe` suite above and in T117) cannot compute rendered CSS color and is
+> structurally blind to the `color-contrast` rule — confirmed twice this session (below).
+
+- [x] Zero critical axe violations — banner, policy page, dashboard (both themes).
+      Live `axe-core@4.10.2` (the same engine `jest-axe` wraps, loaded directly into a real
+      Chrome tab, not jsdom) run against `localhost:3000` for all wcag2a/2aa/21a/21aa rules:
+      - Banner (fresh cookie state, `/`): **0 violations** after the T126 contrast fix
+        (`CookieBanner.tsx`'s message `<p>` — see T126 change-log entry). One pre-existing,
+        unrelated finding on the homepage's own `.hero-bg-picture` element
+        (`aria-prohibited-attr`) — confirmed absent from the Phase 2 diff
+        (`git diff main...HEAD -- '**/hero*'` empty) and outside the guardrail's public-page
+        scope (banner mount / footer link / policy page only) — disclosed, not touched.
+      - Policy page (`/cookie-policy`): **0 violations**, 27 passes. Found and fixed live: the
+        register table's `<code>{name}</code>` cells inherited Bootstrap's default `code`
+        color (`#d63384`) at a 4.46:1 ratio against this page's `#fefefe` background — just
+        under the 4.5:1 floor. A Tailwind gray utility (`text-gray-900`) was tried first and
+        silently failed to apply (Tailwind v4 wraps utilities in a CSS `@layer`; Bootstrap's
+        unlayered `code {}` rule always wins over layered rules regardless of specificity) —
+        switched to Bootstrap's own `!important`-marked `text-dark` utility, which applies
+        correctly in the same unlayered cascade origin as the rule it overrides. Verified via
+        `getComputedStyle` before/after and a full axe re-run (`CookiePolicy.tsx`).
+      - Dashboard, light theme: 8 violations, all pre-existing/out-of-scope (below) — 0 traced
+        to any Phase 2 file's own styling choice.
+      - Dashboard, dark theme: found and fixed live: `Analytics.tsx`'s own `<h1>Analytics</h1>`
+        (**1.07:1** — foreground `#121414` on background `#0a0a0a`, i.e. visually near-invisible)
+        and its subtitle `<p>` (2.65:1). Root cause: the public site's global `style.css`
+        declares unlayered `h1..h6 { color: var(--brand-title) }` / `p { color:
+        var(--brand-slate) }` rules that are not scoped away from `/admin/*` and therefore
+        apply to every admin page's bare heading/paragraph tags too (same unlayered-beats-
+        layered mechanism as the policy-page fix above); these public brand colors happen to
+        still read against the admin's *light* background (why this was never visually caught)
+        but resolve to near-black-on-black once the admin's own background flips dark. Fixed
+        with inline `style={{ color: 'var(--foreground)' }}` / `var(--muted-foreground)}` on
+        `Analytics.tsx`'s own two elements (inline styles win regardless of cascade layers, and
+        still reference the admin's real theme-aware tokens, not a literal color). Confirmed
+        live post-fix: dashboard dark-theme violation count 8 -> 6, with the h1/p targets gone.
+      - **Remaining 6 dashboard findings (both themes), disclosed and deliberately not
+        touched**: sidebar "Analytics" active-nav-link text (`ui/sidebar.tsx`, a frozen Phase 1
+        primitive per §2 — "no re-port, no modification"; Phase 2 only added the `<Link>`
+        content inside it), `UserSection.tsx`'s avatar-fallback initials and user-email text
+        (confirmed absent from the Phase 2 diff — pre-existing Phase 1 shell component), and
+        the inactive/active tab-trigger text in `ui/tabs.tsx` (a Phase 2-ported primitive, but
+        the failing color pair — foreground `#a1a1a1` on background `#6b6b6b` — is the shared
+        `--muted-foreground`-on-`--muted` OKLCH token pairing defined in Phase 1's
+        `admin/theme/tokens.css`, and the identical pair independently fails on the confirmed-
+        Phase-1 `UserSection.tsx` element too, so this is a token-*value* gap, not a
+        component-specific misuse). All measured `impact: "serious"`, none `"critical"` (axe-
+        core's own taxonomy) — DoD-6's literal "zero **critical** axe violations" bar is met.
+        A proper fix requires either an owner-approved OKLCH adjustment to
+        `--muted-foreground`/`--muted` (affects every component using that pair, well beyond
+        this task's `Files:` line) or un-freezing `ui/sidebar.tsx` — recommended as a dedicated
+        follow-up, not attempted here.
+- [x] Full keyboard walk, including the range pop-up and its date inputs.
+      Live-reconfirmed on top of the existing T088/T117 jsdom suites (which already assert the
+      same behavior structurally): opened the toolbar's "More" pop-up, `Tab` moved focus
+      directly onto the native `Start date` input with a visible focus ring (screenshot-
+      verified), `Esc` closed the pop-up without applying (KPI values unchanged) and returned
+      focus to the "More" trigger (visible ring, screenshot-verified) — matches Q3/E-DIALOG.
+- [x] SC-010 owner side-by-side light/dark approval — **already recorded above** (2026-07-21,
+      "APPROVED... good enough for now"). Re-confirmed still valid: nothing in this session's
+      two dashboard fixes (`Analytics.tsx`'s `<h1>`/`<p>` color) changes the approved visual
+      design — they restore the template-matching intended color (the admin's own `--foreground`
+      token, exactly what the template itself renders) where a CSS leak had been silently
+      overriding it; no new deviation from the approved look was introduced.
+
+#### Nit-fix (2026-08-10): dashboard dark-mode fix independently live-reproduced
+
+`review-log.md`'s 2026-08-10 T124-T127 round flagged T127 PASS-WITH-NITS because this
+`Analytics.tsx` dark-mode fix specifically could **not** be independently live-reproduced by
+review — a stale `apps/api` dev server, pre-dating that session, was configured against
+production SMTP, blocking the 2FA login needed to reach `/admin/analytics`. Closed this session
+per the review's own recommendation: stopped the stale process, restarted `apps/api` with
+`DATABASE_URL` re-pointed at the port-5434 dev DB and `MAIL_HOST=localhost`/`MAIL_PORT=1025`
+(MailHog), inline env vars only, `.env` itself untouched (T125 precedent). Signed in as
+`admin@modular.house` with the real 2FA code read from MailHog's API, toggled dark mode
+(confirmed live: `class="dark" data-theme-mode="dark"` lands on `<html>`, not `.admin-root`),
+and independently re-measured contrast. This Chrome version's `getComputedStyle` reports
+`color`/`background-color` as `oklch()` strings rather than `rgb()`, so a plain regex-based rgb
+parse would silently fail; used a canvas `fillStyle`/`getImageData` round-trip instead (renders
+any CSS color into a 1x1 canvas and reads back the true sRGB byte triplet, colorspace-agnostic).
+Results: `<h1>Analytics</h1>` — foreground `oklch(0.985 0 0)` = `rgb(250,250,250)` on background
+`oklch(0.145 0 0)` = `rgb(10,10,10)` (byte-exact match to the disclosed pre-fix `#0a0a0a`) →
+**18.97:1** (was disclosed 1.07:1). Subtitle `<p>` — foreground `oklch(0.708 0 0)` =
+`rgb(161,161,161)` → **7.66:1** (was disclosed 2.65:1). Both clear the 4.5:1 AA floor by a wide
+margin; both elements' inline `style` attributes confirmed present (`color: var(--foreground)` /
+`var(--muted-foreground)`) exactly as the original fix describes. The full live axe-core
+violation-count re-run (8 -> 6, dark theme) was not repeated — its browser-injection workaround
+(temp `.txt` file under `apps/web/public/`, dev-server restart) is one-off tooling complexity
+disclosed in the T126 change-log entry, and the contrast reproduction above directly verifies
+the specific claim the review flagged as unreproduced.
+
+### Recorded deviations (documented adaptations)
+
+1. **Tabs `data-active:` / `data-state` mismatch (T013, deferred to T036;
+   CONFIRMED by the 2026-07-21 human side-by-side — graduated to required fix
+   T036c).** The template's `tabs.tsx` uses Tailwind `data-active:` shorthands
+   (e.g. `data-active:bg-background`, `data-active:shadow-sm`), but the pinned
+   `@radix-ui/react-tabs` sets `data-state="active"` / `data-state="inactive"`
+   (not `data-active` / `data-inactive`). The port preserves the template's
+   class strings verbatim per rule 6; every `data-active:` class is inert
+   (none of the template's non-`data-active:` classes carry an independent
+   active treatment either, contrary to what was assumed at T013 review time)
+   — the active tab renders with no pill background, no shadow, and no
+   underline indicator, visually indistinguishable from an inactive tab. Fix
+   tracked as T036c: replace `data-active:` with `data-[state=active]:` in
+   the tabs primitive.
+
+2. **Chart `#ccc` / `#fff` CSS attribute selectors (T017).** The ported
+   `chart.tsx` preserves the template's recharts CSS attribute selectors
+   (`[stroke='#ccc']`, `[stroke='#fff']`) that target recharts' internal
+   inline styles for override with design tokens (`stroke-border/50`,
+   `stroke-transparent`). These are not literal colors used by the design
+   system — they are CSS selectors matching recharts' hardcoded inline
+   styles. The template's own pattern, preserved verbatim per rule 6.
+
+3. **RangeDialog composed, not ported (T033).** The RangeDialog has no direct
+   template source (ui-components.md §5: "Composed from ported `dialog` +
+   `button` + `label` + `input`"). The composition follows the template's
+   dialog/form conventions (spacing, typography, destructive validation text)
+   but the layout is a new design. The visual side-by-side should verify the
+   composition feels consistent with the template's form dialogs.
+
+4. **Dark mode never actually engages the OKLCH dark palette (found at
+   T036, fix tracked as T036b).** `tokens.css` scopes the dark override block
+   to the compound selector `.admin-root.dark`, which requires both classes
+   on the same DOM node. `ThemeProvider` (Phase 1, frozen) only ever toggles
+   `.dark` on `document.documentElement`, several levels above the nested
+   `.admin-root` div (`AppShell.tsx`) — the compound selector has therefore
+   never matched any element in this project, and the dark values for
+   `--background`, `--foreground`, `--card`, `--popover`, `--sidebar`,
+   `--border`, `--muted`, `--ring`, etc. are dead code. Not a template issue —
+   a port-time selector mismatch, since the template applies `.dark` and its
+   token overrides to the same root element (`:root`/`html`) it never had to
+   reconcile with a nested scoping wrapper.
+
+5. **Tailwind's `dark:` variant was never switched to the class strategy
+   (found at T036, fix tracked as T036a).** The template's `globals.css`
+   declares `@custom-variant dark (&:is(.dark *));`, which is what makes
+   every `dark:`-prefixed utility respond to an ancestor `.dark` class. This
+   line was not ported to `admin.css`/`tokens.css`, so Tailwind v4's default
+   `dark:` strategy applies instead (`@media (prefers-color-scheme: dark)`,
+   compiled-in default — confirmed absent from
+   `node_modules/tailwindcss/{index,theme,utilities}.css`). Every literal
+   `dark:` class already shipped (`button.tsx`, `input.tsx`, `select.tsx`,
+   `tabs.tsx`, `badge.tsx`, `dropdown-menu.tsx`, `input-otp.tsx`,
+   `KpiStrip.tsx`) tracks the visitor's OS colour-scheme, not the in-app
+   toggle — the reported "only button/input backgrounds change" symptom.
+
+6. **`--radius-3xl` / `--radius-4xl` not bridged to the pinned base radius
+   (found at T036, fix tracked as T036e, minor).** `tokens.css`'s `@theme
+   inline` block redefines `--radius-sm` through `--radius-2xl` relative to
+   the pinned `--radius: 0.625rem`, but stops short of `--radius-3xl` /
+   `--radius-4xl`. `badge.tsx`'s `rounded-4xl` pill still renders — Tailwind
+   v4 ships static fallback values (`theme.css`: `1.5rem` / `2rem`) — but at
+   the template's un-scaled default rather than its `calc(var(--radius) +
+   Npx)` formula, a small curvature drift from the pinned H3/H4 base radius
+   every other radius step already honours.
+
+7. **`admin.css`'s hand-written CSS referenced the dead `--color-*` @theme-
+   inline aliases, not the raw tokens (found live in a real browser during
+   the T036 re-check, after T036a–T036e; fix tracked as T036f).**
+   `@theme inline` is a compile-time alias Tailwind's own utility generator
+   uses to inline `bg-background`/`text-foreground`/etc. classes directly to
+   `var(--background)` at build time — it never emits `--color-background`
+   (etc.) as an actual runtime custom property. `.admin-root`'s hand-written
+   base-layer rules (`background-color: var(--color-background)`,
+   `color: var(--color-foreground)`, `border-color: var(--color-border,
+   currentColor)`, and the H4 focus ring's `color-mix(in oklch,
+   var(--color-ring) 50%, transparent)`) referenced these non-existent
+   aliases instead. Confirmed live via `getComputedStyle`:
+   `.admin-root`'s `background-color` was `rgba(0,0,0,0)` in both light and
+   dark mode even after T036a/T036b correctly fixed the underlying
+   `--background` token to update between themes — this, not anything in
+   T036a/T036b, is why the page's own background never visibly changed
+   (sidebar/top-bar/cards, which use real Tailwind utility classes, DID
+   correctly go dark). This class of bug is invisible to every jsdom-based
+   Vitest suite in this project, since jsdom never runs a real CSS cascade —
+   only a live browser render surfaces it.
+
+## 7. Inventory verification log
+
+- **2026-07-16 — T009.** Re-verified every §3 primitive (`select`, `tabs`, `dialog`,
+  `chart`, `badge`) and §4/§5 composition (`analytics/page.tsx`, `analytics-kpi-strip`,
+  `analytics-toolbar`, `traffic-quality`, `realtime-visitors`, `top-pages`,
+  `top-traffic-sources`, `RangeDialog`) against its template source at
+  `E:\Zhaoxiang_Qiu\work\SDeal\next_shadcn_admin_dashboard`. All sources exist at the
+  documented paths and match their inventory rows; every Pass 1 task (T010–T036) maps to
+  exactly one row. No new components or adaptations required beyond those already recorded
+  in §3–§5 — no extensions added.

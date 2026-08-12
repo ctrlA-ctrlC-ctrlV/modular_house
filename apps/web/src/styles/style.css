@@ -361,8 +361,39 @@ body {
  * Heading styles (H1-H6)
  * Applies the serif font family for editorial elegance.
  * Note: Font weight is intentionally set to regular for a refined appearance.
+ * Scoped away from the admin panel (`:not(:where(.admin-root, .admin-root
+ * *))`, Group D / T139, corrected post-deploy-comparison): this unlayered
+ * element-selector rule would otherwise beat the admin panel's own layered
+ * Tailwind utilities and CSS-variable defaults regardless of specificity,
+ * per normal CSS cascade-layer rules — admin.css (`.admin-root h1 { color:
+ * var(--foreground); }`, T141) is the source of truth for bare heading
+ * color inside `.admin-root`.
+ *
+ * The exclusion is wrapped in `:where(...)`, not applied to `:not(...)`
+ * directly: `:where()` always contributes zero specificity regardless of
+ * its argument, so `h1:not(:where(.admin-root, .admin-root *))` has the
+ * exact same specificity as plain `h1` (one type selector) — identical to
+ * before this rule existed. The first version of this fix used bare
+ * `:not(.admin-root, .admin-root *)`, whose specificity is that of its
+ * most specific argument (one class, from `.admin-root`) — bumping these
+ * selectors from one-type to one-class-plus-one-type. That silently
+ * inverted the outcome against any single-class override elsewhere on the
+ * public site that relies on winning via "class beats bare type" against
+ * this rule (e.g. `packages/ui`'s `.hero-button { color: var(--brand-white)
+ * }`, specificity one class — previously beat the old bare `a { color:
+ * var(--brand-link) } }` cleanly, but lost to the bumped-up `a:not(...)`
+ * version, rendering the homepage's "Get a Free Quote" CTA text the same
+ * color as its own background). Found via a direct localhost-vs-production
+ * (modularhouse.ie, main branch) visual comparison after a user report;
+ * `:where()` closes this whole class of regression rather than patching
+ * each affected component individually.
  */
-h1, h2, h3, h4, h5, h6 {
+h1:not(:where(.admin-root, .admin-root *)),
+h2:not(:where(.admin-root, .admin-root *)),
+h3:not(:where(.admin-root, .admin-root *)),
+h4:not(:where(.admin-root, .admin-root *)),
+h5:not(:where(.admin-root, .admin-root *)),
+h6:not(:where(.admin-root, .admin-root *)) {
   font-family: var(--font-serif);
   font-weight: var(--weight-regular);
   color: var(--brand-title);
@@ -383,8 +414,11 @@ h6 { font-size: var(--text-body); }
  * Paragraph styles
  * Uses light weight for a modern, clean aesthetic with appropriate
  * color contrast for readability.
+ * Scoped away from the admin panel via a zero-specificity `:where(...)`
+ * exclusion — see the heading rule above for the full specificity-parity
+ * rationale and the regression this correction fixes.
  */
-p {
+p:not(:where(.admin-root, .admin-root *)) {
   margin-bottom: 1.5em;
   font-weight: var(--weight-light);
   color: var(--brand-slate);
@@ -393,14 +427,17 @@ p {
 /**
  * Anchor (link) styles
  * Applies brand link colors with smooth transition for hover states.
+ * Scoped away from the admin panel via a zero-specificity `:where(...)`
+ * exclusion — see the heading rule above for the full specificity-parity
+ * rationale and the regression this correction fixes.
  */
-a {
+a:not(:where(.admin-root, .admin-root *)) {
   color: var(--brand-link);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-a:hover {
+a:hover:not(:where(.admin-root, .admin-root *)) {
   color: var(--brand-link-hover);
 }
 

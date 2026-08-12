@@ -707,6 +707,27 @@ export const routesMetadata: RouteMetadata[] = [
   },
 
   // ---------------------------------------------------------------------------
+  // Cookie Policy — legal page; canonical only; no social or schema enrichment
+  // (Phase 2, plan §2.2 N4). Renders the cookie register table (T055/T056).
+  // ---------------------------------------------------------------------------
+  {
+    path: '/cookie-policy',
+    seo: {
+      title: 'Cookie Policy',
+      description:
+        'Read the Modular House cookie policy. See exactly which cookies we set, why, and for how long — the complete, authoritative register.',
+      canonicalUrl: 'https://modularhouse.ie/cookie-policy',
+      robots: 'index, follow',
+      // No openGraph, no twitter, no schema — intentional per spec (matches
+      // the /privacy and /terms legal-page convention).
+    },
+    sitemap: {
+      priority: 0.1,
+      changefreq: 'yearly',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // 404 catch-all — not pre-rendered as a static page; excluded from sitemap
   // ---------------------------------------------------------------------------
   {

@@ -12,6 +12,23 @@ export default defineConfig({
     },
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules', 'dist', 'prisma/migrations'],
+    // Every integration suite shares one real Postgres test database (no
+    // per-file schema/transaction sandboxing), so concurrently running test
+    // files can observe each other's committed-but-not-yet-cleaned-up rows
+    // under READ COMMITTED isolation — a cross-file race documented since
+    // T058/T068 and traced to its root cause at this corrective session: the
+    // project's own documented "safe" invocation
+    // (`vitest run -- --no-file-parallelism`, reached via `pnpm ... -- ...`)
+    // never actually disabled parallelism, because pnpm forwards its `--`
+    // separator verbatim into the script's argv; vitest's CLI parser then
+    // treats that forwarded `--` as ITS OWN "start of raw args" marker, so
+    // `--no-file-parallelism` arrives as a positional (file-filter) argument
+    // instead of a flag and is silently ignored. CI's own workflow invokes
+    // `pnpm test:coverage` with no parallelism flag at all, so it was equally
+    // affected. Setting the default here — rather than depending on every
+    // caller to pass the flag (and pass it in a form pnpm forwards intact) —
+    // fixes both local runs and CI uniformly at the single point of truth.
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

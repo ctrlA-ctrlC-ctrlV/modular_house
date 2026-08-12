@@ -1,0 +1,96 @@
+name: Analytics Performance Check
+
+# Manually-triggered only (workflow_dispatch): plan.md's constitution-IV
+# guidance frames the M9/Q8 budgets as "declared pre-implementation and
+# validated post-implementation" — a one-off validation exercise, not a
+# per-push gate. Seeding ~32 months of synthetic data (T119) on every commit
+# would slow down the main CI pipeline for no ongoing benefit at this scale
+# (plan Scale/Scope: <1 M rows), so this workflow is opt-in.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  perf-check:
+    name: Analytics Perf Check (M9/Q8)
+    runs-on: ubuntu-latest
+    # A dedicated, disposable Postgres service — never the shared test_db
+    # instance test-api/coverage-check use — so seed-analytics-perf.ts's
+    # destructive reset (it deletes all analytics rows before reseeding) can
+    # never clobber another job's expected fixture state.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.22.0
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Prisma migrations
+        working-directory: apps/api
+        run: pnpm db:migrate:deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+
+      # T119 (Q8, DoD-7/DoD-8): deterministic 32-month synthetic dataset so
+      # the benchmark step below measures ingest/overview latency against a
+      # realistically sized table, not an empty one. --confirm acknowledges
+      # the destructive reset this script performs (safe here — see the
+      # dedicated Postgres service note above).
+      - name: Seed 32-month performance dataset
+        working-directory: apps/api
+        run: pnpm exec tsx scripts/seed-analytics-perf.ts --confirm
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+
+      # T120/T121 (M9/Q8): measures ingest and overview p95 latency against
+      # the freshly seeded dataset above; exits non-zero if either budget is
+      # exceeded, failing this (opt-in, workflow_dispatch-only) job. Env vars
+      # mirror ci.yml's test-api job — the app under benchmark still needs a
+      # full config even though this job never calls out over SMTP/JWT.
+      - name: Run ingest/overview performance benchmarks
+        working-directory: apps/api
+        run: pnpm exec tsx scripts/bench-analytics.ts
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          LOG_LEVEL: silent
+          NODE_ENV: test
+          MAIL_HOST: localhost
+          MAIL_FROM_EMAIL: ci@example.com
+          MAIL_INTERNAL_TO: ci@example.com
+          JWT_SECRET: ci-jwt-secret-placeholder
+          REFRESH_TOKEN_SECRET: ci-refresh-token-placeholder
+          IP_SALT: ci-ip-salt-placeholder

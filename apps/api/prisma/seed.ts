@@ -24,6 +24,11 @@ import * as argon2 from 'argon2';
 import { config } from '../src/config/env.js';
 import { logger } from '../src/middleware/logger.js';
 import { ROLES, PERMISSIONS, getPermissionsForRole } from '../src/seed/seedData.js';
+import {
+  ANALYTICS_FIXTURE_VISITORS,
+  ANALYTICS_FIXTURE_EVENTS,
+  seedAnalyticsFixtures as seedAnalyticsFixtureRows,
+} from '../src/seed/analyticsFixtureData.js';
 
 const prisma = new PrismaClient();
 
@@ -92,6 +97,14 @@ const SETTINGS: ReadonlyArray<SettingSeedEntry> = [
     description: 'Send a daily digest email summarising admin activity',
   },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Seed Data: Analytics Fixtures (test databases only — DoD-8)
+// ---------------------------------------------------------------------------
+// The fixture data and insertion logic live in
+// `src/seed/analyticsFixtureData.ts` (imported above), shared with any test
+// suite that needs to restore this exact state — see that module's docstring.
+// ---------------------------------------------------------------------------
 
 // ===========================================================================
 // Seed Functions
@@ -317,6 +330,26 @@ async function seedAdminUser(roleIdMap: Map<string, string>): Promise<void> {
   console.log('  Change this password after first login.');
 }
 
+/**
+ * Seeds deterministic analytics fixture rows into the `analytics_events` and
+ * `analytics_visitors` tables. Called ONLY when `NODE_ENV === 'test'` so the
+ * production / development seed path is unchanged (DoD-8).
+ *
+ * Delegates the actual data and delete-then-reinsert logic to the shared
+ * `src/seed/analyticsFixtureData.ts` module (kept in sync with any test that
+ * also needs to restore this exact state), and adds this script's own
+ * logging/console output around that call.
+ */
+async function seedAnalyticsFixtures(): Promise<void> {
+  logger.info('Seeding analytics fixtures (test only)...');
+
+  await seedAnalyticsFixtureRows(prisma);
+
+  logger.info({ count: ANALYTICS_FIXTURE_VISITORS.length }, 'Analytics visitors seeded');
+  logger.info({ count: ANALYTICS_FIXTURE_EVENTS.length }, 'Analytics events seeded');
+  console.log(`  Analytics fixtures: ${ANALYTICS_FIXTURE_VISITORS.length} visitors, ${ANALYTICS_FIXTURE_EVENTS.length} events`);
+}
+
 // ===========================================================================
 // Main Seed Orchestrator
 // ===========================================================================
@@ -344,6 +377,15 @@ async function main(): Promise<void> {
 
     // Step 5: Create or migrate the admin user to the super_admin role.
     await seedAdminUser(roleIdMap);
+
+    // Step 6: Seed analytics fixtures — test databases only (DoD-8).
+    // The production / development seed path adds no analytics rows; the
+    // gate is NODE_ENV === 'test', set in .env.test and in CI.
+    if (config.app.nodeEnv === 'test') {
+      await seedAnalyticsFixtures();
+    } else {
+      logger.info({ nodeEnv: config.app.nodeEnv }, 'Skipping analytics fixtures (not a test database)');
+    }
 
     logger.info('Database seed completed successfully');
   } catch (error) {

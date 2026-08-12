@@ -5,6 +5,7 @@
 // Pins US2-9 + H5 + FR-026/FR-027 against the already-built AppShell (T079-T084).
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type React from 'react';
 import { AppShell } from './AppShell.js';
 
@@ -54,8 +55,14 @@ function mockMobileMatchMedia(mobile: boolean) {
   );
 }
 
+// Wrapped in MemoryRouter (T081 deviation): the sidebar's "Analytics" nav
+// item is a react-router Link, which throws outside a Router context.
 function renderShell(overrides?: Partial<React.ComponentProps<typeof AppShell>>) {
-  return render(<AppShell user={testUser} {...overrides} />);
+  return render(
+    <MemoryRouter>
+      <AppShell user={testUser} {...overrides} />
+    </MemoryRouter>,
+  );
 }
 
 describe('Admin shell mobile off-canvas drawer (T100, T-F5)', () => {

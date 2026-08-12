@@ -15,6 +15,7 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 // Import routes
 import healthRouter from './routes/health.js';
 import submissionsRouter from './routes/submissions.js';
+import analyticsRouter from './routes/analytics.js';
 import { authRouter } from './routes/admin/auth.js';
 import { pagesRouter } from './routes/admin/pages.js';
 import { galleryRouter } from './routes/admin/gallery.js';
@@ -23,6 +24,7 @@ import { submissionsRouter as adminSubmissionsRouter } from './routes/admin/subm
 import { redirectsRouter } from './routes/admin/redirects.js';
 import { uploadsRouter } from './routes/admin/uploads.js';
 import { settingsRouter } from './routes/admin/settings.js';
+import adminAnalyticsRouter from './routes/admin/analytics.js';
 
 const app: Application = express();
 
@@ -59,6 +61,11 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')
 // Routes
 app.use('/health', healthRouter);
 app.use('/submissions', submissionsRouter);
+// Public analytics ingest — POST /api/analytics/events (plan §2.3 M1).
+// Mounted after httpLogger so every request carries a correlation id (req.id),
+// and before notFoundHandler so the route is reachable. The route applies its
+// own rate limit + validate middleware internally (T043).
+app.use('/api/analytics', analyticsRouter);
 app.use('/admin/auth', authRouter);
 app.use('/admin/pages', pagesRouter);
 app.use('/admin/gallery', galleryRouter);
@@ -67,6 +74,11 @@ app.use('/admin/submissions', adminSubmissionsRouter);
 app.use('/admin/redirects', redirectsRouter);
 app.use('/admin/uploads', uploadsRouter);
 app.use('/admin/settings', settingsRouter);
+// Admin analytics dashboard — GET overview/realtime (plan §5.1, T-B5-T-B7).
+// Mounted after httpLogger (every request already carries a correlation id,
+// req.id) and behind the same authenticateJWT gate as the other admin
+// routers; no separate requirePermission layer (FR-017: any admin role).
+app.use('/api/admin/analytics', adminAnalyticsRouter);
 
 // Basic route
 app.get('/', (_req: Request, res: Response) => {

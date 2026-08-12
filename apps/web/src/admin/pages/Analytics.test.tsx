@@ -1,0 +1,523 @@
+/**
+ * T034/T074 — Analytics page render contract (static Pass 1 + live-data Pass 2).
+ *
+ * Pins the render contract for the Analytics page that adapts the template
+ * `analytics/page.tsx` (ui-components.md §4, plan §4.3 ADD, FR-022/FR-024,
+ * US3-13). The `useAnalytics.js` hooks (T073) are mocked at the module
+ * boundary for every test in this file (T074): the T034 assertions below are
+ * unchanged from Pass 1, but now run against mocked-hook data injected via
+ * `beforeEach` (set to the same T008 fixture payloads the page used to import
+ * directly, so their expected output does not change) rather than a static
+ * import. This proves the page's structural/label contract survives the
+ * Pass 2 data-wiring switch without requiring new assertions of its own.
+ *
+ * Covered contract points (T034 "Do:" clause, in order):
+ * - Tab row: Overview is the active tab by default; the five tab triggers
+ *   render (Overview, Audience, Acquisition, Engagement, Conversions);
+ *   non-Overview tabs render the template's own dashed "coming soon"
+ *   placeholder panels when activated (FR-022: follows template; FR-024:
+ *   accommodates later tab additions without reworking existing widgets).
+ * - All six widget regions present from the (mocked) hook data: RangeToolbar,
+ *   KpiStrip, TrafficChart, RealtimeCard, TopPages, TrafficSources — each
+ *   renders its card frame / trigger.
+ * - Single-column stacking at mobile width: the grid containers carry
+ *   `grid-cols-1` (mobile base) and `xl:grid-cols-12` (xl override) so the
+ *   widgets stack in a single column below the `xl` breakpoint and spread
+ *   across the 12-col grid at `xl`+ (FR-022: "adapt to small viewports
+ *   without horizontal scrolling").
+ *
+ * T074 "live-data path" contract point (T-F7, US3-2..5): a SEPARATE describe
+ * block below overrides the mocked hooks with data distinct from the T008
+ * fixtures and asserts the distinct values render — proving the widgets are
+ * fed by `useOverview`/`useRealtime`, not a static fixtures import. Until
+ * `Analytics.tsx` actually calls the hooks (T075), it keeps rendering the
+ * fixtures regardless of what the mock returns, so these assertions are red
+ * for the right reason.
+ */
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
+import { Analytics } from './Analytics.js';
+import { useOverview, useRealtime } from '../analytics/useAnalytics.js';
+import { overviewPopulated, realtimePopulated } from '../analytics/fixtures.js';
+import type { OverviewResponse, RealtimeResponse } from '../analytics/fixtures.js';
+import { presetToRange } from '../analytics/rangePresets.js';
+
+// Mocked at the module boundary (T072's own convention) — these tests pin the
+// page's data-consumption contract, not the hooks' own fetch/poll behavior
+// (covered by useAnalytics.test.tsx).
+vi.mock('../analytics/useAnalytics.js', () => ({
+  useOverview: vi.fn(),
+  useRealtime: vi.fn(),
+}));
+
+const mockUseOverview = vi.mocked(useOverview);
+const mockUseRealtime = vi.mocked(useRealtime);
+
+/**
+ * The five tab labels in the spec/template order (FR-022: follows template;
+ * FR-024: tab set is an extension point). Overview is the default-active tab;
+ * the other four render the template's own dashed "coming soon" placeholder
+ * panels when activated.
+ */
+const TAB_LABELS = [
+  'Overview',
+  'Audience',
+  'Acquisition',
+  'Engagement',
+  'Conversions',
+] as const;
+
+describe('Analytics page — static render contract (T034)', () => {
+  beforeAll(() => {
+    // Radix primitives portal content and reference pointer/scroll APIs
+    // jsdom does not implement. Polyfill them so keyboard interactions and
+    // select rendering resolve deterministically — identical to the select
+    // (T010) and dialog (T014) primitive suites.
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  beforeEach(() => {
+    // Default mocked-hook data: the same T008 fixture payloads the page used
+    // to import directly (Pass 1), so every unmodified T034 assertion below
+    // still passes once the page reads from the hooks instead (T075).
+    mockUseOverview.mockReturnValue({ data: overviewPopulated, loading: false, error: null });
+    mockUseRealtime.mockReturnValue({ data: realtimePopulated, loading: false, error: null });
+  });
+
+  // ── Tab row ─────────────────────────────────────────────────────────
+
+  it('renders the five tab triggers with Overview active by default (FR-022)', () => {
+    render(<Analytics />);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(TAB_LABELS.length);
+    TAB_LABELS.forEach((label, index) => {
+      expect(tabs[index]).toHaveTextContent(label);
+    });
+
+    // Overview (the first tab) is active by default (template
+    // defaultValue="overview"; Radix Tabs sets aria-selected="true" and
+    // data-state="active" on the active trigger).
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    expect(tabs[0]).toHaveAttribute('data-state', 'active');
+  });
+
+  it('renders the template dashed "coming soon" placeholder when a non-Overview tab is activated', async () => {
+    // FR-022: follows template; FR-024: non-Overview tabs are placeholder
+    // panels only (guardrails). Radix Tabs only mounts the active
+    // TabsContent, so clicking a non-Overview tab reveals its placeholder
+    // panel. The template's placeholder is a dashed `border-border`
+    // `text-muted-foreground` panel with "X view coming soon." text.
+    render(<Analytics />);
+    // Radix Tabs uses automatic activation (the default): ArrowRight on the
+    // focused tab moves focus to the next tab AND activates it. This is the
+    // keyboard-first approach proven by the tabs primitive suite (T012) —
+    // more reliable in jsdom than pointer events.
+    const overviewTab = screen.getByRole('tab', { name: 'Overview' });
+    overviewTab.focus();
+    fireEvent.keyDown(overviewTab, { key: 'ArrowRight' });
+
+    // The Audience tab is now active and its placeholder panel is mounted.
+    // Await the focus move + activation (mirrors the T012 waitFor pattern).
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole('tab', { name: 'Audience' }),
+      );
+    });
+    const audienceTab = screen.getByRole('tab', { name: 'Audience' });
+    expect(audienceTab).toHaveAttribute('aria-selected', 'true');
+    const placeholder = screen.getByText(/audience view coming soon/i);
+    expect(placeholder).toBeInTheDocument();
+    expect(placeholder.className).toContain('border-dashed');
+    expect(placeholder.className).toContain('text-muted-foreground');
+  });
+
+  // ── Six widget regions from fixtures ────────────────────────────────
+
+  it('renders all six widget regions from fixtures when Overview is active', () => {
+    // The six widget regions: RangeToolbar, KpiStrip, TrafficChart,
+    // RealtimeCard, TopPages, TrafficSources. Each renders its card frame or
+    // trigger from the T008 fixture payloads — no data fetching (Pass 1).
+    render(<Analytics />);
+
+    // 1. RangeToolbar — the select trigger (combobox role) with the default
+    //    "3 months" value.
+    const selectTrigger = screen.getByRole('combobox');
+    expect(selectTrigger).toHaveTextContent('3 months');
+
+    // 2. KpiStrip — five KPI cards (Page Views, Unique Visitors, Sessions,
+    //    Returning Visitor Rate, Pages per Session).
+    expect(screen.getByText('Page Views')).toBeInTheDocument();
+    expect(screen.getByText('Unique Visitors')).toBeInTheDocument();
+    expect(screen.getByText('Sessions')).toBeInTheDocument();
+    expect(screen.getByText('Returning Visitor Rate')).toBeInTheDocument();
+    expect(screen.getByText('Pages per Session')).toBeInTheDocument();
+
+    // 3. TrafficChart — card with "Traffic Over Time" title.
+    expect(screen.getByText('Traffic Over Time')).toBeInTheDocument();
+
+    // 4. RealtimeCard — card with "Realtime Visitors" title and the
+    //    active-visitor count from the fixture.
+    expect(screen.getByText('Realtime Visitors')).toBeInTheDocument();
+
+    // 5. TopPages — card with "Top Pages" title.
+    expect(screen.getByText('Top Pages')).toBeInTheDocument();
+
+    // 6. TrafficSources — card with "Traffic Sources" title.
+    expect(screen.getByText('Traffic Sources')).toBeInTheDocument();
+  });
+
+  // ── Single-column stacking at mobile width ──────────────────────────
+
+  it('uses grid-cols-1 with xl:grid-cols-12 for single-column stacking at mobile width (FR-022)', () => {
+    // FR-022: "adapt to small viewports without horizontal scrolling". The
+    // template uses `grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12`
+    // for the widget rows — `grid-cols-1` is the mobile base (single
+    // column), `xl:grid-cols-12` is the xl override (12-col grid). In jsdom
+    // there is no layout engine, so the responsive contract is pinned by
+    // asserting the class structure: both `grid-cols-1` and
+    // `xl:grid-cols-12` are present on the grid containers.
+    const { container } = render(<Analytics />);
+
+    const grids = container.querySelectorAll('.grid-cols-1.xl\\:grid-cols-12');
+    // The template has two grid rows: TrafficChart + RealtimeCard,
+    // TopPages + TrafficSources. Both carry the responsive class pair.
+    expect(grids.length).toBeGreaterThanOrEqual(2);
+  });
+
+  // ── Page-level padding (T036d) ───────────────────────────────────────
+  // The template's page padding comes from the Next.js dashboard layout
+  // wrapping `{children}` (`p-4 md:p-6`) — this port has no equivalent
+  // layout (AppShell's `<main>` is Phase 1, frozen, and intentionally
+  // unpadded so full-bleed pages stay possible). Each admin page therefore
+  // self-supplies its own padding (see Settings.tsx's `p-6`); Analytics.tsx
+  // must do the same or its widgets sit flush against the sidebar/top bar.
+
+  it('carries its own p-4 md:p-6 page padding (T036d)', () => {
+    const { container } = render(<Analytics />);
+    expect(container.firstElementChild).toHaveClass('p-4', 'md:p-6');
+  });
+});
+
+// ── Live-data path (T074, T-F7, US3-2..5) ──────────────────────────────────
+//
+// Overrides the mocked hooks with data distinct from every T008 fixture value
+// and asserts the distinct values render. Structural assertions (tab count,
+// grid classes, padding) are already covered by the T034 suite above and are
+// not repeated here.
+
+describe('Analytics page — live-data path (T074, T-F7)', () => {
+  it('renders KPI deltas, chart, realtime card, top pages, and sources from the useAnalytics hooks', () => {
+    const liveOverview: OverviewResponse = {
+      range: { from: '2026-01-01', to: '2026-01-31', bucket: 'day' },
+      kpis: {
+        // Distinct from the fixture's 4,820 / 22.0% (KpiStrip proof).
+        pageViews: { current: 9999, previous: 8000, deltaPercent: 12.3 },
+        uniqueVisitors: overviewPopulated.kpis.uniqueVisitors,
+        sessions: overviewPopulated.kpis.sessions,
+        returningVisitorRate: overviewPopulated.kpis.returningVisitorRate,
+        pagesPerSession: overviewPopulated.kpis.pagesPerSession,
+      },
+      // An empty timeseries (vs. the fixture's 7 populated buckets) trips
+      // TrafficChart's own independent empty-state panel (US3-9) — the KPIs
+      // above stay non-zero, so this is unambiguously the chart's signal,
+      // not KpiStrip's (isEmptyRange checks kpis only).
+      timeseries: [],
+      topPages: [{ path: '/t074-live-data-marker', views: 555, share: 1 }],
+      sources: overviewPopulated.sources.map((entry) =>
+        entry.group === 'direct' ? { ...entry, sessions: 4242 } : entry,
+      ),
+    };
+    const liveRealtime: RealtimeResponse = {
+      // Distinct from the fixture's 7 active visitors.
+      activeVisitors: 42,
+      topActivePages: realtimePopulated.topActivePages,
+      windowMinutes: 5,
+    };
+
+    mockUseOverview.mockReturnValue({ data: liveOverview, loading: false, error: null });
+    mockUseRealtime.mockReturnValue({ data: liveRealtime, loading: false, error: null });
+
+    render(<Analytics />);
+
+    // KpiStrip — the mocked pageViews current + delta, not the fixture's.
+    expect(screen.getByText('9,999')).toBeInTheDocument();
+    expect(screen.getByText('12.3%')).toBeInTheDocument();
+
+    // TrafficChart — the mocked empty timeseries triggers its own
+    // independent empty-state panel, proving it reads the hook's timeseries,
+    // not the fixture's 7 populated buckets.
+    expect(screen.getByText('No analytics data for this range.')).toBeInTheDocument();
+
+    // RealtimeCard — the mocked active-visitor count, not the fixture's 7.
+    expect(screen.getByText('42')).toBeInTheDocument();
+
+    // TopPages — the mocked distinctive page path, absent from every fixture.
+    expect(screen.getByText('/t074-live-data-marker')).toBeInTheDocument();
+
+    // TrafficSources — the mocked distinctive session count, not the
+    // fixture's 630.
+    expect(screen.getByText('4242')).toBeInTheDocument();
+  });
+});
+
+// ── Range-selector wiring (T076, T-F8, US3-3, Q2) ──────────────────────────
+//
+// Proves the RangeToolbar selection drives a refetch with the exact Q2
+// `from`/`to` for the chosen preset, and that every widget updates from the
+// single new payload. `Date` is faked (not timers — Radix's own internal
+// focus-shift `setTimeout` still needs real `waitFor` polling) so the range
+// math the page computes at selection time is deterministic (constitution
+// III: never a real, uncontrolled clock in a range-math assertion).
+
+describe('Analytics page — range-selector wiring (T076, T-F8)', () => {
+  const FIXED_NOW = new Date('2026-07-15T12:00:00.000Z');
+
+  beforeAll(() => {
+    // Same idempotent Radix pointer/scroll polyfill as the T034 block above —
+    // duplicated here so this describe block's Select interaction does not
+    // depend on sibling-describe execution order.
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: FIXED_NOW, toFake: ['Date'] });
+    // mockReset (not mockClear) so this block's tests never inherit a
+    // leftover mockImplementation/mockReturnValue from an earlier describe
+    // block — there is no global clearMocks/restoreMocks configuration.
+    mockUseOverview.mockReset();
+    mockUseRealtime.mockReset();
+    mockUseRealtime.mockReturnValue({ data: realtimePopulated, loading: false, error: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows exactly the five Q2 options defaulting to 3 months, and refetches every widget on selection (T-F8)', async () => {
+    // The exact Q2 7-day range for the fixed clock, computed via the same
+    // trusted rangePresets helper (T070/T071) the page itself calls — this
+    // keeps the expectation coupled to the Q2 contract, not a hand-derived
+    // date the test could get wrong independently of the implementation.
+    const sevenDayRange = presetToRange('7d', FIXED_NOW);
+    const liveOverviewFor7d: OverviewResponse = {
+      ...overviewPopulated,
+      range: { from: sevenDayRange.from, to: sevenDayRange.to, bucket: 'day' },
+      topPages: [{ path: '/live-7d-marker', views: 42, share: 1 }],
+    };
+
+    // Only the exact 7-day range returns the distinctive payload; any other
+    // range (including the initial 3-month mount range) returns the fixture
+    // — so the marker appearing is unambiguous proof of a refetch with the
+    // right params, not just a re-render with stale data.
+    mockUseOverview.mockImplementation((range) =>
+      range.from === sevenDayRange.from && range.to === sevenDayRange.to
+        ? { data: liveOverviewFor7d, loading: false, error: null }
+        : { data: overviewPopulated, loading: false, error: null },
+    );
+
+    render(<Analytics />);
+
+    // Q2: "Range-selector options = exactly: 24 hours, 7 days, 28 days,
+    // 3 months, More"; default = 3 months.
+    const trigger = screen.getByRole('combobox');
+    expect(trigger).toHaveTextContent('3 months');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+
+    const options = screen.getAllByRole('option');
+    expect(options.map((option) => option.textContent)).toEqual([
+      '24 hours',
+      '7 days',
+      '28 days',
+      '3 months',
+      'More',
+    ]);
+
+    // Radix opens focused on the currently-selected "3 months" item (index
+    // 3); ArrowUp twice reaches "7 days" (index 1), mirroring the keyboard
+    // interaction already proven by RangeToolbar.test.tsx (T030).
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute('data-slot', 'select-item');
+    });
+    expect(document.activeElement).toHaveTextContent('3 months');
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowUp' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent('28 days');
+    });
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowUp' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent('7 days');
+    });
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
+
+    // T-F8: switching presets refetches overview with the exact Q2 from/to,
+    // and every widget updates from the single new payload — proven here via
+    // TopPages' distinctive marker, present only in the 7-day mock response.
+    await waitFor(() => {
+      expect(screen.getByText('/live-7d-marker')).toBeInTheDocument();
+    });
+  });
+});
+
+// ── Range-dialog apply flow (T078, T-F9, US3-4/5, Q2/Q3 happy path) ────────
+//
+// Proves "More" opens the pop-up with exactly 6/12/16 months + Custom, and
+// that applying either a month preset or a valid custom start/end pair
+// closes the dialog and updates every widget to the new range. Q3 rejection
+// paths (start > end, end > today, span > 490 days) are Pass 3 / E-DIALOG
+// (T115/T116) and are out of scope here — only the happy path is asserted.
+
+describe('Analytics page — range-dialog apply flow (T078, T-F9)', () => {
+  const FIXED_NOW = new Date('2026-07-15T12:00:00.000Z');
+
+  beforeAll(() => {
+    // Same idempotent Radix pointer/scroll polyfill as the other describe
+    // blocks — duplicated so this block's Select + Dialog interactions do
+    // not depend on sibling-describe execution order.
+    if (!Element.prototype.hasPointerCapture) {
+      Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+      Element.prototype.setPointerCapture = () => undefined;
+    }
+    if (!Element.prototype.releasePointerCapture) {
+      Element.prototype.releasePointerCapture = () => undefined;
+    }
+    if (!Element.prototype.scrollIntoView) {
+      Element.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: FIXED_NOW, toFake: ['Date'] });
+    mockUseOverview.mockReset();
+    mockUseRealtime.mockReset();
+    mockUseRealtime.mockReturnValue({ data: realtimePopulated, loading: false, error: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /**
+   * Opens RangeToolbar's listbox and selects "More" (the fifth, last option)
+   * via keyboard — mirrors the T030/T076 interaction pattern. Radix opens
+   * focused on the currently-selected "3 months" item (index 3); one
+   * ArrowDown reaches "More" (index 4).
+   */
+  async function openRangeDialogViaToolbar(): Promise<void> {
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute('data-slot', 'select-item');
+    });
+    expect(document.activeElement).toHaveTextContent('3 months');
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent('More');
+    });
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
+    await screen.findByRole('dialog');
+  }
+
+  it('opens the pop-up with exactly 6/12/16 months + Custom, and applying a preset closes it and updates every widget', async () => {
+    const twelveMonthRange = presetToRange('12m', FIXED_NOW);
+    const liveOverviewFor12m: OverviewResponse = {
+      ...overviewPopulated,
+      range: { from: twelveMonthRange.from, to: twelveMonthRange.to, bucket: 'day' },
+      topPages: [{ path: '/live-12m-marker', views: 42, share: 1 }],
+    };
+
+    // Only the exact 12-month range returns the distinctive payload; any
+    // other range (including the initial 3-month mount range) returns the
+    // fixture — the marker appearing is unambiguous proof of a correctly
+    // parameterized refetch.
+    mockUseOverview.mockImplementation((range) =>
+      range.from === twelveMonthRange.from && range.to === twelveMonthRange.to
+        ? { data: liveOverviewFor12m, loading: false, error: null }
+        : { data: overviewPopulated, loading: false, error: null },
+    );
+
+    render(<Analytics />);
+    await openRangeDialogViaToolbar();
+
+    // Q2: "More opens the pop-up with exactly: 6 months, 12 months, 16
+    // months, Custom".
+    expect(screen.getByRole('button', { name: '6 months' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '12 months' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '16 months' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Custom' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '12 months' }));
+
+    // T-F9: applying a preset closes the dialog and updates every widget to
+    // the new range.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('/live-12m-marker')).toBeInTheDocument();
+    });
+  });
+
+  it('applies a valid custom start/end pair the same way (Q3 happy path)', async () => {
+    const customFrom = '2026-01-01';
+    const customTo = '2026-01-15';
+    const liveOverviewForCustom: OverviewResponse = {
+      ...overviewPopulated,
+      range: { from: customFrom, to: customTo, bucket: 'day' },
+      topPages: [{ path: '/live-custom-marker', views: 42, share: 1 }],
+    };
+
+    mockUseOverview.mockImplementation((range) =>
+      range.from === customFrom && range.to === customTo
+        ? { data: liveOverviewForCustom, loading: false, error: null }
+        : { data: overviewPopulated, loading: false, error: null },
+    );
+
+    render(<Analytics />);
+    await openRangeDialogViaToolbar();
+
+    // Q3: "Custom range in the pop-up: two date inputs". Reveal them, then
+    // fill a valid pair (start <= end <= today, span well under 490 days).
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }));
+    const startInput = screen.getByLabelText(/start date/i);
+    const endInput = screen.getByLabelText(/end date/i);
+    fireEvent.change(startInput, { target: { value: customFrom } });
+    fireEvent.change(endInput, { target: { value: customTo } });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    // T-F9: a valid custom pair applies the same way as a preset — dialog
+    // closes, every widget updates to the new range.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('/live-custom-marker')).toBeInTheDocument();
+    });
+  });
+});

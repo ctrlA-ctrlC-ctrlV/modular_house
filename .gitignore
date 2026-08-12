@@ -101,3 +101,4 @@ storybook-static
 storybook-static/
 .template/
 specs/012-panel-phase-1/pending-commits.md
+specs/013-panel-phase-2/pending-commits.md

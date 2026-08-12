@@ -26,7 +26,8 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type React from 'react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -111,8 +112,29 @@ function setMobileViewport(isMobile: boolean) {
  * focus indicator is rendered on its sibling `input-otp-slot` elements
  * instead, which already carry `data-[active=true]:ring-3` (T076, Session 22).
  */
-function assertVisibleFocusOnControls(root: HTMLElement) {
-  const controls = root.querySelectorAll('button, input:not([data-slot="input-otp"])');
+// Wrapped in MemoryRouter (T080): the sidebar's "Analytics" nav item (T081)
+// is a react-router Link, which throws outside a Router context.
+function renderShell(overrides?: Partial<React.ComponentProps<typeof AppShell>>) {
+  return render(
+    <MemoryRouter>
+      <AppShell user={testUser} {...overrides} />
+    </MemoryRouter>,
+  );
+}
+
+/**
+ * `includeAnchors` (T080, default false): the shell's sidebar carries an
+ * "Analytics" nav link (FR-017) styled with the H4 ring utility, but the
+ * pre-auth pages' plain-text links (e.g. Login's "Forgot password?") are
+ * deliberately unstyled underline links with no ring — scoping the anchor
+ * check to the shell keeps those pages' existing, already-passing coverage
+ * intact.
+ */
+function assertVisibleFocusOnControls(root: HTMLElement, includeAnchors = false) {
+  const selector = includeAnchors
+    ? 'button, a, input:not([data-slot="input-otp"])'
+    : 'button, input:not([data-slot="input-otp"])';
+  const controls = root.querySelectorAll(selector);
   expect(controls.length).toBeGreaterThan(0);
   controls.forEach((el) => {
     expect((el as HTMLElement).className).toMatch(/focus-visible:ring-3/);
@@ -133,6 +155,29 @@ const TOKENS_CSS_PATH = path.join(
   '..',
   'theme',
   'tokens.css',
+);
+
+// admin.css source path (T036a) — read directly so the class-based dark
+// variant registration can't silently drift from the actual source file,
+// mirroring the tokens.css read pattern above.
+const ADMIN_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'theme',
+  'admin.css',
+);
+
+// Public-site style.css source path (T138, Group D) — read directly, same
+// disk-read rationale as tokens.css/admin.css above, so the injected
+// stylesheet below (see the "Bare-tag brand-color scoping" describe block)
+// exercises the real shipped rule text rather than a hand-copied excerpt
+// that could silently drift from it.
+const STYLE_CSS_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'styles',
+  'style.css',
 );
 
 interface Oklch {
@@ -190,15 +235,22 @@ function parseThemeTokens(cssBlock: string): Record<string, Oklch> {
 }
 
 const tokensCss = readFileSync(TOKENS_CSS_PATH, 'utf8');
+const adminCss = readFileSync(ADMIN_CSS_PATH, 'utf8');
+const styleCss = readFileSync(STYLE_CSS_PATH, 'utf8');
 
-// Isolate the `.admin-root { ... }` (light) and `.admin-root.dark { ... }`
-// (dark) blocks so identically-named custom properties don't collide; the
-// light-mode pattern does not match the dark selector because `.dark`
-// immediately follows `.admin-root` there instead of whitespace + `{`.
-const lightBlockMatch = tokensCss.match(/\.admin-root\s*\{([^}]+)\}/);
-const darkBlockMatch = tokensCss.match(/\.admin-root\.dark\s*\{([^}]+)\}/);
+// Isolate the unconditional `.admin-root { ... }` (light) block from the
+// `.dark .admin-root { ... }` (dark) descendant-selector block (T036b — the
+// dark palette must engage wherever `.admin-root` renders under an ancestor
+// carrying `.dark`, since `ThemeProvider` only ever toggles `.dark` on
+// `document.documentElement`, never on the nested `.admin-root` div) so
+// identically-named custom properties don't collide. The light-mode pattern
+// uses a negative lookbehind to skip the `.admin-root {` text embedded
+// inside the dark block's own selector (`.dark .admin-root {` also
+// textually matches a bare `\.admin-root\s*\{` scan).
+const lightBlockMatch = tokensCss.match(/(?<!\.dark )\.admin-root\s*\{([^}]+)\}/);
+const darkBlockMatch = tokensCss.match(/\.dark\s+\.admin-root\s*\{([^}]+)\}/);
 if (!lightBlockMatch || !darkBlockMatch) {
-  throw new Error('Could not locate .admin-root / .admin-root.dark blocks in tokens.css');
+  throw new Error('Could not locate .admin-root / .dark .admin-root blocks in tokens.css');
 }
 const lightTokens = parseThemeTokens(lightBlockMatch[1]);
 const darkTokens = parseThemeTokens(darkBlockMatch[1]);
@@ -213,10 +265,20 @@ const darkTokens = parseThemeTokens(darkBlockMatch[1]);
  * the reference template's Default preset (Template Parity Gate, plan.md
  * §5A) rather than a Phase 1 implementation choice, so it is out of scope
  * for this test to police.
+ *
+ * `['muted-foreground', 'muted']` (T146, Group E) — reviewer-reported (live
+ * dashboard measurement, dark theme): 2.06:1, well under the 4.5:1 floor.
+ * This is a distinct pair from the already-covered `muted-foreground` on
+ * `background` above: several surfaces (the tabs-list default variant's
+ * `bg-muted` container, T148; any future `bg-muted` panel) render
+ * `--muted-foreground` text directly on `--muted`, not on the page
+ * background, so the two pairs can diverge even though they share a
+ * foreground token.
  */
 const NORMAL_TEXT_PAIRS: Array<[fg: string, bg: string]> = [
   ['foreground', 'background'],
   ['muted-foreground', 'background'],
+  ['muted-foreground', 'muted'],
   ['primary-foreground', 'primary'],
   ['secondary-foreground', 'secondary'],
   ['sidebar-foreground', 'sidebar'],
@@ -337,14 +399,14 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
 
   describe('Shell (desktop)', () => {
     it('has zero accessibility violations', async () => {
-      const { container } = render(<AppShell user={testUser} />);
+      const { container } = renderShell();
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
-    it('shows a visible focus ring on every button and input (H4)', () => {
-      const { container } = render(<AppShell user={testUser} />);
-      assertVisibleFocusOnControls(container);
+    it('shows a visible focus ring on every button, link, and input (H4)', () => {
+      const { container } = renderShell();
+      assertVisibleFocusOnControls(container, true);
     });
   });
 
@@ -358,7 +420,7 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
   describe('Shell (mobile off-canvas drawer)', () => {
     it('has zero accessibility violations when the drawer is open', async () => {
       setMobileViewport(true);
-      render(<AppShell user={testUser} />);
+      renderShell();
 
       // Allow the isMobile useEffect (H5 matchMedia read) to resolve, then
       // open the drawer via the same trigger used on desktop — toggleSidebar
@@ -439,7 +501,7 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       applyBootTheme();
       expect(document.documentElement.classList.contains('dark')).toBe(true);
 
-      render(<AppShell user={testUser} />);
+      renderShell();
 
       // Checked immediately after the synchronous render — no waitFor.
       // ThemeProvider's lazy useState initializer reads the same cookie
@@ -453,7 +515,7 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
       applyBootTheme();
       expect(document.documentElement.classList.contains('dark')).toBe(false);
 
-      render(<AppShell user={testUser} />);
+      renderShell();
 
       expect(document.documentElement.classList.contains('dark')).toBe(false);
       expect(document.documentElement.getAttribute('data-theme-mode')).toBe('light');
@@ -480,6 +542,241 @@ describe('E-A11Y/THEME — accessibility + theme-flash (H1/H4/H6, FR-030/FR-031)
         oklchToRelativeLuminance(darkTokens[bg]),
       );
       expect(ratio).toBeGreaterThanOrEqual(4.5);
+    });
+  });
+
+  // ── Dark-mode class-based variant (T036a) ────────────────────────────────
+  // Tailwind v4's default `dark:` strategy is `@media (prefers-color-scheme:
+  // dark)` — a `dark:`-prefixed utility only reacts to the OS colour-scheme
+  // unless the class-based strategy is registered explicitly. Without this
+  // registration every `dark:` class already shipped (button, input, select,
+  // tabs, badge, dropdown-menu, input-otp, KpiStrip) tracks the visitor's OS
+  // preference instead of the in-app light/dark toggle (`ThemeProvider`'s
+  // `.dark` class on `document.documentElement`).
+
+  describe('Dark-mode class-based variant (T036a)', () => {
+    it('registers the class-based dark variant so dark: utilities track the in-app toggle, not the OS colour-scheme', () => {
+      expect(adminCss).toMatch(/@custom-variant\s+dark\s*\(&:is\(\.dark \*\)\)\s*;/);
+    });
+  });
+
+  // ── Dark-mode selector scope (T036b) ─────────────────────────────────────
+  // The dark OKLCH palette must be scoped to a selector that can actually
+  // match a real element. `ThemeProvider.applyThemeToDOM` toggles `.dark` on
+  // `document.documentElement`, several DOM levels above the nested
+  // `.admin-root` div (`AppShell.tsx`) — a compound `.admin-root.dark`
+  // selector (same-element match) never matches anything there; the
+  // descendant selector `.dark .admin-root` does.
+
+  describe('Dark-mode selector scope (T036b)', () => {
+    it('scopes the dark palette to `.dark .admin-root` (descendant), not the dead `.admin-root.dark` compound form', () => {
+      expect(tokensCss).toMatch(/\.dark\s+\.admin-root\s*\{/);
+      expect(tokensCss).not.toMatch(/\.admin-root\.dark\s*\{/);
+    });
+  });
+
+  // ── Radius scale completeness (T036e) ────────────────────────────────────
+  // The `@theme inline` bridge redefines `--radius-sm` through `--radius-2xl`
+  // relative to the pinned base `--radius`, but previously stopped short of
+  // `--radius-3xl` / `--radius-4xl` (used by badge.tsx's `rounded-4xl` pill),
+  // which silently fell back to Tailwind v4's static built-in defaults
+  // (1.5rem / 2rem) instead of scaling with the pinned base radius.
+
+  describe('Radius scale completeness (T036e)', () => {
+    it('bridges --radius-3xl and --radius-4xl to the pinned base radius', () => {
+      expect(tokensCss).toMatch(/--radius-3xl:\s*calc\(var\(--radius\)\s*\+\s*12px\)/);
+      expect(tokensCss).toMatch(/--radius-4xl:\s*calc\(var\(--radius\)\s*\+\s*16px\)/);
+    });
+  });
+
+  // ── Raw-token references in hand-written CSS (T036f) ─────────────────────
+  // `@theme inline` is a compile-time alias Tailwind's own utility generator
+  // uses to inline `bg-background`/`text-foreground`/etc. classes directly
+  // to `var(--background)` at build time — it never emits `--color-background`
+  // (etc.) as an actual runtime custom property. Confirmed live in a real
+  // browser (T036 re-check, 2026-07-21): `.admin-root`'s `background-color:
+  // var(--color-background)` resolved to `rgba(0,0,0,0)` (transparent) in
+  // BOTH light and dark mode, because `--color-background` never existed at
+  // runtime — this is why the page's own background never visibly changed
+  // even after T036a/T036b correctly fixed the dark-mode selector/variant
+  // machinery underneath it. Hand-written CSS (as opposed to Tailwind
+  // utility classes generated from `className` strings) must reference the
+  // raw token names tokens.css actually defines.
+
+  describe('Raw-token references in hand-written CSS (T036f)', () => {
+    it('references raw tokens (--background/--foreground/--border/--ring), not the dead --color-* @theme-inline aliases, in admin.css', () => {
+      expect(adminCss).toMatch(/background-color:\s*var\(--background\)/);
+      expect(adminCss).toMatch(/color:\s*var\(--foreground\)/);
+      expect(adminCss).toMatch(/border-color:\s*var\(--border,/);
+      expect(adminCss).toMatch(/color-mix\(in oklch, var\(--ring\)/);
+      expect(adminCss).not.toMatch(/var\(--color-(background|foreground|border|ring)/);
+    });
+  });
+
+  // ── Bare-tag brand-color scoping (T138, Group D) ────────────────────────
+  // style.css declares unlayered element-selector rules (`h1..h6`, `p`, `a`,
+  // `a:hover`, style.css:365-405) that set brand colours (`--brand-title` /
+  // `--brand-slate` / `--brand-link` / `--brand-link-hover`) with no
+  // exclusion for the admin panel — the root cause behind both the
+  // reviewer-reported sidebar nav-link contrast finding and the
+  // login-heading/subtitle dark-mode finding (see tasks.md Group D header).
+  //
+  // Vitest's default `css: false` behaviour (vitest.config.ts) replaces CSS
+  // module imports with an empty string during tests, so importing style.css
+  // normally would exercise nothing. This suite instead injects the actual
+  // file content into jsdom's live stylesheet cascade directly — reading it
+  // from disk (same rationale as the tokens.css/admin.css reads above) so it
+  // can never silently drift from the real shipped rules.
+  //
+  // Why `getComputedStyle` is viable here, unlike T130/T131's `--popover`
+  // case (see select.test.tsx/dialog.test.tsx): this suite never resolves
+  // what colour a token maps to — only whether an element-selector rule
+  // matches a given element at all. This project's pinned jsdom (25.0.1)
+  // never resolves `var()`, so a *matching* rule's computed value surfaces
+  // as the literal unresolved string (e.g. `"var(--brand-title)"`); an
+  // element no rule matches instead falls back to jsdom's own UA-default
+  // `color` value (`"canvastext"`). That match/no-match distinction is
+  // exactly what a selector-scoping regression needs, independent of
+  // `var()` resolution — verified directly against this exact jsdom version
+  // before writing this suite.
+
+  describe('Bare-tag brand-color scoping (T138, Group D)', () => {
+    let injectedStyle: HTMLStyleElement | null = null;
+    let container: HTMLDivElement | null = null;
+
+    beforeEach(() => {
+      injectedStyle = document.createElement('style');
+      injectedStyle.textContent = styleCss;
+      document.head.appendChild(injectedStyle);
+    });
+
+    afterEach(() => {
+      injectedStyle?.remove();
+      container?.remove();
+      injectedStyle = null;
+      container = null;
+    });
+
+    it('does not resolve --brand-title/--brand-slate/--brand-link for bare h1/p/a rendered inside .admin-root', () => {
+      container = document.createElement('div');
+      container.className = 'admin-root';
+      container.innerHTML =
+        '<h1 data-testid="bare-h1">Heading</h1>' +
+        '<p data-testid="bare-p">Paragraph</p>' +
+        '<a data-testid="bare-a" href="#">Link</a>';
+      document.body.appendChild(container);
+
+      const h1 = container.querySelector('[data-testid="bare-h1"]') as HTMLElement;
+      const p = container.querySelector('[data-testid="bare-p"]') as HTMLElement;
+      const a = container.querySelector('[data-testid="bare-a"]') as HTMLElement;
+
+      // Pre-T139, style.css's unscoped selectors match every h1/p/a in the
+      // document including these, so `getComputedStyle` surfaces the
+      // literal unresolved `var(...)` string (see file header) — these
+      // assertions are expected to fail until T139 scopes the rules away
+      // from `.admin-root`.
+      expect(getComputedStyle(h1).color).not.toBe('var(--brand-title)');
+      expect(getComputedStyle(p).color).not.toBe('var(--brand-slate)');
+      expect(getComputedStyle(a).color).not.toBe('var(--brand-link)');
+    });
+  });
+
+  // ── Bare-tag admin token defaults (T140, Group D) ───────────────────────
+  // T138/T139 only prove style.css's brand-color rules no longer match
+  // inside `.admin-root` — removing a competing rule is not the same as
+  // supplying a correct one. This suite proves the other half: once
+  // style.css's rules are excluded, a bare `<h1>`/`<p>`/`<a>` inside
+  // `.admin-root` must still resolve a real, theme-aware admin color
+  // (`--foreground` for headings/paragraphs, `--primary` for links) rather
+  // than silently falling through to no color rule at all (the browser's
+  // unstyled default). That default is supplied by admin.css's own
+  // hand-written base layer (T141) — injected here alongside style.css, in
+  // the same real-cascade style as the T138 suite above, so this test
+  // exercises both files' actual shipped rule text together.
+  //
+  // Cascade-layer unwrapping: this project's pinned jsdom (25.0.1) cannot
+  // parse the CSS Cascade Layers `@layer` at-rule at all — verified
+  // directly, isolated from `@import`/`@custom-variant` (both parse fine
+  // alone): a `<style>` element containing an `@layer` block causes jsdom
+  // to silently discard the ENTIRE stylesheet, not merely the unparseable
+  // block, so none of its rules would ever surface via `getComputedStyle`
+  // regardless of validity. admin.css's hand-written rules all live inside
+  // one `@layer base { ... }` block, so `stripLayerWrapper` below extracts
+  // and injects only its inner rule text, unwrapped. This is equivalent for
+  // cascade-order purposes here: a real browser gives any unlayered rule
+  // higher priority than a layered one regardless of layer order, so
+  // unwrapping can only ever make a rule apply in a case where the
+  // original, correctly-layered version would also have applied — and no
+  // other unlayered rule from admin.css itself competes with it in the
+  // same injected stylesheet.
+
+  /** Extracts the inner rule text of a `@layer <layerName> { ... }` block, unwrapped (see comment above). */
+  function stripLayerWrapper(css: string, layerName: string): string {
+    const marker = `@layer ${layerName}`;
+    const markerIndex = css.indexOf(marker);
+    if (markerIndex === -1) {
+      throw new Error(`Could not locate "@layer ${layerName}" in the provided CSS source`);
+    }
+    const openBraceIndex = css.indexOf('{', markerIndex);
+    if (openBraceIndex === -1) {
+      throw new Error(`Malformed "@layer ${layerName}" block: no opening brace found`);
+    }
+    let depth = 1;
+    let i = openBraceIndex + 1;
+    for (; i < css.length && depth > 0; i += 1) {
+      if (css[i] === '{') depth += 1;
+      else if (css[i] === '}') depth -= 1;
+    }
+    if (depth !== 0) {
+      throw new Error(`Malformed "@layer ${layerName}" block: unbalanced braces`);
+    }
+    return css.slice(openBraceIndex + 1, i - 1);
+  }
+
+  describe('Bare-tag admin token defaults (T140, Group D)', () => {
+    let injectedStyleCss: HTMLStyleElement | null = null;
+    let injectedAdminCss: HTMLStyleElement | null = null;
+    let container: HTMLDivElement | null = null;
+
+    beforeEach(() => {
+      injectedStyleCss = document.createElement('style');
+      injectedStyleCss.textContent = styleCss;
+      document.head.appendChild(injectedStyleCss);
+
+      injectedAdminCss = document.createElement('style');
+      injectedAdminCss.textContent = stripLayerWrapper(adminCss, 'base');
+      document.head.appendChild(injectedAdminCss);
+    });
+
+    afterEach(() => {
+      injectedStyleCss?.remove();
+      injectedAdminCss?.remove();
+      container?.remove();
+      injectedStyleCss = null;
+      injectedAdminCss = null;
+      container = null;
+    });
+
+    it('resolves --foreground for bare h1/p and --primary for bare a inside .admin-root', () => {
+      container = document.createElement('div');
+      container.className = 'admin-root';
+      container.innerHTML =
+        '<h1 data-testid="bare-h1">Heading</h1>' +
+        '<p data-testid="bare-p">Paragraph</p>' +
+        '<a data-testid="bare-a" href="#">Link</a>';
+      document.body.appendChild(container);
+
+      const h1 = container.querySelector('[data-testid="bare-h1"]') as HTMLElement;
+      const p = container.querySelector('[data-testid="bare-p"]') as HTMLElement;
+      const a = container.querySelector('[data-testid="bare-a"]') as HTMLElement;
+
+      // Fails today: admin.css has no base-layer default for bare h1/p/a
+      // yet, so none of these rules match and the computed value falls
+      // back to jsdom's UA default instead of the literal admin token
+      // string below (T141 adds the missing rule).
+      expect(getComputedStyle(h1).color).toBe('var(--foreground)');
+      expect(getComputedStyle(p).color).toBe('var(--foreground)');
+      expect(getComputedStyle(a).color).toBe('var(--primary)');
     });
   });
 });

@@ -7,6 +7,7 @@ import About from './routes/About';
 import Contact from './routes/Contact';
 import Privacy from './routes/Privacy';
 import Terms from './routes/Terms';
+import CookiePolicy from './routes/CookiePolicy';
 import { AppRoute } from './types/seo';
 import NotFound from './routes/NotFound';
 import { routesMetadata } from './routes-metadata';
@@ -25,6 +26,7 @@ const componentMap: Record<string, React.ComponentType> = {
   '/contact': Contact,
   '/privacy': Privacy,
   '/terms': Terms,
+  '/cookie-policy': CookiePolicy,
   '*': NotFound,
 };
 

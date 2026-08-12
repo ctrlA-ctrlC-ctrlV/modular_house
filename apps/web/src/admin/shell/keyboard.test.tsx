@@ -1,9 +1,11 @@
 // T099 — Keyboard operability test (T-F3).
 // Asserts every shell control is keyboard-focusable with the H4 visible-focus
 // ring (H6/FR-030) and that the Ctrl/Cmd+B shortcut toggles the sidebar (H2).
+// Extended by T080 to cover the sidebar's "Analytics" nav link (FR-017).
 // Pins US2-6 + H6 + FR-030 against the already-built AppShell (T079-T084).
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type React from 'react';
 import { AppShell } from './AppShell.js';
 
@@ -35,8 +37,14 @@ vi.stubGlobal(
   }),
 );
 
+// Wrapped in MemoryRouter: the sidebar's "Analytics" nav item (T081) is a
+// react-router Link, which throws outside a Router context.
 function renderShell(overrides?: Partial<React.ComponentProps<typeof AppShell>>) {
-  return render(<AppShell user={testUser} {...overrides} />);
+  return render(
+    <MemoryRouter>
+      <AppShell user={testUser} {...overrides} />
+    </MemoryRouter>,
+  );
 }
 
 // H4 focus-ring token classes (plan §2.8 H4: 3px at ring/50). Every operable
@@ -58,6 +66,7 @@ function getShellControls() {
   const userSection = screen.getByTestId('user-section');
   return {
     identity: screen.getByRole('button', { name: /modular house/i }),
+    analyticsLink: screen.getByRole('link', { name: /analytics/i }),
     userSection: within(userSection).getByRole('button'),
     sidebarTrigger: screen.getByRole('button', { name: /toggle sidebar/i }),
     preferences: screen.getByRole('button', { name: /preferences/i }),

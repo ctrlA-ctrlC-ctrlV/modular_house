@@ -1917,7 +1917,8 @@ single root cause behind **two** separately-reported findings:
 
 ### Group E — `--muted-foreground` on `--muted` fails contrast (reviewer-reported)
 
-- [ ] T146 Write failing contrast test for the muted token pair
+- [x] T146 Write failing contrast test for the muted token pair
+> note: extended NORMAL_TEXT_PAIRS w/ [muted-foreground,muted]; tests: 495 (1 fail, light 4.339<4.5); deviations: none
       Files: apps/web/src/admin/shell/a11y.test.tsx
       Do: Extend the existing tokens.css-parsing pattern (used by T036a/b/e/f) to compute the
       contrast ratio of `--muted-foreground` over `--muted` for both the light and dark blocks,
@@ -1925,7 +1926,8 @@ single root cause behind **two** separately-reported findings:
       Done when: test fails today (reviewer-measured 2.06:1).
       Refs: DoD-6, constitution V
 
-- [ ] T147 Adjust the muted OKLCH pair to meet 4.5:1 in both themes
+- [x] T147 Adjust the muted OKLCH pair to meet 4.5:1 in both themes
+> note: muted-foreground light 0.556->0.47, dark 0.708->0.75 (4 blocks); tests: 495/495 green; deviations: none
       Files: apps/web/src/admin/theme/tokens.css
       Do: Adjust `--muted`/`--muted-foreground` lightness in the `.admin-root` (light) and
       `.dark .admin-root` (dark) blocks until both meet 4.5:1, keeping the pair visually "muted"
@@ -1933,14 +1935,16 @@ single root cause behind **two** separately-reported findings:
       Done when: T146 green.
       Refs: DoD-6, constitution V
 
-- [ ] T148 Add a contrast-regression assertion for tab-trigger label text
+- [x] T148 Add a contrast-regression assertion for tab-trigger label text
+> note: 4 new tests, gamma-space alpha blend for light /60 case, dark uses fixed pair; tests: 14/14; deviations: none
       Files: apps/web/src/admin/ui/tabs.test.tsx
       Do: Assert an inactive TabsTrigger's rendered text meets 4.5:1 against its background in
       both themes (computed-style based, not just class-presence).
       Done when: test is green against the post-T147 tokens.
       Refs: DoD-6, constitution V
 
-- [ ] T149 Add a contrast-regression assertion for UserSection email text
+- [x] T149 Add a contrast-regression assertion for UserSection email text
+> note: real pair is muted-fg on --sidebar (not --muted, ui/sidebar.tsx bg-sidebar root); tests: 3/3; deviations: none
       Files: apps/web/src/admin/shell/UserSection.test.tsx (new)
       Do: Assert the `data-slot="user-email"` text meets 4.5:1 against its background in both
       themes.

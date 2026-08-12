@@ -6,6 +6,90 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-12 — T155-T156 (baseline: 9288cce)
+
+T155 — PASS — real build confirms all 5 URLs resolve
+T156 — PASS-WITH-NITS — destroyTmp skip-guard clause misattributed
+
+Detail: `git diff --name-only 9288cce HEAD` touches 4 files: 1 source/config
+(`apps/web/lighthouserc.json`), 3 docs (`change-log.md`, `quickstart.md`, `tasks.md`) — both
+dated change-log entries (T155 at 12:07, T156 at 12:53) name exactly these files — no concealed
+changes. Supply-chain check: zero `package.json`/lockfile changes. The pre-existing untracked
+`packages/ui/.../__screenshots__/` directory (flagged non-blocking in the prior round) is
+unchanged and outside this diff.
+
+T155 (stale Lighthouse route slugs): independently confirmed `apps/web/lighthouserc.json` now
+targets `garden-rooms/index.html` and `house-extensions/index.html`, matching
+`route-config.tsx:21,23`'s actual canonical plural routes (`/garden-rooms`, `/house-extensions`,
+the latter with an explicit comment noting the singular `/house-extension` redirects to it) —
+the change-log's own cited line numbers are exact. Did not stop at inspection: ran a real
+`pnpm --filter @modular-house/web build` (client + SSR prerender) myself and confirmed all five
+`ci.collect.url` targets exist under `dist/client/` (`index.html`, `about/index.html`,
+`contact/index.html`, `garden-rooms/index.html`, `house-extensions/index.html`), and confirmed the
+two old singular paths (`garden-room/index.html`, `house-extension/index.html`) do **not** exist —
+i.e. the pre-fix URLs really would 404. This satisfies T155's literal Done-when ("resolves against
+a real build output") as a genuinely run-and-green check, not inspection-passed. Working tree
+confirmed clean after the build (dist/ is gitignored, no pollution).
+
+T156 (chrome-launcher EPERM investigation): every static/source-level claim was independently
+re-derived against the real installed `chrome-launcher@1.2.1` (confirmed as the resolved version
+via `pnpm-lock.yaml`), not taken on the change-log's word. `destroyTmp()`
+(`chrome-launcher.js:351-368`) calls `rmSync(this.userDataDir, {recursive: true, force: true,
+maxRetries: 10})` exactly as claimed; `utils.js:54-70`'s `getPlatform()`/`makeTmpDir()` branch is
+byte-exact to the described mechanism — `darwin`/`linux` call `makeUnixTmpDir()` (plain `mktemp
+-d`, no Windows-specific code at all), `wsl` repoints `process.env.TEMP` via `wslpath -u`
+(`getWSLLocalAppDataPath`/`toWSLPath`) before falling through into the `win32` branch, exactly the
+"lands on the Windows-backed drvfs mount" mechanism described. The Windows `taskkill /pid ... /T
+/F` special-case citing `GoogleChrome/chrome-launcher#266` (`chrome-launcher.js:332-337`) is real.
+Confirmed zero `.github/workflows/*.yml` invokes `lhci`/`test:lighthouse` (`perf-check.yml` is
+unrelated) — grepped all three workflow files directly, zero hits. Confirmed the new "Troubleshooting"
+subsection is correctly nested as an H3 under the existing H2 "## 5. Test commands" (not a new
+top-level section), leaving "## 6. FR -> test traceability" untouched — verified this genuinely
+matters, not just a tidy-doc excuse: `tasks.md` itself cites both "quickstart §5 CI note" (T156's
+own `Refs:` line) and "quickstart §6" (T123's `Refs:`), so renumbering would have broken a real
+citation. The `port`-based workaround was traced end-to-end, not just asserted plausible: Lighthouse's
+own CLI accepts a `port` flag (`cli-flags.js:140-143`, "port to use for the debugging protocol"),
+`@lhci/cli`'s `node-runner.js:45-69` passes `ci.collect.settings` straight through as Lighthouse
+flags (minus a short exclusion list that does not include `port`), and `chrome-launcher.js:186-201`'s
+`launch()` returns early ("Found existing Chrome already running... using that") once
+`isDebuggerReady()` succeeds on the requested port, **before** `prepare()` (which sets
+`this.userDataDir`) ever runs — so `destroyTmp()`'s guard (`this.userDataDir === undefined`) trips
+on its first disjunct, correctly skipping cleanup for a standalone Chrome. The 30/30
+Docker-container and 10/10 WSL2 dynamic reproduction runs themselves were not re-run this session
+(no Docker/WSL invoked) — inspection-passed on the strength of the fully-disclosed methodology and
+the fact that every adjacent static claim independently checked out exact, same disposition as this
+log's treatment of other non-§6 dynamic claims (e.g. T119's perf-script numbers).
+
+**Nit (T156)**: the change-log states the externally-supplied port "takes the same 'don't manage
+this instance' path" as `opts.userDataDir` being supplied — true in observable outcome (`destroyTmp`
+never fires either way) but imprecise about the mechanism: the port path skips cleanup via
+`destroyTmp`'s *first* guard disjunct (`this.userDataDir === undefined`, because `prepare()` is
+never reached), not the *second* (`this.opts.userDataDir !== undefined`, which requires an option
+this workaround never sets) as "the same path" loosely implies. Two genuinely different branches of
+the same OR happen to produce the same skip — low severity, no practical impact on the workaround's
+correctness (independently confirmed correct above), same class of minor code-description
+imprecision previously flagged at T014/T094/T102/T134.
+
+Verification commands (§6), all run against Docker's already-running port-5434 test DB:
+`pnpm --filter @modular-house/api test:run` — first run: 4 failed / 511 passed, all four failures
+in `analytics-overview.test.ts` (T060/T061), values consistent with cross-file DB-state pollution
+(`current: 8` vs expected `5` pageViews for the 07-15 window) rather than a real regression, since
+this diff touches zero `apps/api` files. Confirmed via isolation: `analytics-overview.test.ts` run
+alone — 16/16 green; full suite rerun — 60/60 files, 515/515 tests, clean. Treated as a reproduced,
+explained flake, not a regression (same disposition as this log's 2026-07-28 T115/T116 entry).
+`pnpm --filter @modular-house/web test:run`: 58/58 files, 504/504 tests, clean, no flake.
+`prisma validate`: valid. `prisma migrate status` (re-pointed at the port-5434 test DB): up to
+date, no drift — expected, no schema/migration files in this diff. `prisma migrate diff
+--exit-code`: disposable `modular_house_review_shadow_t155t156` database created via direct
+`docker exec psql`, diff run with `--shadow-database-url` pointed at it (`No difference detected`),
+dropped immediately after. `docs:validate`: clean (one transient "cannot open the device or file
+specified" Windows IO glitch on the first attempt, clean on immediate retry — not reproducible,
+not diff-related). `pnpm lint`/`pnpm typecheck`: clean across all linted/typechecked workspaces.
+`test:coverage` (api): 515/515 passing; `All files` line coverage **69.53%** (unchanged — no API
+file touched by this diff), `analyticsIngest.ts`/`middleware/auth.ts` still 100% branch.
+
+---
+
 ## 2026-08-12 — T150-T154 review-fix re-review (since dbee80a)
 
 T150 — PASS — plan.md §5.2 exception text confirmed accurate and scoped

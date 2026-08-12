@@ -2026,6 +2026,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T155 Fix the stale route slugs in the Lighthouse CI config
 > note: garden-room/house-extension -> garden-rooms/house-extensions in ci.collect.url; tests: n/a (config), build-verified; deviations: none
+> reviewed: PASS — build-verified independently
       Files: apps/web/lighthouserc.json
       Do: Update `garden-room/index.html` → `garden-rooms/index.html` and
       `house-extension/index.html` → `house-extensions/index.html` in `ci.collect.url`, matching
@@ -2038,6 +2039,7 @@ guardrail-protected (shared by every marketing page) — keep this change minima
 
 - [x] T156 Investigate and document the chrome-launcher EPERM crash
 > note: Windows-only, confirmed via source + 30/30 clean launch/kill in real Linux container; tests: n/a (investigation/docs); deviations: none
+> reviewed: PASS-WITH-NITS — destroyTmp guard-clause misattributed
       Files: specs/013-panel-phase-2/quickstart.md
       Do: Confirm whether `chrome-launcher@1.2.1`'s `destroyTmp()` `EPERM` crash (on its own temp
       profile dir cleanup) reproduces on the CI Linux runner or is Windows-dev-only; record the

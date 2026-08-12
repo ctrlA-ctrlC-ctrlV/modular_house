@@ -191,6 +191,15 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
        * format alternatives.  No responsive width variants are needed here
        * because the hero always fills 100 vw; the browser will always fetch
        * the single candidate provided.
+       *
+       * No `ariaLabel` is passed: this image is purely decorative (its
+       * meaning is fully conveyed by the overlaid title/subtitle/description
+       * text), which is exactly why `alt=""` is used below. `OptimizedImage`
+       * renders `ariaLabel` as a bare `aria-label` on the outer `<picture>`,
+       * an element with no implicit ARIA role — HTML-AAM never exposes that
+       * attribute to assistive tech without a supporting `role="img"`, so
+       * setting it here would be dead weight at best and a contradictory
+       * signal (labelled picture, empty-alt image) at worst.
        */}
       <OptimizedImage
         src={backgroundImage}
@@ -200,7 +209,6 @@ export const HeroWithSideText: React.FC<HeroWithSideTextProps> = ({
         priority
         className="hero-bg-picture"
         imgClassName="hero-bg-image"
-        ariaLabel="Hero background image"
       />
 
       {/* Dark overlay to ensure text readability against image */}

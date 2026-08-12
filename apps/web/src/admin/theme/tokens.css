@@ -99,7 +99,14 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* T147 (Group E, reviewer-reported): darkened from oklch(0.556 0 0) — the
+     template's default preset value failed WCAG 2.1 AA (4.339:1, this
+     suite's own OKLab model; 2.06:1 live-measured against the tabs-list
+     bg-muted container) against --muted. 0.47 clears 4.5:1 against every
+     background this token pairs with in this codebase (muted, background,
+     sidebar) with a comfortable margin — see a11y.test.tsx's Token contrast
+     (H6) block. */
+  --muted-foreground: oklch(0.47 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -129,7 +136,10 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  /* T147 (Group E, reviewer-reported): lightened from oklch(0.708 0 0) for
+     a wider real-world margin against --muted, matching the light-theme
+     rationale above. */
+  --muted-foreground: oklch(0.75 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -171,7 +181,8 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* T147 — see the :root block above for the full rationale. */
+  --muted-foreground: oklch(0.47 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -211,7 +222,8 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  /* T147 — see the .dark block above for the full rationale. */
+  --muted-foreground: oklch(0.75 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);

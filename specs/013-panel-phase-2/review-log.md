@@ -6,6 +6,49 @@ Fixed format, one line per reviewed task: `<Txxx> — <VERDICT> — <fragment(s)
 
 ---
 
+## 2026-08-12 — T150-T154 review-fix re-review (since dbee80a)
+
+T150 — PASS — plan.md §5.2 exception text confirmed accurate and scoped
+T153 — PASS — test:run and test:coverage both green x2, independently reproduced
+
+Detail: `git diff --name-only dbee80a HEAD` touches 5 files: 2 source (`apps/web/vitest.config.ts`,
+`apps/web/src/test/setup.ts`), 3 docs (`change-log.md`, `plan.md`, `tasks.md`) — matching, dated
+change-log entry at 11:15 covers both source files plus the `plan.md` doc-drift fix; no concealed
+changes. Supply-chain check: zero `package.json`/lockfile changes. `App.tsx`, `App.test.tsx`, and
+`AdminRouteFallback.tsx` are untouched in this diff, matching the change-log's own claim that
+T152-T154's code-splitting implementation itself needed no correction — confirmed by their absence
+from the diff, not just the claim.
+
+**T153 fix, independently verified, not trusted from the change-log's narrative:**
+`apps/web/vitest.config.ts` now sets `fileParallelism: false` (mirrors `apps/api/vitest.config.ts`
+exactly); `apps/web/src/test/setup.ts` additionally calls `configure({ asyncUtilTimeout: 5000 })`
+from `@testing-library/react` — `tsc --noEmit` (part of the typecheck run below) confirms `configure`
+is a valid, correctly-typed import, so this isn't a runtime-only hope. Ran the exact previously-
+failing command twice with real exit codes checked directly (not through a `tail`-truncated pipe,
+which silently reports the pipe's own exit code rather than the command's): `pnpm --filter
+@modular-house/web test:coverage` — 58/58 files, 504/504 tests, `REAL_EXIT:0`, both runs. Also
+reran plain `pnpm --filter @modular-house/web test:run` (no flags, the exact command that
+originally reproduced 2/58 failures) — 58/58, 504/504. The disclosed root-causing (isolating
+`preAuthWiring.test.tsx` alone at 526ms to confirm `fileParallelism: false` alone was insufficient
+before adding the timeout raise, rather than stacking fixes speculatively) is good practice and
+matches what the fix's own effect shows. Workspace `pnpm lint`/`pnpm typecheck` clean.
+
+**T150/plan.md fix**: the added §5.2 exception text is narrowly scoped ("No other `@modular-house/ui`
+change is in scope") and accurately attributes the carve-out to `tasks.md`'s pre-existing Group F
+header rather than implying new authorization — closes the doc-drift finding without overstating it.
+
+**Notable, and worth calling out**: this round's change-log entry explicitly names its own prior
+entry's false claim ("that claim is false and is retained, uncorrected, in its original entry
+below; this entry is the correction") rather than quietly rewriting history — consistent with this
+log's own "never rewrite history" convention and a good sign for this session's calibration.
+
+**Non-blocking observation**: an untracked, 0-byte file literally named `note:` exists at the repo
+root (`git status --porcelain` shows `?? "note\357\200\272"` — a full-width colon, not a normal
+`:`). Not part of this diff, no content, no effect on anything reviewed — flagged only so it isn't
+mistaken for a deliberate artifact in a future session.
+
+---
+
 ## 2026-08-12 — T150-T154 (baseline: d36ccb1)
 
 T150 — PASS-WITH-NITS — plan.md §5.2 lacks Group F exception

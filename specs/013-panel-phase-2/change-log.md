@@ -1,6 +1,49 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-12T09:35:00.000+01:00] — fix(ui): T150-T151 HeroWithSideText picture aria-label pattern (HeroWithSideText.tsx, HeroWithSideText.test.tsx)
+
+### Changed
+
+- `packages/ui/src/components/HeroWithSideText/HeroWithSideText.test.tsx` (new) — asserts the
+  rendered `<picture>` does not carry `aria-label` unless it also carries `role="img"`. Confirmed
+  red against the pre-fix markup: `AssertionError: expected true to be false` (the invalid
+  `aria-label`-without-role pattern is present today).
+- `packages/ui/src/components/HeroWithSideText/HeroWithSideText.tsx` — removed the
+  `ariaLabel="Hero background image"` prop passed to `OptimizedImage` for the hero background
+  image. `OptimizedImage` forwards `ariaLabel` straight onto its outer `<picture>` element
+  (`OptimizedImage.tsx:235-238`), which carries no implicit ARIA role, so per HTML-AAM the
+  `aria-label` was never exposed to assistive tech in the first place — dead, contradictory
+  markup, since the same image already declares `alt=""` (intentionally decorative: the overlaid
+  title/subtitle/description text already conveys the section's meaning).
+
+### Notes
+
+- **Root-cause + fix choice**: `rg 'ariaLabel='` across `packages/ui/src` shows HeroWithSideText
+  is the *only* caller anywhere in `@modular-house/ui` that ever passed `ariaLabel` into
+  `OptimizedImage` — every other usage relies solely on the `<img>`'s own `alt`. That is the
+  package-wide convention T151's task text asks to match, and it points at deletion rather than
+  promoting the label (e.g. via `alt="Hero background image"` or `role="img"`): this image is
+  decorative, not informative, so giving it a real accessible name would newly announce a
+  redundant "Hero background image" to screen-reader users on every page that mounts the
+  component. `OptimizedImage.tsx` itself was not touched — its `ariaLabel` prop is still valid
+  API surface for a future caller that legitimately needs a labelled, non-decorative `<picture>`
+  (in which case `role="img"` would need adding at the call site, per the component's own
+  contract) — out of scope for this minimal, additive Group F fix per `packages/ui`'s
+  guardrail-protected status.
+- **No visual-output change**: `aria-label` has no rendering or layout effect, so `Landing.tsx`
+  (the only `apps/web` route mounting `HeroWithSideText`) and every Storybook `.stories.tsx` case
+  for the component are visually unchanged. Verified via the full `@modular-house/ui` suite (see
+  below), including `HeroWithSideText.stories.tsx`'s own 2 browser-mode story tests, both green.
+- Verification: `pnpm --filter @modular-house/ui test` — 45/45 test files, 198 passed / 1 skipped
+  (repo-wide pre-existing skip, unrelated). `pnpm --filter @modular-house/ui typecheck` and `lint`
+  both clean on the touched files.
+- **Flag, not a deviation**: the browser-mode test run auto-generated a failure screenshot at
+  `packages/ui/src/components/HeroWithSideText/__screenshots__/HeroWithSideText.test.tsx/*.png`
+  while T150's test was red. This path is not covered by any `.gitignore` rule (confirmed via
+  `git check-ignore`, exit 1) — per the hard constraints this is unstaged generated output, left
+  in place, no commit block emitted for it; see handoff.
+
 ## [2026-08-11T18:35:00.000+01:00] — test(admin): T149 contrast-regression assertion for UserSection email text (UserSection.test.tsx, new)
 
 ### Changed

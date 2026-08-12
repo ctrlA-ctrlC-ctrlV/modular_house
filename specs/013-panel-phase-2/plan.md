@@ -426,7 +426,11 @@ Admin web (`apps/web/src/admin`):
 - No calendar-grid date picker — two native date inputs styled by the admin `input` primitive.
 - No geo/device columns or lookups; no UA persistence; no per-role permission rows for analytics.
 - No content in non-Overview tabs beyond the template's placeholder panel.
-- No changes to `@modular-house/ui`, the configurator, or any marketing page content.
+- No changes to `@modular-house/ui`, the configurator, or any marketing page content. **Exception
+  (recorded 2026-08-12, review finding on T150/T151):** `tasks.md`'s Group F carves out a minimal,
+  additive fix to `HeroWithSideText`'s `<picture>` accessible-name pattern — a pre-existing,
+  reviewer-flagged accessibility defect absent from the Phase 2 diff itself, not new UI work. No
+  other `@modular-house/ui` change is in scope.
 
 ### 5.3 Three-pass order (design pass separated from implementation)
 

@@ -1,6 +1,57 @@
 # The Change Log of Branch 013-panel-phase-2
 Note: keep the most latest entry on top
 
+## [2026-08-12T11:15:00.000+01:00] — fix(web): T153 review correction — deterministic test-runner config (vitest.config.ts, setup.ts); docs(specs): T150 doc-drift fix (plan.md)
+
+### Changed
+
+- `apps/web/vitest.config.ts` — added `fileParallelism: false` under `test:`, mirroring the
+  equivalent, already-established fix in `apps/api/vitest.config.ts`. Root cause (per the
+  2026-08-12 T150-T154 review, T153 CHANGES-REQUIRED): the T153 change-log entry below claimed
+  `--no-file-parallelism` "mirrors the existing `@modular-house/api` command... which already
+  carries this flag" — **that claim is false and is retained, uncorrected, in its original entry
+  below; this entry is the correction.** `apps/api`'s `test:run` script is plain `vitest run`, no
+  flag; its config sets `fileParallelism: false` directly, specifically because `pnpm ... --
+  --no-file-parallelism` never reaches vitest as a flag (pnpm forwards the `--` separator verbatim,
+  so vitest's own CLI parser treats it as ITS OWN raw-args marker, turning
+  `--no-file-parallelism` into a silently-ignored positional file-filter). The review reproduced
+  this exact failure on the web side too: `pnpm --filter @modular-house/web test:run --
+  --no-file-parallelism` still failed 2/58, and CI's `test-web` job (`.github/workflows/ci.yml`)
+  invokes plain `pnpm test:coverage` with no parallelism mitigation at all — so the flake T153
+  introduced (Suspense/lazy-load resolution occasionally losing the race against the default
+  ~1000ms `waitFor`/`findBy*` timeout under multi-worker contention) was live in CI, not just a
+  local artifact.
+- `apps/web/src/test/setup.ts` — additionally added `configure({ asyncUtilTimeout: 5000 })`
+  (imported from `@testing-library/react`, which re-exports it from `@testing-library/dom`; the
+  latter is not a direct dependency here). **`fileParallelism: false` alone was insufficient** —
+  verified directly, not assumed: the first `pnpm test:coverage` run with only that change applied
+  still failed 1/58 (`preAuthWiring.test.tsx`'s post-2FA-verify `waitFor` on the Analytics heading).
+  Isolating that one test file passed in 526ms, well under the 1000ms default, so the remaining gap
+  is v8 coverage instrumentation's per-file overhead across the full 58-file run — `fileParallelism:
+  false` only serializes *which files* run concurrently, it does not reduce the instrumentation cost
+  *within* a file. Raising the shared Testing Library timeout is the fix that actually closes the
+  gap regardless of instrumentation overhead.
+- `specs/013-panel-phase-2/plan.md` §5.2 — added an explicit exception to the "No changes to
+  `@modular-house/ui`..." guardrail, recording the Group F carve-out (`tasks.md`'s own header
+  already stated it; §5.2 never had a matching amendment). Per the review, this doc-drift was
+  introduced by the repo owner's own `tasks.md` edit (commit `8ed6a4a`) adding Group F without a
+  corresponding plan.md amendment — not an implementer-introduced gap — but closing it here so a
+  future session/reviewer doesn't re-flag the same false conflict.
+
+### Notes
+
+- Verification, this time run to completion before being written up (the T153 CHANGES-REQUIRED
+  finding was exactly a claim made without that discipline): `pnpm test:coverage` (apps/web, the
+  literal command CI's `test-web` job runs, no flags) — run **twice** after both fixes landed,
+  captured to a log file with an explicit trailing `echo $?` rather than trusted from console
+  scrollback: 58/58 files, 504/504 tests, `EXIT_CODE=0`, both times. No `--no-file-parallelism`
+  argument needed anywhere — both config defaults now apply unconditionally.
+  `pnpm --filter @modular-house/web lint`/`typecheck` clean; workspace-wide `pnpm lint`/`typecheck`
+  clean.
+- No change to `apps/web/src/App.tsx`, `App.test.tsx`, or `AdminRouteFallback.tsx` — T153's actual
+  code-splitting implementation and T152's regression guard were independently verified correct by
+  the review; only test-runner configuration and the plan.md doc-drift needed a fix.
+
 ## [2026-08-12T10:20:00.000+01:00] — feat(web): T152-T154 code-split Analytics dashboard from public site (App.test.tsx, App.tsx, AdminRouteFallback.tsx)
 
 ### Changed

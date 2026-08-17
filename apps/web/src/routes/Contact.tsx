@@ -166,8 +166,7 @@ function Contact() {
         contactInfo={{
           address: "Unit 8, Finches Business Park, Long Mile road Dublin 12, D12 N9YV",
           phone: "(+353) 0830280000",
-          email: "info@modularhouse.ie",
-          电话: "083 018 1111"
+          email: "info@modularhouse.ie"
         }}
         onSubmit={handleContactSubmit}
         isSubmitting={isSubmitting}

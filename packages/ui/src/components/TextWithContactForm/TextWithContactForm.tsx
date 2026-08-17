@@ -187,21 +187,10 @@ const WeChatIcon: React.FC = () => (
     width="24"
     height="24"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="currentColor"
     aria-hidden="true"
   >
-    {/* Large bubble with tail */}
-    <path d="M3.5 12A6.5 5.5 0 1 1 6.3 13.7L3 15.5Z" />
-    <path d="M6.2 7.5h.01" />
-    <path d="M10.8 7.5h.01" />
-    {/* Small overlapping bubble with tail */}
-    <path d="M18.4 18.7A5.5 4.5 0 1 1 20.7 17.4L21.4 20.6Z" />
-    <path d="M14.7 13.5h.01" />
-    <path d="M18.3 13.5h.01" />
+    <path d="M4.93 1.34C4.17 2.74 2.58 4.55 1.16 5.66C1.59 6.16 2.22 7.17 2.51 7.74C4.26 6.36 6.13 4.21 7.35 2.24ZM8.08 13.23V15.81C8.08 17.3 7.92 19.18 6.61 20.63C7.04 20.94 7.96 21.91 8.28 22.41C9.98 20.6 10.36 17.87 10.36 15.86V15.27H12.12V16.92C12.12 17.82 11.74 18.27 11.4 18.5C11.74 19 12.17 20.08 12.31 20.67C12.67 20.22 13.25 19.7 16.28 17.82C16.1 17.37 15.86 16.51 15.74 15.9L14.23 16.76V13.23ZM17.84 8.1H19.56C19.36 10.09 19.07 11.9 18.59 13.53C18.16 12.03 17.87 10.43 17.64 8.76ZM7.24 10.13V12.42H14.84V11.72C15.18 12.15 15.49 12.62 15.67 12.89L16.22 12.06C16.51 13.68 16.87 15.22 17.35 16.62C16.44 18.3 15.22 19.65 13.57 20.69C14.02 21.15 14.79 22.16 15.04 22.66C16.44 21.71 17.57 20.56 18.5 19.2C19.22 20.54 20.15 21.64 21.28 22.48C21.64 21.8 22.46 20.81 23 20.33C21.67 19.52 20.65 18.27 19.86 16.76C20.9 14.34 21.51 11.47 21.89 8.1H22.66V5.82H18.43C18.73 4.5 18.95 3.15 19.13 1.77L16.67 1.36C16.31 4.69 15.65 7.92 14.41 10.13ZM5.3 6.11C4.26 8.35 2.61 10.65 1 12.17C1.45 12.73 2.2 14.07 2.45 14.63C2.88 14.2 3.31 13.71 3.74 13.16V22.59H6.2V9.61C6.68 8.82 7.08 8.05 7.47 7.29V8.98H14.95V3.26H13.14V6.83H12.15V1.34H10.18V6.83H9.21V3.26H7.47V6.88Z" />
   </svg>
 );
 
@@ -324,6 +313,14 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
                   <span className="text-contact__info-text">{contactInfo.email}</span>
                 </div>
               )}
+              
+            </div>
+            <div className='text-contact__qr-code'>
+              <img src='./resource/contact/modular_house_wechat_qr_code.jpg' alt='Modular House | Modular Home Contact QR Code'></img>
+              <p>081 111 1111</p>
+            </div>
+            {/** 
+            <div className='text-contact__qr-contact'>
               {contactInfo.电话 && (
                 <div className="text-contact__info-item">
                   <div className="text-contact__info-icon">
@@ -332,7 +329,7 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
                   <span className="text-contact__info-text">{contactInfo.电话}</span>
                 </div>
               )}
-            </div>
+            </div>*/}
           </div>
 
           {/* =================================================================

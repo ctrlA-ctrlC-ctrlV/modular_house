@@ -326,6 +326,29 @@
   color: var(--text-contact-body);
 }
 
+.text-contact__qr-code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0rem;
+}
+
+.text-contact__qr-code img {
+  margin-top: 2vh;
+  width: 10rem;
+  max-width: 100%;
+  height: auto;
+}
+text-contact__qr-code p {
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-caption, 0.875rem);
+  font-weight: var(--weight-light, 300);
+  line-height: var(--lh-relaxed, 1.625);
+  color: var(--text-contact-label);
+  text-align: center;
+  margin: 0;
+}
 
 /* =============================================================================
    SECTION 7: FORM COLUMN (RIGHT)

@@ -3,7 +3,8 @@
  * =============================================================================
  *
  * PURPOSE:
- * Renders the /contact page with a two-column layout: company information on
+ * Renders the /contact page: an embedded map preview of the company location
+ * at the top, followed by a two-column layout with company information on
  * the left and a validated contact/enquiry form on the right.
  *
  * QUERY PARAMETER SUPPORT:
@@ -24,13 +25,17 @@
  *   request to the backend enquiry endpoint.
  * - The TextWithContactForm component (from @modular-house/ui) manages all
  *   form validation, rendering, and state display internally.
+ * - LocationMap (from @modular-house/ui) is rendered with no location props,
+ *   so it falls back to its own default company coordinates/address — the
+ *   same headquarters address passed to TextWithContactForm's contactInfo
+ *   below, kept in one place rather than duplicated across props.
  *
  * =============================================================================
  */
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { TextWithContactForm, type TextContactFormData } from '@modular-house/ui';
+import { LocationMap, TextWithContactForm, type TextContactFormData } from '@modular-house/ui';
 import { apiClient } from '../lib/apiClient';
 import { useHeaderConfig } from '../components/HeaderContext';
 
@@ -152,6 +157,16 @@ function Contact() {
 
   return (
     <div className="bg-white">
+      {/*
+        LocationMap has no built-in outer section padding (it is a bounded
+        card, not a full-width page section like TextWithContactForm below),
+        so it is wrapped in Bootstrap's `container` + `py-5` utilities here
+        to match the site's standard content max-width and vertical rhythm.
+      */}
+      <div className="container py-5">
+        <LocationMap />
+      </div>
+
       <TextWithContactForm
         topLabel="GET IN TOUCH"
         heading="We'd love to hear from you"

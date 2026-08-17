@@ -64,6 +64,8 @@ export interface ContactInfo {
   phone?: string;
   /** Email address */
   email?: string;
+  /** Contact phone number/wechat for Chinese customers */
+  电话?: string;
 }
 
 /**
@@ -179,6 +181,29 @@ const EmailIcon: React.FC = () => (
   </svg>
 );
 
+const WeChatIcon: React.FC = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    {/* Large bubble with tail */}
+    <path d="M3.5 12A6.5 5.5 0 1 1 6.3 13.7L3 15.5Z" />
+    <path d="M6.2 7.5h.01" />
+    <path d="M10.8 7.5h.01" />
+    {/* Small overlapping bubble with tail */}
+    <path d="M18.4 18.7A5.5 4.5 0 1 1 20.7 17.4L21.4 20.6Z" />
+    <path d="M14.7 13.5h.01" />
+    <path d="M18.3 13.5h.01" />
+  </svg>
+);
 
 /* =============================================================================
    COMPONENT DEFINITION
@@ -203,7 +228,8 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
   contactInfo = {
     address: "1032 N 9th Ave, Tucson, AZ 85705, USA",
     phone: "+1 840 841 25 69",
-    email: "info@email.com"
+    email: "info@email.com",
+    电话: "+353 81 234 5678"
   },
   onSubmit,
   isSubmitting: externalIsSubmitting = false,
@@ -296,6 +322,14 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
                     <EmailIcon />
                   </div>
                   <span className="text-contact__info-text">{contactInfo.email}</span>
+                </div>
+              )}
+              {contactInfo.电话 && (
+                <div className="text-contact__info-item">
+                  <div className="text-contact__info-icon">
+                    <WeChatIcon/>
+                  </div>
+                  <span className="text-contact__info-text">{contactInfo.电话}</span>
                 </div>
               )}
             </div>

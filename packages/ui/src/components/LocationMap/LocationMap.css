@@ -1,0 +1,227 @@
+/**
+ * LocationMap Styles
+ * =============================================================================
+ *
+ * PURPOSE:
+ * Provides the visual presentation for the LocationMap component using BEM
+ * naming methodology and the project's design token system. All colour,
+ * typography, and spacing values reference CSS custom properties defined
+ * in the global token files, bridged through a local `--lm-*` indirection
+ * layer for isolated Storybook rendering.
+ *
+ * LAYOUT STRATEGY:
+ * A fixed-aspect-ratio frame contains the embedded map iframe with the
+ * custom zoom controls overlaid in its top-right corner. Address text and
+ * the directions button sit in a footer row beneath the frame.
+ *
+ * FOCUS RING:
+ * Deliberately does not redefine a focus ring — the site-wide
+ * `*:focus-visible { outline: 2px solid var(--brand-link); }` rule
+ * (see apps/web/src/styles/style.css) already covers the zoom and
+ * directions buttons.
+ *
+ * =============================================================================
+ */
+
+/* =============================================================================
+   SECTION 1: COMPONENT-LEVEL CUSTOM PROPERTIES
+   -----------------------------------------------------------------------------
+   Local aliases for global tokens, with hardcoded fallbacks so the component
+   renders correctly in isolation (e.g. Storybook without the bridge sheet).
+   ============================================================================= */
+
+:root {
+  --lm-ink: var(--brand-ink, #1a1a1a);
+  --lm-border: var(--brand-border, #E5E7DE);
+  --lm-bg-primary: var(--brand-bg-primary, #FEFEFE);
+  --lm-accent: var(--brand-link, #B55329);
+  --lm-accent-hover: var(--brand-link-hover, #9F4017);
+  --lm-shadow: var(--shadow-natural, 0 4px 16px rgba(0, 0, 0, 0.08));
+  --lm-radius: 4px;
+  --lm-frame-aspect: 16 / 9;
+  --lm-control-size: 36px;
+}
+
+/* =============================================================================
+   SECTION 2: BLOCK -- Root section element
+   ============================================================================= */
+
+.location-map {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--font-sans);
+}
+
+/* =============================================================================
+   SECTION 3: MAP FRAME -- Embedded iframe and its zoom-control overlay
+   ============================================================================= */
+
+/**
+ * Establishes a fixed-aspect positioning context for the iframe and the
+ * absolutely positioned zoom controls overlaid on top of it.
+ */
+.location-map__frame-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--lm-frame-aspect);
+  overflow: hidden;
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius);
+  box-shadow: var(--lm-shadow);
+}
+
+/**
+ * The embed iframe fills its frame completely. Google's embed UI provides
+ * its own pan/scroll interaction; our custom buttons drive zoom.
+ */
+.location-map__iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/**
+ * Zoom-button cluster, anchored to the top-right corner of the frame.
+ */
+.location-map__controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/**
+ * Individual zoom button. Circular, elevated above the map, with a
+ * hover/disabled treatment matching the project's button conventions.
+ */
+.location-map__zoom-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--lm-control-size);
+  height: var(--lm-control-size);
+  padding: 0;
+  border: 1px solid var(--lm-border);
+  border-radius: 50%;
+  background: var(--lm-bg-primary);
+  color: var(--lm-ink);
+  box-shadow: var(--lm-shadow);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.location-map__zoom-button svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+.location-map__zoom-button:hover:not(:disabled) {
+  color: var(--lm-accent);
+  border-color: var(--lm-accent);
+}
+
+/**
+ * Disabled state at the min/max zoom clamp boundary: reduced opacity and
+ * a non-interactive cursor, consistent with the project's disabled-button
+ * treatment elsewhere (e.g. HoverButton, TextWithContactForm).
+ */
+.location-map__zoom-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =============================================================================
+   SECTION 4: FOOTER -- Address text and directions button
+   ============================================================================= */
+
+.location-map__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.location-map__address {
+  margin: 0;
+  font-size: var(--text-tiny);
+  line-height: var(--lh-body);
+  color: var(--lm-ink);
+}
+
+/**
+ * Directions call-to-action. Follows the project's solid brand-accent
+ * button treatment.
+ */
+.location-map__directions-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--lm-radius);
+  background: var(--lm-accent);
+  color: var(--lm-bg-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.location-map__directions-button:hover {
+  background: var(--lm-accent-hover);
+}
+
+.location-map__directions-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+.location-map__directions-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* =============================================================================
+   SECTION 5: RESPONSIVE BREAKPOINTS
+   -----------------------------------------------------------------------------
+   Mobile (< 768px): stacks the footer row and gives the map frame a taller
+   aspect ratio so the pin remains legible on narrow viewports.
+   ============================================================================= */
+
+@media (max-width: 767px) {
+  .location-map__frame-wrapper {
+    --lm-frame-aspect: 4 / 3;
+  }
+
+  .location-map__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .location-map__directions-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* =============================================================================
+   SECTION 6: REDUCED MOTION
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .location-map__zoom-button,
+  .location-map__directions-button {
+    transition: none;
+  }
+}

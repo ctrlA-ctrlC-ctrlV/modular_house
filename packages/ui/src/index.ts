@@ -39,5 +39,6 @@ export { FeatureShowcase, type FeatureShowcaseProps, type FeatureShowcaseItem, t
 export { FooterCTA, type FooterCTAProps, type FooterCTAAction } from './components/FooterCTA/FooterCTA';
 export { PromoBanner, type PromoBannerProps, type PromoBannerVariant } from './components/PromoBanner/PromoBanner';
 export { EventNewsBanner, type EventNewsBannerProps } from './components/EventNewsBanner/EventNewsBanner';
+export { LocationMap, type LocationMapProps, type LocationMapTravelMode } from './components/LocationMap/LocationMap';
 export * from './types';
 // Add your shared UI components here

@@ -43,7 +43,7 @@ const qualityFeatures: FeatureShowcaseItem[] = [
   },
   {
     icon: 'verified',
-    title: '10-Year Structural Warranty',
+    title: '60-Year Structural Warranty',
     description:
       'Peace of mind comes standard. Our steel-frame extensions are backed by a comprehensive decade-long guarantee.',
   },

@@ -97,7 +97,7 @@ export const TopPlacement: Story = {
   args: {
     placement: 'top',
     ariaLabel: 'Warranty information',
-    children: 'Every garden room comes with a 10-year structural warranty covering the steel frame and all major components.',
+    children: 'Every garden room comes with a 60-year structural warranty covering the steel frame and all major components.',
   },
   decorators: [
     (StoryComponent) => (

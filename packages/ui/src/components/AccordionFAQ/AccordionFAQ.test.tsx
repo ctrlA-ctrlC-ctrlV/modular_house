@@ -70,7 +70,7 @@ const MOCK_FAQS: AccordionFAQItem[] = [
     id: 'faq-6',
     number: '06',
     title: 'What is included in the price?',
-    description: 'The price includes the steel frame, full insulation, interior and exterior finishes, electrical wiring, lighting, and a 10-year structural warranty.',
+    description: 'The price includes the steel frame, full insulation, interior and exterior finishes, electrical wiring, lighting, and a 60-year structural warranty.',
   },
 ];
 

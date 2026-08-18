@@ -123,7 +123,7 @@ export const QUALITY_FEATURES: FeatureShowcaseItem[] = [
   },
   {
     icon: 'verified',
-    title: '50-Year Structural Warranty',
+    title: '60-Year Structural Warranty',
     description:
       'Peace of mind comes standard. Every steel-frame house extension we build in Dublin is backed by a comprehensive 50-year structural guarantee.',
   },
@@ -333,7 +333,7 @@ export const HOUSE_EXTENSION_FAQS: AccordionFAQItem[] = [
     number: '06',
     title: 'Why choose steel frame over traditional block construction?',
     description:
-      'Steel-frame construction offers several advantages: faster build times (up to 30% quicker), superior thermal performance through continuous insulation without cold bridges, lighter foundations reducing ground disruption, and dimensional precision from factory-fabricated components. Steel does not rot, warp, or attract insects, and our frames carry a 10-year structural warranty.',
+      'Steel-frame construction offers several advantages: faster build times (up to 30% quicker), superior thermal performance through continuous insulation without cold bridges, lighter foundations reducing ground disruption, and dimensional precision from factory-fabricated components. Steel does not rot, warp, or attract insects, and our frames carry a 60-year structural warranty.',
   },
 ];
 

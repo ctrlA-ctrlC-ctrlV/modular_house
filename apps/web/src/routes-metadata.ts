@@ -106,7 +106,7 @@ export const routesMetadata: RouteMetadata[] = [
             logo: 'https://modularhouse.ie/logo_black.png',
             contactPoint: {
               '@type': 'ContactPoint',
-              telephone: '+3530830280000',
+              telephone: '+353830280000',
               contactType: 'Customer Service',
             },
             sameAs: [
@@ -577,7 +577,7 @@ export const routesMetadata: RouteMetadata[] = [
           data: {
             name: 'Modular House',
             image: 'https://modularhouse.ie/logo.png',
-            telephone: '+3530830280000',
+            telephone: '+353830280000',
             email: 'info@modularhouse.ie',
             address: {
               '@type': 'PostalAddress',

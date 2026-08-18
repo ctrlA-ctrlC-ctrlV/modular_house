@@ -267,7 +267,7 @@ export const Footer: React.FC<FooterProps> = ({
               <a href="mailto:info@modularhouse.ie">info@modularhouse.ie</a>
             </p>
             <p className="footer__contact-item">
-              (+353) 0830280000
+              (+353) 830280000
             </p>
             <p className="footer__contact-item">
               Unit 8,<br />

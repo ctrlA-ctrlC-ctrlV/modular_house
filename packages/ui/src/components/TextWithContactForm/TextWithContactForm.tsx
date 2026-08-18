@@ -301,7 +301,7 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
             </div>
             <div className='text-contact__qr-code'>
               <img src='./resource/contact/modular_house_wechat_qr_code.jpg' alt='Modular House | Modular Home Contact QR Code'></img>
-              <p>081 111 1111</p>
+              <p>WeChat:0811111111</p>
             </div>
           </div>
 

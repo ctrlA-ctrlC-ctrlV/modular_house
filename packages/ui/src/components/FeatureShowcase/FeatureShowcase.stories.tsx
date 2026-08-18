@@ -45,7 +45,7 @@ const qualityFeatures: FeatureShowcaseItem[] = [
     icon: 'verified',
     title: '60-Year Structural Warranty',
     description:
-      'Peace of mind comes standard. Our steel-frame extensions are backed by a comprehensive decade-long guarantee.',
+      'Peace of mind comes standard. Our steel-frame extensions are backed by a comprehensive 60-year guarantee.',
   },
 ];
 

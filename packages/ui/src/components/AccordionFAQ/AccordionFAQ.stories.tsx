@@ -58,7 +58,7 @@ const sampleFAQs: AccordionFAQItem[] = [
     number: '05',
     title: 'What warranty do you offer?',
     description:
-      'We provide a60-year structural warranty on all our garden rooms, covering the steel frame and major components. Additionally, windows, doors, and electrical installations come with their own manufacturer warranties. Full warranty details are provided with your purchase documentation.',
+      'We provide a 60-year structural warranty on all our garden rooms, covering the steel frame and major components. Additionally, windows, doors, and electrical installations come with their own manufacturer warranties. Full warranty details are provided with your purchase documentation.',
   },
 ];
 

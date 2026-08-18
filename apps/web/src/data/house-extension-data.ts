@@ -125,7 +125,7 @@ export const QUALITY_FEATURES: FeatureShowcaseItem[] = [
     icon: 'verified',
     title: '60-Year Structural Warranty',
     description:
-      'Peace of mind comes standard. Every steel-frame house extension we build in Dublin is backed by a comprehensive 50-year structural guarantee.',
+      'Peace of mind comes standard. Every steel-frame house extension we build in Dublin is backed by a comprehensive 60-year structural guarantee.',
   },
 ];
 

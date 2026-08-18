@@ -216,7 +216,7 @@ export const MixedStatus: Story = {
     heading: 'Our Warranty Coverage',
     body: 'We stand behind our work with comprehensive warranty coverage. Some extended warranty options are coming soon.',
     statusItems: [
-      { label: 'Structure', status: 'active', tag: '10 Years' },
+      { label: 'Structure', status: 'active', tag: '60 Years' },
       { label: 'Windows', status: 'active', tag: '5 Years' },
       { label: 'Electrical', status: 'active', tag: '2 Years' },
       { label: 'Extended', status: 'pending', tag: 'Coming Soon' },

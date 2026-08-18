@@ -142,7 +142,7 @@ function Landing() {
           legislationNote={
             <p>
               <strong>Legislation Update:</strong>{' '}
-              As of July 2026, Ireland's planning rules just got a lot more generous for garden buildings. Standard garden rooms are now exempt up to 30m² (up from 25m²) — and for the first time, livable garden homes between 32m² and 45m² can be built without a full planning application too, subject to meeting the regulation's conditions.
+              As of July 2026, Ireland's planning rules just got a lot more generous for garden buildings. Standard garden rooms are now exempt up to 30m² (up from 25m²) — and for the first time, livable garden homes between 32m² and 45m² can be built without a full planning application too, but subject to meeting the regulation's conditions.
             </p>
           }
           featuresEyebrow="INCLUDED AS STANDARD"

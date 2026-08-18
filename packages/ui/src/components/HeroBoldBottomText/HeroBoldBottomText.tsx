@@ -216,7 +216,7 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
               Heading element using h4 for proper document hierarchy.
               The h1 is reserved for the large display text below.
             */}
-            <h4 className="hero-bold-bottom-text__title">
+            <h1 className="hero-bold-bottom-text__title">
               {/* 
                 Primary title segment.
                 Uses inline display for horizontal alignment with secondary segment.
@@ -231,7 +231,7 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
               <span className="hero-bold-bottom-text__title-line hero-bold-bottom-text__title-line--secondary">
                 {titleLine2}
               </span>
-            </h4>
+            </h1>
           </div>
            
           <div className="hero-bold-bottom-text__cta-wrapper">
@@ -262,9 +262,9 @@ export const HeroBoldBottomText: React.FC<HeroBoldBottomTextProps> = ({
             Uses h1 for SEO significance and document structure.
             The large font size is handled via CSS viewport units.
           */}
-          <h1 className="hero-bold-bottom-text__big-text">
+          <h4 className="hero-bold-bottom-text__big-text">
             {bigText}
-          </h1>
+          </h4>
         </div>
       </div>
     </div>

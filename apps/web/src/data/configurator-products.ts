@@ -770,7 +770,7 @@ const LIVING_35: HydratedProduct = {
   /* --- Availability ---------------------------------------------- */
   available: true,
   inStock: true,
-  planningPermission: true,
+  planningPermission: false,
   leadTime: '6\u201310 weeks',
 
   /* --- Call to action --------------------------------------------- */
@@ -947,7 +947,7 @@ const GRAND_45: HydratedProduct = {
   /* --- Availability ---------------------------------------------- */
   available: true,
   inStock: true,
-  planningPermission: true,
+  planningPermission: false,
   leadTime: '6\u201312 weeks',
 
   /* --- Call to action --------------------------------------------- */

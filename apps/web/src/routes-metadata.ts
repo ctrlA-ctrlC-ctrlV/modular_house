@@ -404,11 +404,11 @@ export const routesMetadata: RouteMetadata[] = [
         type: 'website',
         title: 'House Extensions Dublin | Steel Frame Extensions | Modular House',
         description: 'Looking for a house extension in Dublin? Modular House builds premium steel frame house extensions with fixed-price contracts, A-rated insulation, and a 60-year structural warranty. Get a free quote today.',
-        // hosue-extension1.png is the only available house-extension image in
+        // hosue-extension1.png is the only available house-extension image in  
         // public/resource/house-extension/. Note the filename contains a typo
         // ("hosue") — the reference below matches the actual deployed filename
         // exactly. Rename the source file to correct the typo when convenient.
-        image: 'https://modularhouse.ie/resource/house-extension/house-extension1.png',
+        image: 'https://modularhouse.ie/resource/house-extension/house-extension1.png', 
         imageWidth: 1200,
         imageHeight: 630,
         imageType: 'image/png',

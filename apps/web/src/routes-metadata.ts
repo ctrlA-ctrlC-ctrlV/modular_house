@@ -408,7 +408,7 @@ export const routesMetadata: RouteMetadata[] = [
         // public/resource/house-extension/. Note the filename contains a typo
         // ("hosue") — the reference below matches the actual deployed filename
         // exactly. Rename the source file to correct the typo when convenient.
-        image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
+        image: 'https://modularhouse.ie/resource/house-extension/house-extension1.png',
         imageWidth: 1200,
         imageHeight: 630,
         imageType: 'image/png',
@@ -421,7 +421,7 @@ export const routesMetadata: RouteMetadata[] = [
         cardType: 'summary_large_image',
         site: '@ModularHouse',
         title: 'House Extensions Dublin | Modular House',
-        image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
+        image: 'https://modularhouse.ie/resource/house-extension/house-extension1.png',
         imageAlt: 'Steel frame house extension in Dublin by Modular House',
       },
 
@@ -452,7 +452,7 @@ export const routesMetadata: RouteMetadata[] = [
             // IMAGE PROPERTY (REQUIRED)
             // Google Search Console requires an image for Product rich results.
             // This URL matches the Open Graph image used for social sharing.
-            image: 'https://modularhouse.ie/resource/house-extension/hosue-extension1.png',
+            image: 'https://modularhouse.ie/resource/house-extension/house-extension1.png',
             brand: {
               '@type': 'Brand',
               name: 'Modular House',

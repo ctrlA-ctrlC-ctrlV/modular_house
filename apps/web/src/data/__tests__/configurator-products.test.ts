@@ -51,7 +51,7 @@ describe('CONFIGURATOR_PRODUCTS — promotional original prices', () => {
     readonly expectedOriginalCents: number;
   }> = [
     { slug: 'compact-15', expectedOriginalCents: 4_000_000 },
-    { slug: 'living-35',  expectedOriginalCents: 8_100_000 },
+    { slug: 'living-32',  expectedOriginalCents: 8_100_000 },
     { slug: 'grand-45',   expectedOriginalCents: 10_600_000 },
   ];
 
@@ -69,7 +69,7 @@ describe('CONFIGURATOR_PRODUCTS — promotional original prices', () => {
     // value actually charged and must remain the source of truth for
     // the configurator's running total.
     expect(getProductBySlug('compact-15').basePriceCentsInclVat).toBe(3_245_000);
-    expect(getProductBySlug('living-35').basePriceCentsInclVat).toBe(7_535_000);
+    expect(getProductBySlug('living-32').basePriceCentsInclVat).toBe(7_532_000);
     expect(getProductBySlug('grand-45').basePriceCentsInclVat).toBe(9_185_000);
   });
 

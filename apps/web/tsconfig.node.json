@@ -5,10 +5,11 @@
    * Covers Vite configuration and build scripts that execute in a Node.js
    * environment rather than the browser.
    *
-   * src/routes-metadata.ts and src/types/seo.ts are included explicitly
-   * because the prerender and sitemap scripts import them. These files also
-   * appear in tsconfig.json's "include": ["src"], which is intentional;
-   * the typecheck script runs both configs independently with --noEmit.
+   * src/routes-metadata.ts, src/types/seo.ts, src/data/configurator-products.ts,
+   * and src/types/garden-room.ts are included explicitly because the prerender
+   * and sitemap scripts import them. These files also appear in tsconfig.json's
+   * "include": ["src"], which is intentional; the typecheck script runs both
+   * configs independently with --noEmit.
    * =========================================================================
    */
   "compilerOptions": {
@@ -27,6 +28,8 @@
     "src/routes-metadata.ts",
     "src/types/seo.ts",
     "src/utils/schema-generators.ts",
-    "src/build-timestamp.ts"
+    "src/build-timestamp.ts",
+    "src/data/configurator-products.ts",
+    "src/types/garden-room.ts"
   ]
 }

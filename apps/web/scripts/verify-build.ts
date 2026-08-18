@@ -36,9 +36,13 @@ const minimalRoutesToVerify = [
   '/',
   '/about',
   '/contact',
-  '/garden-room', // Added for JSON-LD check
+  '/garden-rooms', // Added for JSON-LD check
   '/house-extensions',
-  '/gallery'
+  '/gallery',
+  // Dynamic configurator route -- regression guard for the bug where these
+  // slugs were absent from prerender.ts's routesToPrerender, causing
+  // crawlers to be served the homepage's own prerendered content instead.
+  '/garden-rooms/configure/compact-15',
 ];
 
 /**
@@ -94,7 +98,7 @@ function verifyRoute(routePath: string): void {
   }
 
   // Check 3: JSON-LD for specific routes
-  if (routePath === '/garden-room' || routePath === '/house-extensions') {
+  if (routePath === '/garden-rooms' || routePath === '/house-extensions') {
     if (!content.includes('application/ld+json')) {
        console.error(`[FAIL] Missing JSON-LD script in ${routePath}`);
        process.exit(1);
@@ -158,6 +162,31 @@ function main() {
     }
     console.log(`[PASS] Favicon present: ${faviconFile}`);
   }
+
+  // ------------------------------------------------------------------
+  // 404 fallback verification
+  // Confirms 404.html exists and carries NotFound.tsx's own rendered
+  // content rather than accidentally reusing the homepage's index.html --
+  // nginx's error_page directive serves this file for every unmatched
+  // URL, so if it ever regresses back to homepage content, crawlers would
+  // silently see the homepage for any stale/mistyped/unrecognized URL.
+  // ------------------------------------------------------------------
+  const notFoundPath = path.join(distClient, '404.html');
+  if (!fs.existsSync(notFoundPath)) {
+    console.error('[FAIL] 404.html not found -- SPA fallback page was not generated.');
+    process.exit(1);
+  }
+  const notFoundContent = fs.readFileSync(notFoundPath, 'utf-8');
+  if (!notFoundContent.includes('not-found')) {
+    console.error('[FAIL] 404.html does not contain NotFound.tsx content (missing "not-found" class).');
+    process.exit(1);
+  }
+  const homepageContent = fs.readFileSync(path.join(distClient, 'index.html'), 'utf-8');
+  if (notFoundContent === homepageContent) {
+    console.error('[FAIL] 404.html is identical to index.html -- the SPA fallback is leaking homepage content.');
+    process.exit(1);
+  }
+  console.log('[PASS] 404.html verified.');
 
   try {
     minimalRoutesToVerify.forEach(verifyRoute);

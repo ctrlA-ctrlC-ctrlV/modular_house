@@ -22,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { routesMetadata } from '../src/routes-metadata';
+import { CONFIGURATOR_PRODUCTS } from '../src/data/configurator-products';
 
 /**
  * Resolve the directory of the current module file so that all subsequent
@@ -110,13 +111,14 @@ export function generateSitemapXml(buildTimestamp?: string): string {
 
   /**
    * Garden room configurator pages are dynamic routes (/garden-rooms/configure/:slug)
-   * not listed in routesMetadata. Since the product slugs are known at build time,
-   * they are appended here as supplementary sitemap entries so search engines can
-   * discover them without relying solely on internal link crawling.
+   * not listed in routesMetadata. Slugs are sourced from CONFIGURATOR_PRODUCTS --
+   * the same data the router (GardenRoomConfigurator.tsx) and prerender.ts use --
+   * rather than a hardcoded list here, so this can never drift out of sync with
+   * the actual product slugs (a previous hardcoded copy included a non-existent
+   * "living-35" instead of the real "living-32" slug).
    */
-  const configuratorSlugs = ['compact-15', 'studio-25', 'living-35', 'grand-45'];
-  const configuratorEntries = configuratorSlugs.map(slug => ({
-    path: `/garden-rooms/configure/${slug}`,
+  const configuratorEntries = CONFIGURATOR_PRODUCTS.map(product => ({
+    path: `/garden-rooms/configure/${product.slug}`,
     changefreq: 'monthly' as const,
     priority: 0.7,
   }));

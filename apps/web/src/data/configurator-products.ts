@@ -19,7 +19,7 @@
  * |-------------|--------------|-------|------------------|----------------|-----------|
  * | compact-15  | The Compact  | 15 m2 | EUR 29,500       | not-available  | Yes       |
  * | studio-25   | The Studio   | 25 m2 | EUR 39,500       | layout-bundled | Yes       |
- * | living-35   | The Living   | 35 m2 | EUR 68,500       | included       | Yes       |
+ * | living-32   | The Living   | 32 m2 | EUR 68,500       | included       | Yes       |
  * | grand-45    | The Grand    | 45 m2 | EUR 83,500       | included       | Yes       |
  *
  * PRICING:
@@ -30,7 +30,7 @@
  * BATHROOM AND KITCHEN RULES:
  * - 15 m2: cannot add bathroom and kitchen (bathroomKitchenPolicy = "not-available")
  * - 25 m2: determined by the selected layout option (bathroomKitchenPolicy = "layout-bundled")
- * - 35 and 45 m2: included in base price with plumbing (bathroomKitchenPolicy = "included"),
+ * - 32 and 45 m2: included in base price with plumbing (bathroomKitchenPolicy = "included"),
  *   represented via the includedFeatures array
  *
  * FINISH PREVIEW IMAGES:
@@ -115,7 +115,7 @@ const EXTERIOR_COLOUR_DEFINITIONS = [
  * Builds product-specific exterior finish options by resolving the correct
  * image file for a given product's front-facing dimension.
  *
- * For products with a single footprint (Compact 15, Living 35), only the
+ * For products with a single footprint (Compact 15, Living 32), only the
  * defaultSizeSuffix is needed. For products with multiple footprint variants
  * (Studio 25, Grand 45), the optional variantSuffixMap provides a slug-keyed
  * lookup that the configurator UI uses to swap the preview image when the
@@ -298,7 +298,7 @@ function buildFinishCategories(
    BATHROOM AND KITCHEN:
    - 15 m2: not available (bathroomKitchenPolicy = "not-available")
    - 25 m2: determined by layout option (bathroomKitchenPolicy = "layout-bundled")
-   - 35, 45 m2: included in base price via includedFeatures array
+   - 32, 45 m2: included in base price via includedFeatures array
    ============================================================================= */
 
 /**
@@ -734,32 +734,32 @@ const STUDIO_25: HydratedProduct = {
 
 
 /**
- * 35 m2 -- The Living
+ * 32 m2 -- The Living
  *
  * Mid-range model using a portal steel frame for column-free interiors.
  * Requires planning permission under current legislation. Bathroom,
  * kitchen, and plumbing connections are included in the base price.
  */
-const LIVING_35: HydratedProduct = {
+const LIVING_32: HydratedProduct = {
   /* --- Identity -------------------------------------------------- */
-  id: 'cp-living-35',
-  slug: 'living-35',
+  id: 'cp-living-32',
+  slug: 'living-32',
   name: 'The Living',
   tagline: 'Space to grow into',
   description:
-    'At 35m\u00B2, The Living is a fully equipped garden room with kitchen and bathroom included as standard \u2014 large enough for a self-contained guest suite, a private retreat for older teenagers, or a rental-ready unit that adds income to your property. The column-free steel frame interior is entirely yours to define: zone it for two desks and a breakout area, set up a home gym alongside an office nook, or create a family media room that keeps the main house peaceful.',
+    'At 32m\u00B2, The Living is a fully equipped garden room with kitchen and bathroom included as standard \u2014 large enough for a self-contained guest suite, a private retreat for older teenagers, or a rental-ready unit that adds income to your property. The column-free steel frame interior is entirely yours to define: zone it for two desks and a breakout area, set up a home gym alongside an office nook, or create a family media room that keeps the main house peaceful.',
 
   /* --- Dimensions ------------------------------------------------ */
   dimensions: {
-    widthM: 7.0,
-    depthM: 5.0,
+    widthM: 8.0,
+    depthM: 4.0,
     heightM: 2.4,
-    areaM2: 35,
+    areaM2: 32,
   },
-  dimensionsDisplay: '7.0m \u00D7 5.0m',
+  dimensionsDisplay: '8.0m \u00D7 4.0m',
 
   /* --- Pricing --------------------------------------------------- */
-  basePriceCentsInclVat: 7_535_000,
+  basePriceCentsInclVat: 7_532_000,
   // Pre-sale "original" base price in euro cents incl. VAT. See the
   // `compact-15` record for the full rationale on this field.
   originalBasePriceCentsInclVat: 8_100_000,
@@ -774,7 +774,7 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Call to action --------------------------------------------- */
   ctaText: 'Customise',
-  ctaLink: '/garden-rooms/configure/living-35',
+  ctaLink: '/garden-rooms/configure/living-32',
 
   /* --- Optional marketing modifiers ------------------------------ */
   glazingDetails: [
@@ -792,11 +792,11 @@ const LIVING_35: HydratedProduct = {
   images: [
     {
       id: 'img-living-hero',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       src: '/resource/garden-room/garden-room2.png',
       webP: '/resource/garden-room/garden-room2.webp',
       avif: '/resource/garden-room/garden-room2.avif',
-      alt: 'The Living 35m\u00B2 steel frame garden room',
+      alt: 'The Living 32m\u00B2 steel frame garden room',
       role: 'hero',
       displayOrder: 1,
     },
@@ -804,29 +804,29 @@ const LIVING_35: HydratedProduct = {
 
   /* --- Specifications -------------------------------------------- */
   specs: [
-    { id: 'sp-living-01', productId: 'cp-living-35', label: 'Dimensions',  value: '7.0m \u00D7 5.0m',                           displayOrder: 1 },
-    { id: 'sp-living-02', productId: 'cp-living-35', label: 'Area',        value: '35 m\u00B2',                                  displayOrder: 2 },
-    { id: 'sp-living-03', productId: 'cp-living-35', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                     displayOrder: 3 },
-    { id: 'sp-living-04', productId: 'cp-living-35', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                  displayOrder: 4 },
-    { id: 'sp-living-05', productId: 'cp-living-35', label: 'Flooring',    value: 'Laminated flooring',                          displayOrder: 5 },
-    { id: 'sp-living-06', productId: 'cp-living-35', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door',  displayOrder: 6 },
-    { id: 'sp-living-07', productId: 'cp-living-35', label: 'Electrics',   value: 'Full consumer unit ready',                    displayOrder: 7 },
-    { id: 'sp-living-08', productId: 'cp-living-35', label: 'Roof',        value: 'EPDM long life roof',                         displayOrder: 8 },
-    { id: 'sp-living-09', productId: 'cp-living-35', label: 'Plumbing',    value: 'Bathroom + kitchen included',                 displayOrder: 9 },
+    { id: 'sp-living-01', productId: 'cp-living-32', label: 'Dimensions',  value: '8.0m \u00D7 4.0m',                           displayOrder: 1 },
+    { id: 'sp-living-02', productId: 'cp-living-32', label: 'Area',        value: '32 m\u00B2',                                  displayOrder: 2 },
+    { id: 'sp-living-03', productId: 'cp-living-32', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                     displayOrder: 3 },
+    { id: 'sp-living-04', productId: 'cp-living-32', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                  displayOrder: 4 },
+    { id: 'sp-living-05', productId: 'cp-living-32', label: 'Flooring',    value: 'Laminated flooring',                          displayOrder: 5 },
+    { id: 'sp-living-06', productId: 'cp-living-32', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door',  displayOrder: 6 },
+    { id: 'sp-living-07', productId: 'cp-living-32', label: 'Electrics',   value: 'Full consumer unit ready',                    displayOrder: 7 },
+    { id: 'sp-living-08', productId: 'cp-living-32', label: 'Roof',        value: 'EPDM long life roof',                         displayOrder: 8 },
+    { id: 'sp-living-09', productId: 'cp-living-32', label: 'Plumbing',    value: 'Bathroom + kitchen included',                 displayOrder: 9 },
   ],
 
   /* --- Use cases ------------------------------------------------- */
   useCases: [
-    { id: 'uc-living-c1', productId: 'cp-living-35', text: 'Auxiliary dwelling',           context: 'card',       displayOrder: 1 },
-    { id: 'uc-living-c2', productId: 'cp-living-35', text: 'Guest suitet',                 context: 'card',       displayOrder: 2 },
-    { id: 'uc-living-c3', productId: 'cp-living-35', text: 'Rental unit',                  context: 'card',       displayOrder: 3 },
-    { id: 'uc-living-c4', productId: 'cp-studio-35', text: '1 bed room en suite',          context: 'card',       displayOrder: 4 },
-    { id: 'uc-living-c5', productId: 'cp-studio-35', text: 'Kitchen & Bathroom Included',  context: 'card',       displayOrder: 5 },
-    { id: 'uc-living-q1', productId: 'cp-living-35', text: 'Auxiliary dwelling',           context: 'quick-view', displayOrder: 6 },
-    { id: 'uc-living-q2', productId: 'cp-living-35', text: 'Home Gym + Office',            context: 'quick-view', displayOrder: 7 },
-    { id: 'uc-living-q3', productId: 'cp-living-35', text: 'Multi-Desk Workspace',         context: 'quick-view', displayOrder: 8 },
-    { id: 'uc-living-q4', productId: 'cp-living-35', text: 'Family Room',                  context: 'quick-view', displayOrder: 9 },
-    { id: 'uc-living-q5', productId: 'cp-living-35', text: 'Rental unit',                  context: 'quick-view', displayOrder: 10 },
+    { id: 'uc-living-c1', productId: 'cp-living-32', text: 'Auxiliary dwelling',           context: 'card',       displayOrder: 1 },
+    { id: 'uc-living-c2', productId: 'cp-living-32', text: 'Guest suitet',                 context: 'card',       displayOrder: 2 },
+    { id: 'uc-living-c3', productId: 'cp-living-32', text: 'Rental unit',                  context: 'card',       displayOrder: 3 },
+    { id: 'uc-living-c4', productId: 'cp-studio-32', text: '1 bed room en suite',          context: 'card',       displayOrder: 4 },
+    { id: 'uc-living-c5', productId: 'cp-studio-32', text: 'Kitchen & Bathroom Included',  context: 'card',       displayOrder: 5 },
+    { id: 'uc-living-q1', productId: 'cp-living-32', text: 'Auxiliary dwelling',           context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-living-q2', productId: 'cp-living-32', text: 'Home Gym + Office',            context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-living-q3', productId: 'cp-living-32', text: 'Multi-Desk Workspace',         context: 'quick-view', displayOrder: 8 },
+    { id: 'uc-living-q4', productId: 'cp-living-32', text: 'Family Room',                  context: 'quick-view', displayOrder: 9 },
+    { id: 'uc-living-q5', productId: 'cp-living-32', text: 'Rental unit',                  context: 'quick-view', displayOrder: 10 },
   ],
 
   /* --- Footprint variants ---------------------------------------- */
@@ -839,7 +839,7 @@ const LIVING_35: HydratedProduct = {
   addons: [
     {
       id: 'ao-living-triple-glazing',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       slug: 'triple-glazing',
       name: 'Triple Glazing Upgrade',
       description: 'Enhanced thermal and acoustic insulation for all glazing',
@@ -849,7 +849,7 @@ const LIVING_35: HydratedProduct = {
     },
     {
       id: 'ao-living-sauna-room',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       slug: 'sauna-room',
       name: 'Sauna Room',
       description: 'Self-contained infrared sauna cabin with cedar lining',
@@ -863,21 +863,21 @@ const LIVING_35: HydratedProduct = {
   includedFeatures: [
     {
       id: 'if-living-bathroom',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       name: 'Bathroom + Kitchen',
       description: 'Toilet, basin, shower, electric boiler, included',
       displayOrder: 1,
     },
     {
       id: 'if-living-kitchen',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       name: 'Kitchen',
       description: 'Kitchen cabinets, sink, and plumbing connections. Kitchen appliances not included.',
       displayOrder: 2,
     },
     {
       id: 'if-living-plumbing',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       name: 'Plumbing Connection',
       description: 'Hot and cold water supply, waste drainage, and soil stack connection',
       displayOrder: 3,
@@ -885,7 +885,7 @@ const LIVING_35: HydratedProduct = {
   ],
 
   /* --- Finish categories -----------------------------------------
-     Living 35 base footprint: 7m x 5m -> uses the '7m' image set.
+     Living 32 base footprint: 7m x 5m -> uses the '7m' image set.
      No footprint variants, so imagePathByFootprint is omitted.
      ---------------------------------------------------------------- */
   finishCategories: buildFinishCategories('The Living', buildExteriorFinishOptions('7m')),
@@ -895,7 +895,7 @@ const LIVING_35: HydratedProduct = {
     src:  '/resource/garden-room/garden-room2.png',
     webP: '/resource/garden-room/garden-room2.webp',
     avif: '/resource/garden-room/garden-room2.avif',
-    alt:  'The Living 35m\u00B2 steel frame garden room',
+    alt:  'The Living 32m\u00B2 steel frame garden room',
   },
   floorPlan: {
     apertures: [
@@ -996,15 +996,15 @@ const GRAND_45: HydratedProduct = {
   /* --- Use cases ------------------------------------------------- */
   useCases: [
     { id: 'uc-grand-c1', productId: 'cp-grand-45', text: 'Auxiliary dwelling',          context: 'card',       displayOrder: 1 },
-    { id: 'uc-grand-c1', productId: 'cp-grand-45', text: 'Self-contained apartment',    context: 'card',       displayOrder: 2 },
-    { id: 'uc-grand-c2', productId: 'cp-grand-45', text: 'Multi-room workspace',        context: 'card',       displayOrder: 3 },
-    { id: 'uc-grand-c3', productId: 'cp-grand-45', text: '2 bedrooms',                  context: 'card',       displayOrder: 4 },
-    { id: 'uc-grand-c4', productId: 'cp-grand-45', text: 'Kitchen & Bathroom Included', context: 'card',       displayOrder: 5 },
-    { id: 'uc-grand-c1', productId: 'cp-grand-45', text: 'Auxiliary dwelling',          context: 'quick-view', displayOrder: 6 },
-    { id: 'uc-grand-q1', productId: 'cp-grand-45', text: 'Full Living Annex',           context: 'quick-view', displayOrder: 7 },
-    { id: 'uc-grand-q2', productId: 'cp-grand-45', text: 'Large Studio / Workshop',     context: 'quick-view', displayOrder: 8 },
-    { id: 'uc-grand-q3', productId: 'cp-grand-45', text: 'Commercial Suite',            context: 'quick-view', displayOrder: 9 },
-    { id: 'uc-grand-q4', productId: 'cp-grand-45', text: 'Granny Flat',                 context: 'quick-view', displayOrder: 10 },
+    { id: 'uc-grand-c2', productId: 'cp-grand-45', text: 'Self-contained apartment',    context: 'card',       displayOrder: 2 },
+    { id: 'uc-grand-c3', productId: 'cp-grand-45', text: 'Multi-room workspace',        context: 'card',       displayOrder: 3 },
+    { id: 'uc-grand-c4', productId: 'cp-grand-45', text: '2 bedrooms',                  context: 'card',       displayOrder: 4 },
+    { id: 'uc-grand-c5', productId: 'cp-grand-45', text: 'Kitchen & Bathroom Included', context: 'card',       displayOrder: 5 },
+    { id: 'uc-grand-q1', productId: 'cp-grand-45', text: 'Auxiliary dwelling',          context: 'quick-view', displayOrder: 6 },
+    { id: 'uc-grand-q2', productId: 'cp-grand-45', text: 'Full Living Annex',           context: 'quick-view', displayOrder: 7 },
+    { id: 'uc-grand-q3', productId: 'cp-grand-45', text: 'Large Studio / Workshop',     context: 'quick-view', displayOrder: 8 },
+    { id: 'uc-grand-q4', productId: 'cp-grand-45', text: 'Commercial Suite',            context: 'quick-view', displayOrder: 9 },
+    { id: 'uc-grand-q5', productId: 'cp-grand-45', text: 'Granny Flat',                 context: 'quick-view', displayOrder: 10 },
   ],
 
   /* --- Footprint variants ---------------------------------------- */
@@ -1066,21 +1066,21 @@ const GRAND_45: HydratedProduct = {
   includedFeatures: [
     {
       id: 'if-living-bathroom',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       name: 'Bathroom + Kitchen',
       description: 'Toilet, basin, shower, electric boiler, included',
       displayOrder: 1,
     },
     {
       id: 'if-living-kitchen',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       name: 'Kitchen',
       description: 'Kitchen cabinets, sink, and plumbing connections. Kitchen appliances not included.',
       displayOrder: 2,
     },
     {
       id: 'if-living-plumbing',
-      productId: 'cp-living-35',
+      productId: 'cp-living-32',
       name: 'Plumbing Connection',
       description: 'Hot and cold water supply, waste drainage, and soil stack connection',
       displayOrder: 3,
@@ -1185,7 +1185,7 @@ const GRAND_45: HydratedProduct = {
 export const CONFIGURATOR_PRODUCTS: ReadonlyArray<HydratedProduct> = [
   COMPACT_15,
   STUDIO_25,
-  LIVING_35,
+  LIVING_32,
   GRAND_45,
 ];
 
@@ -1199,6 +1199,6 @@ export const CONFIGURATOR_PRODUCTS: ReadonlyArray<HydratedProduct> = [
 export const CONFIGURATOR_PRODUCTS_BY_SLUG: Readonly<Record<string, HydratedProduct>> = {
   'compact-15': COMPACT_15,
   'studio-25':  STUDIO_25,
-  'living-35':  LIVING_35,
+  'living-32':  LIVING_32,
   'grand-45':   GRAND_45,
 };

@@ -300,7 +300,17 @@ export const TextWithContactForm: React.FC<TextWithContactFormProps> = ({
               
             </div>
             <div className='text-contact__qr-code'>
-              <img src='./resource/contact/modular_house_wechat_qr_code.jpg' alt='Modular House | Modular Home Contact QR Code'></img>
+              {/*
+               * Below-the-fold decorative image — deferred via loading="lazy"
+               * and decoding="async", consistent with the default (non-priority)
+               * behaviour of OptimizedImage used elsewhere in the design system.
+               */}
+              <img
+                src='./resource/contact/modular_house_wechat_qr_code.jpg'
+                alt='Modular House | Modular Home Contact QR Code'
+                loading='lazy'
+                decoding='async'
+              />
               <p>WeChat:0811111111</p>
             </div>
           </div>

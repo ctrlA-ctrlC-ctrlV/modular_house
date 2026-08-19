@@ -64,6 +64,7 @@ import {
   SESSION_COOKIE_NAME,
   INGEST_URL,
 } from './beacon';
+import { setCookieConsent, clearCookieConsent } from './consent';
 
 // ---------------------------------------------------------------------------
 // Fixed deterministic epoch (constitution III — no real Date.now()).
@@ -268,6 +269,15 @@ beforeEach(() => {
   consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
   vi.useFakeTimers({ now: FIXED_NOW, toFake: ['Date'] });
+
+  // Consent gating (FR-028): sendPageView is default-deny, so every existing
+  // dispatch-expecting test in this file needs an explicit "accepted" choice
+  // seeded first, or the new gate would mask what those tests actually check.
+  // Seeded AFTER fake timers are installed so the cookie's internal `setAt`
+  // reads the fixed epoch, and the seeding write is excluded from
+  // `cookieSetCalls` so it never pollutes an unrelated assertion.
+  setCookieConsent('accepted');
+  cookieSetCalls = [];
 });
 
 afterEach(() => {
@@ -512,6 +522,41 @@ describe('sendPageView — admin path skip (M5, FR-014)', () => {
 
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
     expect(await lastPayload()).toEqual({ path: '/administration' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5b. Consent gating — FR-028, default-deny (analytics/consent.ts).
+// ---------------------------------------------------------------------------
+
+describe('sendPageView — consent gating (FR-028, default-deny)', () => {
+  it('does not dispatch or set the visitor/session cookies when no choice has been made', () => {
+    clearCookieConsent();
+
+    sendPageView({ pathname: '/garden-rooms' });
+
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(cookieWritesFor('mh_vid')).toHaveLength(0);
+    expect(cookieWritesFor('mh_sid')).toHaveLength(0);
+  });
+
+  it('does not dispatch when the visitor chose necessary cookies only', () => {
+    setCookieConsent('necessary');
+
+    sendPageView({ pathname: '/garden-rooms' });
+
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('dispatches once the visitor has explicitly accepted all cookies', async () => {
+    setCookieConsent('accepted');
+
+    sendPageView({ pathname: '/garden-rooms' });
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    expect(await lastPayload()).toEqual({ path: '/garden-rooms' });
   });
 });
 
@@ -777,6 +822,46 @@ describe('useBeacon — one event per page view (M8)', () => {
     mockLocation.pathname = '/admin/analytics';
     rerender();
     expect(sendBeaconMock).toHaveBeenCalledTimes(1); // /admin/* skipped
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7b. useBeacon — retroactive dispatch on a consent change (FR-028).
+// ---------------------------------------------------------------------------
+// Covers the same-page "Accept All" case: a visitor who accepts on the very
+// page they landed on (no navigation yet) must still have that page view
+// measured, rather than losing it until the next pathname change.
+
+describe('useBeacon — retroactive dispatch when consent changes without navigation (FR-028)', () => {
+  it('fires a page view for the current pathname the moment consent becomes accepted after mount', () => {
+    clearCookieConsent();
+    renderHook(() => useBeacon());
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+
+    setCookieConsent('accepted');
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire when a consent change still denies analytics (necessary only)', () => {
+    clearCookieConsent();
+    renderHook(() => useBeacon());
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+
+    setCookieConsent('necessary');
+
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+  });
+
+  it('does not retroactively fire for an admin pathname even after consent is accepted', () => {
+    clearCookieConsent();
+    mockLocation.pathname = '/admin';
+    renderHook(() => useBeacon());
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+
+    setCookieConsent('accepted');
+
+    expect(sendBeaconMock).not.toHaveBeenCalled();
   });
 });
 

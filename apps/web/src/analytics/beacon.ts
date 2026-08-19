@@ -37,6 +37,15 @@
  * measured — no cookie renewal, no dispatch — defence in depth on top of the
  * client skip (the API drops them too).
  *
+ * Consent gating (FR-028, `analytics/consent.ts`): a page view is measured
+ * only when the visitor has explicitly accepted performance cookies — no
+ * choice, a "necessary only" choice, and a same-session dismissal of the
+ * banner all deny measurement identically (default-deny). `useBeacon`
+ * additionally re-fires a page view for the *current* pathname when consent
+ * becomes accepted after mount, so the page the visitor was already on when
+ * they clicked "Accept All" is still measured, without waiting for the next
+ * navigation.
+ *
  * The module performs no work at import time; the only entry points are the
  * `useBeacon` hook (mounted once in `TemplateLayout`, T052) and the pure
  * `sendPageView` function used by the hook and the unit suite. Importing the
@@ -44,6 +53,7 @@
  */
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { hasAnalyticsConsent, subscribeToConsentChange } from './consent';
 
 // ---------------------------------------------------------------------------
 // Exported constants — extension points (Open-Closed).
@@ -318,7 +328,9 @@ export interface SendPageViewInput {
  */
 export function sendPageView(input: SendPageViewInput): void {
   // Admin routes are never measured: no cookies, no dispatch (M5, FR-014).
-  if (isAdminPath(input.pathname)) return;
+  // Un-consented views are never measured either (FR-028, default-deny) —
+  // checked alongside the admin guard as the same early-return choke point.
+  if (isAdminPath(input.pathname) || !hasAnalyticsConsent()) return;
 
   // Renew both identifier cookies on every measured view (K2/K3 rolling
   // expiry). The cookie values are the source of truth the API reads back via
@@ -382,4 +394,20 @@ export function useBeacon(): void {
     // The effect re-runs only on a pathname change (M8); `location.search` is
     // intentionally excluded so same-path navigations send nothing.
   }, [location.pathname]);
+
+  // Consent gating (FR-028): `sendPageView` above silently no-ops while
+  // unconsented, so the visitor's very first (and possibly only) page view
+  // would otherwise never be measured if they accept on the same page they
+  // landed on. This effect re-fires a page view for the CURRENT pathname the
+  // moment consent becomes accepted, without waiting for a navigation. It
+  // does not backfill any views skipped earlier in the visit — only the page
+  // the visitor is on right now.
+  useEffect(() => {
+    return subscribeToConsentChange(() => {
+      sendPageView({
+        pathname: location.pathname,
+        search: location.search,
+      });
+    });
+  }, [location.pathname, location.search]);
 }

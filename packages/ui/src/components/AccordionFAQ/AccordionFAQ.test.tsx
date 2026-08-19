@@ -121,8 +121,8 @@ describe('AccordionFAQ', () => {
   /* -------------------------------------------------------------------------
      TEST CASE 3: Click to expand
      Clicking a collapsed trigger should expand the corresponding panel.
-     Verified by checking aria-expanded changes to "true" and the panel
-     becomes visible (hidden attribute removed).
+     Verified by checking aria-expanded changes to "true" and the panel is
+     removed from the aria-hidden state (rejoins the accessibility tree).
      ------------------------------------------------------------------------- */
   it('clicking a trigger expands the corresponding panel', () => {
     render(<AccordionFAQ faqs={MOCK_FAQS} title="FAQ" />);
@@ -133,16 +133,16 @@ describe('AccordionFAQ', () => {
     /** The trigger should now indicate expanded state */
     expect(firstButton.getAttribute('aria-expanded')).toBe('true');
 
-    /** The panel should be visible (hidden attribute removed) */
+    /** The panel should rejoin the accessibility tree (aria-hidden false) */
     const panel = document.getElementById('panel-faq-1');
     expect(panel).not.toBeNull();
-    expect(panel?.hasAttribute('hidden')).toBe(false);
+    expect(panel?.getAttribute('aria-hidden')).toBe('false');
   });
 
   /* -------------------------------------------------------------------------
      TEST CASE 4: Click to collapse
      Clicking an already-expanded trigger should collapse it. Verified by
-     checking aria-expanded returns to "false" and hidden is restored.
+     checking aria-expanded returns to "false" and aria-hidden is restored.
      ------------------------------------------------------------------------- */
   it('clicking an expanded trigger collapses it', () => {
     render(<AccordionFAQ faqs={MOCK_FAQS} title="FAQ" />);
@@ -159,7 +159,7 @@ describe('AccordionFAQ', () => {
 
     const panel = document.getElementById('panel-faq-1');
     expect(panel).not.toBeNull();
-    expect(panel?.hasAttribute('hidden')).toBe(true);
+    expect(panel?.getAttribute('aria-hidden')).toBe('true');
   });
 
   /* -------------------------------------------------------------------------
@@ -302,18 +302,39 @@ describe('AccordionFAQ', () => {
   });
 
   /* -------------------------------------------------------------------------
-     TEST CASE 12: Hidden attribute on collapsed panels
-     All collapsed panels must have the `hidden` attribute, which removes
-     them from the accessibility tree and hides them visually. This is the
-     standard HTML mechanism for hiding content that is not currently relevant.
+     TEST CASE 12: aria-hidden on collapsed panels
+     All collapsed panels must carry aria-hidden="true", which removes them
+     from the accessibility tree so screen reader users cannot navigate into
+     content that is not visibly expanded. Unlike the HTML `hidden`
+     attribute, aria-hidden does not affect the render tree.
      ------------------------------------------------------------------------- */
-  it('collapsed panels have the hidden attribute', () => {
+  it('collapsed panels have aria-hidden="true"', () => {
     render(<AccordionFAQ faqs={MOCK_FAQS} title="FAQ" />);
 
     MOCK_FAQS.forEach((faq) => {
       const panel = document.getElementById(`panel-${faq.id}`);
       expect(panel).not.toBeNull();
-      expect(panel?.hasAttribute('hidden')).toBe(true);
+      expect(panel?.getAttribute('aria-hidden')).toBe('true');
+    });
+  });
+
+  /* -------------------------------------------------------------------------
+     TEST CASE 13: Answer text stays in the DOM while collapsed
+     Regression test for a crawlability defect: collapsed panels previously
+     carried the HTML `hidden` attribute, which maps to `display: none` and
+     strips the element from the render tree that non-JS-executing crawlers
+     and text-extraction tooling read from pre-rendered (SSG) HTML. The
+     component must never conditionally omit the answer text based on open
+     state — only aria-hidden and CSS should change.
+     ------------------------------------------------------------------------- */
+  it('keeps the answer text present in the DOM for collapsed panels', () => {
+    render(<AccordionFAQ faqs={MOCK_FAQS} title="FAQ" />);
+
+    MOCK_FAQS.forEach((faq) => {
+      const panel = document.getElementById(`panel-${faq.id}`);
+      expect(panel).not.toBeNull();
+      expect(panel?.hasAttribute('hidden')).toBe(false);
+      expect(panel?.textContent).toContain(faq.description);
     });
   });
 });

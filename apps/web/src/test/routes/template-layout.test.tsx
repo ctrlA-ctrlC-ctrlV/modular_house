@@ -3,6 +3,7 @@ import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import App from '../../App';
+import { setCookieConsent } from '../../analytics/consent';
 
 // Mock components to isolate layout testing
 vi.mock('../../components/Header', () => ({
@@ -225,14 +226,17 @@ describe('TemplateLayout — CookieBanner + beacon mount (T051)', () => {
   });
 
   it('fires the page-view beacon exactly once per route render', async () => {
+    // Consent gating (FR-028): sendPageView is default-deny, so this
+    // dispatch-count assertion needs an explicit "accepted" choice seeded
+    // first, or the new gate would mask what this test actually checks.
+    setCookieConsent('accepted');
     renderRoute('/');
 
     // The `useBeacon` hook (beacon.ts) calls `sendPageView` in a useEffect
     // keyed on `location.pathname`; one mount at a single pathname dispatches
     // exactly one event (M8). `navigator.sendBeacon` is mocked at the module
     // boundary (see file-level setup) so no real network call leaves the test
-    // process (research R1). Before T052 the hook is never mounted and the
-    // call count stays at zero — the expected red state.
+    // process (research R1).
     await waitFor(() => {
       expect(sendBeaconMock).toHaveBeenCalledTimes(1);
     });
@@ -240,11 +244,18 @@ describe('TemplateLayout — CookieBanner + beacon mount (T051)', () => {
 
   it('fires the beacon once for a different public route too', async () => {
     // A second route confirms the beacon is not specific to `/` — every
-    // public page render dispatches exactly one event (FR-001, SC-001).
+    // consented public page render dispatches exactly one event (FR-001,
+    // SC-001).
+    setCookieConsent('accepted');
     renderRoute('/about');
 
     await waitFor(() => {
       expect(sendBeaconMock).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('does not fire the page-view beacon before the visitor has made a cookie choice (FR-028)', () => {
+    renderRoute('/');
+    expect(sendBeaconMock).not.toHaveBeenCalled();
   });
 });

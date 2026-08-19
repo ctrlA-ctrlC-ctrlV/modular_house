@@ -77,12 +77,21 @@ export const COOKIE_REGISTER: readonly CookieRegisterEntry[] = [
     setBy: 'Modular House',
   },
   {
-    // Source: apps/web/src/components/CookieBanner.tsx -> ACK_COOKIE_NAME
+    // Source: apps/web/src/analytics/consent.ts -> ACK_COOKIE_NAME
     name: 'mh_cookie_ack',
     purpose:
-      'Records that the visitor has acknowledged the cookie notice, so the banner does not reappear on later visits.',
+      'Records the visitor\'s cookie choice ("Accept All" or "Necessary Cookies Only"), so the banner does not reappear and performance cookies are set only when accepted.',
     category: 'strictly-necessary',
     duration: '365 days',
+    setBy: 'Modular House',
+  },
+  {
+    // Source: apps/web/src/analytics/consent.ts -> DISMISS_COOKIE_NAME
+    name: 'mh_cookie_dismissed',
+    purpose:
+      'Temporarily hides the cookie notice for the remainder of the current browsing session after it is closed without a choice; does not record a lasting preference.',
+    category: 'strictly-necessary',
+    duration: 'Session (until the browser is closed)',
     setBy: 'Modular House',
   },
 

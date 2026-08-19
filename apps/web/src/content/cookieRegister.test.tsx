@@ -5,9 +5,9 @@
  * every cookie the product sets (FR-025/FR-026/FR-027, SC-011, DoD-4, K5):
  *
  * 1. **Phase 2 cookie coverage** — every cookie name Phase 2 code can set
- *    (`mh_vid`, `mh_sid` from beacon.ts; `mh_cookie_ack` from CookieBanner)
- *    appears in the register. This is the FR-027 guarantee: introducing a
- *    cookie requires a register entry.
+ *    (`mh_vid`, `mh_sid` from beacon.ts; `mh_cookie_ack`, `mh_cookie_dismissed`
+ *    from analytics/consent.ts) appears in the register. This is the FR-027
+ *    guarantee: introducing a cookie requires a register entry.
  * 2. **K5 exact list** — the register contains exactly the cookies K5 pins:
  *    the three public `mh_*` cookies, the Phase 1 admin cookies (refresh —
  *    strictly necessary; theme/sidebar mirrors — functional), and the Google
@@ -46,7 +46,7 @@ import CookiePolicy from '../routes/CookiePolicy';
 // drift. These modules already exist (T046 beacon, T050 CookieBanner).
 // ---------------------------------------------------------------------------
 import { VISITOR_COOKIE_NAME, SESSION_COOKIE_NAME } from '../analytics/beacon';
-import { ACK_COOKIE_NAME } from '../components/CookieBanner';
+import { ACK_COOKIE_NAME, DISMISS_COOKIE_NAME } from '../analytics/consent';
 
 // ---------------------------------------------------------------------------
 // K5 exact list — the authoritative set of cookie names the register MUST
@@ -92,6 +92,7 @@ const K5_EXACT_NAMES = [
   VISITOR_COOKIE_NAME, // 'mh_vid'
   SESSION_COOKIE_NAME, // 'mh_sid'
   ACK_COOKIE_NAME, // 'mh_cookie_ack'
+  DISMISS_COOKIE_NAME, // 'mh_cookie_dismissed'
   ...ADMIN_COOKIE_NAMES,
   ...GA_COOKIE_NAMES,
 ] as const;
@@ -164,9 +165,14 @@ describe('Cookie register consistency (T053, T-F11)', () => {
       expect(names).toContain(SESSION_COOKIE_NAME);
     });
 
-    it('contains mh_cookie_ack (CookieBanner acknowledgment cookie)', () => {
+    it('contains mh_cookie_ack (persistent cookie-consent choice)', () => {
       const names = COOKIE_REGISTER.map((e) => e.name);
       expect(names).toContain(ACK_COOKIE_NAME);
+    });
+
+    it('contains mh_cookie_dismissed (session-scoped banner dismissal)', () => {
+      const names = COOKIE_REGISTER.map((e) => e.name);
+      expect(names).toContain(DISMISS_COOKIE_NAME);
     });
   });
 

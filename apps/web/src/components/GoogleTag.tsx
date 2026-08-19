@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
+import { hasAnalyticsConsent, subscribeToConsentChange } from '../analytics/consent';
 
 /**
  * Environment variable for the Google Analytics Tracking ID.
@@ -20,19 +21,28 @@ interface GoogleTagProps {
 
 /**
  * Google Analytics Tag Component.
- * 
+ *
  * Injects the Google Tag (gtag.js) script into the document head and initializes
  * the global window.dataLayer and window.gtag function.
- * 
- * This component follows the Open-Closed Principle by encapsulating the 
- * analytics implementation details, allowing it to be easily added or 
+ *
+ * Consent gating (FR-028, `analytics/consent.ts`): the script is injected
+ * only once the visitor has explicitly accepted performance cookies — no
+ * choice, a "necessary only" choice, and a same-session banner dismissal all
+ * withhold injection identically (default-deny). If consent is granted after
+ * mount (e.g. the visitor clicks "Accept All" on the page they landed on),
+ * the script is injected then, without requiring a reload. The existing
+ * "already injected" guard makes repeated injection attempts idempotent, so
+ * no separate de-duplication is needed for the consent-change listener.
+ *
+ * This component follows the Open-Closed Principle by encapsulating the
+ * analytics implementation details, allowing it to be easily added or
  * removed from layouts without modifying their internal logic extensively.
- * 
+ *
  * @param {GoogleTagProps} props - The component props.
  * @returns {null} This component does not render any visible UI.
  */
 export const GoogleTag = ({ trackingId }: GoogleTagProps): null => {
-  useEffect(() => {
+  const injectScript = useCallback(() => {
     /**
      * Server-Side Rendering (SSR) Guard.
      * The 'document' object is not available during server-side rendering.
@@ -84,6 +94,22 @@ export const GoogleTag = ({ trackingId }: GoogleTagProps): null => {
     // Configure the specific tracking ID
     window.gtag('config', trackingId);
   }, [trackingId]);
+
+  useEffect(() => {
+    // Inject immediately when consent is already granted at mount time.
+    if (hasAnalyticsConsent()) {
+      injectScript();
+    }
+  }, [injectScript]);
+
+  useEffect(() => {
+    // Inject retroactively the moment consent becomes accepted after mount.
+    return subscribeToConsentChange(() => {
+      if (hasAnalyticsConsent()) {
+        injectScript();
+      }
+    });
+  }, [injectScript]);
 
   return null;
 };

@@ -20,7 +20,7 @@
  * rule 4).
  */
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import App from '../../App';
@@ -178,5 +178,35 @@ describe('Cookie policy route reachability (T054, T-F4)', () => {
     // path would resolve to the NotFound page instead of a table, and the
     // heading below would be absent.
     expect(screen.queryByText(/page not found/i)).not.toBeInTheDocument();
+  });
+
+  it('lets a visitor change an earlier cookie choice, re-showing the banner immediately (FR-028 revisit)', async () => {
+    renderRoute('/cookie-policy');
+
+    await waitFor(() => {
+      expect(document.querySelector('table')).not.toBeNull();
+    });
+
+    // Establish an initial choice via the still-visible global banner
+    // (mounted by TemplateLayout alongside every public page).
+    const acceptAllButton = await screen.findByRole('button', { name: /accept all/i });
+    fireEvent.click(acceptAllButton);
+    expect(
+      screen.queryByRole('region', { name: /cookie notice/i }),
+    ).not.toBeInTheDocument();
+
+    // The Cookie Policy page's own control clears that choice and the
+    // already-mounted banner reacts immediately, with no remount/reload.
+    const changeButton = screen.getByRole('button', {
+      name: /change cookie preferences/i,
+    });
+    fireEvent.click(changeButton);
+
+    expect(
+      screen.getByRole('region', { name: /cookie notice/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/cookie preferences have been cleared/i),
+    ).toBeInTheDocument();
   });
 });

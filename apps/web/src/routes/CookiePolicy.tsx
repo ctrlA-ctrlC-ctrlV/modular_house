@@ -22,9 +22,10 @@
  * =============================================================================
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useHeaderConfig } from '../components/HeaderContext';
 import { COOKIE_REGISTER } from '../content/cookieRegister';
+import { clearCookieConsent } from '../analytics/consent';
 
 /**
  * Cookie Policy Page Component
@@ -46,6 +47,28 @@ function CookiePolicy(): React.ReactElement {
   useEffect(() => {
     setHeaderConfig({ variant: 'light', positionOver: false });
   }, [setHeaderConfig]);
+
+  /* ---------------------------------------------------------------------------
+     Change Cookie Preferences
+     ---------------------------------------------------------------------------
+     Lets a visitor withdraw or change an earlier choice (industry best
+     practice: changing consent should be as easy as giving it). Clearing the
+     stored choice via `clearCookieConsent()` makes the globally-mounted
+     `CookieBanner` (in `TemplateLayout`) reappear immediately through its own
+     consent-change subscription — no reload needed. `cleared` drives a brief,
+     accessible confirmation message; it is intentionally NOT reset, so the
+     message persists for the rest of this page view once shown. Already-
+     loaded third-party scripts (Google Analytics) and cookies they already
+     set cannot be retroactively removed by this action — only future
+     tracking stops, which the confirmation message and the paragraph above
+     it both state explicitly.
+     --------------------------------------------------------------------------- */
+  const [cleared, setCleared] = useState(false);
+
+  const handleChangePreferences = useCallback(() => {
+    clearCookieConsent();
+    setCleared(true);
+  }, []);
 
   return (
     <div className="bg-white">
@@ -69,14 +92,46 @@ function CookiePolicy(): React.ReactElement {
               --------------------------------------------------------------- */}
           <div className="mt-12 prose prose-lg mx-auto">
             <p className="text-gray-600">
-              Modular House uses a small number of first-party cookies to
-              measure how visitors use our site, plus the cookies our admin
-              panel needs to keep signed-in administrators authenticated and
-              remember their preferences. We do not use cookies for
-              third-party advertising or behavioural profiling. The table
-              below is the complete, authoritative list of every cookie we
-              set — it is generated directly from our codebase, so it always
-              reflects exactly what the site does.
+              Modular House uses a small number of first-party cookies, plus
+              the cookies our admin panel needs to keep signed-in
+              administrators authenticated and remember their preferences. We
+              do not use cookies for third-party advertising or behavioural
+              profiling. The table below is the complete, authoritative list
+              of every cookie we set — it is generated directly from our
+              codebase, so it always reflects exactly what the site does.
+            </p>
+            <p className="text-gray-600">
+              When you first visit, the cookie banner offers two choices:{' '}
+              <strong>Accept All</strong>, which allows both the strictly
+              necessary cookies and the optional performance cookies we use
+              to measure how visitors use our site, or{' '}
+              <strong>Necessary Cookies Only</strong>, which keeps just the
+              strictly necessary cookies and sets no performance cookies at
+              all. Closing the banner without choosing keeps only necessary
+              cookies for the rest of that browsing session and asks again
+              next time.
+            </p>
+            <p className="text-gray-600">
+              You can change your mind at any time with the control below.
+              Doing so clears your stored choice and re-shows the banner
+              immediately. Note that this stops <em>future</em> tracking
+              only — a performance cookie or analytics script already loaded
+              earlier in this session cannot be retroactively removed.
+            </p>
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={handleChangePreferences}
+            >
+              Change Cookie Preferences
+            </button>
+            {/* aria-live="polite" so screen-reader users hear the outcome of
+                clicking the control above without needing to locate a new
+                element themselves (accessibility guidance: status updates
+                use role="status"). */}
+            <p role="status" aria-live="polite" className="text-gray-600 mt-2">
+              {cleared &&
+                'Your cookie preferences have been cleared. The cookie notice is now showing again so you can make a new choice.'}
             </p>
           </div>
 

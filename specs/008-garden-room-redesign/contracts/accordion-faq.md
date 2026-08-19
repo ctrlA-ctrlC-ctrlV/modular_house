@@ -88,7 +88,13 @@ Each accordion item renders in this order:
   - `id="panel-{id}"` matching the trigger's `aria-controls`
   - `role="region"`
   - `aria-labelledby="trigger-{id}"`
-  - `hidden` attribute when collapsed (removed when expanded)
+  - `aria-hidden="true"` when collapsed (removed when expanded) — the panel
+    node and its answer text remain in the DOM at all times; only the
+    accessibility-tree exclusion and the CSS max-height/overflow collapse
+    change with state. The HTML `hidden` attribute is deliberately not used
+    here because it maps to `display: none`, which strips the answer text
+    from the render tree that crawlers and text-extraction tooling read from
+    pre-rendered (SSG) HTML.
 - Keyboard: Enter and Space toggle the focused item
 - Focus-visible outline on trigger buttons
 - No focus trap — Tab moves to next focusable element

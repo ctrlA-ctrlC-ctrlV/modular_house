@@ -23,8 +23,12 @@
  * ACCESSIBILITY (WAI-ARIA Accordion Pattern):
  * - Section uses aria-labelledby to associate the h2 heading.
  * - Each trigger is a <button> with aria-expanded and aria-controls.
- * - Each panel has role="region", aria-labelledby, and the hidden attribute
- *   when collapsed.
+ * - Each panel has role="region", aria-labelledby, and aria-hidden="true"
+ *   when collapsed. The panel node itself is never removed from the DOM
+ *   or given `display: none` — visual collapse is CSS-only (max-height +
+ *   overflow) — so the answer text stays present in the render tree for
+ *   crawlers and text-extraction tooling while still being excluded from
+ *   the accessibility tree for screen reader users when collapsed.
  * - Keyboard: Enter and Space toggle the focused item (native <button>
  *   behaviour handles Enter; Space is explicitly handled to prevent scroll).
  * - No focus trap — Tab moves to the next focusable element naturally.
@@ -316,16 +320,24 @@ const AccordionFAQItemComponent: React.FC<AccordionFAQItemComponentProps> = ({
 
       {/* ---------------------------------------------------------------
           CONTENT PANEL
-          Contains the answer text. When collapsed, the hidden attribute
-          removes it from the accessibility tree and the CSS max-height
-          transition provides a smooth visual collapse.
+          Contains the answer text. The panel node — and its answer text —
+          remains present in the DOM regardless of open/closed state so
+          that the pre-rendered HTML served to non-executing crawlers and
+          text-extraction tooling always contains the full answer content.
+          Visual collapse is handled entirely by the CSS max-height +
+          overflow transition (see AccordionFAQ.css); aria-hidden removes
+          the panel from the accessibility tree while collapsed so screen
+          reader users cannot navigate into content that is not visibly
+          expanded. This deliberately avoids the HTML `hidden` attribute,
+          which maps to `display: none` and would strip the answer text
+          from the render tree that crawlers evaluate.
           --------------------------------------------------------------- */}
       <div
         className="accordion-faq-item__panel"
         id={panelId}
         role="region"
         aria-labelledby={triggerId}
-        hidden={!isOpen}
+        aria-hidden={!isOpen}
       >
         <p className="accordion-faq-item__answer">{description}</p>
       </div>

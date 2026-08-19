@@ -1,83 +1,53 @@
 /**
  * CookieBanner — public-site cookie notice component (Phase 2, plan §2.1 K4,
- * §2.2 N1–N5, research R8).
+ * §2.2 N1–N5, research R8; opt-in model per FR-028).
  *
- * A non-blocking, fixed-position bottom overlay that informs visitors the site
- * uses performance cookies only (besides strictly-necessary ones), offers an
- * acknowledge button and a close ("x") control — both writing the
- * `mh_cookie_ack` acknowledgment cookie through a single seam (FR-028
- * extension point) — and links to the `/cookie-policy` page. The banner
- * renders only while `mh_cookie_ack` is absent and mounts client-side only
- * (N2 — absent from prerendered HTML).
+ * A non-blocking, fixed-position bottom overlay offering visitors a real
+ * choice over performance cookies: "Accept All" or "Necessary Cookies Only",
+ * plus a close ("x") control that silences the banner for the current
+ * session only, without recording a lasting choice. All three controls read
+ * and write through `analytics/consent.ts` (the FR-028 extension-point
+ * module) rather than inlining cookie logic here. The banner links to the
+ * `/cookie-policy` page and mounts client-side only (N2 — absent from
+ * prerendered HTML).
  *
  * Styling: Bootstrap 5.3 classes (the public site's existing styling, imported
  * via `main.tsx`). The admin design system (Tailwind / OKLCH tokens) MUST NOT
  * leak into the public site (research R8, Phase 1 isolation rule).
  *
- * Accessibility (N5): `role="region"` + `aria-label="Cookie notice"`, both
- * controls are native `<button>` elements (keyboard reachable and operable),
- * no focus trap (the container has no `tabindex` that would capture focus),
- * visible focus via the browser's native `:focus-visible` ring on buttons.
+ * Accessibility (N5): `role="region"` + `aria-label="Cookie notice"`, all
+ * three controls are native `<button>` elements (keyboard reachable and
+ * operable), no focus trap (the container has no `tabindex` that would
+ * capture focus), visible focus via the browser's native `:focus-visible`
+ * ring on buttons.
  *
- * Cookie (K4): `mh_cookie_ack` value `"1"`, Max-Age 365 days, `Path=/`,
- * `SameSite=Lax`, `Secure` in production. Set by BOTH the acknowledge button
- * and the close ("x") control — there is no dismissal path that skips the
- * cookie (N3).
+ * Consent semantics:
+ *   - "Accept All" / "Necessary Cookies Only" record a persistent 365-day
+ *     choice (`setCookieConsent`) — the banner never reappears while that
+ *     choice stands.
+ *   - Close ("x") calls `dismissBannerForSession` — a true browser session
+ *     cookie with no expiry attribute, so the banner reappears next session.
+ *     Analytics stays denied for the rest of the current session by the same
+ *     default-deny rule that applies before any choice is made (no separate
+ *     branching needed — see `analytics/consent.ts`).
+ *   - The banner also subscribes to consent changes so it reappears
+ *     immediately if a choice is cleared elsewhere (the Cookie Policy page's
+ *     "Change Cookie Preferences" control), without needing a page reload.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  setCookieConsent,
+  dismissBannerForSession,
+  shouldShowBanner,
+  subscribeToConsentChange,
+} from '../analytics/consent';
 
-// ---------------------------------------------------------------------------
-// Exported constants — extension points (Open-Closed).
-// ---------------------------------------------------------------------------
-
-/**
- * The acknowledgment cookie name (plan §2.1 K4). Exported so the
- * register-consistency test (T053) can assert every cookie name Phase 2 code
- * sets appears in the authoritative register without hardcoding the string.
- */
-export const ACK_COOKIE_NAME = 'mh_cookie_ack';
-
-// ---------------------------------------------------------------------------
-// Pinned duration (plan §2.1 K4) — seconds, for the `max-age` attribute.
-// ---------------------------------------------------------------------------
-
-/** 365 days in seconds (K4 — `mh_cookie_ack` Max-Age). */
-const ACK_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
-
-// ---------------------------------------------------------------------------
-// Cookie read/write helpers.
-// ---------------------------------------------------------------------------
-
-/**
- * Whether the `mh_cookie_ack` cookie is present with value `"1"`. The banner
- * renders only while this returns `false` (K4, N2).
- */
-function isAcknowledged(): boolean {
-  return document.cookie
-    .split(';')
-    .map((part) => part.trim())
-    .some((part) => part === `${ACK_COOKIE_NAME}=1`);
-}
-
-/**
- * Write the `mh_cookie_ack` cookie with the pinned K4 attributes: value `"1"`,
- * 365-day Max-Age, `Path=/`, `SameSite=Lax`, `Secure` in production only (the
- * `Secure` attribute would prevent the cookie from being set over plain HTTP,
- * breaking local dev and the test environment).
- */
-function setAckCookie(): void {
-  const parts = [
-    `${ACK_COOKIE_NAME}=1`,
-    `max-age=${ACK_MAX_AGE_SECONDS}`,
-    'path=/',
-    'samesite=lax',
-  ];
-  if (import.meta.env.PROD) {
-    parts.push('secure');
-  }
-  document.cookie = parts.join('; ');
-}
+// Re-exported so existing consumers (e.g. the cookie register's source
+// comments) can still resolve the acknowledgment cookie name from this
+// component; the value and its read/write logic now live in consent.ts,
+// the single source of truth for consent state (FR-028 seam).
+export { ACK_COOKIE_NAME } from '../analytics/consent';
 
 // ---------------------------------------------------------------------------
 // CookieBanner component.
@@ -88,13 +58,12 @@ function setAckCookie(): void {
  *
  * Mounts client-side only (N2): the `mounted` flag starts `false` and flips to
  * `true` inside `useEffect`, so the banner is absent from server-rendered /
- * prerendered HTML and appears only after hydration. The `acknowledged` flag
- * tracks the cookie so the banner hides immediately on click (N3 — same frame)
- * and stays hidden on remounts while the cookie persists.
- *
- * The `acknowledge` callback is the FR-028 extension-point seam: both controls
- * call it, and a future opt-in accept/decline model would extend this single
- * function without replacing the component.
+ * prerendered HTML and appears only after hydration. The `visible` flag
+ * tracks whether the banner should currently render — derived from
+ * `shouldShowBanner()` on mount and re-derived whenever a consent change is
+ * observed (own click, or a change made elsewhere) — so the banner hides
+ * immediately on click (same frame) and reappears immediately if consent is
+ * cleared elsewhere.
  */
 export function CookieBanner() {
   // N2: client-only mount — `mounted` stays false during SSR/prerender so the
@@ -102,30 +71,46 @@ export function CookieBanner() {
   // SC-003). It flips to `true` after the first client-side effect.
   const [mounted, setMounted] = useState(false);
 
-  // Tracks whether the visitor has already acknowledged. Updated from the
-  // cookie on mount and synchronously on click so the banner hides in the
-  // same frame (N3).
-  const [acknowledged, setAcknowledged] = useState(false);
+  // Whether the banner should currently render, derived from the persistent
+  // choice and session-dismissal cookies (consent.ts).
+  const [visible, setVisible] = useState(false);
 
-  // Read the cookie after mount (client-side only — `document.cookie` is not
-  // available during SSR). Both state updates are batched in a single effect
-  // so there is no flash of banner for already-acknowledged visitors.
+  // Read consent state after mount (client-side only — `document.cookie` is
+  // not available during SSR) and subscribe to later changes so the banner
+  // reacts to a choice made through another mounted instance of the consent
+  // module (e.g. the Cookie Policy page's "Change Cookie Preferences"
+  // control clearing the choice while this banner is already on screen).
   useEffect(() => {
     setMounted(true);
-    setAcknowledged(isAcknowledged());
+    setVisible(shouldShowBanner());
+    return subscribeToConsentChange(() => {
+      setVisible(shouldShowBanner());
+    });
   }, []);
 
-  // FR-028: single acknowledgment seam. Both the acknowledge button and the
-  // close ("x") control call this function. A future opt-in model would
-  // extend this seam (e.g. branch on which control was activated) without
-  // replacing the component.
-  const acknowledge = useCallback(() => {
-    setAckCookie();
-    setAcknowledged(true);
+  // "Accept All" — records a persistent choice granting performance cookies.
+  const acceptAll = useCallback(() => {
+    setCookieConsent('accepted');
+    setVisible(false);
   }, []);
 
-  // Render nothing during SSR (before mount) or when already acknowledged.
-  if (!mounted || acknowledged) return null;
+  // "Necessary Cookies Only" — records a persistent choice denying
+  // performance cookies.
+  const necessaryOnly = useCallback(() => {
+    setCookieConsent('necessary');
+    setVisible(false);
+  }, []);
+
+  // Close ("x") — silences the banner for the current session only, with no
+  // lasting choice recorded, so the banner asks again next session.
+  const closeForSession = useCallback(() => {
+    dismissBannerForSession();
+    setVisible(false);
+  }, []);
+
+  // Render nothing during SSR (before mount) or while a choice/dismissal
+  // already suppresses the banner.
+  if (!mounted || !visible) return null;
 
   return (
     <div
@@ -134,7 +119,7 @@ export function CookieBanner() {
       className="fixed-bottom bg-dark text-light border-top"
       data-testid="cookie-banner"
     >
-      <div className="container d-flex align-items-center justify-content-between gap-3 py-2">
+      <div className="container d-flex align-items-center justify-content-between gap-3 py-2 flex-wrap">
         {/*
           text-light is required explicitly, not inherited from the parent's
           bg-dark/text-light pair: the site's global stylesheet sets
@@ -147,8 +132,10 @@ export function CookieBanner() {
           which does not compute rendered CSS color values (T126/T127).
         */}
         <p className="mb-0 small text-light">
-          We use performance cookies and strictly necessary cookies to
-          understand how visitors use our site.{' '}
+          We use strictly necessary cookies to run this site, and optional
+          performance cookies to understand how visitors use it. Choose
+          Accept All to allow both, or Necessary Cookies Only to keep just
+          the strictly necessary ones.{' '}
           <Link
             to="/cookie-policy"
             className="text-info text-decoration-underline"
@@ -160,15 +147,22 @@ export function CookieBanner() {
           <button
             type="button"
             className="btn btn-primary btn-sm"
-            onClick={acknowledge}
+            onClick={acceptAll}
           >
-            Acknowledge
+            Accept All
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-light btn-sm"
+            onClick={necessaryOnly}
+          >
+            Necessary Cookies Only
           </button>
           <button
             type="button"
             className="btn-close btn-close-white"
             aria-label="Close"
-            onClick={acknowledge}
+            onClick={closeForSession}
           />
         </div>
       </div>

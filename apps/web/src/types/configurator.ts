@@ -184,7 +184,7 @@ export type WallPosition = 'north' | 'east' | 'south' | 'west';
  * component (different hinge indicators, frame widths, and opening arcs).
  */
 export type ApertureType =
-  | 'tilt-turn-window'
+  | 'window'
   | 'french-door'
   | 'sliding-door'
   | 'fixed-glazing';

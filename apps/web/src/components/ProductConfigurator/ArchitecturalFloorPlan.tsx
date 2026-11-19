@@ -61,7 +61,7 @@ import React from 'react';
  */
 export interface ExteriorAperture {
   /** Determines the visual symbol: glazing lines only, or glazing + door swing arc. */
-  type: 'tilt-turn-window' | 'sliding-door';
+  type: 'window' | 'sliding-door';
   /** Which outer wall this aperture is positioned on. */
   wall: 'north' | 'east' | 'south' | 'west';
   /** Distance in mm from the left (or top) inner wall corner to the aperture start. */

@@ -376,7 +376,7 @@ const COMPACT_15: HydratedProduct = {
     { id: 'sp-compact-03', productId: 'cp-compact-15', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',       displayOrder: 3 },
     { id: 'sp-compact-04', productId: 'cp-compact-15', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',    displayOrder: 4 },
     { id: 'sp-compact-05', productId: 'cp-compact-15', label: 'Flooring',    value: 'Laminated flooring',            displayOrder: 5 },
-    { id: 'sp-compact-06', productId: 'cp-compact-15', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
+    { id: 'sp-compact-06', productId: 'cp-compact-15', label: 'Glazing',     value: 'Window + French door', displayOrder: 6 },
     { id: 'sp-compact-07', productId: 'cp-compact-15', label: 'Electrics',   value: 'Full consumer unit ready',      displayOrder: 7 },
     { id: 'sp-compact-08', productId: 'cp-compact-15', label: 'Roof',        value: 'EPDM long life roof',           displayOrder: 8 },
   ],
@@ -442,7 +442,7 @@ const COMPACT_15: HydratedProduct = {
   },
   floorPlan: {
     apertures: [
-      { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
+      { type: 'window', wall: 'north', widthMm: 700,  heightMm: 2100 },
       { type: 'french-door',      wall: 'east',  widthMm: 1200, heightMm: 2100 },
     ],
     dimensionLabels: { width: '5.0m', depth: '3.0m' },
@@ -541,7 +541,7 @@ const STUDIO_25: HydratedProduct = {
     { id: 'sp-studio-03', productId: 'cp-studio-25', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',         displayOrder: 3 },
     { id: 'sp-studio-04', productId: 'cp-studio-25', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',      displayOrder: 4 },
     { id: 'sp-studio-05', productId: 'cp-studio-25', label: 'Flooring',    value: 'Laminated flooring',              displayOrder: 5 },
-    { id: 'sp-studio-06', productId: 'cp-studio-25', label: 'Glazing',     value: 'Tilt & turn window + French door', displayOrder: 6 },
+    { id: 'sp-studio-06', productId: 'cp-studio-25', label: 'Glazing',     value: 'Window + French door', displayOrder: 6 },
     { id: 'sp-studio-07', productId: 'cp-studio-25', label: 'Electrics',   value: 'Full consumer unit ready',        displayOrder: 7 },
     { id: 'sp-studio-08', productId: 'cp-studio-25', label: 'Roof',        value: 'EPDM long life roof',             displayOrder: 8 },
   ],
@@ -673,7 +673,7 @@ const STUDIO_25: HydratedProduct = {
   },
   floorPlan: {
     apertures: [
-      { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
+      { type: 'window', wall: 'north', widthMm: 700,  heightMm: 2100 },
       { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
     ],
     dimensionLabels: { width: '5.0m', depth: '5.0m' },
@@ -692,7 +692,7 @@ const STUDIO_25: HydratedProduct = {
       displayOrder: 1,
       floorPlan: {
         apertures: [
-          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+          { type: 'window', wall: 'south', widthMm: 700,  heightMm: 2100 },
           { type: 'french-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
         ],
         dimensionLabels: { width: '5.0m', depth: '5.0m' },
@@ -717,7 +717,7 @@ const STUDIO_25: HydratedProduct = {
       displayOrder: 2,
       floorPlan: {
         apertures: [
-          { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+          { type: 'window', wall: 'south', widthMm: 700,  heightMm: 2100 },
           { type: 'french-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
         ],
         dimensionLabels: { width: '6.0m', depth: '4.15m' },
@@ -809,7 +809,7 @@ const LIVING_32: HydratedProduct = {
     { id: 'sp-living-03', productId: 'cp-living-32', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                     displayOrder: 3 },
     { id: 'sp-living-04', productId: 'cp-living-32', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                  displayOrder: 4 },
     { id: 'sp-living-05', productId: 'cp-living-32', label: 'Flooring',    value: 'Laminated flooring',                          displayOrder: 5 },
-    { id: 'sp-living-06', productId: 'cp-living-32', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door',  displayOrder: 6 },
+    { id: 'sp-living-06', productId: 'cp-living-32', label: 'Glazing',     value: '2\u00D7 windows + French door',  displayOrder: 6 },
     { id: 'sp-living-07', productId: 'cp-living-32', label: 'Electrics',   value: 'Full consumer unit ready',                    displayOrder: 7 },
     { id: 'sp-living-08', productId: 'cp-living-32', label: 'Roof',        value: 'EPDM long life roof',                         displayOrder: 8 },
     { id: 'sp-living-09', productId: 'cp-living-32', label: 'Plumbing',    value: 'Bathroom + kitchen included',                 displayOrder: 9 },
@@ -899,8 +899,8 @@ const LIVING_32: HydratedProduct = {
   },
   floorPlan: {
     apertures: [
-      { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
-      { type: 'tilt-turn-window', wall: 'north', widthMm: 700,  heightMm: 2100 },
+      { type: 'window', wall: 'north', widthMm: 700,  heightMm: 2100 },
+      { type: 'window', wall: 'north', widthMm: 700,  heightMm: 2100 },
       { type: 'french-door',     wall: 'east',  widthMm: 2400, heightMm: 2100 },
     ],
     dimensionLabels: { width: '7.0m', depth: '5.0m' },
@@ -987,7 +987,7 @@ const GRAND_45: HydratedProduct = {
     { id: 'sp-grand-03', productId: 'cp-grand-45', label: 'Structure',   value: 'EN1090 Light Gauge Steel frame',                           displayOrder: 3 },
     { id: 'sp-grand-04', productId: 'cp-grand-45', label: 'Insulation',  value: '90mm rock wool + 100mm EPS',                               displayOrder: 4 },
     { id: 'sp-grand-05', productId: 'cp-grand-45', label: 'Flooring',    value: 'Laminated flooring',                                       displayOrder: 5 },
-    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 tilt & turn windows + French door + French door', displayOrder: 6 },
+    { id: 'sp-grand-06', productId: 'cp-grand-45', label: 'Glazing',     value: '2\u00D7 windows + French door + French door', displayOrder: 6 },
     { id: 'sp-grand-07', productId: 'cp-grand-45', label: 'Electrics',   value: 'Full consumer unit ready',                                 displayOrder: 7 },
     { id: 'sp-grand-08', productId: 'cp-grand-45', label: 'Roof',        value: 'EPDM long life roof',                                      displayOrder: 8 },
     { id: 'sp-grand-09', productId: 'cp-grand-45', label: 'Plumbing',    value: 'Bathroom + kitchen included',                              displayOrder: 9 },
@@ -1106,8 +1106,8 @@ const GRAND_45: HydratedProduct = {
   },
   floorPlan: {
     apertures: [
-      { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-      { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+      { type: 'window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+      { type: 'window', wall: 'north', widthMm: 900,  heightMm: 2100 },
       { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
       { type: 'french-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
     ],
@@ -1127,8 +1127,8 @@ const GRAND_45: HydratedProduct = {
       displayOrder: 1,
       floorPlan: {
         apertures: [
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'window', wall: 'north', widthMm: 900,  heightMm: 2100 },
           { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
           { type: 'french-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
         ],
@@ -1149,8 +1149,8 @@ const GRAND_45: HydratedProduct = {
       displayOrder: 2,
       floorPlan: {
         apertures: [
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
-          { type: 'tilt-turn-window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'window', wall: 'north', widthMm: 900,  heightMm: 2100 },
+          { type: 'window', wall: 'north', widthMm: 900,  heightMm: 2100 },
           { type: 'french-door',      wall: 'east',  widthMm: 1600, heightMm: 2100 },
           { type: 'french-door',     wall: 'south', widthMm: 3000, heightMm: 2100 },
         ],

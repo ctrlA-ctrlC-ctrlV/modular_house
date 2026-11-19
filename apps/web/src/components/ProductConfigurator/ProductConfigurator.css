@@ -651,7 +651,7 @@
   padding: 6px 0;
 }
 
-/* Aperture type label (e.g., "Tilt & turn window") */
+/* Aperture type label (e.g., "Window") */
 .configurator__glazing-detail-label {
   font-size: 13px;
   color: var(--cfg-color-text-secondary);

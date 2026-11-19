@@ -59,7 +59,7 @@ export const FloorPlan: React.FC<FloorPlanProps> = ({
    *   2. Calculates a proportionally-scaled width and a centred start
    *      position for each aperture within its wall group.
    *   3. Generates the appropriate SVG primitives per aperture type:
-   *      - tilt-turn-window / fixed-glazing: narrow blue rectangle with
+   *      - window / fixed-glazing: narrow blue rectangle with
    *        a centre divider line to indicate the glazing split.
    *      - french-door: wider blue rectangle with a dashed quadratic
    *        Bezier arc representing the door swing.
@@ -149,7 +149,7 @@ export const FloorPlan: React.FC<FloorPlanProps> = ({
 
       /* Classification flags drive visual treatment per aperture type. */
       const isWindow =
-        aperture.type === 'tilt-turn-window' || aperture.type === 'fixed-glazing';
+        aperture.type === 'window' || aperture.type === 'fixed-glazing';
       const isDoor =
         aperture.type === 'french-door' || aperture.type === 'sliding-door';
 

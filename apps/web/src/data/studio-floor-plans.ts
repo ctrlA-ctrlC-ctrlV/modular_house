@@ -82,7 +82,7 @@ const INTERNAL_DOOR_WIDTH_MM = 700;
  */
 const APERTURES_5X5: ReadonlyArray<ExteriorAperture> = [
   {
-    type: 'tilt-turn-window',
+    type: 'window',
     wall: 'south',
     offsetMm: 650,
     widthMm: 700,
@@ -106,7 +106,7 @@ const APERTURES_5X5: ReadonlyArray<ExteriorAperture> = [
  */
 const APERTURES_4X6: ReadonlyArray<ExteriorAperture> = [
   {
-    type: 'tilt-turn-window',
+    type: 'window',
     wall: 'south',
     offsetMm: 1250,
     widthMm: 700,

@@ -800,12 +800,12 @@ interface WarrantyCoverage {
  * (e.g., "Front window", "French door") and the dimensions string
  * provides the nominal width and height in millimetres.
  *
- * Multiple entries of the same type (e.g., two tilt & turn windows)
+ * Multiple entries of the same type (e.g., two windows)
  * are represented as separate records so that the quantity is explicit
  * in the data rather than encoded in a display string.
  */
 interface GlazingDetail {
-  /** Aperture type label (e.g., "Tilt & turn window", "French door"). */
+  /** Aperture type label (e.g., "Window", "French door"). */
   readonly label: string;
   /** Nominal dimensions formatted as width x height (e.g., "700mm x 2100mm"). */
   readonly dimensions: string;

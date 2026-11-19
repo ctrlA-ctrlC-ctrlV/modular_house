@@ -903,9 +903,9 @@ const LIVING_32: HydratedProduct = {
       { type: 'window', wall: 'north', widthMm: 700,  heightMm: 2100 },
       { type: 'french-door',     wall: 'east',  widthMm: 2400, heightMm: 2100 },
     ],
-    dimensionLabels: { width: '7.0m', depth: '5.0m' },
+    dimensionLabels: { width: '8.0m', depth: '4.0m' },
   },
-  floorPlanImagePath: '/resource/floorplan/7m-x-5m-bedroom.svg',
+  floorPlanImagePath: '/resource/floorplan/8m-x-4m-bedroom.svg',
 };
 
 
@@ -1134,7 +1134,7 @@ const GRAND_45: HydratedProduct = {
         ],
         dimensionLabels: { width: '9.0m', depth: '5.0m' },
       },
-      floorPlanImagePath: '/resource/floorplan/9m-x-5m.svg',
+      floorPlanImagePath: '/resource/floorplan/9m-x-5m-2-bedroom.svg',
     },
     {
       id: 'fpv-grand-7.5x6',
@@ -1156,7 +1156,7 @@ const GRAND_45: HydratedProduct = {
         ],
         dimensionLabels: { width: '7.5m', depth: '6.0m' },
       },
-      floorPlanImagePath: '/resource/floorplan/7.5m-x-6m.svg',
+      floorPlanImagePath: '/resource/floorplan/7-5m-x-6m-2-bedroom.svg',
     },
   ],
 };

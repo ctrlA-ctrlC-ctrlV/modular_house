@@ -512,7 +512,7 @@ Adds rendering of exterior apertures (windows and doors) on the south wall. The 
 ```typescript
 interface ExteriorAperture {
   /** Type determines the visual symbol rendered. */
-  type: 'tilt-turn-window' | 'sliding-door';
+  type: 'window' | 'sliding-door';
   /** Which outer wall this aperture sits on. */
   wall: 'north' | 'east' | 'south' | 'west';
   /** Distance in mm from the left (or top) inner wall corner to the start of this aperture. */
@@ -530,7 +530,7 @@ For each aperture, suppress the outer and inner wall strokes over the aperture's
 
 **Aperture symbol rendering:**
 
-1. **Tilt-and-turn window (700mm):**
+1. **Window (700mm):**
    - Draw two thin parallel horizontal lines across the wall gap, spaced `wallThicknessScaled` apart (matching the outer and inner wall faces). These represent the glazing panes.
    - Stroke: `#333333`, width `0.5`.
    - No swing arc.
@@ -1001,7 +1001,7 @@ Four changes to the `STUDIO_25` constant. No other product constants are touched
      ```typescript
      floorPlan: {
        apertures: [
-         { type: 'tilt-turn-window', wall: 'south', widthMm: 700,  heightMm: 2100 },
+         { type: 'window', wall: 'south', widthMm: 700,  heightMm: 2100 },
          { type: 'sliding-door',     wall: 'south', widthMm: 1600, heightMm: 2100 },
        ],
        dimensionLabels: { width: '6.0m', depth: '4.15m' },
